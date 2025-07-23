@@ -1,0 +1,191 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light mode colors */
+    --background: 0 0% 100%; /* #FFFFFF */
+    --foreground: 0 0% 6.7%; /* #111111 */
+
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 0 0% 6.7%; /* Dark text */
+
+    --popover: 0 0% 100%; /* White */
+    --popover-foreground: 0 0% 6.7%; /* Dark text */
+
+    --primary: 226 70% 55.5%; /* #3D63DD - Radix Blue */
+    --primary-foreground: 0 0% 100%; /* White text on primary */
+
+    --secondary: 240 4.8% 95.9%; /* Light gray */
+    --secondary-foreground: 0 0% 6.7%; /* Dark text */
+
+    --muted: 240 4.8% 95.9%; /* Light gray */
+    --muted-foreground: 240 3.8% 46.1%; /* Medium gray text */
+
+    --accent: 226 70% 55.5%; /* #3D63DD - Radix Blue */
+    --accent-foreground: 0 0% 100%; /* White text on accent */
+
+    --destructive: 0 84.2% 60.2%; /* Red */
+    --destructive-foreground: 0 0% 100%; /* White text */
+
+    --border: 240 5.9% 90%; /* Light gray border */
+    --input: 240 5.9% 90%; /* Light gray input */
+    --ring: 226 70% 55.5%; /* #3D63DD - Focus ring */
+
+    --radius: 0.5rem;
+
+    /* Gray scale based on #8B8D98 */
+    --gray-50: 240 9% 98%;
+    --gray-100: 240 7% 96%;
+    --gray-200: 240 6% 90%;
+    --gray-300: 240 5% 84%;
+    --gray-400: 240 4% 70%;
+    --gray-500: 240 3.8% 56.9%; /* #8B8D98 */
+    --gray-600: 240 4% 46%;
+    --gray-700: 240 5% 34%;
+    --gray-800: 240 6% 20%;
+    --gray-900: 240 8% 10%;
+
+    --sidebar-background: 0 0% 98%; /* Very light background */
+    --sidebar-foreground: 0 0% 6.7%; /* Dark text */
+    --sidebar-primary: 226 70% 55.5%; /* #3D63DD */
+    --sidebar-primary-foreground: 0 0% 100%; /* White */
+    --sidebar-accent: 240 4.8% 95.9%; /* Light gray */
+    --sidebar-accent-foreground: 0 0% 6.7%; /* Dark text */
+    --sidebar-border: 240 5.9% 90%; /* Light gray border */
+    --sidebar-ring: 226 70% 55.5%; /* #3D63DD */
+  }
+
+  .dark {
+    /* Dark mode colors */
+    --background: 0 0% 6.7%; /* #111111 */
+    --foreground: 0 0% 95%; /* Light text */
+
+    --card: 0 0% 10%; /* Dark card */
+    --card-foreground: 0 0% 95%; /* Light text */
+
+    --popover: 0 0% 10%; /* Dark popover */
+    --popover-foreground: 0 0% 95%; /* Light text */
+
+    --primary: 226 70% 55.5%; /* #3D63DD - Same blue for consistency */
+    --primary-foreground: 0 0% 100%; /* White text on primary */
+
+    --secondary: 0 0% 14.5%; /* Dark gray */
+    --secondary-foreground: 0 0% 95%; /* Light text */
+
+    --muted: 0 0% 14.5%; /* Dark gray */
+    --muted-foreground: 240 5% 64.9%; /* Medium gray text */
+
+    --accent: 226 70% 55.5%; /* #3D63DD - Same blue */
+    --accent-foreground: 0 0% 100%; /* White text on accent */
+
+    --destructive: 0 62.8% 30.6%; /* Dark red */
+    --destructive-foreground: 0 0% 95%; /* Light text */
+
+    --border: 0 0% 14.5%; /* Dark gray border */
+    --input: 0 0% 14.5%; /* Dark gray input */
+    --ring: 226 70% 55.5%; /* #3D63DD - Focus ring */
+
+    /* Gray scale for dark mode */
+    --gray-50: 0 0% 10%;
+    --gray-100: 0 0% 12%;
+    --gray-200: 0 0% 14.5%;
+    --gray-300: 0 0% 18%;
+    --gray-400: 240 3.7% 32%;
+    --gray-500: 240 3.8% 56.9%; /* #8B8D98 */
+    --gray-600: 240 5% 64.9%;
+    --gray-700: 240 5% 78%;
+    --gray-800: 240 6% 90%;
+    --gray-900: 240 9% 98%;
+
+    --sidebar-background: 0 0% 8%; /* Very dark background */
+    --sidebar-foreground: 0 0% 95%; /* Light text */
+    --sidebar-primary: 226 70% 55.5%; /* #3D63DD */
+    --sidebar-primary-foreground: 0 0% 100%; /* White */
+    --sidebar-accent: 0 0% 14.5%; /* Dark gray */
+    --sidebar-accent-foreground: 0 0% 95%; /* Light text */
+    --sidebar-border: 0 0% 14.5%; /* Dark gray border */
+    --sidebar-ring: 226 70% 55.5%; /* #3D63DD */
+  }
+
+  /* Status bar background fix */
+  @supports (padding: max(0px)) {
+    body {
+      padding-top: env(safe-area-inset-top);
+      background-color: hsl(var(--background));
+    }
+  }
+}
+
+@layer components {
+  .button-generate {
+    @apply px-8 py-2 h-10;
+    width: auto;
+    min-width: 200px;
+  }
+  
+  /* Shimmer animation for dark mode text */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  
+  .shimmer-text {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+  
+  .shimmer-text-delayed {
+    background: linear-gradient(90deg, transparent, rgba(147, 197, 253, 0.8), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite 0.5s;
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+  
+  .output-container {
+    position: relative;
+  }
+  
+  .form-input:focus {
+    @apply ring-2 ring-primary ring-offset-2;
+  }
+  
+  .workflow-container {
+    @apply space-y-6;
+  }
+  
+  .textarea-auto {
+    resize: vertical;
+    min-height: 120px;
+  }
+  
+  .smooth-scroll {
+    scroll-behavior: smooth;
+  }
+  
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+

@@ -1,0 +1,30 @@
+
+{
+  "name": "New York Digital - Legislative Research System",
+  "short_name": "NY Digital",
+  "description": "Comprehensive platform for New York State legislative research, bill tracking, and analysis",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/lovable-uploads/2bb5fda4-6ad3-4bdb-bd9a-c07d186b4aba.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/lovable-uploads/2bb5fda4-6ad3-4bdb-bd9a-c07d186b4aba.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/lovable-uploads/2bb5fda4-6ad3-4bdb-bd9a-c07d186b4aba.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

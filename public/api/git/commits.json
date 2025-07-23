@@ -1,0 +1,23 @@
+[
+  {
+    "hash": "d0c83e98",
+    "date": "2025-07-23T10:30:00Z",
+    "message": "feat: Radix color system with light/dark mode",
+    "author": "Claude Code",
+    "files": ["src/index.css", "tailwind.config.ts"]
+  },
+  {
+    "hash": "a1b2c3d4",
+    "date": "2025-07-22T15:45:00Z",
+    "message": "feat(ui): Implement Perplexity-style autocomplete combobox",
+    "author": "Claude Code",
+    "files": ["src/components/AutocompleteCombobox.tsx", "src/pages/Home.tsx"]
+  },
+  {
+    "hash": "e5f6g7h8",
+    "date": "2025-07-22T14:20:00Z",
+    "message": "enhance(ux): Add Magic UI components and filter improvements",
+    "author": "Claude Code",
+    "files": ["src/components/magicui/", "src/components/features/"]
+  }
+]

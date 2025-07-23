@@ -1,0 +1,1 @@
+-- Update Stripe success URL in edge functions to redirect to New York Digital plans page

@@ -1,0 +1,223 @@
+name: Update Changelog
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  update-changelog:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch full history for changelog generation
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Generate changelog data
+        id: changelog
+        run: |
+          # Create a script to generate changelog JSON from git log
+          cat > generate-changelog.js << 'EOF'
+          const { execSync } = require('child_process');
+          const fs = require('fs');
+          
+          function parseCommitMessage(message) {
+            const conventionalRegex = /^(\w+)(?:\(([^)]+)\))?\!?:\s*(.+)$/;
+            const match = message.match(conventionalRegex);
+            
+            if (match) {
+              const [, type, scope, description] = match;
+              return {
+                type: type.toLowerCase(),
+                scope,
+                description,
+                isBreaking: message.includes('!')
+              };
+            }
+            
+            const firstLine = message.split('\n')[0];
+            if (firstLine.toLowerCase().startsWith('feat')) {
+              return { type: 'feat', description: firstLine, isBreaking: false };
+            } else if (firstLine.toLowerCase().startsWith('fix')) {
+              return { type: 'fix', description: firstLine, isBreaking: false };
+            } else {
+              return { type: 'chore', description: firstLine, isBreaking: false };
+            }
+          }
+          
+          function categorizeCommit(type, scope) {
+            const categoryMap = {
+              'feat': scope ? scopeToCategory(scope) : 'Features',
+              'fix': 'Bug Fixes',
+              'docs': 'Documentation',
+              'style': 'Styling',
+              'refactor': 'Code Improvements',
+              'perf': 'Performance',
+              'test': 'Testing',
+              'chore': scope ? scopeToCategory(scope) : 'Maintenance',
+              'build': 'Build System',
+              'ci': 'CI/CD'
+            };
+            
+            return categoryMap[type] || 'Other';
+          }
+          
+          function scopeToCategory(scope) {
+            const scopeMap = {
+              'ui': 'UI/UX',
+              'ux': 'UI/UX',
+              'auth': 'Authentication',
+              'api': 'API',
+              'db': 'Database',
+              'search': 'Search',
+              'chat': 'AI Chat',
+              'bills': 'Bills',
+              'members': 'Members',
+              'committees': 'Committees',
+              'dashboard': 'Dashboard',
+              'analytics': 'Analytics',
+              'performance': 'Performance',
+              'accessibility': 'Accessibility',
+              'mobile': 'Mobile',
+              'desktop': 'Desktop'
+            };
+            
+            return scopeMap[scope.toLowerCase()] || 'Features';
+          }
+          
+          try {
+            // Get commits from the last 30 days
+            const gitLog = execSync('git log --since="30 days ago" --pretty=format:"%H|%ad|%s|%an|%D" --date=iso', { encoding: 'utf8' });
+            
+            const commits = gitLog.split('\n')
+              .filter(line => line.trim())
+              .map(line => {
+                const [hash, date, message, author, refs] = line.split('|');
+                return {
+                  hash: hash.substring(0, 8),
+                  date: new Date(date).toISOString(),
+                  message: message.trim(),
+                  author: author.trim(),
+                  refs: refs || ''
+                };
+              });
+            
+            // Group commits by day for auto-versioning
+            const groups = [];
+            let currentGroup = null;
+            let versionCounter = 1;
+            
+            commits.forEach(commit => {
+              const commitDate = new Date(commit.date);
+              const dateKey = commitDate.toDateString();
+              
+              if (!currentGroup || currentGroup.dateKey !== dateKey) {
+                if (currentGroup) {
+                  groups.push(currentGroup);
+                }
+                currentGroup = {
+                  dateKey,
+                  version: `v1.${groups.length + 1}.0`,
+                  date: commitDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  }),
+                  commits: [commit]
+                };
+              } else {
+                currentGroup.commits.push(commit);
+              }
+            });
+            
+            if (currentGroup) {
+              groups.push(currentGroup);
+            }
+            
+            // Convert to changelog format
+            const changelog = groups.map((group, index) => {
+              const features = group.commits
+                .map(commit => {
+                  const parsed = parseCommitMessage(commit.message);
+                  if (parsed.type === 'chore' && !parsed.scope) return null;
+                  
+                  return {
+                    title: parsed.description.replace(/^(add|implement|create|fix|update|enhance|improve)\s*/i, '').replace(/^\w/, c => c.toUpperCase()),
+                    description: parsed.description,
+                    category: categorizeCommit(parsed.type, parsed.scope),
+                    type: parsed.type
+                  };
+                })
+                .filter(Boolean);
+              
+              const hasFeatures = features.some(f => f.type === 'feat');
+              const hasFixes = features.some(f => f.type === 'fix');
+              const hasUI = features.some(f => f.category.includes('UI'));
+              
+              let title = 'Platform Updates';
+              if (hasFeatures && hasUI) {
+                title = 'Enhanced User Experience & New Features';
+              } else if (hasFeatures) {
+                title = 'New Features & Improvements';
+              } else if (hasFixes) {
+                title = 'Bug Fixes & Stability Improvements';
+              }
+              
+              const categories = [...new Set(features.map(f => f.category))];
+              const description = `Updates and improvements across ${categories.slice(0, 3).join(', ')}${categories.length > 3 ? ' and more' : ''}.`;
+              
+              return {
+                version: group.version,
+                date: group.date,
+                title,
+                description,
+                commits: group.commits,
+                features,
+                isLatest: index === 0
+              };
+            });
+            
+            // Write to file
+            fs.writeFileSync('public/api/changelog.json', JSON.stringify(changelog, null, 2));
+            console.log(`Generated changelog with ${changelog.length} entries`);
+            
+          } catch (error) {
+            console.error('Error generating changelog:', error);
+            process.exit(1);
+          }
+          EOF
+          
+          node generate-changelog.js
+          
+      - name: Create API endpoint
+        run: |
+          mkdir -p public/api/git
+          
+          # Create a simple commits endpoint
+          cat > public/api/git/commits.json << 'EOF'
+          []
+          EOF
+          
+      - name: Commit changelog updates
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          if [ -n "$(git status --porcelain)" ]; then
+            git add public/api/
+            git commit -m "chore: update changelog from latest commits [skip ci]"
+            git push
+          else
+            echo "No changelog changes to commit"
+          fi
