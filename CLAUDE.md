@@ -113,3 +113,81 @@ src/
 - Follow existing TypeScript strict typing patterns
 - Use React Query for all server state management
 - Implement proper error boundaries and loading states
+
+## Design Philosophy & Visual Standards
+
+### Recent Success - Radix Design System Implementation
+The platform recently underwent an exceptional UI/UX redesign using Radix design principles. This work represents the quality standard for all future design decisions.
+
+### Color Palette (Custom Radix)
+- **Accent**: #3D63DD (professional blue)
+- **Gray**: #8B8D98 (muted gray)
+- **Background**: #FFFFFF (light) / Dark theme backgrounds
+- **Priority Colors**: High (red), Normal (blue), Low (green), Urgent (orange)
+
+### Design Excellence Examples
+The current implementation demonstrates outstanding design work:
+- Clean changelog with accordion functionality
+- Professional subscription plans layout
+- Excellent bills/legislation browsing interface
+- Committee management with proper card layouts
+- **Perfect light/dark mode implementations** (both modes work beautifully)
+- Subtle animations and micro-interactions
+
+### Design Standards
+- Prioritize clean, professional interfaces over flashy effects
+- Maintain Radix design system consistency
+- Always ensure both light AND dark modes work perfectly
+- Use subtle animations and proper visual hierarchy
+- Professional typography and spacing
+- Accessible color contrasts and interactions
+
+### UI/UX Quality Bar
+The recent Radix redesign work was exceptional - maintain this level of design quality in all future changes.
+
+### Component Libraries & Resources
+
+#### Primary Design System
+- **shadcn/ui**: Built on Radix UI primitives with Tailwind styling
+- **Radix UI**: Core accessible primitives and design tokens
+
+#### Secondary Component Resources
+- **ReactBits.dev**: Excellent dark mode components and advanced UI patterns
+  - Use for complex dark mode implementations
+  - High-quality component examples and patterns
+- **MagicUI.design**: Modern component library with beautiful animations
+  - Leverage for enhanced UI components and micro-interactions
+  - Expect frequent integration of components from this source
+
+#### Component Integration Workflow
+- Components from ReactBits and MagicUI may be dropped in for replication/adaptation
+- Maintain design system consistency when integrating external components
+- Adapt component styling to match our Radix/shadcn design tokens
+
+### Development Standards
+
+#### Animation Philosophy
+- **Subtle, unexpected, joyful, dopamine-driven interactions**
+- Micro-animations that delight without overwhelming
+- Performance-first: animations should enhance, not hinder
+
+#### Performance Priority
+- **Performance first, always**
+- Prioritize performance over complex animations
+- Optimize for fast load times and smooth interactions
+
+#### Accessibility Standards
+- Maintain Radix UI's accessibility-first approach
+- Proper ARIA labels, keyboard navigation, and screen reader support
+- Color contrast compliance and focus management
+
+#### Mobile-First Development
+- **PIXEL PERFECT ON MOBILE OR IT'S NOT DONE**
+- Mobile-first responsive design approach
+- Test thoroughly on mobile devices before desktop
+- Touch-friendly interactions and proper spacing
+
+#### Browser Support
+- Modern browser support (Chrome, Firefox, Safari, Edge)
+- Progressive enhancement for older browsers
+- Cross-browser testing for critical functionality
