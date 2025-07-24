@@ -4,9 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
-import { BillsTableDesktop } from "./BillsTableDesktop";
-import { BillsTableMobile } from "./BillsTableMobile";
 import { AllItemsTable } from "./AllItemsTable";
+import { DashboardBillsTable } from "./DashboardBillsTable";
 import { MembersTable } from "./MembersTable";
 import { CommitteesTable } from "./CommitteesTable";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -104,25 +103,7 @@ export const DashboardTabsSection = ({ bills }: DashboardTabsSectionProps) => {
             </TabsContent>
 
             <TabsContent value="bill" className="mt-6">
-              <div className="w-full">
-                <BillsTableMobile
-                  bills={bills}
-                  onBillSelect={handleBillSelect}
-                  onAIAnalysis={handleAIAnalysis}
-                  onFavorite={handleFavorite}
-                  favoriteBillIds={favoriteBillIds}
-                  billsWithAIChat={billsWithAIChat}
-                />
-
-                <BillsTableDesktop
-                  bills={bills}
-                  onBillSelect={handleBillSelect}
-                  onAIAnalysis={handleAIAnalysis}
-                  onFavorite={handleFavorite}
-                  favoriteBillIds={favoriteBillIds}
-                  billsWithAIChat={billsWithAIChat}
-                />
-              </div>
+              <DashboardBillsTable />
             </TabsContent>
 
             <TabsContent value="members" className="mt-6">
