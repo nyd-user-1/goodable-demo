@@ -452,7 +452,7 @@ const Landing = () => {
             <div>
               <h3 className="font-semibold mb-4">Company</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#about" className="hover:text-foreground">About</a></li>
+                <li><Link to="/about" className="hover:text-foreground">About</Link></li>
                 <li><a href="#blog" className="hover:text-foreground">Blog</a></li>
                 <li><a href="#careers" className="hover:text-foreground">Careers</a></li>
                 <li><a href="#contact" className="hover:text-foreground">Contact</a></li>

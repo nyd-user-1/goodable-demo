@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -25,16 +25,82 @@ import HeroVideoDialog from '@/components/magicui/hero-video-dialog';
 import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 import { problems } from '@/data/problems';
+import { supabase } from '@/integrations/supabase/client';
+import { ChartAreaInteractive } from '@/components/charts/ChartAreaInteractive';
+import { ChartBarEngagement } from '@/components/charts/ChartBarEngagement';
+import { ChartPieBillStatus } from '@/components/charts/ChartPieBillStatus';
+import { ChartLinePolicyImpact } from '@/components/charts/ChartLinePolicyImpact';
 import '@/components/magicui/animated-background.css';
+
+interface Member {
+  people_id: number;
+  name: string;
+  first_name: string;
+  last_name: string;
+  photo_url: string;
+  party: string;
+  chamber: string;
+  district: string;
+  role: string;
+  bills?: number;
+}
 
 const Landing2 = () => {
   const navigate = useNavigate();
   const featuresRef = useRef<HTMLDivElement>(null);
   const [userProblem, setUserProblem] = useState('');
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const handleDoSomethingClick = () => {
     // Scroll to search or do something
   };
+
+  // Fetch real people data from Supabase
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("People")
+          .select(`
+            people_id,
+            name,
+            first_name,
+            last_name,
+            photo_url,
+            party,
+            chamber,
+            district,
+            role
+          `)
+          .not("chamber", "is", null)
+          .not("name", "is", null)
+          .not("photo_url", "is", null)
+          .order("last_name", { ascending: true })
+          .limit(12);
+
+        if (error) {
+          console.error('Error fetching members:', error);
+          return;
+        }
+
+        if (data) {
+          // Add mock bill counts for display
+          const membersWithBills = data.map((member, index) => ({
+            ...member,
+            bills: Math.floor(Math.random() * 60) + 20 // Random between 20-80
+          }));
+          setMembers(membersWithBills);
+        }
+      } catch (error) {
+        console.error('Error fetching members:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMembers();
+  }, []);
 
   const features = [
     {
@@ -75,50 +141,6 @@ const Landing2 = () => {
     }
   ];
 
-  const members = [
-    {
-      name: "Sen. Andrea Stewart-Cousins",
-      role: "Senate Majority Leader",
-      party: "Democrat",
-      image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=64&h=64&fit=crop&crop=face",
-      bills: 42
-    },
-    {
-      name: "Asm. Carl Heastie",
-      role: "Assembly Speaker",
-      party: "Democrat", 
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop&crop=face",
-      bills: 38
-    },
-    {
-      name: "Sen. Robert Ortt",
-      role: "Senate Minority Leader",
-      party: "Republican",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop&crop=face",
-      bills: 29
-    },
-    {
-      name: "Asm. William Barclay",
-      role: "Assembly Minority Leader",
-      party: "Republican",
-      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=64&h=64&fit=crop&crop=face",
-      bills: 31
-    },
-    {
-      name: "Sen. Liz Krueger",
-      role: "Finance Committee Chair",
-      party: "Democrat",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=64&h=64&fit=crop&crop=face",
-      bills: 56
-    },
-    {
-      name: "Asm. Helene Weinstein",
-      role: "Judiciary Committee Chair",
-      party: "Democrat",
-      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=64&h=64&fit=crop&crop=face",
-      bills: 44
-    }
-  ];
 
   const problemCards = problems.slice(0, 6);
 
@@ -168,19 +190,28 @@ const Landing2 = () => {
     }
   ];
 
-  const MemberCard = ({ member }: { member: typeof members[0] }) => (
-    <figure className={cn(
-      "relative h-full w-56 sm:w-64 cursor-pointer overflow-hidden rounded-xl border p-3 sm:p-4",
-      "border-gray-950/[.1] bg-gray-950/[.01] hover:bg-gray-950/[.05]",
-      "dark:border-gray-50/[.1] dark:bg-gray-50/[.10] dark:hover:bg-gray-50/[.15]",
-    )}>
+  const MemberCard = ({ member }: { member: Member }) => (
+    <figure 
+      className={cn(
+        "relative h-full w-56 sm:w-64 cursor-pointer overflow-hidden rounded-xl border p-3 sm:p-4 transition-all hover:scale-105",
+        "border-gray-950/[.1] bg-gray-950/[.01] hover:bg-gray-950/[.05]",
+        "dark:border-gray-50/[.1] dark:bg-gray-50/[.10] dark:hover:bg-gray-50/[.15]",
+      )}
+      onClick={() => navigate('/members')}
+    >
       <div className="flex flex-row items-center gap-2">
-        <img className="rounded-full" width="28" height="28" alt="" src={member.image} />
+        <img 
+          className="rounded-full" 
+          width="28" 
+          height="28" 
+          alt={member.name || 'Member photo'} 
+          src={member.photo_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=28&h=28&fit=crop&crop=face'} 
+        />
         <div className="flex flex-col">
           <figcaption className="text-xs sm:text-sm font-medium dark:text-white">
             {member.name}
           </figcaption>
-          <p className="text-xs font-medium dark:text-white/40">{member.role}</p>
+          <p className="text-xs font-medium dark:text-white/40">{member.role || `${member.chamber} Member`}</p>
         </div>
       </div>
       <div className="mt-2 text-xs sm:text-sm">
@@ -191,11 +222,14 @@ const Landing2 = () => {
   );
 
   const ProblemCard = ({ problem }: { problem: typeof problemCards[0] }) => (
-    <figure className={cn(
-      "relative h-full w-56 sm:w-64 cursor-pointer overflow-hidden rounded-xl border p-3 sm:p-4",
-      "border-gray-950/[.1] bg-gray-950/[.01] hover:bg-gray-950/[.05]",
-      "dark:border-gray-50/[.1] dark:bg-gray-50/[.10] dark:hover:bg-gray-50/[.15]",
-    )}>
+    <figure 
+      className={cn(
+        "relative h-full w-56 sm:w-64 cursor-pointer overflow-hidden rounded-xl border p-3 sm:p-4 transition-all hover:scale-105",
+        "border-gray-950/[.1] bg-gray-950/[.01] hover:bg-gray-950/[.05]",
+        "dark:border-gray-50/[.1] dark:bg-gray-50/[.10] dark:hover:bg-gray-50/[.15]",
+      )}
+      onClick={() => navigate(`/problems/${problem.slug}`)}
+    >
       <div className="flex flex-col">
         <figcaption className="text-xs sm:text-sm font-medium dark:text-white mb-1">
           {problem.title}
@@ -241,18 +275,13 @@ const Landing2 = () => {
       {/* Hero Section - Completely Redesigned */}
       <section className="relative min-h-[70vh] sm:min-h-[80vh] flex items-center justify-center px-4 sm:px-6 py-12 sm:py-20">
         <div className="mx-auto max-w-4xl text-center">
-              <Badge className="mb-6 bg-gradient-to-r from-blue-100 to-blue-100 dark:from-blue-900 dark:to-blue-900 text-[#3D63DD] dark:text-blue-300 border-0">
-                <Sparkles className="w-3 h-3 mr-1" />
-                AI-Powered Legislative Intelligence
-              </Badge>
-              
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight mb-6">
-            <span className="bg-gradient-to-r from-[#3D63DD] to-[#5A7FDB] bg-clip-text text-transparent">
-              Transform Policy
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
+            <span className="bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+              Do something,
             </span>
             <br />
-            <span className="bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-              With Collective Intelligence
+            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              something good.
             </span>
           </h1>
               
@@ -261,7 +290,7 @@ const Landing2 = () => {
             and crowd sourced policy solutions. Powered by advanced AI and driven by collaboration.
           </p>
               
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 sm:mb-12 px-4">
+          <div className="flex justify-center mb-8 sm:mb-12 px-4">
             <Button 
               size="lg" 
               onClick={() => navigate('/auth')}
@@ -269,14 +298,6 @@ const Landing2 = () => {
             >
               Try for Free
               <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              onClick={() => navigate('/auth')}
-              className="w-full sm:w-auto"
-            >
-              Log in
             </Button>
           </div>
               
@@ -361,6 +382,34 @@ const Landing2 = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#3D63DD]/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Analytics Section */}
+      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-muted/20">
+        <div className="mx-auto max-w-7xl">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+              Platform Analytics
+            </h2>
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
+              Real-time insights into legislative activity, citizen engagement, and policy impact
+            </p>
+          </div>
+          
+          <div className="grid gap-6">
+            {/* Top Row - Large Interactive Chart */}
+            <div className="grid grid-cols-1 gap-6">
+              <ChartAreaInteractive />
+            </div>
+            
+            {/* Bottom Row - Three Smaller Charts */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <ChartBarEngagement />
+              <ChartPieBillStatus />
+              <ChartLinePolicyImpact />
+            </div>
           </div>
         </div>
       </section>
@@ -487,7 +536,7 @@ const Landing2 = () => {
             <div>
               <h3 className="font-semibold mb-4 text-sm sm:text-base">Company</h3>
               <ul className="space-y-2 text-xs sm:text-sm text-muted-foreground">
-                <li><a href="#about" className="hover:text-foreground">About</a></li>
+                <li><Link to="/about" className="hover:text-foreground">About</Link></li>
                 <li><a href="#blog" className="hover:text-foreground">Blog</a></li>
                 <li><a href="#careers" className="hover:text-foreground">Careers</a></li>
                 <li><a href="#contact" className="hover:text-foreground">Contact</a></li>

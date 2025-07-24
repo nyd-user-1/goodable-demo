@@ -1,13 +1,12 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Target, TrendingUp, Users, ExternalLink } from "lucide-react";
-import { Problem, getRelatedProblems } from "@/data/problems";
+import { ArrowLeft } from "lucide-react";
+import { Problem } from "@/data/problems";
 import { ProblemSummary } from "./features/problems/ProblemSummary";
 import { ProblemKeyInformation } from "./features/problems/ProblemKeyInformation";
-import { ProblemStatistics } from "./features/problems/ProblemStatistics";
+import { ProblemStatisticsEnhanced } from "./features/problems/ProblemStatisticsEnhanced";
+import { ProblemSolutionsWhiteboard } from "./features/problems/ProblemSolutionsWhiteboard";
+import { ProblemProposals } from "./features/problems/ProblemProposals";
 
 interface ProblemDetailProps {
   problem: Problem;
@@ -15,7 +14,6 @@ interface ProblemDetailProps {
 }
 
 export const ProblemDetail = ({ problem, onBack }: ProblemDetailProps) => {
-  const [relatedProblems] = useState(() => getRelatedProblems(problem.id));
 
   const handleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -65,8 +63,8 @@ export const ProblemDetail = ({ problem, onBack }: ProblemDetailProps) => {
                 <TabsTrigger value="statistics" className="h-10 rounded-md text-sm font-medium">
                   Statistics
                 </TabsTrigger>
-                <TabsTrigger value="related" className="h-10 rounded-md text-sm font-medium">
-                  Related
+                <TabsTrigger value="proposals" className="h-10 rounded-md text-sm font-medium">
+                  Proposals
                 </TabsTrigger>
               </TabsList>
 
@@ -76,90 +74,15 @@ export const ProblemDetail = ({ problem, onBack }: ProblemDetailProps) => {
               </TabsContent>
 
               <TabsContent value="solutions" className="mt-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">Proposed Solutions</h2>
-                    <Badge variant="secondary" className="text-xs">
-                      {problem.solutionsList.length} {problem.solutionsList.length === 1 ? 'Solution' : 'Solutions'}
-                    </Badge>
-                  </div>
-                  <div className="grid gap-6">
-                    {problem.solutionsList.map((solution) => (
-                      <div key={solution.id} className="p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors">
-                        <div className="space-y-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-sm mb-2">{solution.title}</h4>
-                              <p className="text-sm text-muted-foreground leading-relaxed">
-                                {solution.description}
-                              </p>
-                            </div>
-                            <Badge variant="outline" className="text-xs ml-4">
-                              {solution.id}
-                            </Badge>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium">Feasibility</span>
-                                <span className="text-sm text-muted-foreground">{solution.feasibility}/10</span>
-                              </div>
-                              <Progress value={solution.feasibility * 10} className="h-2" />
-                            </div>
-                            <div>
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium">Impact</span>
-                                <span className="text-sm text-muted-foreground">{solution.impact}/10</span>
-                              </div>
-                              <Progress value={solution.impact * 10} className="h-2" />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <ProblemSolutionsWhiteboard problem={problem} />
               </TabsContent>
 
               <TabsContent value="statistics" className="mt-6">
-                <ProblemStatistics problem={problem} />
+                <ProblemStatisticsEnhanced problem={problem} />
               </TabsContent>
 
-              <TabsContent value="related" className="mt-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">Related Problems</h2>
-                    <Badge variant="secondary" className="text-xs">
-                      {relatedProblems.length} {relatedProblems.length === 1 ? 'Problem' : 'Problems'}
-                    </Badge>
-                  </div>
-                  <div>
-                    {relatedProblems.length === 0 ? (
-                      <p className="text-muted-foreground text-center py-12">
-                        No related problems found.
-                      </p>
-                    ) : (
-                      <div className="grid gap-4">
-                        {relatedProblems.map((relatedProblem) => (
-                          <div
-                            key={relatedProblem.id}
-                            className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/30 cursor-pointer transition-colors"
-                            onClick={() => window.location.href = `/problems/${relatedProblem.slug}`}
-                          >
-                            <div className="flex-1">
-                              <h4 className="font-medium text-sm mb-1">{relatedProblem.title}</h4>
-                              <p className="text-sm text-muted-foreground">
-                                {relatedProblem.category} • {relatedProblem.subProblems} sub-problems • {relatedProblem.solutions} solutions
-                              </p>
-                            </div>
-                            <ExternalLink className="w-4 h-4 text-muted-foreground ml-4" />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
+              <TabsContent value="proposals" className="mt-6">
+                <ProblemProposals problem={problem} />
               </TabsContent>
             </Tabs>
           </section>

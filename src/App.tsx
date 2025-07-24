@@ -29,6 +29,7 @@ import ChangeLog from "./pages/ChangeLog";
 import ProblemPage from "./pages/ProblemPage";
 import Problems from "./pages/Problems";
 import Features from "./pages/Features";
+import About from "./pages/About";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,7 @@ const AppLayout = () => {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/changelog" element={<ChangeLog />} />
                 <Route path="/features" element={<Features />} />
+                <Route path="/about" element={<About />} />
                 <Route path="/dashboard" element={<Index />} />
               </Routes>
             </main>
