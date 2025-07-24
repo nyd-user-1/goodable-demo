@@ -20,9 +20,15 @@ interface Profile {
   id: string;
   username: string | null;
   display_name: string | null;
+  pen_name: string | null;
   avatar_url: string | null;
   bio: string | null;
   role: string;
+  area_code: string | null;
+  zip_code: string | null;
+  city: string | null;
+  county: string | null;
+  state: string | null;
 }
 
 const Profile = () => {
@@ -79,8 +85,14 @@ const Profile = () => {
           user_id: user.id,
           username: profile?.username || null,
           display_name: profile?.display_name || null,
+          pen_name: profile?.pen_name || null,
           bio: profile?.bio || null,
           avatar_url: profile?.avatar_url || null,
+          area_code: profile?.area_code || null,
+          zip_code: profile?.zip_code || null,
+          city: profile?.city || null,
+          county: profile?.county || null,
+          state: profile?.state || null,
         }, {
           onConflict: 'user_id'
         });
@@ -251,8 +263,14 @@ const Profile = () => {
               user_id: user.id,
               username: profile?.username || null,
               display_name: profile?.display_name || null,
+              pen_name: profile?.pen_name || null,
               bio: profile?.bio || null,
               avatar_url: publicUrl,
+              area_code: profile?.area_code || null,
+              zip_code: profile?.zip_code || null,
+              city: profile?.city || null,
+              county: profile?.county || null,
+              state: profile?.state || null,
             }, {
               onConflict: 'user_id'
             })
@@ -425,6 +443,79 @@ const Profile = () => {
                     <p className="text-xs text-muted-foreground">Email cannot be changed</p>
                   </div>
 
+                  {/* Location Information */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium">Location Information</h3>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="area-code">Area Code</Label>
+                        <Input
+                          id="area-code"
+                          type="text"
+                          placeholder="e.g., 212"
+                          value={profile?.area_code || ''}
+                          onChange={(e) => setProfile(prev => prev ? {...prev, area_code: e.target.value} : null)}
+                          maxLength={3}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="zip-code">Zip Code</Label>
+                        <Input
+                          id="zip-code"
+                          type="text"
+                          placeholder="e.g., 10001"
+                          value={profile?.zip_code || ''}
+                          onChange={(e) => setProfile(prev => prev ? {...prev, zip_code: e.target.value} : null)}
+                          maxLength={5}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="city">City or Hamlet</Label>
+                      <Input
+                        id="city"
+                        type="text"
+                        placeholder="Enter your city or hamlet"
+                        value={profile?.city || ''}
+                        onChange={(e) => setProfile(prev => prev ? {...prev, city: e.target.value} : null)}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="county">County</Label>
+                        <Input
+                          id="county"
+                          type="text"
+                          placeholder="Enter your county"
+                          value={profile?.county || ''}
+                          onChange={(e) => setProfile(prev => prev ? {...prev, county: e.target.value} : null)}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="state">State</Label>
+                        <Input
+                          id="state"
+                          type="text"
+                          placeholder="e.g., NY"
+                          value={profile?.state || ''}
+                          onChange={(e) => setProfile(prev => prev ? {...prev, state: e.target.value} : null)}
+                          maxLength={2}
+                        />
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground">
+                      Your zip code will be displayed alongside your Username and Pen Name to provide readers additional context around your point of view. 
+                      While we strive to maintain user anonymity where desired, it is 2025 and organizations much larger than ours have failed at this task, 
+                      so you should behave here as you would in public. And if you're disrespectful in public, you'll be asked to leave here too.
+                    </p>
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="subscription_tier">Subscription Tier</Label>
                     <div className="flex items-center gap-3">
@@ -449,17 +540,23 @@ const Profile = () => {
                       value={profile?.username || ''}
                       onChange={(e) => setProfile(prev => prev ? {...prev, username: e.target.value} : null)}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      This will be used to provide public credit where it is desired and a typical format would be John S.
+                    </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="display-name">Display Name</Label>
+                    <Label htmlFor="pen-name">Pen Name</Label>
                     <Input
-                      id="display-name"
+                      id="pen-name"
                       type="text"
-                      placeholder="Enter your display name"
-                      value={profile?.display_name || ''}
-                      onChange={(e) => setProfile(prev => prev ? {...prev, display_name: e.target.value} : null)}
+                      placeholder="Enter your pen name"
+                      value={profile?.pen_name || ''}
+                      onChange={(e) => setProfile(prev => prev ? {...prev, pen_name: e.target.value} : null)}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      This will be used when you want to advance a public policy proposal, but wish to do so with anonymity.
+                    </p>
                   </div>
 
                   <div className="space-y-2">
