@@ -2,7 +2,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Heart, Sparkles } from "lucide-react";
 import { Bill } from "./types";
 
@@ -186,71 +185,6 @@ export const AllItemsTable = ({
     // Add navigation logic for other types as needed
   };
 
-  const getStatusOptions = (type: string) => {
-    switch (type) {
-      case 'bill':
-        return [
-          { value: 'Introduced', label: 'Introduced' },
-          { value: 'In Committee', label: 'In Committee' },
-          { value: 'Passed', label: 'Passed' },
-          { value: 'Signed', label: 'Signed' }
-        ];
-      case 'problem':
-        return [
-          { value: 'Problem Identified', label: 'Identified' },
-          { value: 'In Progress', label: 'In Progress' },
-          { value: 'Resolved', label: 'Resolved' },
-          { value: 'Closed', label: 'Closed' }
-        ];
-      case 'solution':
-        return [
-          { value: 'draft', label: 'Draft' },
-          { value: 'in_review', label: 'In Review' },
-          { value: 'published', label: 'Published' },
-          { value: 'implemented', label: 'Implemented' }
-        ];
-      case 'media':
-        return [
-          { value: 'draft', label: 'Draft' },
-          { value: 'in_review', label: 'In Review' },
-          { value: 'published', label: 'Published' },
-          { value: 'distributed', label: 'Distributed' }
-        ];
-      default:
-        return [];
-    }
-  };
-
-  const getCategoryOptions = (type: string) => {
-    switch (type) {
-      case 'bill':
-        return [
-          { value: 'Assembly Health', label: 'Assembly Health' },
-          { value: 'Assembly Education', label: 'Assembly Education' },
-          { value: 'Senate Finance', label: 'Senate Finance' }
-        ];
-      case 'problem':
-        return [
-          { value: 'General', label: 'General' },
-          { value: 'Healthcare', label: 'Healthcare' },
-          { value: 'Education', label: 'Education' }
-        ];
-      case 'solution':
-        return [
-          { value: 'Legislative Draft', label: 'Legislative Draft' },
-          { value: 'Policy Brief', label: 'Policy Brief' },
-          { value: 'Amendment', label: 'Amendment' }
-        ];
-      case 'media':
-        return [
-          { value: 'press_release', label: 'Press Release' },
-          { value: 'social_media', label: 'Social Media' },
-          { value: 'newsletter', label: 'Newsletter' }
-        ];
-      default:
-        return [];
-    }
-  };
 
   return (
     <div className="w-full">
@@ -310,7 +244,7 @@ export const AllItemsTable = ({
                   <TableHead className="min-w-[120px] whitespace-nowrap">Number</TableHead>
                   <TableHead className="min-w-[300px] whitespace-nowrap">Description</TableHead>
                   <TableHead className="min-w-[120px] whitespace-nowrap">Status</TableHead>
-                  <TableHead className="min-w-[150px] whitespace-nowrap">Category</TableHead>
+                  <TableHead className="min-w-[150px] whitespace-nowrap">Committee</TableHead>
                   <TableHead className="min-w-[120px] whitespace-nowrap">Last Action</TableHead>
                   <TableHead className="min-w-[120px] text-right whitespace-nowrap">Actions</TableHead>
                 </TableRow>
@@ -334,36 +268,12 @@ export const AllItemsTable = ({
                       </div>
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
-                      <Select defaultValue={item.status}>
-                        <SelectTrigger className="w-auto border-0 bg-transparent p-0 focus:ring-0">
-                          <SelectValue>
-                            <Badge className={getWorkflowPhaseColor(item.workflowPhase)}>
-                              {item.type === 'problem' && item.status === 'Problem Identified' ? 'Identified' : item.status}
-                            </Badge>
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getStatusOptions(item.type).map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Badge className={getWorkflowPhaseColor(item.workflowPhase)}>
+                        {item.type === 'problem' && item.status === 'Problem Identified' ? 'Identified' : item.status}
+                      </Badge>
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
-                      <Select defaultValue={item.category}>
-                        <SelectTrigger className="w-auto border-0 bg-transparent p-0 focus:ring-0">
-                          <SelectValue>{item.category}</SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getCategoryOptions(item.type).map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      {item.category}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                       {item.lastAction}
