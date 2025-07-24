@@ -107,7 +107,7 @@ const ProblemPage: React.FC = () => {
       {/* Problem Info Card Section */}
       <section className="bg-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="max-w-4xl">
+          <div>
             <Card className="card bg-card rounded-xl shadow-sm border border-border overflow-hidden">
               <CardHeader className="card-header px-6 py-4 border-b border-border">
                 <div className="flex items-start justify-between gap-4">

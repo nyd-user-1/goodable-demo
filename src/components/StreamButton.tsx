@@ -193,8 +193,8 @@ const StreamButton = () => {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <MessageCircle className="h-5 w-5" />
+        <Button variant="outline" size="icon" className="small-button relative h-9 w-9">
+          <MessageCircle className="h-4 w-4" />
           {/* Notification indicator */}
           <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
             <span className="text-xs text-white font-medium">6</span>

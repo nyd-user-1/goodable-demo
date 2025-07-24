@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Bot, Zap, Search, Brain, Globe } from "lucide-react";
+import { ChevronDown, Bot, Zap, Search, Brain, Globe, Sparkles } from "lucide-react";
 
 export type ModelProvider = "openai" | "anthropic" | "perplexity";
 export type ModelType = "gpt-4o-mini" | "gpt-4o" | "claude-3-5-sonnet-20241022" | "claude-3-5-haiku-20241022" | "llama-3.1-sonar-small-128k-online" | "llama-3.1-sonar-large-128k-online";
@@ -61,9 +61,9 @@ export const ModelSelector = ({ selectedModel, onModelChange }: ModelSelectorPro
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="min-w-[200px] justify-between">
-          <span className="truncate">{currentModel.name}</span>
-          <ChevronDown className="h-4 w-4" />
+        <Button variant="outline" size="icon" className="small-button relative h-9 w-9">
+          <Sparkles className="h-4 w-4" />
+          <span className="sr-only">Select AI Model</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">

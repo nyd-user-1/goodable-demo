@@ -67,6 +67,7 @@ const AppLayout = () => {
                 <Route path="/bills" element={<Bills />} />
                 <Route path="/members" element={<Members />} />
                 <Route path="/problems" element={<Problems />} />
+                <Route path="/problems/:problemSlug" element={<ProblemPage />} />
                 <Route path="/committees" element={<Committees />} />
                 <Route path="/plans" element={<Plans />} />
                 <Route path="/profile" element={<Profile />} />
@@ -99,7 +100,6 @@ const App = () => {
                 <Route path="/" element={<Landing />} />
                 <Route path="/landing-2" element={<Landing2 />} />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/problems/:problemSlug" element={<ProblemPage />} />
                 <Route path="*" element={<AppLayout />} />
               </Routes>
             </BrowserRouter>

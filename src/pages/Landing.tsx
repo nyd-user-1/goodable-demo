@@ -208,7 +208,7 @@ const Landing = () => {
               <Button 
                 variant="outline" 
                 onClick={() => navigate('/auth')}
-                className="bg-card/80 hover:bg-card"
+                className="small-button bg-card/80 hover:bg-card h-9"
               >
                 Sign In
               </Button>
