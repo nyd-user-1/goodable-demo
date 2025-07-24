@@ -197,10 +197,10 @@ export const DashboardBillsTable = () => {
                   <ScrollArea orientation="horizontal" className="w-full">
                     <div className="min-w-[800px] relative">
                       <Table>
-                        <TableHeader className="sticky top-0 bg-muted/50 backdrop-blur-sm z-20">
-                          <TableRow>
+                        <TableHeader className="sticky top-0 bg-background backdrop-blur-sm z-30 border-b shadow-sm">
+                          <TableRow className="hover:bg-transparent">
                             {/* Pinned first column */}
-                            <TableHead className="sticky left-0 bg-muted/80 backdrop-blur-sm z-10 w-[120px] border-r">
+                            <TableHead className="sticky left-0 bg-background backdrop-blur-sm z-40 w-[120px] border-r shadow-sm">
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
@@ -268,7 +268,7 @@ export const DashboardBillsTable = () => {
                               onClick={() => handleBillClick(bill)}
                             >
                               {/* Pinned first cell */}
-                              <TableCell className="sticky left-0 bg-background/95 backdrop-blur-sm z-10 font-medium border-r">
+                              <TableCell className="sticky left-0 bg-background backdrop-blur-sm z-20 font-medium border-r">
                                 {bill.bill_number}
                               </TableCell>
                               <TableCell className="max-w-[300px]">
