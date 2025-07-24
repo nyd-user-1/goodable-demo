@@ -77,7 +77,7 @@ const Home = () => {
       </div>
 
       <main className="relative z-10">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-screen" style={{ paddingTop: '95px' }}>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-screen" style={{ paddingTop: '15px' }}>
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-4">
               <span className="bg-gradient-to-r from-foreground to-muted-fo1reground bg-clip-text text-transparent">
