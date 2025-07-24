@@ -12,6 +12,7 @@ import { ModelSelector } from "@/components/ModelSelector";
 import { HeartSidebarTrigger } from "@/components/HeartSidebarTrigger";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Landing from "./pages/Landing";
+import Landing2 from "./pages/Landing-2";
 import Home from "./pages/Home";
 import Index from "./pages/Index";
 import { Auth } from "./pages/Auth";
@@ -86,6 +87,7 @@ const App = () => {
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Landing />} />
+                <Route path="/landing-2" element={<Landing2 />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/problems/:problemSlug" element={<ProblemPage />} />
                 <Route path="*" element={<AppLayout />} />

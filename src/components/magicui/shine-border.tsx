@@ -20,50 +20,46 @@ export function ShineBorder({
   return (
     <div
       className={cn(
-        "relative min-h-[60px] w-full overflow-hidden rounded-lg bg-background",
+        "relative w-full",
         className
       )}
-      style={{
-        borderRadius: borderRadius,
-      }}
     >
-      {/* Shine border container */}
+      {/* Animated border */}
       <div
-        className={cn(
-          "absolute inset-0",
-          "before:absolute before:inset-0",
-          "before:bg-transparent"
-        )}
+        className="absolute inset-0 rounded-2xl"
         style={{
           padding: borderWidth,
           background: `linear-gradient(90deg, ${
             Array.isArray(shineColor) ? shineColor.join(", ") : shineColor
           })`,
           backgroundSize: "200% 100%",
-          animation: `shine ${duration}s ease-in-out infinite`,
+          animation: `shine ${duration}s linear infinite`,
+          borderRadius: borderRadius,
         }}
-      >
-        <div
-          className="h-full w-full rounded-lg bg-background"
-          style={{
-            borderRadius: borderRadius - borderWidth,
-          }}
-        />
-      </div>
-
+      />
+      
+      {/* Background mask to create border effect */}
+      <div 
+        className="absolute inset-0 bg-background"
+        style={{
+          margin: borderWidth,
+          borderRadius: borderRadius - borderWidth,
+        }}
+      />
+      
       {/* Content */}
-      <div className="relative z-10">{children}</div>
+      <div className="relative">{children}</div>
 
       <style jsx>{`
         @keyframes shine {
           0% {
-            background-position: 0% center;
+            background-position: 0% 50%;
           }
           50% {
-            background-position: 200% center;
+            background-position: 100% 50%;
           }
           100% {
-            background-position: 0% center;
+            background-position: 0% 50%;
           }
         }
       `}</style>

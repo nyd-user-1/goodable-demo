@@ -155,9 +155,10 @@ const Home = () => {
               className="rounded-2xl"
               shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
               borderRadius={16}
-              borderWidth={1}
+              borderWidth={2}
+              duration={10}
             >
-              <div className="bg-card rounded-2xl p-12">
+              <div className="p-12 text-center">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4">
                   Ready to do something good?
                 </h2>
