@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, UserPlus, Mail, Check, X, Crown, Edit, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -241,6 +241,9 @@ export const CoAuthorManager = ({ draftId, isOwner, onCoAuthorChange }: CoAuthor
               <div key={coAuthor.id} className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-8 w-8">
+                    {coAuthor.profile?.avatar_url && (
+                      <AvatarImage src={coAuthor.profile.avatar_url} />
+                    )}
                     <AvatarFallback className="text-xs">
                       {coAuthor.profile?.display_name?.charAt(0) || "U"}
                     </AvatarFallback>

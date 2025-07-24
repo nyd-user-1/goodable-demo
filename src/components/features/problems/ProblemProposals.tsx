@@ -7,6 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useCurrentUserProfile } from '@/hooks/useUserProfile';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   FileText, 
   Plus, 
@@ -53,6 +55,8 @@ interface ProblemProposalsProps {
 export const ProblemProposals = ({ problem }: ProblemProposalsProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { profile: currentUserProfile } = useCurrentUserProfile();
   const [proposals, setProposals] = useState<Proposal[]>([
     {
       id: '1',
@@ -231,14 +235,22 @@ $50M over 3 years for:
   const handleCreateProposal = () => {
     if (!newProposalTitle.trim()) return;
     
+    // Get user display name from profile or fallback to email
+    const getUserDisplayName = () => {
+      if (currentUserProfile?.display_name) return currentUserProfile.display_name;
+      if (currentUserProfile?.username) return currentUserProfile.username;
+      if (user?.email) return user.email.split('@')[0];
+      return 'You';
+    };
+    
     const newProposal: Proposal = {
       id: Date.now().toString(),
       title: newProposalTitle,
       content: '# New Proposal\n\nStart writing your proposal here...',
       author: {
-        name: 'You',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop&crop=face',
-        role: 'Member'
+        name: getUserDisplayName(),
+        avatar: currentUserProfile?.avatar_url || '',
+        role: currentUserProfile?.role || 'Member'
       },
       status: 'draft',
       lastModified: 'Just now',
@@ -423,7 +435,7 @@ $50M over 3 years for:
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Avatar className="w-6 h-6">
-                  <AvatarImage src={selectedProposal.author.avatar} />
+                  {selectedProposal.author.avatar && <AvatarImage src={selectedProposal.author.avatar} />}
                   <AvatarFallback>{selectedProposal.author.name[0]}</AvatarFallback>
                 </Avatar>
                 <span className="text-sm">{selectedProposal.author.name}</span>
@@ -513,7 +525,7 @@ $50M over 3 years for:
                   <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                     <div className="flex items-center gap-1">
                       <Avatar className="w-4 h-4">
-                        <AvatarImage src={proposal.author.avatar} />
+                        {proposal.author.avatar && <AvatarImage src={proposal.author.avatar} />}
                         <AvatarFallback>{proposal.author.name[0]}</AvatarFallback>
                       </Avatar>
                       {proposal.author.name}

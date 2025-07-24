@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Users, Crown, Edit, Eye } from "lucide-react";
@@ -105,6 +105,9 @@ export const CoAuthorAttribution = ({ draftId, ownerId, compact = false }: CoAut
                 <Tooltip key={contributor.id}>
                   <TooltipTrigger>
                     <Avatar className="h-8 w-8 border-2 border-background">
+                      {contributor.profile?.avatar_url && (
+                        <AvatarImage src={contributor.profile.avatar_url} />
+                      )}
                       <AvatarFallback className="text-xs">
                         {contributor.profile?.display_name?.charAt(0) || "U"}
                       </AvatarFallback>
@@ -152,6 +155,9 @@ export const CoAuthorAttribution = ({ draftId, ownerId, compact = false }: CoAut
           return (
             <div key={contributor.id} className="flex items-center gap-3">
               <Avatar className="h-8 w-8">
+                {contributor.profile?.avatar_url && (
+                  <AvatarImage src={contributor.profile.avatar_url} />
+                )}
                 <AvatarFallback className="text-xs">
                   {contributor.profile?.display_name?.charAt(0) || "U"}
                 </AvatarFallback>
