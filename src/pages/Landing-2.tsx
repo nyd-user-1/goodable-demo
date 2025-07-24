@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -21,15 +21,22 @@ import {
   Building2,
   Scale,
   Brain,
-  Heart
+  Heart,
+  Twitter
 } from "lucide-react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { ShineBorder } from '@/components/magicui/shine-border';
 import { cn } from "@/lib/utils";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
+import { HeartSidebarTrigger } from "@/components/HeartSidebarTrigger";
+import '@/components/magicui/animated-background.css';
 
 const Landing2 = () => {
   const navigate = useNavigate();
   const featuresRef = useRef<HTMLDivElement>(null);
+  const [userProblem, setUserProblem] = useState('');
 
   const scrollToFeatures = () => {
     featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -40,37 +47,37 @@ const Landing2 = () => {
       icon: <FileText className="w-5 h-5" />,
       title: "Legislative Intelligence",
       description: "Track and analyze bills with AI-powered insights across all committees and chambers",
-      gradient: "from-blue-600 to-cyan-600"
+      gradient: "from-[#3D63DD] to-[#5A7FDB]"
     },
     {
       icon: <Users className="w-5 h-5" />,
       title: "Member Profiles",
       description: "Comprehensive legislator data including voting history, sponsorships, and committee memberships",
-      gradient: "from-purple-600 to-pink-600"
+      gradient: "from-[#3D63DD] to-[#6B8CE8]"
     },
     {
       icon: <Brain className="w-5 h-5" />,
       title: "AI Policy Assistant",
       description: "Draft legislation, analyze impacts, and get expert guidance with advanced AI models",
-      gradient: "from-orange-600 to-red-600"
+      gradient: "from-[#3D63DD] to-[#4A70E0]"
     },
     {
       icon: <Building2 className="w-5 h-5" />,
       title: "Committee Tracking",
       description: "Monitor committee activities, agendas, and member compositions in real-time",
-      gradient: "from-green-600 to-emerald-600"
+      gradient: "from-[#3D63DD] to-[#5577E5]"
     },
     {
       icon: <Scale className="w-5 h-5" />,
       title: "Policy Portal",
       description: "Collaborative workspace for drafting, reviewing, and refining policy proposals",
-      gradient: "from-indigo-600 to-purple-600"
+      gradient: "from-[#3D63DD] to-[#4D73E2]"
     },
     {
       icon: <Vote className="w-5 h-5" />,
       title: "Community Solutions",
       description: "Crowdsource ideas and vote on solutions to pressing societal challenges",
-      gradient: "from-pink-600 to-rose-600"
+      gradient: "from-[#3D63DD] to-[#5A7FDB]"
     }
   ];
 
@@ -141,52 +148,60 @@ const Landing2 = () => {
     }
   ];
 
-  return (
-    <div className="min-h-screen bg-background overflow-hidden">
-      {/* Animated background */}
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900" />
-        <div className="absolute inset-0">
-          <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob dark:bg-purple-600" />
-          <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000 dark:bg-yellow-600" />
-          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000 dark:bg-pink-600" />
-        </div>
-      </div>
+  const handleDoSomethingClick = () => {
+    // Scroll to search or do something
+  };
 
-      {/* Navigation */}
-      <nav className="relative z-50 px-6 py-4">
-        <div className="mx-auto max-w-7xl flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <Heart className="w-5 h-5 text-white" />
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen bg-background overflow-hidden flex">
+        <AppSidebar />
+        <div className="flex-1">
+          {/* Animated background */}
+          <div className="fixed inset-0 -z-10">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900" />
+            <div className="absolute inset-0">
+              <div className="absolute top-0 -left-4 w-72 h-72 bg-[#3D63DD] rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob" />
+              <div className="absolute top-0 -right-4 w-72 h-72 bg-[#8B8D98] rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000" />
+              <div className="absolute -bottom-8 left-20 w-72 h-72 bg-[#3D63DD] rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-4000" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-              Goodable
-            </span>
           </div>
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <Button variant="ghost" onClick={() => navigate('/auth')}>
-              Sign In
-            </Button>
-            <Button onClick={() => navigate('/auth')} className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700">
-              Get Started
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </div>
-        </div>
-      </nav>
+
+          {/* Navigation */}
+          <nav className="relative z-50 px-6 py-4">
+            <div className="mx-auto max-w-7xl flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <HeartSidebarTrigger />
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-card border rounded-lg flex items-center justify-center">
+                    <span className="text-lg">❤️</span>
+                  </div>
+                  <span className="text-xl font-bold">Goodable</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <ThemeToggle />
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/auth')}
+                  className="bg-card/80 hover:bg-card"
+                >
+                  Sign In
+                </Button>
+              </div>
+            </div>
+          </nav>
 
       {/* Hero Section */}
       <section className="relative pt-20 pb-32 px-6">
         <div className="mx-auto max-w-7xl">
           <div className="text-center">
-            <Badge className="mb-4 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900 dark:to-purple-900 text-indigo-700 dark:text-indigo-300 border-0">
+            <Badge className="mb-4 bg-gradient-to-r from-blue-100 to-blue-100 dark:from-blue-900 dark:to-blue-900 text-[#3D63DD] dark:text-blue-300 border-0">
               <Sparkles className="w-3 h-3 mr-1" />
               AI-Powered Legislative Intelligence
             </Badge>
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6">
-              <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#3D63DD] to-[#5A7FDB] bg-clip-text text-transparent">
                 Transform Policy
               </span>
               <br />
@@ -203,7 +218,7 @@ const Landing2 = () => {
               <Button 
                 size="lg" 
                 onClick={() => navigate('/auth')}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700"
+                className="bg-[#3D63DD] text-white hover:bg-[#2D53CD]"
               >
                 Start Free Trial
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -221,25 +236,25 @@ const Landing2 = () => {
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
               <div className="text-center">
-                <div className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <div className="text-3xl font-bold bg-gradient-to-r from-[#3D63DD] to-[#5A7FDB] bg-clip-text text-transparent">
                   50K+
                 </div>
                 <div className="text-sm text-muted-foreground">Bills Tracked</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <div className="text-3xl font-bold bg-gradient-to-r from-[#3D63DD] to-[#4A70E0] bg-clip-text text-transparent">
                   10K+
                 </div>
                 <div className="text-sm text-muted-foreground">Active Users</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">
+                <div className="text-3xl font-bold bg-gradient-to-r from-[#3D63DD] to-[#6B8CE8] bg-clip-text text-transparent">
                   500+
                 </div>
                 <div className="text-sm text-muted-foreground">Organizations</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                <div className="text-3xl font-bold bg-gradient-to-r from-[#3D63DD] to-[#5577E5] bg-clip-text text-transparent">
                   99.9%
                 </div>
                 <div className="text-sm text-muted-foreground">Uptime</div>
@@ -255,7 +270,7 @@ const Landing2 = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Everything You Need for
-              <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent"> Legislative Success</span>
+              <span className="bg-gradient-to-r from-[#3D63DD] to-[#5A7FDB] bg-clip-text text-transparent"> Legislative Success</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Comprehensive tools and insights to track, analyze, and influence policy at every level
@@ -278,7 +293,7 @@ const Landing2 = () => {
                   <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
                   <p className="text-muted-foreground">{feature.description}</p>
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#3D63DD]/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               </Card>
             ))}
           </div>
@@ -336,11 +351,11 @@ const Landing2 = () => {
                 key={index} 
                 className={cn(
                   "relative overflow-hidden",
-                  plan.popular && "border-indigo-600 shadow-xl scale-105"
+                  plan.popular && "border-[#3D63DD] shadow-xl scale-105"
                 )}
               >
                 {plan.popular && (
-                  <div className="absolute top-0 right-0 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs px-3 py-1 rounded-bl-lg">
+                  <div className="absolute top-0 right-0 bg-gradient-to-r from-[#3D63DD] to-[#5A7FDB] text-white text-xs px-3 py-1 rounded-bl-lg">
                     Popular
                   </div>
                 )}
@@ -355,7 +370,7 @@ const Landing2 = () => {
                     className={cn(
                       "w-full mb-6",
                       plan.popular 
-                        ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700" 
+                        ? "bg-[#3D63DD] text-white hover:bg-[#2D53CD]" 
                         : "variant-outline"
                     )}
                     variant={plan.popular ? "default" : "outline"}
@@ -365,7 +380,7 @@ const Landing2 = () => {
                   <ul className="space-y-3">
                     {plan.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-start">
-                        <Check className="w-4 h-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <Check className="w-4 h-4 text-[#3D63DD] mr-2 mt-0.5 flex-shrink-0" />
                         <span className="text-sm">{feature}</span>
                       </li>
                     ))}
@@ -377,126 +392,97 @@ const Landing2 = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 px-6">
-        <div className="mx-auto max-w-4xl text-center">
-          <Card className="relative overflow-hidden bg-gradient-to-br from-indigo-600 to-purple-600 border-0">
-            <div className="absolute inset-0 bg-grid-white/10" />
-            <div className="relative p-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                Ready to Transform Policy?
-              </h2>
-              <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-                Join thousands of professionals using Goodable to make informed decisions 
-                and create meaningful change.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  size="lg"
-                  className="bg-white text-indigo-600 hover:bg-gray-100"
-                  onClick={() => navigate('/auth')}
-                >
-                  Start Your Free Trial
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-                <Button 
-                  size="lg"
-                  variant="outline"
-                  className="border-white text-white hover:bg-white/10"
-                  onClick={() => navigate('/auth')}
-                >
-                  Schedule Demo
-                  <MessageSquare className="w-4 h-4 ml-2" />
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t py-12 px-6">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Heart className="w-5 h-5 text-white" />
+          {/* CTA Section */}
+          <section className="py-20 bg-background">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+              <ShineBorder 
+                className="rounded-2xl"
+                shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
+                borderRadius={16}
+                borderWidth={2}
+                duration={10}
+              >
+                <div className="p-12 text-center">
+                  <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                    Ready to do something good?
+                  </h2>
+                  <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+                    Join thousands of people who are collaborating on a future that's Goodable.
+                  </p>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <Button 
+                      variant="outline" 
+                      size="lg" 
+                      onClick={handleDoSomethingClick}
+                      className="dark:shadow-[0_0_20px_rgba(59,130,246,0.3)] dark:border-blue-500/50 dark:hover:shadow-[0_0_25px_rgba(59,130,246,0.4)] transition-all duration-300"
+                    >
+                      <Heart className="w-4 h-4 mr-2 text-destructive" />
+                      Do Something
+                    </Button>
+                  </div>
                 </div>
-                <span className="text-xl font-bold">Goodable</span>
-              </div>
-              <p className="text-muted-foreground text-sm">
-                Do something,<br />
-                something good.
-              </p>
+              </ShineBorder>
             </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground">Features</a></li>
-                <li><a href="#" className="hover:text-foreground">Pricing</a></li>
-                <li><a href="#" className="hover:text-foreground">API</a></li>
-                <li><a href="#" className="hover:text-foreground">Integrations</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Resources</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground">Documentation</a></li>
-                <li><a href="#" className="hover:text-foreground">Blog</a></li>
-                <li><a href="#" className="hover:text-foreground">Changelog</a></li>
-                <li><a href="#" className="hover:text-foreground">Support</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Company</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground">About</a></li>
-                <li><a href="#" className="hover:text-foreground">Careers</a></li>
-                <li><a href="#" className="hover:text-foreground">Privacy</a></li>
-                <li><a href="#" className="hover:text-foreground">Terms</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; 2024 Goodable. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+          </section>
 
-      <style jsx>{`
-        @keyframes blob {
-          0% {
-            transform: translate(0px, 0px) scale(1);
-          }
-          33% {
-            transform: translate(30px, -50px) scale(1.1);
-          }
-          66% {
-            transform: translate(-20px, 20px) scale(0.9);
-          }
-          100% {
-            transform: translate(0px, 0px) scale(1);
-          }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-        .bg-grid-white\/10 {
-          background-image: url("data:image/svg+xml,%3csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3e%3cg fill='none' fill-rule='evenodd'%3e%3cg fill='%23ffffff' fill-opacity='0.1'%3e%3cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");
-        }
-      `}</style>
-    </div>
+          {/* Footer */}
+          <footer className="border-t border-border/50 bg-background">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+              <div className="grid md:grid-cols-4 gap-8">
+                <div>
+                  <div className="flex items-center space-x-2 mb-4">
+                    <div className="w-8 h-8 bg-card border rounded-lg flex items-center justify-center">
+                      <span className="text-lg">❤️</span>
+                    </div>
+                    <span className="text-xl font-bold">Goodable</span>
+                  </div>
+                  <p className="text-muted-foreground text-sm" style={{ textAlign: 'left' }}>
+                    Do something,<br />
+                    something good.
+                  </p>
+                </div>
+                
+                <div>
+                  <h3 className="font-semibold mb-4">Product</h3>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li><Link to="/features" className="hover:text-foreground">Features</Link></li>
+                    <li><a href="#examples" className="hover:text-foreground">Examples</a></li>
+                    <li><a href="#pricing" className="hover:text-foreground">Pricing</a></li>
+                    <li><a href="#docs" className="hover:text-foreground">Documentation</a></li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h3 className="font-semibold mb-4">Company</h3>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li><a href="#about" className="hover:text-foreground">About</a></li>
+                    <li><a href="#blog" className="hover:text-foreground">Blog</a></li>
+                    <li><a href="#careers" className="hover:text-foreground">Careers</a></li>
+                    <li><a href="#contact" className="hover:text-foreground">Contact</a></li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h3 className="font-semibold mb-4">Connect</h3>
+                  <div className="flex space-x-4">
+                    <a href="#" className="text-muted-foreground hover:text-foreground">
+                      <Twitter className="w-5 h-5" />
+                    </a>
+                    <a href="#" className="text-muted-foreground hover:text-foreground">
+                      <Heart className="w-5 h-5" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border-t border-border/50 mt-8 pt-8 text-center text-sm text-muted-foreground">
+                <p>&copy; 2024 Goodable. All rights reserved.</p>
+              </div>
+            </div>
+          </footer>
+        </div>
+      </div>
+    </SidebarProvider>
   );
 };
 
