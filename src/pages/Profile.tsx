@@ -152,10 +152,11 @@ const Profile = () => {
     if (!file || !user) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type.toLowerCase())) {
       toast({
         title: "Invalid file type",
-        description: "Please select an image file (PNG, JPG, GIF, etc.).",
+        description: "Please select a valid image file (JPG, PNG, GIF, or WebP).",
         variant: "destructive",
       });
       return;
@@ -172,74 +173,142 @@ const Profile = () => {
     }
 
     setUploading(true);
+    
     try {
-      // Create a unique filename with user ID prefix for RLS
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      console.log('Starting file upload for user:', user.id);
       
-      // First, try to delete any existing avatar to clean up storage
-      try {
-        if (profile?.avatar_url) {
-          const existingFileName = profile.avatar_url.split('/').pop();
-          if (existingFileName && existingFileName.startsWith(user.id)) {
-            await supabase.storage
-              .from('avatars')
-              .remove([existingFileName]);
-          }
-        }
-      } catch (cleanupError) {
-        // Ignore cleanup errors, continue with upload
-        console.log('Cleanup error (non-critical):', cleanupError);
-      }
+      // Create a simple filename (no folder structure to avoid RLS issues)
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `avatar-${user.id}-${Date.now()}.${fileExt}`;
       
-      // Upload file to Supabase Storage
-      const { data, error } = await supabase.storage
+      console.log('Uploading file:', fileName);
+      
+      // Upload file to Supabase Storage with simple approach
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: true // Allow overwriting if file exists
         });
 
-      if (error) {
-        console.error('Storage upload error:', error);
-        throw new Error(`Upload failed: ${error.message}`);
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}. Please ensure you're logged in and try again.`);
       }
+
+      console.log('Upload successful:', uploadData);
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
 
-      // Update profile with new avatar URL using upsert
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .upsert({
-          user_id: user.id,
-          username: profile?.username,
-          display_name: profile?.display_name,
-          bio: profile?.bio,
-          avatar_url: publicUrl,
-        }, {
-          onConflict: 'user_id'
-        });
+      console.log('Generated public URL:', publicUrl);
 
-      if (updateError) {
-        console.error('Profile update error:', updateError);
-        throw new Error(`Profile update failed: ${updateError.message}`);
+      // Ensure we have a profile record first
+      let currentProfile = profile;
+      if (!currentProfile) {
+        console.log('No profile found, creating one...');
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            username: null,
+            display_name: null,
+            bio: null,
+            avatar_url: publicUrl,
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Profile creation error:', createError);
+          throw new Error(`Profile creation failed: ${createError.message}`);
+        }
+        
+        currentProfile = newProfile;
+        setProfile(newProfile);
+      } else {
+        // Update existing profile
+        console.log('Updating existing profile...');
+        const { data: updatedProfile, error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            avatar_url: publicUrl,
+          })
+          .eq('user_id', user.id)
+          .select()
+          .single();
+
+        if (updateError) {
+          console.error('Profile update error:', updateError);
+          
+          // Try upsert as fallback
+          console.log('Trying upsert as fallback...');
+          const { data: upsertProfile, error: upsertError } = await supabase
+            .from('profiles')
+            .upsert({
+              user_id: user.id,
+              username: profile?.username || null,
+              display_name: profile?.display_name || null,
+              bio: profile?.bio || null,
+              avatar_url: publicUrl,
+            }, {
+              onConflict: 'user_id'
+            })
+            .select()
+            .single();
+
+          if (upsertError) {
+            console.error('Profile upsert error:', upsertError);
+            throw new Error(`Profile update failed: ${upsertError.message}`);
+          }
+          
+          currentProfile = upsertProfile;
+        } else {
+          currentProfile = updatedProfile;
+        }
+        
+        setProfile(currentProfile);
       }
 
-      // Update local state
-      setProfile(prev => prev ? {...prev, avatar_url: publicUrl} : null);
+      console.log('Profile updated successfully');
 
       toast({
         title: "Avatar uploaded!",
         description: "Your profile picture has been updated successfully.",
       });
+
+      // Clean up old avatars (non-critical operation)
+      try {
+        const { data: existingFiles } = await supabase.storage
+          .from('avatars')
+          .list('', {
+            search: `avatar-${user.id}`
+          });
+
+        if (existingFiles && existingFiles.length > 1) {
+          // Keep only the most recent file, delete others
+          const sortedFiles = existingFiles
+            .filter(f => f.name !== fileName)
+            .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+            .slice(1); // Keep the most recent, get the rest for deletion
+
+          if (sortedFiles.length > 0) {
+            await supabase.storage
+              .from('avatars')
+              .remove(sortedFiles.map(f => f.name));
+          }
+        }
+      } catch (cleanupError) {
+        console.log('Cleanup error (non-critical):', cleanupError);
+      }
+
     } catch (error: any) {
       console.error('Full upload error:', error);
       toast({
         title: "Upload failed",
-        description: error.message || "An unexpected error occurred. Please try again.",
+        description: error.message || "An unexpected error occurred. Please try again or contact support.",
         variant: "destructive",
       });
     } finally {
