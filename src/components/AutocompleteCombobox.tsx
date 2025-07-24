@@ -273,7 +273,7 @@ export const AutocompleteCombobox: React.FC<AutocompleteComboboxProps> = ({
 
         {/* Clean dropdown with Radix-inspired styling */}
         {isOpen && (
-          <div className="dropdown absolute left-0 right-0 top-full bg-card border border-primary/50 border-t-0 rounded-b-2xl shadow-xl z-[9999] overflow-hidden max-h-[80vh]">
+          <div className="dropdown absolute left-0 right-0 top-full bg-card border border-primary/50 border-t-0 rounded-b-2xl shadow-xl z-[9999] overflow-hidden max-h-[360px]">
             <div className="py-2">
               {/* Simple header */}
               <div className="px-6 py-3 border-b border-border">
@@ -291,7 +291,7 @@ export const AutocompleteCombobox: React.FC<AutocompleteComboboxProps> = ({
                   </span>
                 </div>
               ) : suggestions.length > 0 ? (
-                <div className="max-h-[60vh] overflow-y-auto">
+                <div className="max-h-[300px] overflow-y-auto">
                   <div className="py-2">
                     <ul
                       ref={listboxRef}

@@ -11,6 +11,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { ModelSelector } from "@/components/ModelSelector";
 import { HeartSidebarTrigger } from "@/components/HeartSidebarTrigger";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import StreamButton from "@/components/StreamButton";
 import Landing from "./pages/Landing";
 import Landing2 from "./pages/Landing-2";
 import Home from "./pages/Home";
@@ -31,6 +32,8 @@ import Problems from "./pages/Problems";
 import Features from "./pages/Features";
 import About from "./pages/About";
 import PublicPolicy from "./pages/PublicPolicy";
+import StyleGuide from "./pages/StyleGuide";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +49,7 @@ const AppLayout = () => {
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
               <HeartSidebarTrigger />
               <div className="ml-auto flex items-center gap-2">
+                <StreamButton />
                 <ThemeToggle />
                 <ModelSelector 
                   selectedModel={selectedModel}
@@ -70,6 +74,8 @@ const AppLayout = () => {
                 <Route path="/features" element={<Features />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/public-policy" element={<PublicPolicy />} />
+                <Route path="/style-guide" element={<StyleGuide />} />
+                <Route path="/admin" element={<Admin />} />
                 <Route path="/dashboard" element={<Index />} />
               </Routes>
             </main>
