@@ -5,6 +5,7 @@ import { useVisitorCount } from '@/hooks/useVisitorCount';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProblemChatSheet } from '@/components/ProblemChatSheet';
 import { AutocompleteCombobox } from '@/components/AutocompleteCombobox';
+import { ShineBorder } from '@/components/magicui/shine-border';
 
 const Home = () => {
   const [userProblem, setUserProblem] = useState('');
@@ -150,25 +151,32 @@ const Home = () => {
 
         <section className="py-20 bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div className="bg-card border border-border rounded-2xl p-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Ready to do something good?
-              </h2>
-              <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                Join thousands of people who are collaborating on a future that's Goodable.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  onClick={handleDoSomethingClick}
-                  className="dark:shadow-[0_0_20px_rgba(59,130,246,0.3)] dark:border-blue-500/50 dark:hover:shadow-[0_0_25px_rgba(59,130,246,0.4)] transition-all duration-300"
-                >
-                  <Heart className="w-4 h-4 mr-2 text-destructive" />
-                  Do Something
-                </Button>
+            <ShineBorder 
+              className="rounded-2xl"
+              shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
+              borderRadius={16}
+              borderWidth={1}
+            >
+              <div className="bg-card rounded-2xl p-12">
+                <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                  Ready to do something good?
+                </h2>
+                <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+                  Join thousands of people who are collaborating on a future that's Goodable.
+                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <Button 
+                    variant="outline" 
+                    size="lg" 
+                    onClick={handleDoSomethingClick}
+                    className="dark:shadow-[0_0_20px_rgba(59,130,246,0.3)] dark:border-blue-500/50 dark:hover:shadow-[0_0_25px_rgba(59,130,246,0.4)] transition-all duration-300"
+                  >
+                    <Heart className="w-4 h-4 mr-2 text-destructive" />
+                    Do Something
+                  </Button>
+                </div>
               </div>
-            </div>
+            </ShineBorder>
           </div>
         </section>
       </main>
