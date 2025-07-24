@@ -34,11 +34,11 @@ const chartData = [
 const chartConfig = {
   impact: {
     label: "Policy Impact Score",
-    color: "hsl(var(--chart-1))",
+    color: "#3D63DD",
   },
   satisfaction: {
     label: "Satisfaction Rating",
-    color: "hsl(var(--chart-2))",
+    color: "#5A7FDB",
   },
 } satisfies ChartConfig
 

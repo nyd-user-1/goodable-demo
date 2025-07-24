@@ -65,11 +65,11 @@ const chartConfig = {
   },
   bills: {
     label: "Bills Introduced",
-    color: "hsl(var(--chart-1))",
+    color: "#3D63DD",
   },
   proposals: {
     label: "Proposals Submitted",
-    color: "hsl(var(--chart-2))",
+    color: "#5A7FDB",
   },
 } satisfies ChartConfig
 

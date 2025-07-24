@@ -113,7 +113,7 @@ export const MessageBubble = ({
         }`}
       >
         <div
-          className={`w-full rounded-lg p-3 relative ${
+          className={`w-full rounded-lg p-3 relative overflow-hidden ${
             message.role === "user"
               ? "bg-slate-800 text-white"
               : "bg-muted"
@@ -132,11 +132,11 @@ export const MessageBubble = ({
           )}
           
           {message.role === "assistant" ? (
-            <div className="text-sm prose prose-sm max-w-none dark:prose-invert pr-8 pb-8">
+            <div className="text-sm prose prose-sm max-w-none dark:prose-invert pr-8 pb-8 break-words overflow-wrap-anywhere">
               <ReactMarkdown>{message.content}</ReactMarkdown>
             </div>
           ) : (
-            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+            <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
           )}
           {message.timestamp && (
             <p className="text-xs opacity-70 mt-1">

@@ -201,9 +201,7 @@ const Landing2 = () => {
     >
       <div className="flex flex-row items-center gap-2">
         <img 
-          className="rounded-full" 
-          width="28" 
-          height="28" 
+          className="w-7 h-7 rounded-full object-cover flex-shrink-0" 
           alt={member.name || 'Member photo'} 
           src={member.photo_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=28&h=28&fit=crop&crop=face'} 
         />
@@ -245,9 +243,16 @@ const Landing2 = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-hidden">
-      {/* Clean background */}
+      {/* Enhanced background with visual effects */}
       <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50/50 to-blue-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.1),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border))_1px,transparent_1px)] bg-[size:32px_32px] opacity-30" />
+        
+        {/* Animated blur orbs */}
+        <div className="absolute top-20 left-10 w-32 h-32 bg-primary/10 rounded-full blur-xl animate-pulse" />
+        <div className="absolute top-40 right-20 w-24 h-24 bg-accent/10 rounded-full blur-xl animate-pulse delay-1000" />
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-muted/10 rounded-full blur-xl animate-pulse delay-2000" />
       </div>
 
       {/* Navigation */}
@@ -469,6 +474,19 @@ const Landing2 = () => {
                 </div>
               </Card>
             ))}
+          </div>
+          
+          {/* View All Button */}
+          <div className="text-center mt-8 sm:mt-12">
+            <Button 
+              variant="outline" 
+              size="lg"
+              onClick={() => navigate('/plans')}
+              className="bg-card/80 hover:bg-card border-[#3D63DD]/20 hover:border-[#3D63DD]/40 text-[#3D63DD] hover:text-[#2D53CD] transition-all duration-300"
+            >
+              View All Plans
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
           </div>
         </div>
       </section>

@@ -1,4 +1,4 @@
-import { Search, Settings, User, FileText, Lightbulb, BarChart3, Users, Building2, TrendingUp, MessageSquare, Heart, CreditCard, History, Gamepad2, Factory, Target, Star } from "lucide-react";
+import { Search, Settings, User, FileText, Lightbulb, BarChart3, Users, Building2, TrendingUp, MessageSquare, Heart, CreditCard, History, Gamepad2, Factory, Target, Star, ScrollText } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -21,6 +21,7 @@ const workflowNavItems = [
   { title: "Favorites", url: "/favorites", icon: Heart },
   { title: "Playground", url: "/playground", icon: Gamepad2 },
   { title: "Policy Portal", url: "/policy-portal", icon: Factory },
+  { title: "Public Policy", url: "/public-policy", icon: ScrollText },
 ];
 
 const bottomNavItems = [

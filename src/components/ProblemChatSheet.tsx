@@ -410,11 +410,11 @@ Remember: You're not just answering questions - you're actively partnering with 
                   : 'bg-muted relative'
               }`}>
                 {message.role === 'assistant' ? (
-                  <div className="prose prose-sm max-w-none">
+                  <div className="prose prose-sm max-w-none break-words overflow-wrap-anywhere">
                     <ReactMarkdown>{message.content}</ReactMarkdown>
                   </div>
                 ) : (
-                  message.content
+                  <p className="break-words">{message.content}</p>
                 )}
                 
                 {message.role === 'assistant' && message.id === 'assistant-1' && isComplete && (

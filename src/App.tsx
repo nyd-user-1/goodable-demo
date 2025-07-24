@@ -30,6 +30,7 @@ import ProblemPage from "./pages/ProblemPage";
 import Problems from "./pages/Problems";
 import Features from "./pages/Features";
 import About from "./pages/About";
+import PublicPolicy from "./pages/PublicPolicy";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,7 @@ const AppLayout = () => {
                 <Route path="/changelog" element={<ChangeLog />} />
                 <Route path="/features" element={<Features />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/public-policy" element={<PublicPolicy />} />
                 <Route path="/dashboard" element={<Index />} />
               </Routes>
             </main>

@@ -29,11 +29,11 @@ const chartData = [
 const chartConfig = {
   engagement: {
     label: "Citizen Engagement",
-    color: "hsl(var(--chart-1))",
+    color: "#3D63DD",
   },
   feedback: {
     label: "Expert Feedback", 
-    color: "hsl(var(--chart-2))",
+    color: "#8B8D98",
   },
 } satisfies ChartConfig
 

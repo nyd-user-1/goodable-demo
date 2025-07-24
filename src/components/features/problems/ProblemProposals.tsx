@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 import { 
   FileText, 
   Plus, 
@@ -49,6 +51,8 @@ interface ProblemProposalsProps {
 }
 
 export const ProblemProposals = ({ problem }: ProblemProposalsProps) => {
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const [proposals, setProposals] = useState<Proposal[]>([
     {
       id: '1',
@@ -175,6 +179,48 @@ $50M over 3 years for:
     setNewProposalTitle('');
     setShowNewProposal(false);
     handleStartEdit(newProposal);
+  };
+
+  const handlePublishProposal = (proposal: Proposal) => {
+    // Store the proposal in localStorage as a published blog post
+    const publishedPosts = JSON.parse(localStorage.getItem('publishedPolicies') || '[]');
+    
+    const blogPost = {
+      id: `policy-${Date.now()}`,
+      title: proposal.title,
+      content: proposal.content,
+      author: proposal.author,
+      publishedAt: new Date().toISOString(),
+      category: 'Public Policy',
+      problem: problem.title,
+      status: 'published',
+      votes: {
+        up: 0,
+        down: 0,
+        total: 0
+      },
+      comments: []
+    };
+    
+    publishedPosts.push(blogPost);
+    localStorage.setItem('publishedPolicies', JSON.stringify(publishedPosts));
+    
+    // Update proposal status
+    setProposals(proposals.map(p => 
+      p.id === proposal.id 
+        ? { ...p, status: 'approved', lastModified: 'Just now' }
+        : p
+    ));
+    
+    toast({
+      title: "Proposal Published!",
+      description: "Your policy proposal has been published to the Public Policy blog.",
+    });
+    
+    // Navigate to the blog page
+    setTimeout(() => {
+      navigate('/public-policy');
+    }, 1500);
   };
 
   if (isEditing && selectedProposal) {
@@ -425,9 +471,13 @@ $50M over 3 years for:
                     <Star className="w-4 h-4 mr-2" />
                     Star
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handlePublishProposal(proposal)}
+                  >
                     <Share2 className="w-4 h-4 mr-2" />
-                    Share
+                    Publish
                   </Button>
                 </div>
               </div>
