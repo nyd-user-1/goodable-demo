@@ -201,7 +201,7 @@ export const AutocompleteCombobox: React.FC<AutocompleteComboboxProps> = ({
   };
 
   return (
-    <div className={`relative w-full min-w-[740px] max-w-[740px] mx-auto ${className}`}>
+    <div className={`relative w-full min-w-[740px] max-w-[740px] mx-auto ${className}`} style={{ zIndex: 1000 }}>
       {/* Clean unified container with Radix-inspired design */}
       <div className="input-wrapper relative">
         <form onSubmit={handleSubmit}>
@@ -273,7 +273,7 @@ export const AutocompleteCombobox: React.FC<AutocompleteComboboxProps> = ({
 
         {/* Clean dropdown with Radix-inspired styling */}
         {isOpen && (
-          <div className="dropdown absolute left-0 right-0 top-full bg-card border border-primary/50 border-t-0 rounded-b-2xl shadow-lg z-50 overflow-hidden">
+          <div className="dropdown absolute left-0 right-0 top-full bg-card border border-primary/50 border-t-0 rounded-b-2xl shadow-xl z-[9999] overflow-hidden max-h-[80vh]">
             <div className="py-2">
               {/* Simple header */}
               <div className="px-6 py-3 border-b border-border">
@@ -291,7 +291,7 @@ export const AutocompleteCombobox: React.FC<AutocompleteComboboxProps> = ({
                   </span>
                 </div>
               ) : suggestions.length > 0 ? (
-                <ScrollArea className="h-[400px]">
+                <div className="max-h-[60vh] overflow-y-auto">
                   <div className="py-2">
                     <ul
                       ref={listboxRef}
@@ -320,7 +320,7 @@ export const AutocompleteCombobox: React.FC<AutocompleteComboboxProps> = ({
                       ))}
                     </ul>
                   </div>
-                </ScrollArea>
+                </div>
               ) : (
                 <div className="px-6 py-8">
                   <span className="text-sm text-muted-foreground">
