@@ -50,7 +50,7 @@ export const ProblemKeyInformation = ({ problem }: ProblemKeyInformationProps) =
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Target className="h-4 w-4" />
-              <span className="text-sm font-medium">Sub-problems</span>
+              <span className="text-sm font-medium">Proposals</span>
             </div>
             <p className="font-semibold">{problem.subProblems}</p>
           </div>
@@ -58,7 +58,7 @@ export const ProblemKeyInformation = ({ problem }: ProblemKeyInformationProps) =
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-muted-foreground">
               <TrendingUp className="h-4 w-4" />
-              <span className="text-sm font-medium">Solutions</span>
+              <span className="text-sm font-medium">Collaborators</span>
             </div>
             <p className="font-semibold">{problem.solutions}</p>
           </div>
