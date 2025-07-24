@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   ArrowRight, 
   Sparkles, 
@@ -15,7 +16,9 @@ import {
   Heart,
   Twitter,
   Users,
-  Play
+  Play,
+  ArrowUp,
+  MessageSquare
 } from "lucide-react";
 import { useNavigate, Link } from 'react-router-dom';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -107,37 +110,43 @@ const Landing2 = () => {
       icon: <FileText className="w-5 h-5" />,
       title: "Legislative Intelligence",
       description: "Track and analyze bills with AI-powered insights across all committees and chambers",
-      gradient: "from-[#3D63DD] to-[#5A7FDB]"
+      gradient: "from-[#3D63DD] to-[#5A7FDB]",
+      path: "/dashboard"
     },
     {
       icon: <Users className="w-5 h-5" />,
       title: "Member Profiles",
       description: "Comprehensive legislator data including voting history, sponsorships, and committee memberships",
-      gradient: "from-[#3D63DD] to-[#6B8CE8]"
+      gradient: "from-[#3D63DD] to-[#6B8CE8]",
+      path: "/members"
     },
     {
       icon: <Brain className="w-5 h-5" />,
       title: "AI Policy Assistant",
       description: "Draft legislation, analyze impacts, and get expert guidance with advanced AI models",
-      gradient: "from-[#3D63DD] to-[#4A70E0]"
+      gradient: "from-[#3D63DD] to-[#4A70E0]",
+      path: "/playground"
     },
     {
       icon: <Building2 className="w-5 h-5" />,
       title: "Committee Tracking",
       description: "Monitor committee activities, agendas, and member compositions in real-time",
-      gradient: "from-[#3D63DD] to-[#5577E5]"
+      gradient: "from-[#3D63DD] to-[#5577E5]",
+      path: "/committees"
     },
     {
       icon: <Scale className="w-5 h-5" />,
-      title: "Policy Portal",
+      title: "Bills and Resolutions",
       description: "Collaborative workspace for drafting, reviewing, and refining policy proposals",
-      gradient: "from-[#3D63DD] to-[#4D73E2]"
+      gradient: "from-[#3D63DD] to-[#4D73E2]",
+      path: "/bills"
     },
     {
       icon: <Vote className="w-5 h-5" />,
       title: "Community Solutions",
       description: "Crowdsource ideas and vote on solutions to pressing societal challenges",
-      gradient: "from-[#3D63DD] to-[#5A7FDB]"
+      gradient: "from-[#3D63DD] to-[#5A7FDB]",
+      path: "/public-policy"
     }
   ];
 
@@ -372,7 +381,8 @@ const Landing2 = () => {
             {features.map((feature, index) => (
               <Card 
                 key={index}
-                className="group relative overflow-hidden border-muted/50 bg-gradient-to-br from-background to-muted/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                className="group relative overflow-hidden border-muted/50 bg-gradient-to-br from-background to-muted/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+                onClick={() => navigate(feature.path)}
               >
                 <div className="p-4 sm:p-6">
                   <div className={cn(
@@ -415,6 +425,109 @@ const Landing2 = () => {
               <ChartPieBillStatus />
               <ChartLinePolicyImpact />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Public Policy Blog Posts */}
+      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-background">
+        <div className="mx-auto max-w-7xl">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+              Latest Public Policy
+              <span className="bg-gradient-to-r from-[#3D63DD] to-[#5A7FDB] bg-clip-text text-transparent"> Proposals</span>
+            </h2>
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
+              Community-driven policy solutions from collaborative problem-solving sessions
+            </p>
+          </div>
+          
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {(() => {
+              // Get published policies from localStorage
+              const publishedPosts = JSON.parse(localStorage.getItem('publishedPolicies') || '[]');
+              const recentPosts = publishedPosts
+                .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt))
+                .slice(0, 3);
+              
+              if (recentPosts.length === 0) {
+                return (
+                  <div className="col-span-full">
+                    <Card className="p-8 text-center">
+                      <div className="w-12 h-12 bg-[#3D63DD] rounded-lg flex items-center justify-center mx-auto mb-4">
+                        <FileText className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="text-lg font-semibold mb-2">No policies published yet</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Be the first to create and publish a policy proposal from our problem-solving platform.
+                      </p>
+                      <Button onClick={() => navigate('/problems')} className="bg-[#3D63DD] hover:bg-[#2D53CD]">
+                        Explore Problems
+                      </Button>
+                    </Card>
+                  </div>
+                );
+              }
+              
+              return recentPosts.map((post, index) => (
+                <Card 
+                  key={post.id} 
+                  className="group cursor-pointer hover:shadow-lg transition-all duration-200"
+                  onClick={() => navigate('/public-policy')}
+                >
+                  <div className="p-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Badge variant="secondary" className="text-xs">
+                        {post.category}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {post.problem}
+                      </Badge>
+                    </div>
+                    
+                    <h3 className="text-lg font-semibold mb-2 group-hover:text-[#3D63DD] transition-colors">
+                      {post.title}
+                    </h3>
+                    
+                    <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
+                      {post.content.substring(0, 150)}...
+                    </p>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Avatar className="w-4 h-4">
+                          <AvatarImage src={post.author.avatar} />
+                          <AvatarFallback>{post.author.name[0]}</AvatarFallback>
+                        </Avatar>
+                        <span>{post.author.name}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <ArrowUp className="w-3 h-3" />
+                          {post.votes.up}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MessageSquare className="w-3 h-3" />
+                          {post.comments.length}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ));
+            })()}
+          </div>
+          
+          <div className="text-center mt-8">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/public-policy')}
+              className="hover:bg-[#3D63DD] hover:text-white"
+            >
+              View All Policies
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
           </div>
         </div>
       </section>

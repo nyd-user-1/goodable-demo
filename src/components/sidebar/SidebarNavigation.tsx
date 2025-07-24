@@ -20,7 +20,7 @@ const workflowNavItems = [
   { title: "Chats", url: "/chats", icon: MessageSquare },
   { title: "Favorites", url: "/favorites", icon: Heart },
   { title: "Playground", url: "/playground", icon: Gamepad2 },
-  { title: "Policy Portal", url: "/policy-portal", icon: Factory },
+  { title: "Bills and Resolutions", url: "/policy-portal", icon: Factory },
   { title: "Public Policy", url: "/public-policy", icon: ScrollText },
 ];
 

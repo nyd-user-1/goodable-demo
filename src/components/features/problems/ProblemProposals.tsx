@@ -134,8 +134,80 @@ $50M over 3 years for:
     implemented: 'bg-purple-100 text-purple-800'
   };
 
+  const [textFormat, setTextFormat] = useState({
+    bold: false,
+    italic: false,
+    underline: false,
+    align: 'left'
+  });
+
   const formatText = (command: string) => {
-    document.execCommand(command, false);
+    if (!editContent) return;
+    
+    const textarea = document.querySelector('textarea[value="' + editContent + '"]');
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = editContent.substring(start, end);
+    
+    let newText = editContent;
+    
+    switch (command) {
+      case 'bold':
+        if (selectedText) {
+          const replacement = textFormat.bold ? selectedText.replace(/\*\*(.*?)\*\*/g, '$1') : `**${selectedText}**`;
+          newText = editContent.substring(0, start) + replacement + editContent.substring(end);
+          setTextFormat(prev => ({ ...prev, bold: !prev.bold }));
+        }
+        break;
+      case 'italic':
+        if (selectedText) {
+          const replacement = textFormat.italic ? selectedText.replace(/\*(.*?)\*/g, '$1') : `*${selectedText}*`;
+          newText = editContent.substring(0, start) + replacement + editContent.substring(end);
+          setTextFormat(prev => ({ ...prev, italic: !prev.italic }));
+        }
+        break;
+      case 'underline':
+        if (selectedText) {
+          const replacement = textFormat.underline ? selectedText.replace(/<u>(.*?)<\/u>/g, '$1') : `<u>${selectedText}</u>`;
+          newText = editContent.substring(0, start) + replacement + editContent.substring(end);
+          setTextFormat(prev => ({ ...prev, underline: !prev.underline }));
+        }
+        break;
+      case 'justifyLeft':
+        setTextFormat(prev => ({ ...prev, align: 'left' }));
+        break;
+      case 'justifyCenter':
+        setTextFormat(prev => ({ ...prev, align: 'center' }));
+        break;
+      case 'insertUnorderedList':
+        if (selectedText) {
+          const lines = selectedText.split('\n');
+          const listItems = lines.map(line => line.trim() ? `- ${line.trim()}` : line).join('\n');
+          newText = editContent.substring(0, start) + listItems + editContent.substring(end);
+        } else {
+          newText = editContent.substring(0, start) + '\n- ' + editContent.substring(end);
+        }
+        break;
+      case 'insertOrderedList':
+        if (selectedText) {
+          const lines = selectedText.split('\n');
+          const listItems = lines.map((line, index) => line.trim() ? `${index + 1}. ${line.trim()}` : line).join('\n');
+          newText = editContent.substring(0, start) + listItems + editContent.substring(end);
+        } else {
+          newText = editContent.substring(0, start) + '\n1. ' + editContent.substring(end);
+        }
+        break;
+      case 'formatBlock':
+        if (selectedText) {
+          const replacement = selectedText.startsWith('> ') ? selectedText.replace(/^> /gm, '') : selectedText.replace(/^/gm, '> ');
+          newText = editContent.substring(0, start) + replacement + editContent.substring(end);
+        }
+        break;
+    }
+    
+    setEditContent(newText);
   };
 
   const handleStartEdit = (proposal: Proposal) => {
@@ -245,7 +317,7 @@ $50M over 3 years for:
         <Card className="p-3">
           <div className="flex items-center gap-1 flex-wrap">
             <Button
-              variant="ghost"
+              variant={textFormat.bold ? "default" : "ghost"}
               size="sm"
               onClick={() => formatText('bold')}
               className="p-2"
@@ -253,7 +325,7 @@ $50M over 3 years for:
               <Bold className="w-4 h-4" />
             </Button>
             <Button
-              variant="ghost"
+              variant={textFormat.italic ? "default" : "ghost"}
               size="sm"
               onClick={() => formatText('italic')}
               className="p-2"
@@ -261,7 +333,7 @@ $50M over 3 years for:
               <Italic className="w-4 h-4" />
             </Button>
             <Button
-              variant="ghost"
+              variant={textFormat.underline ? "default" : "ghost"}
               size="sm"
               onClick={() => formatText('underline')}
               className="p-2"
@@ -272,7 +344,7 @@ $50M over 3 years for:
             <div className="w-px h-6 bg-border mx-2" />
             
             <Button
-              variant="ghost"
+              variant={textFormat.align === 'left' ? "default" : "ghost"}
               size="sm"
               onClick={() => formatText('justifyLeft')}
               className="p-2"
@@ -280,7 +352,7 @@ $50M over 3 years for:
               <AlignLeft className="w-4 h-4" />
             </Button>
             <Button
-              variant="ghost"
+              variant={textFormat.align === 'center' ? "default" : "ghost"}
               size="sm"
               onClick={() => formatText('justifyCenter')}
               className="p-2"
@@ -295,24 +367,35 @@ $50M over 3 years for:
               size="sm"
               onClick={() => formatText('insertUnorderedList')}
               className="p-2"
+              title="Bullet List"
             >
               <List className="w-4 h-4" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
+              onClick={() => formatText('insertOrderedList')}
+              className="p-2"
+              title="Numbered List"
+            >
+              <div className="w-4 h-4 text-xs font-bold flex items-center justify-center">1.</div>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => formatText('formatBlock')}
               className="p-2"
+              title="Quote"
             >
               <Quote className="w-4 h-4" />
             </Button>
             
             <div className="w-px h-6 bg-border mx-2" />
             
-            <Button variant="ghost" size="sm" className="p-2">
+            <Button variant="ghost" size="sm" className="p-2" title="Insert Link" disabled>
               <Link2 className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="p-2">
+            <Button variant="ghost" size="sm" className="p-2" title="Insert Image" disabled>
               <Image className="w-4 h-4" />
             </Button>
           </div>
@@ -323,7 +406,9 @@ $50M over 3 years for:
           <Textarea
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
-            className="min-h-[500px] border-0 focus:ring-0 focus-visible:ring-0 resize-none"
+            className={`min-h-[500px] border-0 focus:ring-0 focus-visible:ring-0 resize-none ${
+              textFormat.align === 'center' ? 'text-center' : textFormat.align === 'right' ? 'text-right' : 'text-left'
+            }`}
             placeholder="Write your proposal here..."
           />
         </Card>

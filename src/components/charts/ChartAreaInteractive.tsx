@@ -28,36 +28,78 @@ import {
 
 export const description = "An interactive area chart"
 
-// Generate realistic legislative data
+// Generate data based on published policy posts
 const generateLegislativeData = () => {
+  // Get published policies from localStorage
+  const publishedPosts = JSON.parse(localStorage.getItem('publishedPolicies') || '[]');
+  
+  // If no published posts, return sample data
+  if (publishedPosts.length === 0) {
+    const data = [];
+    const startDate = new Date('2024-01-01');
+    
+    for (let i = 0; i < 90; i++) {
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + i);
+      
+      // Legislative activity typically higher mid-week and during session
+      const dayOfWeek = date.getDay();
+      const weekMultiplier = dayOfWeek >= 1 && dayOfWeek <= 4 ? 1.2 : 0.8;
+      
+      // Add some seasonality - higher activity in spring legislative session
+      const monthMultiplier = date.getMonth() >= 2 && date.getMonth() <= 5 ? 1.3 : 0.9;
+      
+      const baseBills = Math.floor(Math.random() * 50 + 20) * weekMultiplier * monthMultiplier;
+      const baseProposals = Math.floor(Math.random() * 80 + 30) * weekMultiplier * monthMultiplier;
+      
+      data.push({
+        date: date.toISOString().split('T')[0],
+        bills: Math.floor(baseBills),
+        proposals: Math.floor(baseProposals)
+      });
+    }
+    
+    return data;
+  }
+  
+  // Group published posts by date
+  const postsByDate = {};
+  publishedPosts.forEach(post => {
+    const date = new Date(post.publishedAt).toISOString().split('T')[0];
+    if (!postsByDate[date]) {
+      postsByDate[date] = { proposals: 0, bills: 0 };
+    }
+    postsByDate[date].proposals += 1;
+    // Add some bills data based on proposals (simulated correlation)
+    postsByDate[date].bills += Math.floor(Math.random() * 3 + 1);
+  });
+  
+  // Create chart data for the last 90 days
   const data = [];
-  const startDate = new Date('2024-01-01');
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 90);
   
   for (let i = 0; i < 90; i++) {
     const date = new Date(startDate);
     date.setDate(date.getDate() + i);
+    const dateStr = date.toISOString().split('T')[0];
     
-    // Legislative activity typically higher mid-week and during session
-    const dayOfWeek = date.getDay();
-    const weekMultiplier = dayOfWeek >= 1 && dayOfWeek <= 4 ? 1.2 : 0.8;
-    
-    // Add some seasonality - higher activity in spring legislative session
-    const monthMultiplier = date.getMonth() >= 2 && date.getMonth() <= 5 ? 1.3 : 0.9;
-    
-    const baseBills = Math.floor(Math.random() * 50 + 20) * weekMultiplier * monthMultiplier;
-    const baseProposals = Math.floor(Math.random() * 80 + 30) * weekMultiplier * monthMultiplier;
+    // Use real data if available, otherwise baseline values
+    const realData = postsByDate[dateStr];
+    const baselineProposals = Math.floor(Math.random() * 20 + 10);
+    const baselineBills = Math.floor(Math.random() * 30 + 15);
     
     data.push({
-      date: date.toISOString().split('T')[0],
-      bills: Math.floor(baseBills),
-      proposals: Math.floor(baseProposals)
+      date: dateStr,
+      bills: realData ? realData.bills + baselineBills : baselineBills,
+      proposals: realData ? realData.proposals + baselineProposals : baselineProposals
     });
   }
   
   return data;
 };
 
-const chartData = generateLegislativeData();
+const getChartData = () => generateLegislativeData();
 
 const chartConfig = {
   activity: {
@@ -75,6 +117,33 @@ const chartConfig = {
 
 export function ChartAreaInteractive() {
   const [timeRange, setTimeRange] = React.useState("90d")
+  const [chartData, setChartData] = React.useState([])
+
+  // Update chart data when component mounts or localStorage changes
+  React.useEffect(() => {
+    const updateData = () => {
+      setChartData(getChartData())
+    }
+    
+    updateData()
+    
+    // Listen for localStorage changes (when new policies are published)
+    const handleStorageChange = (e) => {
+      if (e.key === 'publishedPolicies') {
+        updateData()
+      }
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    
+    // Also update periodically for cross-tab updates
+    const interval = setInterval(updateData, 5000)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      clearInterval(interval)
+    }
+  }, [])
 
   const filteredData = chartData.filter((item) => {
     const date = new Date(item.date)

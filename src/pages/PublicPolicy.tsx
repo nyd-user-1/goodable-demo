@@ -63,7 +63,9 @@ const PublicPolicy = () => {
   // Load published policies from localStorage
   useEffect(() => {
     const publishedPosts = JSON.parse(localStorage.getItem('publishedPolicies') || '[]');
-    setPosts(publishedPosts);
+    // Sort by newest first
+    const sortedPosts = publishedPosts.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+    setPosts(sortedPosts);
     
     // Load user votes
     const votes = JSON.parse(localStorage.getItem('userVotes') || '{}');
@@ -108,8 +110,10 @@ const PublicPolicy = () => {
       return post;
     });
     
-    setPosts(updatedPosts);
-    localStorage.setItem('publishedPolicies', JSON.stringify(updatedPosts));
+    // Sort updated posts by newest first
+    const sortedPosts = updatedPosts.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+    setPosts(sortedPosts);
+    localStorage.setItem('publishedPolicies', JSON.stringify(sortedPosts));
     
     // Update user votes
     const newUserVotes = { ...userVotes, [postId]: newVote };
@@ -146,8 +150,10 @@ const PublicPolicy = () => {
       return post;
     });
     
-    setPosts(updatedPosts);
-    localStorage.setItem('publishedPolicies', JSON.stringify(updatedPosts));
+    // Sort updated posts by newest first
+    const sortedPosts = updatedPosts.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+    setPosts(sortedPosts);
+    localStorage.setItem('publishedPolicies', JSON.stringify(sortedPosts));
     setNewComment('');
     
     if (selectedPost && selectedPost.id === postId) {
@@ -375,7 +381,11 @@ const PublicPolicy = () => {
               </Card>
             ) : (
               posts.map((post) => (
-                <Card key={post.id} className="p-6 cursor-pointer hover:shadow-lg transition-all duration-200">
+                <Card 
+                  key={post.id} 
+                  className="p-6 cursor-pointer hover:shadow-lg transition-all duration-200"
+                  onClick={() => setSelectedPost(post)}
+                >
                   <div className="space-y-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -388,10 +398,7 @@ const PublicPolicy = () => {
                           </Badge>
                         </div>
                         
-                        <h2 
-                          className="text-xl font-semibold mb-2 hover:text-[#3D63DD] cursor-pointer"
-                          onClick={() => setSelectedPost(post)}
-                        >
+                        <h2 className="text-xl font-semibold mb-2 hover:text-[#3D63DD] transition-colors">
                           {post.title}
                         </h2>
                         
@@ -446,14 +453,6 @@ const PublicPolicy = () => {
                           {post.comments.length}
                         </div>
                       </div>
-                      
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setSelectedPost(post)}
-                      >
-                        Read More
-                      </Button>
                     </div>
                   </div>
                 </Card>
