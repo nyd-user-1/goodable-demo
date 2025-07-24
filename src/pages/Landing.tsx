@@ -12,6 +12,7 @@ import { useVisitorCount } from '@/hooks/useVisitorCount';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProblemChatSheet } from '@/components/ProblemChatSheet';
 import { supabase } from '@/integrations/supabase/client';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const Landing = () => {
   const [userProblem, setUserProblem] = useState('');
@@ -201,13 +202,16 @@ const Landing = () => {
               </div>
               <span className="text-xl font-bold">Goodable</span>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/auth')}
-              className="bg-card/80 hover:bg-card"
-            >
-              Sign In
-            </Button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/auth')}
+                className="bg-card/80 hover:bg-card"
+              >
+                Sign In
+              </Button>
+            </div>
           </div>
         </div>
       </header>

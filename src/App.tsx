@@ -43,11 +43,11 @@ const AppLayout = () => {
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
               <HeartSidebarTrigger />
               <div className="ml-auto flex items-center gap-2">
-                <ThemeToggle />
                 <ModelSelector 
                   selectedModel={selectedModel}
                   onModelChange={setSelectedModel}
                 />
+                <ThemeToggle />
               </div>
             </header>
             <main className="flex-1">
