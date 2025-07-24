@@ -69,7 +69,7 @@ const Profile = () => {
 
   const updateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !profile) return;
+    if (!user) return;
 
     setSaving(true);
     try {
@@ -77,22 +77,31 @@ const Profile = () => {
         .from('profiles')
         .upsert({
           user_id: user.id,
-          username: profile.username,
-          display_name: profile.display_name,
-          bio: profile.bio,
-          avatar_url: profile.avatar_url,
+          username: profile?.username || null,
+          display_name: profile?.display_name || null,
+          bio: profile?.bio || null,
+          avatar_url: profile?.avatar_url || null,
+        }, {
+          onConflict: 'user_id'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Profile update error:', error);
+        throw new Error(`Profile update failed: ${error.message}`);
+      }
 
       toast({
         title: "Profile updated!",
         description: "Your profile has been saved successfully.",
       });
+
+      // Refresh profile data to ensure consistency
+      await fetchProfile();
     } catch (error: any) {
+      console.error('Full profile update error:', error);
       toast({
         title: "Error updating profile",
-        description: error.message,
+        description: error.message || "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -146,7 +155,7 @@ const Profile = () => {
     if (!file.type.startsWith('image/')) {
       toast({
         title: "Invalid file type",
-        description: "Please select an image file.",
+        description: "Please select an image file (PNG, JPG, GIF, etc.).",
         variant: "destructive",
       });
       return;
@@ -164,37 +173,81 @@ const Profile = () => {
 
     setUploading(true);
     try {
-      // Create a unique filename
+      // Create a unique filename with user ID prefix for RLS
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      
+      // First, try to delete any existing avatar to clean up storage
+      try {
+        if (profile?.avatar_url) {
+          const existingFileName = profile.avatar_url.split('/').pop();
+          if (existingFileName && existingFileName.startsWith(user.id)) {
+            await supabase.storage
+              .from('avatars')
+              .remove([existingFileName]);
+          }
+        }
+      } catch (cleanupError) {
+        // Ignore cleanup errors, continue with upload
+        console.log('Cleanup error (non-critical):', cleanupError);
+      }
       
       // Upload file to Supabase Storage
       const { data, error } = await supabase.storage
         .from('avatars')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true // Allow overwriting if file exists
+        });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Storage upload error:', error);
+        throw new Error(`Upload failed: ${error.message}`);
+      }
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
 
-      // Update profile with new avatar URL
+      // Update profile with new avatar URL using upsert
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: user.id,
+          username: profile?.username,
+          display_name: profile?.display_name,
+          bio: profile?.bio,
+          avatar_url: publicUrl,
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (updateError) {
+        console.error('Profile update error:', updateError);
+        throw new Error(`Profile update failed: ${updateError.message}`);
+      }
+
+      // Update local state
       setProfile(prev => prev ? {...prev, avatar_url: publicUrl} : null);
 
       toast({
         title: "Avatar uploaded!",
-        description: "Your profile picture has been updated.",
+        description: "Your profile picture has been updated successfully.",
       });
     } catch (error: any) {
+      console.error('Full upload error:', error);
       toast({
         title: "Upload failed",
-        description: error.message,
+        description: error.message || "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
       setUploading(false);
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
