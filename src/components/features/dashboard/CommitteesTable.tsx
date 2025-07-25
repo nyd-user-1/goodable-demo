@@ -18,12 +18,16 @@ type Committee = {
   chamber: string;
   description?: string;
   chair_name?: string;
+  chair_email?: string;
   memberCount?: string;
   billCount?: string;
   committee_type?: string;
+  meeting_schedule?: string;
+  next_meeting?: string;
+  address?: string;
 };
 
-type SortField = 'name' | 'chamber' | 'chair_name' | 'committee_type';
+type SortField = 'name' | 'chamber' | 'chair_name' | 'committee_type' | 'meeting_schedule';
 type SortDirection = 'asc' | 'desc' | null;
 
 interface CommitteesTableProps {
@@ -51,13 +55,68 @@ export const CommitteesTable = ({ limit = 100 }: CommitteesTableProps) => {
 
         const { data: committeesData, error: committeesError } = await supabase
           .from("Committees")
-          .select("*")
-          .order("name", { ascending: true })
+          .select(`
+            committee_id,
+            committee_name,
+            chamber,
+            chair_name,
+            chair_email,
+            committee_type,
+            description,
+            meeting_schedule,
+            next_meeting,
+            address
+          `)
+          .order("committee_name", { ascending: true })
           .limit(limit);
 
         if (committeesError) throw committeesError;
 
-        setCommittees(committeesData || []);
+        // Transform data and add counts
+        const transformedCommittees = await Promise.all(
+          (committeesData || []).map(async (committee) => {
+            // Get member count - handle if table doesn't exist
+            let memberCount = 0;
+            try {
+              const { count } = await supabase
+                .from("Committee_Members")
+                .select("*", { count: 'exact', head: true })
+                .eq("committee_id", committee.committee_id);
+              memberCount = count || 0;
+            } catch (e) {
+              // Table might not exist, that's ok
+            }
+
+            // Get bill count
+            let billCount = 0;
+            try {
+              const { count } = await supabase
+                .from("Bills")
+                .select("*", { count: 'exact', head: true })
+                .eq("committee", committee.committee_name);
+              billCount = count || 0;
+            } catch (e) {
+              // Handle error
+            }
+
+            return {
+              committee_id: committee.committee_id,
+              name: committee.committee_name || "Unknown Committee",
+              chamber: committee.chamber || "Unknown",
+              chair_name: committee.chair_name,
+              chair_email: committee.chair_email,
+              committee_type: committee.committee_type,
+              description: committee.description,
+              meeting_schedule: committee.meeting_schedule,
+              next_meeting: committee.next_meeting,
+              address: committee.address,
+              memberCount: memberCount?.toString() || "0",
+              billCount: billCount?.toString() || "0"
+            };
+          })
+        );
+
+        setCommittees(transformedCommittees);
       } catch (err) {
         setError("Failed to load committees. Please try again.");
         toast({
@@ -146,7 +205,9 @@ export const CommitteesTable = ({ limit = 100 }: CommitteesTableProps) => {
         committee.chamber?.toLowerCase().includes(query) ||
         committee.chair_name?.toLowerCase().includes(query) ||
         committee.description?.toLowerCase().includes(query) ||
-        committee.committee_type?.toLowerCase().includes(query)
+        committee.committee_type?.toLowerCase().includes(query) ||
+        committee.meeting_schedule?.toLowerCase().includes(query) ||
+        committee.address?.toLowerCase().includes(query)
       );
     }
 
@@ -177,7 +238,7 @@ export const CommitteesTable = ({ limit = 100 }: CommitteesTableProps) => {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search committees by name, chamber, chair, or type..."
+            placeholder="Search committees by name, chamber, chair, type, or meeting schedule..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -206,7 +267,7 @@ export const CommitteesTable = ({ limit = 100 }: CommitteesTableProps) => {
               <ScrollArea className="h-[600px] w-full">
                 {/* Horizontal ScrollArea for columns */}
                 <ScrollArea orientation="horizontal" className="w-full">
-                  <div className="min-w-[800px] relative">
+                  <div className="min-w-[1200px] relative">
                     <Table>
                       <TableHeader className="sticky top-0 bg-background/95 backdrop-blur-sm z-30 border-b shadow-sm supports-[backdrop-filter]:bg-background/60">
                         <TableRow className="hover:bg-transparent">
@@ -251,6 +312,18 @@ export const CommitteesTable = ({ limit = 100 }: CommitteesTableProps) => {
                               Type {getSortIcon('committee_type')}
                             </Button>
                           </TableHead>
+                          <TableHead className="w-[180px]">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleSort('meeting_schedule')}
+                              className="h-auto p-0 font-semibold hover:bg-transparent"
+                            >
+                              Meeting Schedule {getSortIcon('meeting_schedule')}
+                            </Button>
+                          </TableHead>
+                          <TableHead className="w-[80px] text-center">Members</TableHead>
+                          <TableHead className="w-[80px] text-center">Bills</TableHead>
                           <TableHead className="w-[100px]">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -279,6 +352,19 @@ export const CommitteesTable = ({ limit = 100 }: CommitteesTableProps) => {
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground">
                               {committee.committee_type || committee.description || "N/A"}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {committee.meeting_schedule || "N/A"}
+                            </TableCell>
+                            <TableCell className="text-sm text-center">
+                              <Badge variant="outline" className="min-w-[40px]">
+                                {committee.memberCount || "0"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-sm text-center">
+                              <Badge variant="outline" className="min-w-[40px]">
+                                {committee.billCount || "0"}
+                              </Badge>
                             </TableCell>
                             <TableCell>
                               <CardActionButtons
