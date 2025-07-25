@@ -63,7 +63,7 @@ export const ProblemDetail = ({ problem, onBack }: ProblemDetailProps) => {
                 <TabsTrigger value="statistics" className="h-10 rounded-md text-sm font-medium">
                   Statistics
                 </TabsTrigger>
-                <TabsTrigger value="proposals" className="h-10 rounded-md text-sm font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                <TabsTrigger value="proposals" className="h-10 rounded-md text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
                   Proposals
                 </TabsTrigger>
               </TabsList>
