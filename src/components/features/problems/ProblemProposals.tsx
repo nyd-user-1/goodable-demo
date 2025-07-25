@@ -278,7 +278,7 @@ $50M over 3 years for:
 
     try {
       // Create blog proposal in Supabase
-      const { error } = await (supabase as any)
+      const { data, error } = await (supabase as any)
         .from('blog_proposals')
         .insert({
           title: proposal.title,
@@ -289,32 +289,45 @@ $50M over 3 years for:
           category: 'Public Policy',
           tags: [problem.title, 'community-proposal'],
           published_at: new Date().toISOString(),
-          is_featured: false
-        });
+          is_featured: false,
+          view_count: 0
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
-    
-    // Update proposal status
-    setProposals(proposals.map(p => 
-      p.id === proposal.id 
-        ? { ...p, status: 'approved', lastModified: 'Just now' }
-        : p
-    ));
-    
-    toast({
-      title: "Proposal Published!",
-      description: "Your policy proposal has been published to the Public Policy blog.",
-    });
-    
-      // Navigate to the blog page
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      // Update proposal status locally
+      setProposals(proposals.map(p => 
+        p.id === proposal.id 
+          ? { ...p, status: 'approved', lastModified: 'Just now' }
+          : p
+      ));
+      
+      toast({
+        title: "Proposal Published!",
+        description: "Your policy proposal has been published to the Public Policy blog.",
+      });
+      
+      // Only navigate if publish was successful
       setTimeout(() => {
         navigate('/public-policy');
       }, 1500);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error publishing proposal:', error);
+      
+      // More detailed error message
+      let errorMessage = "There was an error publishing your proposal. Please try again.";
+      if (error.message) {
+        errorMessage = `Error: ${error.message}`;
+      }
+      
       toast({
         title: "Publication Failed",
-        description: "There was an error publishing your proposal. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     }

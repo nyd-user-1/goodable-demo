@@ -111,16 +111,17 @@ const PublicPolicy = () => {
         }
       }
 
-      if (error) throw error;
+      if (error) {
+        console.error('Final error loading proposals:', error);
+        throw error;
+      }
 
       setPosts(data || []);
     } catch (error) {
       console.error('Error loading proposals:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load policy proposals.",
-        variant: "destructive"
-      });
+      // Don't show error toast on initial load to avoid alarming users
+      // The page will still render with "No policies published yet" message
+      setPosts([]);
     } finally {
       setLoading(false);
     }
