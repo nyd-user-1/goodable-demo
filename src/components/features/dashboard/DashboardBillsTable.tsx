@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { formatDate } from "@/utils/dateUtils";
 import { useToast } from "@/hooks/use-toast";
+import { useStickyTableHeader } from "@/hooks/useStickyTableHeader";
 
 type Bill = Tables<"Bills">;
 
@@ -25,6 +26,7 @@ type SortDirection = 'asc' | 'desc' | null;
 export const DashboardBillsTable = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const tableRef = useStickyTableHeader();
   const [bills, setBills] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -174,7 +176,7 @@ export const DashboardBillsTable = () => {
           </div>
 
           {/* Bills Table */}
-          <div className="border rounded-md overflow-hidden bg-card">
+          <div ref={tableRef} className="border rounded-md overflow-hidden bg-card">
             {loading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="text-muted-foreground">Loading bills...</div>

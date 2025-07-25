@@ -11,6 +11,7 @@ import { ArrowUpDown, ArrowUp, ArrowDown, Search, ChevronLeft, ChevronRight } fr
 import { supabase } from "@/integrations/supabase/client";
 import { useCommitteeFavorites } from "@/hooks/useCommitteeFavorites";
 import { useToast } from "@/hooks/use-toast";
+import { useStickyTableHeader } from "@/hooks/useStickyTableHeader";
 
 type Committee = {
   committee_id: number;
@@ -37,6 +38,7 @@ interface CommitteesTableProps {
 export const CommitteesTable = ({ limit = 10 }: CommitteesTableProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const tableRef = useStickyTableHeader();
   const [committees, setCommittees] = useState<Committee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -224,7 +226,7 @@ export const CommitteesTable = ({ limit = 10 }: CommitteesTableProps) => {
         </div>
 
         {/* Committees Table */}
-        <div className="border rounded-md overflow-hidden bg-card">
+        <div ref={tableRef} className="border rounded-md overflow-hidden bg-card">
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-muted-foreground">Loading committees...</div>

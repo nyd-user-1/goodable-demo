@@ -1,4 +1,6 @@
 
+@import './styles/table-sticky-headers.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

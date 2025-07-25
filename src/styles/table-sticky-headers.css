@@ -1,0 +1,176 @@
+/* Sticky Table Headers CSS */
+
+/* Simplified sticky table container */
+.sticky-table-container {
+  position: relative;
+  overflow: auto;
+  max-height: 600px;
+}
+
+/* Sticky headers for tables inside the container */
+.sticky-table-container table thead {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background-color: hsl(var(--background));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode adjustments for simple container */
+.dark .sticky-table-container table thead {
+  background-color: hsl(var(--background));
+  box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
+}
+
+/* Sticky first column for simple container */
+.sticky-table-container table th:first-child,
+.sticky-table-container table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 20;
+  background-color: hsl(var(--background));
+  box-shadow: 1px 0 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark mode sticky columns */
+.dark .sticky-table-container table th:first-child,
+.dark .sticky-table-container table td:first-child {
+  background-color: hsl(var(--background));
+  box-shadow: 1px 0 3px rgba(255, 255, 255, 0.05);
+}
+
+/* Corner cell needs highest z-index */
+.sticky-table-container table thead th:first-child {
+  z-index: 40;
+}
+
+/* Fix for DashboardBillsTable, MembersTable, and CommitteesTable */
+
+/* Ensure the ScrollArea container has proper height constraints */
+.table-container {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Fix sticky positioning for table headers */
+.table-with-sticky-header {
+  position: relative;
+}
+
+/* Main sticky header styles */
+.table-with-sticky-header thead tr {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background-color: hsl(var(--background));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode adjustments */
+.dark .table-with-sticky-header thead tr {
+  background-color: hsl(var(--background));
+  box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
+}
+
+/* Ensure table cells in header maintain their background */
+.table-with-sticky-header thead th {
+  position: relative;
+  background-color: inherit;
+}
+
+/* Fix for horizontal scroll with sticky first column */
+.table-with-sticky-header th.sticky-column,
+.table-with-sticky-header td.sticky-column {
+  position: sticky;
+  left: 0;
+  z-index: 30;
+  background-color: hsl(var(--background));
+  box-shadow: 1px 0 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode for sticky columns */
+.dark .table-with-sticky-header th.sticky-column,
+.dark .table-with-sticky-header td.sticky-column {
+  background-color: hsl(var(--background));
+  box-shadow: 1px 0 3px rgba(255, 255, 255, 0.1);
+}
+
+/* Corner cell (intersection of sticky row and column) needs higher z-index */
+.table-with-sticky-header thead th.sticky-column {
+  z-index: 50;
+}
+
+/* Ensure proper backdrop blur support */
+@supports (backdrop-filter: blur(8px)) {
+  .table-with-sticky-header thead tr {
+    background-color: hsl(var(--background) / 0.95);
+    backdrop-filter: blur(8px);
+  }
+  
+  .table-with-sticky-header th.sticky-column,
+  .table-with-sticky-header td.sticky-column {
+    background-color: hsl(var(--background) / 0.95);
+    backdrop-filter: blur(8px);
+  }
+}
+
+/* Fix for ScrollArea wrapper to ensure sticky works */
+.scroll-area-viewport-sticky-fix {
+  position: relative !important;
+  height: 100% !important;
+}
+
+/* Ensure the table wrapper doesn't break sticky positioning */
+.table-scroll-wrapper {
+  position: relative;
+  height: 100%;
+  overflow: auto;
+}
+
+/* Additional fixes for specific table implementations */
+
+/* Bills Table specific */
+.bills-table-container .scroll-area-viewport {
+  position: relative !important;
+}
+
+/* Members Table specific */
+.members-table-container .scroll-area-viewport {
+  position: relative !important;
+}
+
+/* Committees Table specific */
+.committees-table-container .scroll-area-viewport {
+  position: relative !important;
+}
+
+/* Fix for nested ScrollArea components */
+.nested-scroll-fix {
+  position: relative;
+  height: 100%;
+}
+
+.nested-scroll-fix > div {
+  height: 100%;
+}
+
+/* Ensure smooth scrolling */
+.table-scroll-wrapper {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix for mobile devices */
+@media (max-width: 768px) {
+  .table-with-sticky-header thead tr {
+    position: -webkit-sticky;
+    position: sticky;
+  }
+  
+  .table-with-sticky-header th.sticky-column,
+  .table-with-sticky-header td.sticky-column {
+    position: -webkit-sticky;
+    position: sticky;
+  }
+}
