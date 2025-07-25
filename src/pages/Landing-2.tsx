@@ -614,7 +614,7 @@ const Landing2 = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <ShineBorder 
             className="rounded-xl sm:rounded-2xl"
-            shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
+            shineColor={["#3D63DD", "#5A7FDB", "#2D53CD"]}
             borderRadius={16}
             borderWidth={2}
             duration={10}
