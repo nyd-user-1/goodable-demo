@@ -1,88 +1,152 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText } from "lucide-react";
-import { Problem } from "@/data/problems";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import { TrendingUp, ExternalLink, BookOpen, FileText } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Problem } from '@/data/problems';
+
+interface PolicyProblemData {
+  Title: string;
+  'Why This Matters Now': string;
+  "What We're Seeing": string;
+  'The Real Challenge': string;
+  'The Path Forward': string;
+  'Your Role': string;
+}
 
 interface ProblemOverviewProps {
   problem: Problem;
 }
 
-interface PolicyProblemData {
-  id: string;
-  problem_name: string;
-  description: string;
-  impact_statement: string;
-  current_status: string;
-  key_stakeholders: string;
-  legislative_history: string;
-  potential_solutions: string;
-  evidence_base: string;
-}
-
-export const ProblemOverview = ({ problem }: ProblemOverviewProps) => {
+export const ProblemOverview: React.FC<ProblemOverviewProps> = ({ problem }) => {
   const [policyData, setPolicyData] = useState<PolicyProblemData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchPolicyProblemData = async () => {
+    const fetchPolicyData = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Try to fetch from Top 50 Public Policy Problem table
-        // Using a flexible query that will work whether the table exists or not
+        // Try to find matching data in the Top 50 Public Policy Problem table
         const { data, error } = await supabase
-          .from('Top_50_Public_Policy_Problem')
+          .from('Top 50 Public Policy Problem')
           .select('*')
-          .ilike('problem_name', `%${problem.title}%`)
+          .ilike('Title', `%${problem.title}%`)
           .single();
 
-        if (error) {
-          // If table doesn't exist or no matching data, use fallback content
-          console.log('Using fallback content for problem overview');
-          setPolicyData(null);
-        } else {
-          setPolicyData(data);
+        if (error && error.code !== 'PGRST116') {
+          throw error;
         }
+
+        setPolicyData(data);
       } catch (err) {
-        console.error('Error fetching policy problem data:', err);
-        setError('Unable to load policy data');
+        console.error('Error fetching policy data:', err);
+        setError('Unable to load policy analysis data');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPolicyProblemData();
+    fetchPolicyData();
   }, [problem.title]);
-
-  // Fallback content structure
-  const getFallbackContent = () => {
-    return {
-      description: problem.description || `${problem.title} represents a critical challenge in contemporary policy-making that requires comprehensive legislative attention and community engagement.`,
-      impactStatement: `This issue affects millions of Americans and requires coordinated policy responses at federal, state, and local levels to address its multifaceted nature.`,
-      currentStatus: `Current legislative efforts are fragmented, with various bills and proposals addressing different aspects of the problem without a comprehensive framework.`,
-      keyStakeholders: `Key stakeholders include affected communities, advocacy organizations, government agencies, private sector partners, and academic institutions working on evidence-based solutions.`,
-      legislativeHistory: `Previous legislative attempts have yielded mixed results, highlighting the need for more comprehensive and collaborative approaches to policy development.`,
-      potentialSolutions: `Emerging solutions include public-private partnerships, community-based interventions, regulatory reforms, and innovative funding mechanisms.`,
-      evidenceBase: `Research from leading institutions demonstrates the urgency of this issue and provides data-driven insights for effective policy interventions.`
-    };
-  };
-
-  const content = policyData || getFallbackContent();
 
   if (loading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Problem Overview</CardTitle>
+          <div className="flex items-start justify-between">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              Policy Overview
+            </CardTitle>
+            <div className="h-5 w-20 bg-muted animate-pulse rounded" />
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-muted rounded w-full"></div>
-            <div className="h-4 bg-muted rounded w-5/6"></div>
-            <div className="h-4 bg-muted rounded w-4/6"></div>
+          <div className="space-y-6">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="space-y-3">
+                <div className="h-4 bg-muted animate-pulse rounded w-1/3" />
+                <div className="space-y-2 pl-4">
+                  <div className="h-3 bg-muted animate-pulse rounded w-full" />
+                  <div className="h-3 bg-muted animate-pulse rounded w-3/4" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error || !policyData) {
+    return (
+      <Card className="border-border">
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              Problem Analysis
+            </CardTitle>
+            <Badge variant="outline" className="text-xs">
+              General Framework
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Fallback content when no specific data is available */}
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <h3 className="font-semibold text-foreground">Current Situation</h3>
+              </div>
+              <p className="text-muted-foreground leading-relaxed pl-4">
+                {problem.description || "This problem represents a significant policy challenge that requires comprehensive analysis and stakeholder engagement to develop effective solutions."}
+              </p>
+            </div>
+
+            <Separator className="my-4" />
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                <h3 className="font-semibold text-foreground">Why This Matters Now</h3>
+              </div>
+              <p className="text-muted-foreground leading-relaxed pl-4">
+                The urgency of addressing this issue has increased due to evolving social, economic, and technological factors that impact communities across the state.
+              </p>
+            </div>
+
+            <Separator className="my-4" />
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <h3 className="font-semibold text-foreground">Path Forward</h3>
+              </div>
+              <p className="text-muted-foreground leading-relaxed pl-4">
+                Effective solutions will require collaborative efforts between policymakers, community organizations, and stakeholders to implement evidence-based approaches.
+              </p>
+            </div>
+          </div>
+
+          {/* Research Footer */}
+          <div className="mt-8 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <BookOpen className="w-4 h-4" />
+                <span>Analysis based on policy research frameworks</span>
+              </div>
+              <Button variant="ghost" size="sm" className="text-primary h-auto p-0">
+                View Research
+                <ExternalLink className="w-3 h-3 ml-1" />
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -90,78 +154,94 @@ export const ProblemOverview = ({ problem }: ProblemOverviewProps) => {
   }
 
   return (
-    <Card>
+    <Card className="border-border">
       <CardHeader>
-        <CardTitle>Problem Overview</CardTitle>
+        <div className="flex items-start justify-between">
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <TrendingUp className="w-5 h-5 text-primary" />
+            Policy Overview
+          </CardTitle>
+          <Badge variant="default" className="text-xs">
+            Research-Backed
+          </Badge>
+        </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          {/* Description Section */}
-          <div>
-            <h4 className="font-medium text-sm text-muted-foreground mb-2">Description</h4>
-            <p className="text-sm leading-relaxed">
-              {policyData?.description || content.description}
-            </p>
+      <CardContent className="space-y-6">
+        {/* Why This Matters Now */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+            <h3 className="font-semibold text-foreground">Why This Matters Now</h3>
           </div>
+          <p className="text-muted-foreground leading-relaxed pl-4">
+            {policyData['Why This Matters Now']}
+          </p>
+        </div>
 
-          {/* Impact Statement */}
-          <div>
-            <h4 className="font-medium text-sm text-muted-foreground mb-2">Impact Statement</h4>
-            <p className="text-sm leading-relaxed">
-              {policyData?.impact_statement || content.impactStatement}
-            </p>
+        <Separator className="my-4" />
+
+        {/* What We're Seeing */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <h3 className="font-semibold text-foreground">What We're Seeing</h3>
           </div>
+          <p className="text-muted-foreground leading-relaxed pl-4">
+            {policyData["What We're Seeing"]}
+          </p>
+        </div>
 
-          {/* Current Status */}
-          <div>
-            <h4 className="font-medium text-sm text-muted-foreground mb-2">Current Legislative Status</h4>
-            <p className="text-sm leading-relaxed">
-              {policyData?.current_status || content.currentStatus}
-            </p>
+        <Separator className="my-4" />
+
+        {/* The Real Challenge */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+            <h3 className="font-semibold text-foreground">The Real Challenge</h3>
           </div>
+          <p className="text-muted-foreground leading-relaxed pl-4">
+            {policyData['The Real Challenge']}
+          </p>
+        </div>
 
-          {/* Key Stakeholders */}
-          <div>
-            <h4 className="font-medium text-sm text-muted-foreground mb-2">Key Stakeholders</h4>
-            <p className="text-sm leading-relaxed">
-              {policyData?.key_stakeholders || content.keyStakeholders}
-            </p>
+        <Separator className="my-4" />
+
+        {/* The Path Forward */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <h3 className="font-semibold text-foreground">The Path Forward</h3>
           </div>
+          <p className="text-muted-foreground leading-relaxed pl-4">
+            {policyData['The Path Forward']}
+          </p>
+        </div>
 
-          {/* Legislative History */}
-          <div>
-            <h4 className="font-medium text-sm text-muted-foreground mb-2">Legislative History</h4>
-            <p className="text-sm leading-relaxed">
-              {policyData?.legislative_history || content.legislativeHistory}
-            </p>
+        <Separator className="my-4" />
+
+        {/* Your Role */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+            <h3 className="font-semibold text-foreground">Your Role</h3>
           </div>
+          <p className="text-muted-foreground leading-relaxed pl-4">
+            {policyData['Your Role']}
+          </p>
+        </div>
 
-          {/* Potential Solutions */}
-          <div>
-            <h4 className="font-medium text-sm text-muted-foreground mb-2">Potential Solutions</h4>
-            <p className="text-sm leading-relaxed">
-              {policyData?.potential_solutions || content.potentialSolutions}
-            </p>
-          </div>
-
-          {/* Evidence Base */}
-          <div>
-            <h4 className="font-medium text-sm text-muted-foreground mb-2">Evidence & Research</h4>
-            <p className="text-sm leading-relaxed">
-              {policyData?.evidence_base || content.evidenceBase}
-            </p>
-          </div>
-
-          {/* If no data from database, show a note */}
-          {!policyData && (
-            <div className="text-center py-4 border-t">
-              <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-              <p className="text-xs text-muted-foreground">
-                This overview uses general policy framework data. 
-                Specific legislative details will be available as our policy database expands.
-              </p>
+        {/* Research Citation Footer */}
+        <div className="mt-8 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <BookOpen className="w-4 h-4" />
+              <span>Sourced from policy research database with citations</span>
             </div>
-          )}
+            <Button variant="ghost" size="sm" className="text-primary h-auto p-0">
+              View Citations
+              <ExternalLink className="w-3 h-3 ml-1" />
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

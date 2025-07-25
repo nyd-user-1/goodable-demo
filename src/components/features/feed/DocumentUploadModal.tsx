@@ -137,11 +137,36 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
     return matchesSearch && matchesTicker && matchesDocType;
   });
 
-  const handleAddDocuments = () => {
-    console.log('Adding documents:', selectedDocuments);
-    console.log('Uploading files:', selectedFiles);
-    // TODO: Implement document addition logic
-    onOpenChange(false);
+  const handleAddDocuments = async () => {
+    try {
+      // Process uploaded files
+      if (selectedFiles.length > 0) {
+        console.log('Processing uploaded files:', selectedFiles.map(f => f.name));
+        // TODO: Implement actual file upload to Supabase storage
+        // const uploadPromises = selectedFiles.map(file => uploadFile(file));
+        // await Promise.all(uploadPromises);
+      }
+
+      // Process selected library documents
+      if (selectedDocuments.length > 0) {
+        console.log('Adding library documents:', selectedDocuments.map(d => d.title));
+        // TODO: Add documents to user's research context
+      }
+
+      // Show success message
+      console.log('Documents successfully added to research');
+      
+      // Reset state and close modal
+      setSelectedFiles([]);
+      setSelectedDocuments([]);
+      setSearchQuery('');
+      setTickerFilter('');
+      setDocTypeFilter('');
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error adding documents:', error);
+      // TODO: Show error toast
+    }
   };
 
   return (

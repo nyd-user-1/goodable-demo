@@ -106,18 +106,44 @@ export const LegislativeRightSidebar: React.FC = () => {
   const handleTaskClick = (task: GettingStartedTask) => {
     if (task.hasLink && !task.completed) {
       console.log('Navigating to complete task:', task.id);
-      // TODO: Navigate to relevant page or open modal
+      // Navigate based on task type
+      switch (task.id) {
+        case '2':
+          // Open document upload modal
+          window.dispatchEvent(new CustomEvent('open-document-upload'));
+          break;
+        case '4':
+          // Navigate to specific bill
+          window.location.href = '/bills?selected=A.1234';
+          break;
+        case '6':
+          // Navigate to favorites/watchlists
+          window.location.href = '/favorites';
+          break;
+        default:
+          console.log('Unknown task:', task.id);
+      }
     }
   };
 
   const handleSuggestionClick = (suggestion: ConversationSuggestion) => {
     console.log('Starting conversation with:', suggestion.question);
-    // TODO: Populate search with suggestion or start new chat
+    
+    // If we're on the feed page, populate the search
+    if (window.location.pathname === '/feed') {
+      window.dispatchEvent(new CustomEvent('populate-search', { 
+        detail: { query: suggestion.question } 
+      }));
+    } else {
+      // Navigate to feed with the suggestion
+      window.location.href = `/feed?q=${encodeURIComponent(suggestion.question)}`;
+    }
   };
 
   const handleProjectClick = (project: Project) => {
     console.log('Opening project:', project.name);
-    // TODO: Navigate to project details
+    // Navigate to chats with project filter
+    window.location.href = `/chats?project=${encodeURIComponent(project.name)}`;
   };
 
   const getCategoryIcon = (category: ConversationSuggestion['category']) => {

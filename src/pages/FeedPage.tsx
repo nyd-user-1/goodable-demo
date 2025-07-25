@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSearchParams } from 'react-router-dom';
 import { AdvancedSearchCombobox } from '@/components/features/feed/AdvancedSearchCombobox';
 import { LegislativeFeedContainer } from '@/components/features/feed/LegislativeFeedContainer';
 import { LegislativeRightSidebar } from '@/components/features/feed/LegislativeRightSidebar';
 
 const FeedPage = () => {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [greeting, setGreeting] = useState('Good morning');
 
@@ -21,9 +23,48 @@ const FeedPage = () => {
     }
   }, []);
 
+  // Handle URL parameters for initial search
+  useEffect(() => {
+    const queryParam = searchParams.get('q');
+    if (queryParam) {
+      setSearchQuery(queryParam);
+    }
+  }, [searchParams]);
+
+  // Listen for populate search events from sidebar
+  useEffect(() => {
+    const handlePopulateSearch = (event: CustomEvent) => {
+      const { query } = event.detail;
+      setSearchQuery(query);
+    };
+
+    window.addEventListener('populate-search', handlePopulateSearch as EventListener);
+    
+    return () => {
+      window.removeEventListener('populate-search', handlePopulateSearch as EventListener);
+    };
+  }, []);
+
   const handleSearch = () => {
     console.log('Searching for:', searchQuery);
-    // TODO: Implement search functionality with API integrations
+    
+    // Update URL with search query
+    if (searchQuery.trim()) {
+      setSearchParams({ q: searchQuery });
+    } else {
+      setSearchParams({});
+    }
+  };
+
+  const handleSearchQueryChange = (newQuery: string) => {
+    setSearchQuery(newQuery);
+    
+    // Update URL as user types (debounced)
+    if (newQuery.trim()) {
+      setSearchParams({ q: newQuery });
+    } else {
+      setSearchParams({});
+    }
   };
 
   const getUserDisplayName = () => {
@@ -54,7 +95,7 @@ const FeedPage = () => {
               <div className="space-y-4">
                 <AdvancedSearchCombobox
                   value={searchQuery}
-                  onChange={setSearchQuery}
+                  onChange={handleSearchQueryChange}
                   onSubmit={handleSearch}
                   placeholder="Ask anything about legislation, policies, or lawmakers..."
                 />

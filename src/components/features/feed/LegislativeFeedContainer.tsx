@@ -35,6 +35,9 @@ export const LegislativeFeedContainer: React.FC<LegislativeFeedContainerProps> =
 }) => {
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
   const [filters, setFilters] = useState<FilterOptions>({
     bills: [],
     watchlists: [],
@@ -49,19 +52,34 @@ export const LegislativeFeedContainer: React.FC<LegislativeFeedContainerProps> =
     'Criminal Justice', 'Economic Development', 'Social Services', 'Technology'
   ];
 
-  // Fetch feed data
+  // Fetch feed data with search functionality
   useEffect(() => {
     const fetchFeedData = async () => {
       setLoading(true);
       try {
-        // Fetch recent bills
-        const { data: billsData, error: billsError } = await supabase
+        let query = supabase
           .from('Bills')
           .select('*')
-          .order('last_action_date', { ascending: false })
+          .order('last_action_date', { ascending: false });
+
+        // Apply search filter if provided
+        if (searchQuery.trim()) {
+          query = query.or(`title.ilike.%${searchQuery}%,bill_number.ilike.%${searchQuery}%,sponsor.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+        }
+
+        // Apply active filters
+        if (activeFilters.includes('bills')) {
+          // Additional bill-specific filtering can be added here
+        }
+
+        const { data: billsData, error: billsError } = await query
+          .range(offset, offset + 19)
           .limit(20);
 
         if (billsError) throw billsError;
+
+        // Check if we have more data
+        setHasMore((billsData || []).length === 20);
 
         // Transform bills data into feed items
         const billFeedItems: FeedItem[] = (billsData || []).map((bill, index) => {
@@ -131,16 +149,22 @@ export const LegislativeFeedContainer: React.FC<LegislativeFeedContainerProps> =
           }
         ];
 
-        setFeedItems([...sampleItems, ...billFeedItems.slice(0, 15)]);
+        // If this is initial load (offset = 0), replace items, otherwise append
+        if (offset === 0) {
+          setFeedItems([...sampleItems, ...billFeedItems]);
+        } else {
+          setFeedItems(prev => [...prev, ...billFeedItems]);
+        }
       } catch (error) {
         console.error('Error fetching feed data:', error);
       } finally {
         setLoading(false);
+        setLoadingMore(false);
       }
     };
 
     fetchFeedData();
-  }, [searchQuery]);
+  }, [searchQuery, activeFilters, offset]);
 
   const filterOptions = [
     { id: 'bills', label: 'Bills', count: feedItems.filter(item => item.type === 'bill').length },
@@ -161,6 +185,18 @@ export const LegislativeFeedContainer: React.FC<LegislativeFeedContainerProps> =
     console.log('Saving current filters:', activeFilters);
     // TODO: Implement filter saving
   };
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      setLoadingMore(true);
+      setOffset(prev => prev + 20);
+    }
+  };
+
+  // Reset offset when search or filters change
+  useEffect(() => {
+    setOffset(0);
+  }, [searchQuery, activeFilters]);
 
   if (loading) {
     return (
@@ -268,11 +304,25 @@ export const LegislativeFeedContainer: React.FC<LegislativeFeedContainerProps> =
       </div>
 
       {/* Load More */}
-      {feedItems.length > 0 && (
+      {feedItems.length > 0 && hasMore && (
         <div className="flex justify-center pt-6">
-          <Button variant="outline" size="lg">
-            Load more items
+          <Button 
+            variant="outline" 
+            size="lg"
+            onClick={handleLoadMore}
+            disabled={loadingMore}
+          >
+            {loadingMore ? 'Loading...' : 'Load more items'}
           </Button>
+        </div>
+      )}
+
+      {/* End of results message */}
+      {feedItems.length > 0 && !hasMore && (
+        <div className="text-center pt-6">
+          <p className="text-muted-foreground text-sm">
+            You've reached the end of the feed
+          </p>
         </div>
       )}
     </div>

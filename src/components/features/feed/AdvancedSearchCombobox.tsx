@@ -312,6 +312,10 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (hasContent) {
+      // Close any open dropdowns
+      setIsOpen(false);
+      setSourcesOpen(false);
+      setSelectedIndex(-1);
       onSubmit();
     }
   };

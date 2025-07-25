@@ -69,25 +69,43 @@ export const PolicyFeedItem: React.FC<PolicyFeedItemProps> = ({ item }) => {
     return 'secondary';
   };
 
-  const handleTranscriptClick = () => {
+  const handleTranscriptClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     console.log('Opening transcript for:', item.billNumber);
-    // TODO: Implement transcript modal or navigation
+    // Navigate to bills page with bill selected
+    window.open(`/bills?selected=${item.id}`, '_blank');
   };
 
-  const handleShareClick = () => {
-    console.log('Sharing item:', item.id);
-    // TODO: Implement sharing functionality
+  const handleShareClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: item.title,
+          text: `${item.billNumber}: ${item.title}`,
+          url: window.location.href
+        });
+      } else {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(`${item.billNumber}: ${item.title}\n${window.location.href}`);
+        // You could show a toast notification here
+        console.log('Link copied to clipboard');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
   };
 
-  const handleNotHelpfulClick = () => {
+  const handleNotHelpfulClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setIsHelpful(false);
     console.log('Marked as not helpful:', item.id);
-    // TODO: Implement feedback collection
+    // TODO: Send feedback to analytics
   };
 
   const handleBillClick = () => {
-    console.log('Navigating to bill:', item.billNumber);
-    // TODO: Navigate to bill detail page
+    // Navigate to bills page with this bill selected
+    window.location.href = `/bills?selected=${item.id}`;
   };
 
   return (
