@@ -704,6 +704,12 @@ export type Database = {
           updated_at: string
           user_id: string
           username: string | null
+          pen_name: string | null
+          area_code: string | null
+          zip_code: string | null
+          city: string | null
+          county: string | null
+          state: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -715,6 +721,12 @@ export type Database = {
           updated_at?: string
           user_id: string
           username?: string | null
+          pen_name?: string | null
+          area_code?: string | null
+          zip_code?: string | null
+          city?: string | null
+          county?: string | null
+          state?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -726,6 +738,12 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string | null
+          pen_name?: string | null
+          area_code?: string | null
+          zip_code?: string | null
+          city?: string | null
+          county?: string | null
+          state?: string | null
         }
         Relationships: []
       }
