@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +20,7 @@ import {
   Users,
   Play,
   ArrowUp,
+  ArrowDown,
   MessageSquare
 } from "lucide-react";
 import { useNavigate, Link } from 'react-router-dom';
@@ -64,6 +65,7 @@ const Landing2 = () => {
   const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [featuredPosts, setFeaturedPosts] = useState<any[]>([]);
 
   const handleDoSomethingClick = () => {
     // Scroll to search or do something
@@ -138,6 +140,79 @@ const Landing2 = () => {
       setIsSubmitting(false);
     }
   };
+
+  // Fetch featured blog posts from Supabase
+  useEffect(() => {
+    const fetchFeaturedPosts = async () => {
+      try {
+        // Try to fetch from the view first
+        let { data, error } = await (supabase as any)
+          .from('blog_proposal_stats')
+          .select('*')
+          .eq('is_featured', true)
+          .eq('status', 'published')
+          .order('published_at', { ascending: false })
+          .limit(9);
+
+        // If view doesn't exist, use the table directly
+        if (error && error.code === '42P01') {
+          const result = await (supabase as any)
+            .from('blog_proposals')
+            .select(`
+              *,
+              profiles!blog_proposals_author_id_fkey (
+                display_name,
+                username,
+                avatar_url
+              )
+            `)
+            .eq('is_featured', true)
+            .eq('status', 'published')
+            .order('published_at', { ascending: false })
+            .limit(9);
+          
+          data = result.data;
+          error = result.error;
+          
+          // Transform the data to match expected format
+          if (data) {
+            data = data.map((post: any) => ({
+              ...post,
+              author: {
+                name: post.profiles?.display_name || post.profiles?.username || 'Unknown Author',
+                avatar: post.profiles?.avatar_url
+              },
+              votes: {
+                up: 0
+              },
+              comments: []
+            }));
+          }
+        } else if (data) {
+          // Transform data from view to match expected format
+          data = data.map((post: any) => ({
+            ...post,
+            author: {
+              name: post.author_name || 'Unknown Author',
+              avatar: post.author_avatar
+            },
+            votes: {
+              up: post.up_votes || 0
+            },
+            comments: new Array(post.comment_count || 0)
+          }));
+        }
+
+        if (!error && data) {
+          setFeaturedPosts(data);
+        }
+      } catch (error) {
+        console.error('Error fetching featured posts:', error);
+      }
+    };
+
+    fetchFeaturedPosts();
+  }, []);
 
   // Fetch real people data from Supabase
   useEffect(() => {
@@ -518,7 +593,7 @@ const Landing2 = () => {
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-              Latest Public Policy
+              Featured Public Policy
               <span className="bg-gradient-to-r from-[#3D63DD] to-[#5A7FDB] bg-clip-text text-transparent"> Proposals</span>
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
@@ -527,178 +602,75 @@ const Landing2 = () => {
           </div>
           
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {(() => {
-              // Get published policies from localStorage
-              const publishedPosts = JSON.parse(localStorage.getItem('publishedPolicies') || '[]');
-              const recentPosts = publishedPosts
-                .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt))
-                .slice(0, 3);
-              
-              // Static policy proposals for landing page
-              const staticPolicies = [
-                {
-                  id: 'static-1',
-                  title: 'Universal Childcare Access Act',
-                  content: 'This comprehensive policy proposal aims to establish a nationwide system of affordable, high-quality childcare centers accessible to all families. The program would provide sliding-scale fees based on income, ensure all childcare workers receive fair wages and benefits, and maintain strict quality standards. By investing in early childhood development, we can support working families, promote gender equality in the workforce, and give every child the best start in life.',
-                  author: {
-                    name: 'Sarah Chen',
-                    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=32&h=32&fit=crop&crop=face',
-                    role: 'Policy Analyst'
-                  },
-                  publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-                  category: 'Social Services',
-                  problem: 'Childcare',
-                  votes: { up: 127, down: 8 },
-                  comments: new Array(23)
-                },
-                {
-                  id: 'static-2',
-                  title: 'Green Infrastructure Investment Initiative',
-                  content: 'A bold plan to modernize America\'s infrastructure while combating climate change. This proposal includes retrofitting public buildings for energy efficiency, expanding electric vehicle charging networks, investing in renewable energy grids, and creating green jobs training programs. The initiative would reduce carbon emissions by 40% over the next decade while creating millions of well-paying jobs in emerging green industries.',
-                  author: {
-                    name: 'Michael Rodriguez',
-                    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop&crop=face',
-                    role: 'Environmental Advocate'
-                  },
-                  publishedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-                  category: 'Environment',
-                  problem: 'Climate Change',
-                  votes: { up: 203, down: 15 },
-                  comments: new Array(45)
-                },
-                {
-                  id: 'static-3',
-                  title: 'Community Mental Health Expansion Act',
-                  content: 'This proposal addresses the mental health crisis by establishing community-based mental health centers in underserved areas. The program would integrate mental health services with primary care, provide 24/7 crisis intervention teams, offer sliding-scale fees, and train community health workers. By making mental health care accessible and affordable, we can reduce emergency room visits, prevent crises, and improve overall community wellbeing.',
-                  author: {
-                    name: 'Dr. James Wilson',
-                    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=32&h=32&fit=crop&crop=face',
-                    role: 'Healthcare Professional'
-                  },
-                  publishedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-                  category: 'Healthcare',
-                  problem: 'Mental Health Access',
-                  votes: { up: 156, down: 12 },
-                  comments: new Array(34)
-                },
-                {
-                  id: 'static-4',
-                  title: 'Affordable Housing Trust Fund',
-                  content: 'Establishing a national trust fund to address the housing affordability crisis. This policy would create dedicated funding streams through a small tax on luxury real estate transactions, provide grants for affordable housing development, support community land trusts, and offer down payment assistance for first-time homebuyers. The goal is to create 2 million affordable housing units over the next decade and ensure housing stability for working families.',
-                  author: {
-                    name: 'Maria Garcia',
-                    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&h=32&fit=crop&crop=face',
-                    role: 'Housing Advocate'
-                  },
-                  publishedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-                  category: 'Housing',
-                  problem: 'Housing Affordability',
-                  votes: { up: 189, down: 21 },
-                  comments: new Array(56)
-                },
-                {
-                  id: 'static-5',
-                  title: 'Digital Literacy for All Initiative',
-                  content: 'Bridging the digital divide through comprehensive digital literacy programs. This proposal includes providing free internet access in underserved communities, distributing refurbished devices to low-income families, offering multilingual digital skills training, and partnering with libraries and community centers. By ensuring everyone has access to technology and the skills to use it, we can create more equitable opportunities in education, employment, and civic participation.',
-                  author: {
-                    name: 'Alex Thompson',
-                    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face',
-                    role: 'Tech Policy Expert'
-                  },
-                  publishedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-                  category: 'Technology',
-                  problem: 'Digital Divide',
-                  votes: { up: 142, down: 6 },
-                  comments: new Array(28)
-                },
-                {
-                  id: 'static-6',
-                  title: 'Small Business Recovery and Growth Act',
-                  content: 'Supporting small businesses through targeted assistance programs. This comprehensive policy includes creating low-interest loan programs, providing technical assistance and mentorship, streamlining regulatory processes, offering tax incentives for hiring and expansion, and establishing procurement preferences for local businesses. By strengthening small businesses, we can revitalize local economies, create jobs, and preserve the unique character of our communities.',
-                  author: {
-                    name: 'David Park',
-                    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=32&h=32&fit=crop&crop=face',
-                    role: 'Economic Developer'
-                  },
-                  publishedAt: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString(),
-                  category: 'Economic Policy',
-                  problem: 'Small Business Support',
-                  votes: { up: 167, down: 9 },
-                  comments: new Array(41)
-                }
-              ];
-              
-              // Combine localStorage posts with static posts
-              const allPosts = [...recentPosts, ...staticPolicies];
-              const displayPosts = allPosts.slice(0, 9); // Show up to 9 posts
-              
-              if (displayPosts.length === 0) {
-                return (
-                  <div className="col-span-full">
-                    <Card className="p-8 text-center">
-                      <div className="w-12 h-12 bg-[#3D63DD] rounded-lg flex items-center justify-center mx-auto mb-4">
-                        <FileText className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="text-lg font-semibold mb-2">No policies published yet</h3>
-                      <p className="text-muted-foreground mb-4">
-                        Be the first to create and publish a policy proposal from our problem-solving platform.
-                      </p>
-                      <Button onClick={() => navigate('/problems')} className="bg-[#3D63DD] hover:bg-[#2D53CD]">
-                        Explore Problems
-                      </Button>
-                    </Card>
-                  </div>
-                );
-              }
-              
-              return displayPosts.map((post, index) => (
-                <Card 
-                  key={post.id} 
-                  className="group cursor-pointer hover:shadow-lg transition-all duration-200"
-                  onClick={() => navigate('/public-policy')}
-                >
-                  <div className="p-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge variant="secondary" className="text-xs">
-                        {post.category}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {post.problem}
-                      </Badge>
-                    </div>
-                    
-                    <h3 className="text-lg font-semibold mb-2 group-hover:text-[#3D63DD] transition-colors">
-                      {post.title}
-                    </h3>
-                    
-                    <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
-                      {post.content.substring(0, 150)}...
-                    </p>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Avatar className="w-4 h-4">
-                          <AvatarImage src={post.author.avatar} />
-                          <AvatarFallback>{post.author.name[0]}</AvatarFallback>
-                        </Avatar>
-                        <span>{post.author.name}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <ArrowUp className="w-3 h-3" />
-                          {post.votes.up}
+            {featuredPosts.map((post) => (
+              <Card key={post.id} className="h-full hover:bg-muted/50 transition-colors">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold mb-2">{post.title}</h3>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-muted" />
+                          <span>{post.author_name || 'Anonymous'}</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <MessageSquare className="w-3 h-3" />
-                          {post.comments.length}
-                        </div>
+                        <span>•</span>
+                        <span>{new Date(post.published_at).toLocaleDateString()}</span>
                       </div>
                     </div>
                   </div>
+                </CardHeader>
+                <CardContent className="flex-1">
+                  <p className="text-sm text-muted-foreground line-clamp-4">
+                    {post.summary || post.content.substring(0, 200) + '...'}
+                  </p>
+                  {post.tags && post.tags.length > 0 && (
+                    <div className="flex gap-2 mt-4">
+                      {post.tags.slice(0, 2).map((tag, idx) => (
+                        <Badge key={idx} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+                <CardFooter className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <button className="flex items-center gap-1 hover:text-green-600 transition-colors">
+                      <ArrowUp className="w-4 h-4" />
+                      <span>{post.vote_up || 0}</span>
+                    </button>
+                    <button className="flex items-center gap-1 hover:text-red-600 transition-colors">
+                      <ArrowDown className="w-4 h-4" />
+                      <span>{post.vote_down || 0}</span>
+                    </button>
+                    <div className="flex items-center gap-1">
+                      <MessageSquare className="w-4 h-4" />
+                      <span>{post.comment_count || 0}</span>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => navigate('/public-policy')}>
+                    Read More
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+            {featuredPosts.length === 0 && (
+              <div className="col-span-full">
+                <Card className="p-8 text-center">
+                  <div className="w-12 h-12 bg-[#3D63DD] rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <FileText className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">No featured policies yet</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Featured policy proposals will appear here once published by administrators.
+                  </p>
+                  <Button onClick={() => navigate('/problems')} className="bg-[#3D63DD] hover:bg-[#2D53CD]">
+                    Explore Problems
+                  </Button>
                 </Card>
-              ));
-            })()}
+              </div>
+            )}
           </div>
           
           <div className="text-center mt-8">
@@ -707,7 +679,7 @@ const Landing2 = () => {
               onClick={() => navigate('/public-policy')}
               className="hover:bg-[#3D63DD] hover:text-white"
             >
-              View All Policies
+              View All Proposals
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>

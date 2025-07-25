@@ -12,6 +12,8 @@ import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import BlogCMS from '@/components/features/admin/BlogCMS';
 import { 
   Select,
@@ -75,7 +77,16 @@ import {
 } from 'lucide-react';
 
 const Admin = () => {
+  const { user, isAdmin: hasAdminAccess } = useAuth();
+  const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState('dashboard');
+  
+  // Redirect if not admin
+  useEffect(() => {
+    if (!hasAdminAccess && user) {
+      navigate('/');
+    }
+  }, [hasAdminAccess, user, navigate]);
 
   // Mock data for demonstration
   const systemStats = {

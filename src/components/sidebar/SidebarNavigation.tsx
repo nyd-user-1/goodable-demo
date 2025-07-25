@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/sidebar";
 import { NavigationItem } from "./NavigationItem";
 import { useNavigation } from "@/hooks/useNavigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 const researchNavItems = [
   { title: "Intelligence", url: "/dashboard", icon: TrendingUp },
@@ -42,6 +43,7 @@ interface SidebarNavigationProps {
 
 export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNavigationProps) {
   const { getNavClassName } = useNavigation();
+  const { isAdmin } = useAuth();
 
   return (
     <>
@@ -93,7 +95,7 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
         <SidebarGroupLabel>Account</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            {bottomNavItems.map((item) => (
+            {bottomNavItems.filter(item => item.title !== "Admin" || isAdmin).map((item) => (
               <NavigationItem
                 key={item.title}
                 title={item.title}
