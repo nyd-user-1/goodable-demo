@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,220 +6,164 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { 
+  ThumbsUp, 
+  ThumbsDown, 
   MessageSquare, 
   Calendar,
+  User,
   ArrowUp,
   ArrowDown,
   Send,
   FileText,
   Users,
-  TrendingUp,
-  Loader2
+  TrendingUp
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 
-interface BlogProposal {
+interface BlogPost {
   id: string;
   title: string;
   content: string;
-  summary: string;
-  author_id: string;
-  status: string;
+  author: {
+    name: string;
+    avatar: string;
+    role: string;
+  };
+  publishedAt: string;
   category: string;
-  tags: string[];
-  published_at: string;
-  view_count: number;
-  is_featured: boolean;
-  author_name?: string;
-  author_avatar?: string;
-  up_votes?: number;
-  down_votes?: number;
-  comment_count?: number;
-  total_score?: number;
+  problem: string;
+  status: string;
+  votes: {
+    up: number;
+    down: number;
+    total: number;
+  };
+  comments: Comment[];
 }
 
-interface BlogComment {
+interface Comment {
   id: string;
-  proposal_id: string;
-  author_id: string;
+  author: {
+    name: string;
+    avatar: string;
+    role: string;
+  };
   content: string;
-  created_at: string;
-  author_name?: string;
-  author_avatar?: string;
+  timestamp: string;
+  likes: number;
 }
 
 const PublicPolicy = () => {
   const { toast } = useToast();
-  const { user } = useAuth();
-  const [posts, setPosts] = useState<BlogProposal[]>([]);
-  const [selectedPost, setSelectedPost] = useState<BlogProposal | null>(null);
-  const [comments, setComments] = useState<BlogComment[]>([]);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [newComment, setNewComment] = useState('');
-  const [userVotes, setUserVotes] = useState<{[key: string]: 'upvote' | 'downvote' | null}>({});
-  const [loading, setLoading] = useState(true);
-  const [loadingComments, setLoadingComments] = useState(false);
+  const [userVotes, setUserVotes] = useState<{[key: string]: 'up' | 'down' | null}>({});
 
-  // Load published proposals
+  // Load published policies from localStorage
   useEffect(() => {
-    loadProposals();
-    if (user) {
-      loadUserVotes();
-    }
-  }, [user]);
-
-  const loadProposals = async () => {
-    try {
-      const { data, error } = await (supabase as any)
-        .from('blog_proposal_stats')
-        .select('*')
-        .eq('status', 'published')
-        .order('published_at', { ascending: false });
-
-      if (error) throw error;
-
-      setPosts(data || []);
-    } catch (error) {
-      console.error('Error loading proposals:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load policy proposals.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadUserVotes = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await (supabase as any)
-        .from('blog_votes')
-        .select('proposal_id, vote_type')
-        .eq('voter_id', user.id);
-
-      if (error) throw error;
-
-      const votesMap: {[key: string]: 'upvote' | 'downvote' | null} = {};
-      data?.forEach((vote: any) => {
-        votesMap[vote.proposal_id] = vote.vote_type;
-      });
-      setUserVotes(votesMap);
-    } catch (error) {
-      console.error('Error loading user votes:', error);
-    }
-  };
-
-  const loadComments = async (proposalId: string) => {
-    setLoadingComments(true);
-    try {
-      const { data, error } = await (supabase as any)
-        .from('blog_comments_with_authors')
-        .select('*')
-        .eq('proposal_id', proposalId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-
-      setComments(data || []);
-    } catch (error) {
-      console.error('Error loading comments:', error);
-    } finally {
-      setLoadingComments(false);
-    }
-  };
-
-  const handleVote = async (proposalId: string, voteType: 'upvote' | 'downvote') => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to vote.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const currentVote = userVotes[proposalId];
+    const publishedPosts = JSON.parse(localStorage.getItem('publishedPolicies') || '[]');
+    // Sort by newest first
+    const sortedPosts = publishedPosts.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+    setPosts(sortedPosts);
     
-    try {
-      if (currentVote === voteType) {
-        // Remove vote
-        await (supabase as any)
-          .from('blog_votes')
-          .delete()
-          .eq('proposal_id', proposalId)
-          .eq('voter_id', user.id);
-        
-        setUserVotes(prev => ({ ...prev, [proposalId]: null }));
-      } else {
-        // Upsert vote
-        await (supabase as any)
-          .from('blog_votes')
-          .upsert({
-            proposal_id: proposalId,
-            voter_id: user.id,
-            vote_type: voteType
-          });
-        
-        setUserVotes(prev => ({ ...prev, [proposalId]: voteType }));
-      }
+    // Load user votes
+    const votes = JSON.parse(localStorage.getItem('userVotes') || '{}');
+    setUserVotes(votes);
+  }, []);
 
-      // Refresh proposals to get updated counts
-      await loadProposals();
-    } catch (error) {
-      console.error('Error voting:', error);
-      toast({
-        title: "Vote Failed",
-        description: "There was an error recording your vote.",
-        variant: "destructive"
-      });
+  const handleVote = (postId: string, voteType: 'up' | 'down') => {
+    const currentVote = userVotes[postId];
+    let newVote: 'up' | 'down' | null = voteType;
+    
+    // If clicking the same vote, remove it
+    if (currentVote === voteType) {
+      newVote = null;
+    }
+    
+    // Update posts with new vote counts
+    const updatedPosts = posts.map(post => {
+      if (post.id === postId) {
+        let upChange = 0;
+        let downChange = 0;
+        
+        // Remove previous vote
+        if (currentVote === 'up') upChange -= 1;
+        if (currentVote === 'down') downChange -= 1;
+        
+        // Add new vote
+        if (newVote === 'up') upChange += 1;
+        if (newVote === 'down') downChange += 1;
+        
+        const newUpVotes = post.votes.up + upChange;
+        const newDownVotes = post.votes.down + downChange;
+        
+        return {
+          ...post,
+          votes: {
+            up: newUpVotes,
+            down: newDownVotes,
+            total: newUpVotes - newDownVotes
+          }
+        };
+      }
+      return post;
+    });
+    
+    // Sort updated posts by newest first
+    const sortedPosts = updatedPosts.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+    setPosts(sortedPosts);
+    localStorage.setItem('publishedPolicies', JSON.stringify(sortedPosts));
+    
+    // Update user votes
+    const newUserVotes = { ...userVotes, [postId]: newVote };
+    setUserVotes(newUserVotes);
+    localStorage.setItem('userVotes', JSON.stringify(newUserVotes));
+    
+    if (selectedPost && selectedPost.id === postId) {
+      setSelectedPost(updatedPosts.find(p => p.id === postId) || null);
     }
   };
 
-  const handleAddComment = async (proposalId: string) => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to comment.",
-        variant: "destructive"
-      });
-      return;
-    }
-
+  const handleAddComment = (postId: string) => {
     if (!newComment.trim()) return;
-
-    try {
-      await (supabase as any)
-        .from('blog_comments')
-        .insert({
-          proposal_id: proposalId,
-          author_id: user.id,
-          content: newComment
-        });
-
-      setNewComment('');
-      
-      // Reload comments
-      await loadComments(proposalId);
-      
-      // Update comment count in the main list
-      await loadProposals();
-      
-      toast({
-        title: "Comment Added",
-        description: "Your comment has been posted successfully.",
-      });
-    } catch (error) {
-      console.error('Error adding comment:', error);
-      toast({
-        title: "Comment Failed",
-        description: "There was an error posting your comment.",
-        variant: "destructive"
-      });
+    
+    const comment: Comment = {
+      id: Date.now().toString(),
+      author: {
+        name: 'You',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop&crop=face',
+        role: 'Member'
+      },
+      content: newComment,
+      timestamp: 'Just now',
+      likes: 0
+    };
+    
+    const updatedPosts = posts.map(post => {
+      if (post.id === postId) {
+        return {
+          ...post,
+          comments: [...post.comments, comment]
+        };
+      }
+      return post;
+    });
+    
+    // Sort updated posts by newest first
+    const sortedPosts = updatedPosts.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+    setPosts(sortedPosts);
+    localStorage.setItem('publishedPolicies', JSON.stringify(sortedPosts));
+    setNewComment('');
+    
+    if (selectedPost && selectedPost.id === postId) {
+      setSelectedPost(updatedPosts.find(p => p.id === postId) || null);
     }
+    
+    toast({
+      title: "Comment Added",
+      description: "Your comment has been posted successfully.",
+    });
   };
 
   const formatDate = (dateString: string) => {
@@ -233,45 +177,34 @@ const PublicPolicy = () => {
     });
   };
 
-  const getVoteColor = (proposalId: string, voteType: 'upvote' | 'downvote') => {
-    const userVote = userVotes[proposalId];
+  const getVoteColor = (postId: string, voteType: 'up' | 'down') => {
+    const userVote = userVotes[postId];
     if (userVote === voteType) {
-      return voteType === 'upvote' ? 'text-green-600' : 'text-red-600';
+      return voteType === 'up' ? 'text-green-600' : 'text-red-600';
     }
     return 'text-muted-foreground';
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
-    );
-  }
 
   if (selectedPost) {
     return (
       <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
           <div className="space-y-6">
-            <Button variant="outline" onClick={() => {
-              setSelectedPost(null);
-              setComments([]);
-            }}>
+            {/* Back Button */}
+            <Button variant="outline" onClick={() => setSelectedPost(null)}>
               ← Back to All Policies
             </Button>
 
+            {/* Post Header */}
             <Card className="p-6">
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">
                     {selectedPost.category}
                   </Badge>
-                  {selectedPost.tags?.map((tag, index) => (
-                    <Badge key={index} variant="outline">
-                      {tag}
-                    </Badge>
-                  ))}
+                  <Badge variant="outline">
+                    Related to: {selectedPost.problem}
+                  </Badge>
                 </div>
                 
                 <h1 className="text-3xl font-bold">{selectedPost.title}</h1>
@@ -279,45 +212,50 @@ const PublicPolicy = () => {
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <Avatar className="w-6 h-6">
-                      <AvatarImage src={selectedPost.author_avatar} />
-                      <AvatarFallback>{selectedPost.author_name?.[0] || 'U'}</AvatarFallback>
+                      <AvatarImage src={selectedPost.author.avatar} />
+                      <AvatarFallback>{selectedPost.author.name[0]}</AvatarFallback>
                     </Avatar>
-                    <span>{selectedPost.author_name || 'Unknown Author'}</span>
+                    <span>{selectedPost.author.name}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {selectedPost.author.role}
+                    </Badge>
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
-                    {formatDate(selectedPost.published_at)}
+                    {formatDate(selectedPost.publishedAt)}
                   </div>
                 </div>
 
+                {/* Voting */}
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleVote(selectedPost.id, 'upvote')}
-                      className={getVoteColor(selectedPost.id, 'upvote')}
+                      onClick={() => handleVote(selectedPost.id, 'up')}
+                      className={getVoteColor(selectedPost.id, 'up')}
                     >
                       <ArrowUp className="w-4 h-4 mr-1" />
-                      {selectedPost.up_votes || 0}
+                      {selectedPost.votes.up}
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleVote(selectedPost.id, 'downvote')}
-                      className={getVoteColor(selectedPost.id, 'downvote')}
+                      onClick={() => handleVote(selectedPost.id, 'down')}
+                      className={getVoteColor(selectedPost.id, 'down')}
                     >
                       <ArrowDown className="w-4 h-4 mr-1" />
-                      {selectedPost.down_votes || 0}
+                      {selectedPost.votes.down}
                     </Button>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    Total Score: {selectedPost.total_score || 0}
+                    Total Score: {selectedPost.votes.total}
                   </div>
                 </div>
               </div>
             </Card>
 
+            {/* Post Content */}
             <Card className="p-6">
               <div className="prose prose-lg max-w-none dark:prose-invert">
                 <div dangerouslySetInnerHTML={{ 
@@ -326,13 +264,15 @@ const PublicPolicy = () => {
               </div>
             </Card>
 
+            {/* Comments Section */}
             <Card className="p-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2">
                   <MessageSquare className="w-5 h-5" />
-                  Discussion ({comments.length})
+                  Discussion ({selectedPost.comments.length})
                 </h3>
 
+                {/* Add Comment */}
                 <div className="space-y-2">
                   <Textarea
                     placeholder="Share your thoughts on this policy proposal..."
@@ -351,35 +291,33 @@ const PublicPolicy = () => {
 
                 <Separator />
 
-                {loadingComments ? (
-                  <div className="flex justify-center py-4">
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {comments.map((comment) => (
-                      <div key={comment.id} className="flex gap-3">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={comment.author_avatar} />
-                          <AvatarFallback>{comment.author_name?.[0] || 'U'}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm font-medium">{comment.author_name || 'Unknown'}</span>
-                            <span className="text-xs text-muted-foreground">{formatDate(comment.created_at)}</span>
-                          </div>
-                          <p className="text-sm text-muted-foreground">{comment.content}</p>
+                {/* Comments List */}
+                <div className="space-y-4">
+                  {selectedPost.comments.map((comment) => (
+                    <div key={comment.id} className="flex gap-3">
+                      <Avatar className="w-8 h-8">
+                        <AvatarImage src={comment.author.avatar} />
+                        <AvatarFallback>{comment.author.name[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm font-medium">{comment.author.name}</span>
+                          <Badge variant="outline" className="text-xs">
+                            {comment.author.role}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">{comment.timestamp}</span>
                         </div>
+                        <p className="text-sm text-muted-foreground">{comment.content}</p>
                       </div>
-                    ))}
-                    
-                    {comments.length === 0 && (
-                      <p className="text-muted-foreground text-center py-8">
-                        No comments yet. Be the first to share your thoughts!
-                      </p>
-                    )}
-                  </div>
-                )}
+                    </div>
+                  ))}
+                  
+                  {selectedPost.comments.length === 0 && (
+                    <p className="text-muted-foreground text-center py-8">
+                      No comments yet. Be the first to share your thoughts!
+                    </p>
+                  )}
+                </div>
               </div>
             </Card>
           </div>
@@ -392,6 +330,7 @@ const PublicPolicy = () => {
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="space-y-6">
+          {/* Header */}
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center mb-4">
               <div className="w-12 h-12 bg-[#3D63DD] rounded-lg flex items-center justify-center">
@@ -405,6 +344,7 @@ const PublicPolicy = () => {
             </p>
           </div>
 
+          {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="p-4 text-center">
               <div className="flex items-center justify-center gap-2">
@@ -416,19 +356,20 @@ const PublicPolicy = () => {
             <Card className="p-4 text-center">
               <div className="flex items-center justify-center gap-2">
                 <Users className="w-5 h-5 text-green-600" />
-                <span className="text-2xl font-bold">{posts.reduce((sum, post) => sum + (post.comment_count || 0), 0)}</span>
+                <span className="text-2xl font-bold">{posts.reduce((sum, post) => sum + post.comments.length, 0)}</span>
               </div>
               <p className="text-sm text-muted-foreground">Community Comments</p>
             </Card>
             <Card className="p-4 text-center">
               <div className="flex items-center justify-center gap-2">
                 <TrendingUp className="w-5 h-5 text-orange-600" />
-                <span className="text-2xl font-bold">{posts.reduce((sum, post) => sum + (post.up_votes || 0) + (post.down_votes || 0), 0)}</span>
+                <span className="text-2xl font-bold">{posts.reduce((sum, post) => sum + post.votes.up + post.votes.down, 0)}</span>
               </div>
               <p className="text-sm text-muted-foreground">Total Votes Cast</p>
             </Card>
           </div>
 
+          {/* Posts List */}
           <div className="space-y-4">
             {posts.length === 0 ? (
               <Card className="p-12 text-center">
@@ -443,10 +384,7 @@ const PublicPolicy = () => {
                 <Card 
                   key={post.id} 
                   className="p-6 cursor-pointer hover:shadow-lg transition-all duration-200"
-                  onClick={() => {
-                    setSelectedPost(post);
-                    loadComments(post.id);
-                  }}
+                  onClick={() => setSelectedPost(post)}
                 >
                   <div className="space-y-4">
                     <div className="flex items-start justify-between">
@@ -455,11 +393,9 @@ const PublicPolicy = () => {
                           <Badge variant="secondary">
                             {post.category}
                           </Badge>
-                          {post.tags?.slice(0, 2).map((tag, index) => (
-                            <Badge key={index} variant="outline">
-                              {tag}
-                            </Badge>
-                          ))}
+                          <Badge variant="outline">
+                            {post.problem}
+                          </Badge>
                         </div>
                         
                         <h2 className="text-xl font-semibold mb-2 hover:text-[#3D63DD] transition-colors">
@@ -469,19 +405,19 @@ const PublicPolicy = () => {
                         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                           <div className="flex items-center gap-2">
                             <Avatar className="w-5 h-5">
-                              <AvatarImage src={post.author_avatar} />
-                              <AvatarFallback>{post.author_name?.[0] || 'U'}</AvatarFallback>
+                              <AvatarImage src={post.author.avatar} />
+                              <AvatarFallback>{post.author.name[0]}</AvatarFallback>
                             </Avatar>
-                            <span>{post.author_name || 'Unknown Author'}</span>
+                            <span>{post.author.name}</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
-                            {formatDate(post.published_at)}
+                            {formatDate(post.publishedAt)}
                           </div>
                         </div>
                         
                         <p className="text-muted-foreground text-sm line-clamp-2">
-                          {post.summary || post.content.substring(0, 200) + '...'}
+                          {post.content.substring(0, 200)}...
                         </p>
                       </div>
                     </div>
@@ -493,28 +429,28 @@ const PublicPolicy = () => {
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleVote(post.id, 'upvote');
+                            handleVote(post.id, 'up');
                           }}
-                          className={getVoteColor(post.id, 'upvote')}
+                          className={getVoteColor(post.id, 'up')}
                         >
                           <ArrowUp className="w-4 h-4 mr-1" />
-                          {post.up_votes || 0}
+                          {post.votes.up}
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleVote(post.id, 'downvote');
+                            handleVote(post.id, 'down');
                           }}
-                          className={getVoteColor(post.id, 'downvote')}
+                          className={getVoteColor(post.id, 'down')}
                         >
                           <ArrowDown className="w-4 h-4 mr-1" />
-                          {post.down_votes || 0}
+                          {post.votes.down}
                         </Button>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                           <MessageSquare className="w-4 h-4" />
-                          {post.comment_count || 0}
+                          {post.comments.length}
                         </div>
                       </div>
                     </div>

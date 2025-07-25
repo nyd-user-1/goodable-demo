@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useCurrentUserProfile } from '@/hooks/useUserProfile';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   FileText, 
   Plus, 
@@ -265,29 +266,33 @@ $50M over 3 years for:
     handleStartEdit(newProposal);
   };
 
-  const handlePublishProposal = (proposal: Proposal) => {
-    // Store the proposal in localStorage as a published blog post
-    const publishedPosts = JSON.parse(localStorage.getItem('publishedPolicies') || '[]');
-    
-    const blogPost = {
-      id: `policy-${Date.now()}`,
-      title: proposal.title,
-      content: proposal.content,
-      author: proposal.author,
-      publishedAt: new Date().toISOString(),
-      category: 'Public Policy',
-      problem: problem.title,
-      status: 'published',
-      votes: {
-        up: 0,
-        down: 0,
-        total: 0
-      },
-      comments: []
-    };
-    
-    publishedPosts.push(blogPost);
-    localStorage.setItem('publishedPolicies', JSON.stringify(publishedPosts));
+  const handlePublishProposal = async (proposal: Proposal) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to publish proposals.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Create blog proposal in Supabase
+      const { error } = await (supabase as any)
+        .from('blog_proposals')
+        .insert({
+          title: proposal.title,
+          content: proposal.content,
+          summary: proposal.content.substring(0, 200) + '...',
+          author_id: user.id,
+          status: 'published',
+          category: 'Public Policy',
+          tags: [problem.title, 'community-proposal'],
+          published_at: new Date().toISOString(),
+          is_featured: false
+        });
+
+      if (error) throw error;
     
     // Update proposal status
     setProposals(proposals.map(p => 
@@ -301,10 +306,18 @@ $50M over 3 years for:
       description: "Your policy proposal has been published to the Public Policy blog.",
     });
     
-    // Navigate to the blog page
-    setTimeout(() => {
-      navigate('/public-policy');
-    }, 1500);
+      // Navigate to the blog page
+      setTimeout(() => {
+        navigate('/public-policy');
+      }, 1500);
+    } catch (error) {
+      console.error('Error publishing proposal:', error);
+      toast({
+        title: "Publication Failed",
+        description: "There was an error publishing your proposal. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   if (isEditing && selectedProposal) {

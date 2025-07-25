@@ -191,3 +191,200 @@ The recent Radix redesign work was exceptional - maintain this level of design q
 - Modern browser support (Chrome, Firefox, Safari, Edge)
 - Progressive enhancement for older browsers
 - Cross-browser testing for critical functionality
+
+## Database Schema
+
+This section documents the complete Supabase database schema as the source of truth for all database operations.
+
+### Core Legislative Tables
+
+#### Bills
+- **bill_id** (bigint, PK): Unique identifier
+- **session_id** (bigint): Legislative session reference
+- **bill_number** (text): Official bill number
+- **status** (bigint): Current status code
+- **status_desc** (text): Human-readable status
+- **title** (text): Bill title
+- **description** (text): Full description
+- **committee_id** (text): Assigned committee
+- **committee** (text): Committee name
+- **url** (text): External URL
+- **state_link** (text): State website link
+
+#### People (Legislators)
+- **people_id** (bigint, PK): Unique identifier
+- **name** (text): Full name
+- **first_name**, **middle_name**, **last_name**, **suffix** (text)
+- **party** (text): Political party
+- **role** (text): Current role
+- **district** (text): District representation
+- **chamber** (text): House/Senate
+- **bio_long**, **bio_short** (text): Biographical information
+- **photo_url** (text): Profile photo
+- **email**, **phone_capitol**, **phone_district** (text): Contact info
+- **archived** (boolean): Archive status
+
+#### Committees
+- **committee_id** (bigint, PK): Unique identifier
+- **committee_name** (text): Official name
+- **slug** (text): URL-friendly name
+- **chamber** (text): House/Senate
+- **description** (text): Committee purpose
+- **chair_name** (text): Committee chair
+- **member_count** (text): Number of members
+- **active_bills_count** (text): Active bills count
+
+### Blog/Policy System
+
+#### blog_proposals
+- **id** (uuid, PK): Unique identifier
+- **title** (text, NOT NULL): Proposal title
+- **content** (text, NOT NULL): Full content
+- **summary** (text): Brief summary
+- **author_id** (uuid, NOT NULL, FK → auth.users): Author reference
+- **status** (text): draft/published/archived
+- **category** (text): Content category
+- **tags** (ARRAY): Tag array
+- **published_at** (timestamptz): Publication date
+- **view_count** (integer): View counter
+- **is_featured** (boolean): Featured flag
+
+#### blog_comments
+- **id** (uuid, PK): Unique identifier
+- **proposal_id** (uuid, NOT NULL, FK → blog_proposals): Parent proposal
+- **author_id** (uuid, NOT NULL, FK → auth.users): Comment author
+- **content** (text, NOT NULL): Comment content
+- **parent_comment_id** (uuid, FK → blog_comments): For nested comments
+- **is_edited** (boolean): Edit status
+- **edited_at** (timestamptz): Last edit time
+
+#### blog_votes
+- **id** (uuid, PK): Unique identifier
+- **proposal_id** (uuid, NOT NULL, FK → blog_proposals): Target proposal
+- **voter_id** (uuid, NOT NULL, FK → auth.users): Voter
+- **vote_type** (text): upvote/downvote
+
+### User System
+
+#### profiles
+- **id** (uuid, PK): Unique identifier
+- **user_id** (uuid, NOT NULL, UNIQUE, FK → auth.users): Auth user
+- **username** (text, UNIQUE): Display username
+- **display_name** (text): Full display name
+- **avatar_url** (text): Profile image
+- **bio** (text): User biography
+- **role** (text): User role (default: 'user')
+
+#### subscribers
+- **id** (uuid, PK): Unique identifier
+- **user_id** (uuid, FK → auth.users): User reference
+- **email** (text, NOT NULL, UNIQUE): Email address
+- **stripe_customer_id** (text): Stripe reference
+- **subscription_tier** (text): free/student/staffer/researcher/professional/enterprise/government
+- **subscription_end** (timestamptz): Subscription expiry
+
+### Policy Development System
+
+#### problem_statements
+- **id** (uuid, PK): Unique identifier
+- **user_id** (uuid, NOT NULL, FK → profiles): Creator
+- **title** (text, NOT NULL): Problem title
+- **description** (text, NOT NULL): Full description
+- **category** (text): Problem category
+- **priority** (text): Priority level
+- **status** (text): Current status
+
+#### legislative_ideas
+- **id** (uuid, PK): Unique identifier
+- **user_id** (uuid, NOT NULL, FK → profiles): Creator
+- **problem_statement_id** (uuid, FK → problem_statements): Related problem
+- **title** (text, NOT NULL): Idea title
+- **original_idea** (text, NOT NULL): Initial concept
+- **improved_idea** (text): Refined version
+- **category** (text): Idea category
+- **status** (text): Current status
+
+#### legislative_drafts
+- **id** (uuid, PK): Unique identifier
+- **user_id** (uuid, NOT NULL, FK → profiles): Primary author
+- **legislative_idea_id** (uuid, FK → legislative_ideas): Source idea
+- **title** (text, NOT NULL): Draft title
+- **type** (text): Draft type
+- **draft_content** (text, NOT NULL): Full content
+- **analysis** (jsonb): AI analysis data
+- **votes** (jsonb): Voting data
+- **is_public** (boolean): Public visibility
+- **status** (text): Draft status
+- **co_author_count** (integer): Number of co-authors
+
+#### co_authors
+- **id** (uuid, PK): Unique identifier
+- **legislative_draft_id** (uuid, NOT NULL, FK → legislative_drafts): Target draft
+- **user_id** (uuid, NOT NULL, FK → auth.users): Co-author
+- **invited_by** (uuid, NOT NULL, FK → auth.users): Inviter
+- **role** (text): Collaboration role
+- **status** (text): Invitation status
+- **accepted_at** (timestamptz): Acceptance timestamp
+
+### Chat & AI System
+
+#### chat_sessions
+- **id** (uuid, PK): Unique identifier
+- **user_id** (uuid, NOT NULL, FK → auth.users): Session owner
+- **bill_id** (bigint, FK → Bills): Related bill
+- **member_id** (bigint, FK → People): Related member
+- **committee_id** (bigint, FK → Committees): Related committee
+- **title** (text, NOT NULL): Session title
+- **messages** (jsonb): Chat messages array
+
+#### problem_chats
+- **id** (uuid, PK): Unique identifier
+- **user_id** (uuid, NOT NULL, FK → auth.users): Chat owner
+- **problem_number** (text, NOT NULL, UNIQUE): Problem identifier
+- **title** (text, NOT NULL): Problem title
+- **problem_statement** (text, NOT NULL): Full statement
+- **current_state** (text): Workflow state
+- **chat_session_id** (uuid, FK → chat_sessions): Related chat
+
+### Favorites System
+
+#### user_favorites
+- **id** (uuid, PK): Unique identifier
+- **user_id** (uuid, NOT NULL, FK → auth.users): User
+- **bill_id** (bigint, NOT NULL): Favorited bill
+
+#### user_member_favorites
+- **id** (uuid, PK): Unique identifier
+- **user_id** (uuid, NOT NULL, FK → auth.users): User
+- **member_id** (bigint, NOT NULL, FK → People): Favorited member
+
+#### user_committee_favorites
+- **id** (uuid, PK): Unique identifier
+- **user_id** (uuid, NOT NULL, FK → auth.users): User
+- **committee_id** (bigint, NOT NULL, FK → Committees): Favorited committee
+
+### Views
+
+#### blog_proposal_stats (Materialized View)
+Aggregates blog proposal data with vote counts and author information for performance optimization.
+
+### Key Relationships
+1. All user-generated content links to **auth.users** via foreign keys
+2. **profiles** table extends auth.users with application-specific data
+3. Blog system (proposals, comments, votes) forms a complete content management system
+4. Legislative data (Bills, People, Committees) imported from external sources
+5. Policy development flows from problem_statements → legislative_ideas → legislative_drafts
+6. Co-authoring system enables collaborative drafting
+7. Favorites system allows users to track bills, members, and committees
+
+### Row Level Security (RLS)
+- All user tables have RLS enabled
+- Public read access for published content
+- User-specific write access for personal data
+- Authenticated access required for creating content
+
+### Important Notes
+- Use `auth.uid()` for current user identification in RLS policies
+- Join with `profiles` table for user display information
+- The `update_updated_at_column()` trigger function already exists in the database
+- Blog system is complete and production-ready as confirmed by Lovable
