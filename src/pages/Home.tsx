@@ -89,7 +89,7 @@ const Home = () => {
 
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">Create change by chatting with ai -- and other people.</p>
 
-            <div className="w-full mb-16 px-4 sm:px-0">
+            <div className="w-full mb-16 px-2 sm:px-4 lg:px-0">
               <AutocompleteCombobox
                 value={userProblem}
                 onChange={setUserProblem}

@@ -201,12 +201,12 @@ export const AutocompleteCombobox: React.FC<AutocompleteComboboxProps> = ({
   };
 
   return (
-    <div className={`relative w-full min-w-[740px] max-w-[740px] mx-auto ${className}`} style={{ zIndex: 1000 }}>
+    <div className={`relative w-full max-w-[740px] mx-auto ${className}`} style={{ zIndex: 1000 }}>
       {/* Clean unified container with Radix-inspired design */}
       <div className="input-wrapper relative">
         <form onSubmit={handleSubmit}>
           <div 
-            className={`relative bg-card border transition-all duration-300 shadow-md min-h-[80px] ${
+            className={`relative bg-card border transition-all duration-300 shadow-md min-h-[60px] sm:min-h-[80px] ${
               isOpen 
                 ? 'rounded-t-2xl border-b-0 border-primary/50' 
                 : 'rounded-2xl border-border'
@@ -214,7 +214,7 @@ export const AutocompleteCombobox: React.FC<AutocompleteComboboxProps> = ({
           >
             <div className="relative h-full">
               {/* Input field with established styling */}
-              <div className="px-6 py-5">
+              <div className="px-4 sm:px-6 py-4 sm:py-5">
                 <div className="relative">
                   <Input
                     ref={inputRef}
@@ -226,7 +226,7 @@ export const AutocompleteCombobox: React.FC<AutocompleteComboboxProps> = ({
                     onBlur={handleInputBlur}
                     onKeyDown={handleKeyDown}
                     placeholder={placeholder}
-                    className="h-12 pr-16 bg-transparent border-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground text-foreground text-base"
+                    className="h-10 sm:h-12 pr-12 sm:pr-16 bg-transparent border-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground text-foreground text-sm sm:text-base"
                     disabled={isTyping}
                     role="combobox"
                     aria-expanded={isOpen}
@@ -242,7 +242,7 @@ export const AutocompleteCombobox: React.FC<AutocompleteComboboxProps> = ({
                   {hasContent && (
                     <Button
                       type="submit"
-                      className={`absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 rounded-lg transition-all duration-300 ${
+                      className={`absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 h-6 w-6 sm:h-8 sm:w-8 p-0 rounded-lg transition-all duration-300 ${
                         hasContent && !isTyping
                           ? 'opacity-100 bg-primary hover:bg-primary/90'
                           : 'opacity-40 bg-muted-foreground cursor-not-allowed'
@@ -251,9 +251,9 @@ export const AutocompleteCombobox: React.FC<AutocompleteComboboxProps> = ({
                       aria-label="Submit problem statement"
                     >
                       {isTyping ? (
-                        <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        <div className="w-2 h-2 sm:w-3 sm:h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
                       ) : (
-                        <ArrowUp className="w-3 h-3" />
+                        <ArrowUp className="w-2 h-2 sm:w-3 sm:h-3" />
                       )}
                     </Button>
                   )}
@@ -274,61 +274,58 @@ export const AutocompleteCombobox: React.FC<AutocompleteComboboxProps> = ({
         {/* Clean dropdown with Radix-inspired styling */}
         {isOpen && (
           <div className="dropdown absolute left-0 right-0 top-full bg-card border border-primary/50 border-t-0 rounded-b-2xl shadow-xl z-[9999] overflow-hidden max-h-[360px]">
-            <div className="py-2">
-              {/* Simple header */}
-              <div className="px-6 py-3 border-b border-border">
-                <TypingAnimation
-                  className="text-sm font-medium text-muted-foreground"
-                  text="Trending Problems"
-                  duration={50}
-                />
-              </div>
-              
-              {loading ? (
-                <div className="px-6 py-8">
-                  <span className="text-sm text-muted-foreground">
-                    Loading trending problems...
-                  </span>
-                </div>
-              ) : suggestions.length > 0 ? (
-                <div className="max-h-[300px] overflow-y-auto">
-                  <div className="py-2">
-                    <ul
-                      ref={listboxRef}
-                      id={listboxId.current}
-                      role="listbox"
-                      aria-label="Problem statement suggestions"
-                    >
-                      {suggestions.map((suggestion, index) => (
-                        <li
-                          key={suggestion.id}
-                          id={`${listboxId.current}-option-${index}`}
-                          role="option"
-                          aria-selected={selectedIndex === index}
-                          className={`px-6 py-3 cursor-pointer transition-colors text-sm text-left ${
-                            selectedIndex === index
-                              ? 'bg-primary/10 text-foreground'
-                              : 'hover:bg-muted/50'
-                          }`}
-                          onClick={() => handleSuggestionClick(suggestion)}
-                          onMouseEnter={() => setSelectedIndex(index)}
-                        >
-                          <span className="text-foreground">
-                            {suggestion.text.charAt(0).toUpperCase() + suggestion.text.slice(1).toLowerCase()}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              ) : (
-                <div className="px-6 py-8">
-                  <span className="text-sm text-muted-foreground">
-                    No trending problems available
-                  </span>
-                </div>
-              )}
+            {/* Simple header */}
+            <div className="px-4 sm:px-6 py-3 border-b border-border">
+              <TypingAnimation
+                className="text-sm font-medium text-muted-foreground"
+                text="Trending Problems"
+                duration={50}
+              />
             </div>
+            
+            {loading ? (
+              <div className="px-4 sm:px-6 py-8">
+                <span className="text-sm text-muted-foreground">
+                  Loading trending problems...
+                </span>
+              </div>
+            ) : suggestions.length > 0 ? (
+              <ScrollArea className="max-h-[300px]">
+                <ul
+                  ref={listboxRef}
+                  id={listboxId.current}
+                  role="listbox"
+                  aria-label="Problem statement suggestions"
+                  className="py-2"
+                >
+                  {suggestions.map((suggestion, index) => (
+                    <li
+                      key={suggestion.id}
+                      id={`${listboxId.current}-option-${index}`}
+                      role="option"
+                      aria-selected={selectedIndex === index}
+                      className={`px-4 sm:px-6 py-3 cursor-pointer transition-colors text-sm text-left ${
+                        selectedIndex === index
+                          ? 'bg-primary/10 text-foreground'
+                          : 'hover:bg-muted/50'
+                      }`}
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      onMouseEnter={() => setSelectedIndex(index)}
+                    >
+                      <span className="text-foreground">
+                        {suggestion.text.charAt(0).toUpperCase() + suggestion.text.slice(1).toLowerCase()}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </ScrollArea>
+            ) : (
+              <div className="px-4 sm:px-6 py-8">
+                <span className="text-sm text-muted-foreground">
+                  No trending problems available
+                </span>
+              </div>
+            )}
           </div>
         )}
       </div>
