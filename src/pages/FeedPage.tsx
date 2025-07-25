@@ -93,12 +93,15 @@ const FeedPage = () => {
 
               {/* Advanced Search Interface */}
               <div className="space-y-4">
-                <AdvancedSearchCombobox
-                  value={searchQuery}
-                  onChange={handleSearchQueryChange}
-                  onSubmit={handleSearch}
-                  placeholder="Ask anything about legislation, policies, or lawmakers..."
-                />
+                <div className="w-full">
+                  <AdvancedSearchCombobox
+                    value={searchQuery}
+                    onChange={handleSearchQueryChange}
+                    onSubmit={handleSearch}
+                    placeholder="Ask anything about legislation, policies, or lawmakers..."
+                    className="w-full"
+                  />
+                </div>
               </div>
 
               {/* Legislative Feed */}

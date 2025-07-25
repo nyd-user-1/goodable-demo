@@ -5,8 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { 
   FileText, 
-  Share2, 
-  ThumbsDown, 
   ExternalLink, 
   Clock,
   User,
@@ -33,7 +31,6 @@ interface PolicyFeedItemProps {
 
 export const PolicyFeedItem: React.FC<PolicyFeedItemProps> = ({ item }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isHelpful, setIsHelpful] = useState<boolean | null>(null);
 
   const getTypeIcon = () => {
     switch (item.type) {
@@ -71,41 +68,24 @@ export const PolicyFeedItem: React.FC<PolicyFeedItemProps> = ({ item }) => {
 
   const handleTranscriptClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('Opening transcript for:', item.billNumber);
-    // Navigate to bills page with bill selected
-    window.open(`/bills?selected=${item.id}`, '_blank');
-  };
-
-  const handleShareClick = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: item.title,
-          text: `${item.billNumber}: ${item.title}`,
-          url: window.location.href
-        });
-      } else {
-        // Fallback: copy to clipboard
-        await navigator.clipboard.writeText(`${item.billNumber}: ${item.title}\n${window.location.href}`);
-        // You could show a toast notification here
-        console.log('Link copied to clipboard');
-      }
-    } catch (error) {
-      console.error('Error sharing:', error);
+    // For real NYS bills, link to actual NYS Open Legislation page
+    if (item.id.startsWith('bill-') && item.billNumber) {
+      const billNumber = item.billNumber.replace(/[^A-Z0-9]/g, '');
+      window.open(`https://www.nysenate.gov/legislation/bills/2025/${billNumber}`, '_blank');
+    } else {
+      console.log('Opening transcript for:', item.billNumber);
     }
   };
 
-  const handleNotHelpfulClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsHelpful(false);
-    console.log('Marked as not helpful:', item.id);
-    // TODO: Send feedback to analytics
-  };
-
   const handleBillClick = () => {
-    // Navigate to bills page with this bill selected
-    window.location.href = `/bills?selected=${item.id}`;
+    // For real NYS bills, link to actual NYS Open Legislation page
+    if (item.id.startsWith('bill-') && item.billNumber) {
+      const billNumber = item.billNumber.replace(/[^A-Z0-9]/g, '');
+      window.open(`https://www.nysenate.gov/legislation/bills/2025/${billNumber}`, '_blank');
+    } else {
+      // For other items, navigate to internal bills page
+      window.location.href = `/bills?selected=${item.id}`;
+    }
   };
 
   return (
@@ -193,7 +173,7 @@ export const PolicyFeedItem: React.FC<PolicyFeedItemProps> = ({ item }) => {
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Actions and Citations */}
         <div className="flex items-center justify-between pt-4 border-t">
           <div className="flex items-center gap-3">
             <Button
@@ -206,27 +186,11 @@ export const PolicyFeedItem: React.FC<PolicyFeedItemProps> = ({ item }) => {
               {item.type === 'bill' ? 'Full Text' : 'Transcript'}
             </Button>
             
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleShareClick}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <Share2 className="w-4 h-4 mr-2" />
-              Share
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleNotHelpfulClick}
-              className={`text-muted-foreground hover:text-destructive ${
-                isHelpful === false ? 'text-destructive' : ''
-              }`}
-            >
-              <ThumbsDown className="w-4 h-4 mr-2" />
-              Not helpful
-            </Button>
+            <div className="text-xs text-muted-foreground">
+              Source: {item.type === 'bill' ? 'NYS Open Legislation API' : 
+                      item.type === 'committee' ? 'NYS Senate Committee Records' : 
+                      'Legislative Research Office'}
+            </div>
           </div>
 
           <Button
@@ -240,14 +204,6 @@ export const PolicyFeedItem: React.FC<PolicyFeedItemProps> = ({ item }) => {
           </Button>
         </div>
 
-        {/* Feedback Message */}
-        {isHelpful === false && (
-          <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-            <p className="text-sm text-orange-800">
-              Thank you for your feedback. We'll work to improve content relevance.
-            </p>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

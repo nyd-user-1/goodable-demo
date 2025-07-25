@@ -42,7 +42,7 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
   className = ''
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'bills' | 'tickets' | 'sources'>('sources');
+  const [activeTab, setActiveTab] = useState<'bills' | 'sources'>('sources');
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [loading, setLoading] = useState(false);
@@ -94,14 +94,6 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
           }));
           break;
           
-        case 'tickets':
-          // Mock ticket suggestions for now
-          data = [
-            { id: 'ticket-1', text: 'Healthcare reform implementation timeline', type: 'policy' },
-            { id: 'ticket-2', text: 'Education funding allocation analysis', type: 'policy' },
-            { id: 'ticket-3', text: 'Infrastructure spending priorities', type: 'policy' }
-          ].filter(item => item.text.toLowerCase().includes(query.toLowerCase()));
-          break;
           
         case 'sources':
           // Multi-source search across enabled sources
@@ -321,7 +313,7 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
   };
 
   return (
-    <div className={`relative w-full max-w-4xl mx-auto ${className}`} style={{ zIndex: 1000 }}>
+    <div className={`relative w-full ${className}`} style={{ zIndex: 1000 }}>
       <div className="advanced-search-wrapper relative">
         <form onSubmit={handleSubmit}>
           {/* Main search container - Fintool replica */}
@@ -384,23 +376,30 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
             {/* Tabs section */}
             <div className="px-6 pb-4">
               <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)} className="w-full">
-                <TabsList className="grid w-full max-w-md grid-cols-3 bg-muted/50">
+                <TabsList className="grid w-fit grid-cols-2 bg-muted/50">
                   <TabsTrigger value="bills" className="flex items-center gap-2">
                     📄 Bills
-                  </TabsTrigger>
-                  <TabsTrigger value="tickets" className="flex items-center gap-2">
-                    + Tickets
                   </TabsTrigger>
                   <TabsTrigger 
                     value="sources" 
                     className="flex items-center gap-2 relative"
-                    onClick={() => setSourcesOpen(!sourcesOpen)}
                   >
                     📊 Sources
                     <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
                       {enabledSourcesCount}
                     </Badge>
-                    <ChevronDown className={`w-3 h-3 ml-1 transition-transform ${sourcesOpen ? 'rotate-180' : ''}`} />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSourcesOpen(!sourcesOpen);
+                      }}
+                      className="h-auto p-0 ml-1"
+                    >
+                      <ChevronDown className={`w-3 h-3 transition-transform ${sourcesOpen ? 'rotate-180' : ''}`} />
+                    </Button>
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -408,9 +407,9 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
           </div>
         </form>
 
-        {/* Sources dropdown */}
+        {/* Sources dropdown - positioned relative to Sources tab */}
         {sourcesOpen && activeTab === 'sources' && (
-          <div className="absolute left-0 right-0 top-full bg-card border border-primary/50 border-t-0 rounded-b-2xl shadow-xl z-[9998] p-4">
+          <div className="absolute left-64 top-full mt-2 w-80 bg-card border border-border rounded-lg shadow-xl z-[9998] p-4">
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-foreground">Select Sources</h4>
               {sources.map((source) => (
@@ -444,8 +443,7 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
             {/* Header */}
             <div className="px-6 py-3 border-b border-border">
               <h4 className="text-sm font-medium text-muted-foreground">
-                {value.trim() ? 'Search Results' : activeTab === 'bills' ? 'Recent Bills' : 
-                 activeTab === 'tickets' ? 'Policy Research' : 'Legislative Intelligence'}
+                {value.trim() ? 'Search Results' : activeTab === 'bills' ? 'Recent Bills' : 'Legislative Intelligence'}
               </h4>
             </div>
             
