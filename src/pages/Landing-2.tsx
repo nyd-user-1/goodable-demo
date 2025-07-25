@@ -35,6 +35,7 @@ import { ChartAreaInteractive } from '@/components/charts/ChartAreaInteractive';
 import { ChartBarEngagement } from '@/components/charts/ChartBarEngagement';
 import { ChartPieBillStatus } from '@/components/charts/ChartPieBillStatus';
 import { ChartLinePolicyImpact } from '@/components/charts/ChartLinePolicyImpact';
+import { ProblemsBentoGrid } from '@/components/features/problems';
 import '@/components/magicui/animated-background.css';
 
 interface Member {
@@ -433,6 +434,9 @@ const Landing2 = () => {
           </div>
         </div>
       </section>
+
+      {/* Problems Bento Grid */}
+      <ProblemsBentoGrid />
 
       {/* Public Policy Blog Posts */}
       <section className="py-12 sm:py-20 px-4 sm:px-6 bg-background">
