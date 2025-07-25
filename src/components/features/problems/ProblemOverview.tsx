@@ -115,194 +115,172 @@ export const ProblemOverview: React.FC<ProblemOverviewProps> = ({ problem }) => 
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              Policy Overview
-            </CardTitle>
-            <div className="h-5 w-20 bg-muted animate-pulse rounded" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="space-y-3">
-                <div className="h-4 bg-muted animate-pulse rounded w-1/3" />
-                <div className="space-y-2 pl-4">
-                  <div className="h-3 bg-muted animate-pulse rounded w-full" />
-                  <div className="h-3 bg-muted animate-pulse rounded w-3/4" />
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="md:col-span-2">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl font-semibold">Policy Analysis</CardTitle>
+              <div className="h-6 w-24 bg-muted animate-pulse rounded" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="space-y-2 p-4 rounded-lg bg-muted/30 animate-pulse">
+                  <div className="h-4 bg-muted rounded w-1/2" />
+                  <div className="space-y-2">
+                    <div className="h-3 bg-muted rounded w-full" />
+                    <div className="h-3 bg-muted rounded w-3/4" />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   if (error || !policyData) {
     return (
-      <Card className="border-border">
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              Problem Analysis
-            </CardTitle>
-            <Badge variant="outline" className="text-xs">
-              General Framework
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Fallback content when no specific data is available */}
-          <div className="space-y-6">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                <h3 className="font-semibold text-foreground">Current Situation</h3>
-              </div>
-              <p className="text-muted-foreground leading-relaxed pl-4">
-                {problem.description || "This problem represents a significant policy challenge that requires comprehensive analysis and stakeholder engagement to develop effective solutions."}
-              </p>
-            </div>
-
-            <Separator className="my-4" />
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                <h3 className="font-semibold text-foreground">Why This Matters Now</h3>
-              </div>
-              <p className="text-muted-foreground leading-relaxed pl-4">
-                The urgency of addressing this issue has increased due to evolving social, economic, and technological factors that impact communities across the state.
-              </p>
-            </div>
-
-            <Separator className="my-4" />
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <h3 className="font-semibold text-foreground">Path Forward</h3>
-              </div>
-              <p className="text-muted-foreground leading-relaxed pl-4">
-                Effective solutions will require collaborative efforts between policymakers, community organizations, and stakeholders to implement evidence-based approaches.
-              </p>
-            </div>
-          </div>
-
-          {/* Research Footer */}
-          <div className="mt-8 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="md:col-span-2">
+          <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <BookOpen className="w-4 h-4" />
+              <CardTitle className="text-2xl font-semibold">Problem Analysis</CardTitle>
+              <Badge variant="outline" className="border-muted-foreground/30">
+                General Framework
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
+              {/* Current Situation */}
+              <div className="md:col-span-2 space-y-2 p-4 rounded-lg bg-muted/50 border border-muted-foreground/20">
+                <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
+                  Current Situation
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {problem.description || "This problem represents a significant policy challenge that requires comprehensive analysis and stakeholder engagement to develop effective solutions."}
+                </p>
+              </div>
+
+              {/* Why This Matters */}
+              <div className="space-y-2 p-4 rounded-lg bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/50">
+                <h3 className="font-semibold text-sm uppercase tracking-wider text-orange-700 dark:text-orange-400">
+                  Why This Matters Now
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  The urgency of addressing this issue has increased due to evolving social, economic, and technological factors that impact communities across the state.
+                </p>
+              </div>
+
+              {/* Path Forward */}
+              <div className="space-y-2 p-4 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/50">
+                <h3 className="font-semibold text-sm uppercase tracking-wider text-green-700 dark:text-green-400">
+                  Path Forward
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Effective solutions will require collaborative efforts between policymakers, community organizations, and stakeholders to implement evidence-based approaches.
+                </p>
+              </div>
+            </div>
+
+            {/* Research Footer */}
+            <div className="mt-6 flex items-center justify-between p-3 rounded-md bg-muted/50">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <BookOpen className="w-3.5 h-3.5" />
                 <span>Analysis based on policy research frameworks</span>
               </div>
-              <Button variant="ghost" size="sm" className="text-primary h-auto p-0">
+              <Button variant="ghost" size="sm" className="h-7 text-xs">
                 View Research
                 <ExternalLink className="w-3 h-3 ml-1" />
               </Button>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <Card className="border-border">
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            Policy Overview
-          </CardTitle>
-          <Badge variant="default" className="text-xs">
-            Research-Backed
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Why This Matters Now */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-            <h3 className="font-semibold text-foreground">Why This Matters Now</h3>
-          </div>
-          <p className="text-muted-foreground leading-relaxed pl-4">
-            {policyData['Why This Matters Now']}
-          </p>
-        </div>
-
-        <Separator className="my-4" />
-
-        {/* What We're Seeing */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-            <h3 className="font-semibold text-foreground">What We're Seeing</h3>
-          </div>
-          <p className="text-muted-foreground leading-relaxed pl-4">
-            {policyData["What We're Seeing"]}
-          </p>
-        </div>
-
-        <Separator className="my-4" />
-
-        {/* The Real Challenge */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-            <h3 className="font-semibold text-foreground">The Real Challenge</h3>
-          </div>
-          <p className="text-muted-foreground leading-relaxed pl-4">
-            {policyData['The Real Challenge']}
-          </p>
-        </div>
-
-        <Separator className="my-4" />
-
-        {/* The Path Forward */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <h3 className="font-semibold text-foreground">The Path Forward</h3>
-          </div>
-          <p className="text-muted-foreground leading-relaxed pl-4">
-            {policyData['The Path Forward']}
-          </p>
-        </div>
-
-        <Separator className="my-4" />
-
-        {/* Your Role */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-            <h3 className="font-semibold text-foreground">Your Role</h3>
-          </div>
-          <p className="text-muted-foreground leading-relaxed pl-4">
-            {policyData['Your Role']}
-          </p>
-        </div>
-
-        {/* Research Citation Footer */}
-        <div className="mt-8 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+    <div className="grid gap-4 md:grid-cols-2">
+      {/* Main Content Grid */}
+      <Card className="md:col-span-2">
+        <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <BookOpen className="w-4 h-4" />
-              <span>Sourced from policy research database with citations</span>
+            <CardTitle className="text-2xl font-semibold">Policy Analysis</CardTitle>
+            <Badge className="bg-primary/10 text-primary border-primary/20">
+              Research-Backed
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Why This Matters Now */}
+            <div className="space-y-2 p-4 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50">
+              <h3 className="font-semibold text-sm uppercase tracking-wider text-red-700 dark:text-red-400">
+                Why This Matters Now
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {policyData['Why This Matters Now']}
+              </p>
             </div>
-            <Button variant="ghost" size="sm" className="text-primary h-auto p-0">
+
+            {/* What We're Seeing */}
+            <div className="space-y-2 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50">
+              <h3 className="font-semibold text-sm uppercase tracking-wider text-blue-700 dark:text-blue-400">
+                What We're Seeing
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {policyData["What We're Seeing"]}
+              </p>
+            </div>
+
+            {/* The Real Challenge */}
+            <div className="space-y-2 p-4 rounded-lg bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/50">
+              <h3 className="font-semibold text-sm uppercase tracking-wider text-orange-700 dark:text-orange-400">
+                The Real Challenge
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {policyData['The Real Challenge']}
+              </p>
+            </div>
+
+            {/* The Path Forward */}
+            <div className="space-y-2 p-4 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/50">
+              <h3 className="font-semibold text-sm uppercase tracking-wider text-green-700 dark:text-green-400">
+                The Path Forward
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {policyData['The Path Forward']}
+              </p>
+            </div>
+          </div>
+
+          {/* Your Role - Full Width */}
+          <div className="mt-4 space-y-2 p-4 rounded-lg bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/50">
+            <h3 className="font-semibold text-sm uppercase tracking-wider text-purple-700 dark:text-purple-400">
+              Your Role
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {policyData['Your Role']}
+            </p>
+          </div>
+
+          {/* Citation Footer */}
+          <div className="mt-6 flex items-center justify-between p-3 rounded-md bg-muted/50">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Sourced from policy research database</span>
+            </div>
+            <Button variant="ghost" size="sm" className="h-7 text-xs">
               View Citations
               <ExternalLink className="w-3 h-3 ml-1" />
             </Button>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
