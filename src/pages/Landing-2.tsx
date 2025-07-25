@@ -459,7 +459,105 @@ const Landing2 = () => {
                 .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt))
                 .slice(0, 3);
               
-              if (recentPosts.length === 0) {
+              // Static policy proposals for landing page
+              const staticPolicies = [
+                {
+                  id: 'static-1',
+                  title: 'Universal Childcare Access Act',
+                  content: 'This comprehensive policy proposal aims to establish a nationwide system of affordable, high-quality childcare centers accessible to all families. The program would provide sliding-scale fees based on income, ensure all childcare workers receive fair wages and benefits, and maintain strict quality standards. By investing in early childhood development, we can support working families, promote gender equality in the workforce, and give every child the best start in life.',
+                  author: {
+                    name: 'Sarah Chen',
+                    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=32&h=32&fit=crop&crop=face',
+                    role: 'Policy Analyst'
+                  },
+                  publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+                  category: 'Social Services',
+                  problem: 'Childcare',
+                  votes: { up: 127, down: 8 },
+                  comments: new Array(23)
+                },
+                {
+                  id: 'static-2',
+                  title: 'Green Infrastructure Investment Initiative',
+                  content: 'A bold plan to modernize America\'s infrastructure while combating climate change. This proposal includes retrofitting public buildings for energy efficiency, expanding electric vehicle charging networks, investing in renewable energy grids, and creating green jobs training programs. The initiative would reduce carbon emissions by 40% over the next decade while creating millions of well-paying jobs in emerging green industries.',
+                  author: {
+                    name: 'Michael Rodriguez',
+                    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop&crop=face',
+                    role: 'Environmental Advocate'
+                  },
+                  publishedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+                  category: 'Environment',
+                  problem: 'Climate Change',
+                  votes: { up: 203, down: 15 },
+                  comments: new Array(45)
+                },
+                {
+                  id: 'static-3',
+                  title: 'Community Mental Health Expansion Act',
+                  content: 'This proposal addresses the mental health crisis by establishing community-based mental health centers in underserved areas. The program would integrate mental health services with primary care, provide 24/7 crisis intervention teams, offer sliding-scale fees, and train community health workers. By making mental health care accessible and affordable, we can reduce emergency room visits, prevent crises, and improve overall community wellbeing.',
+                  author: {
+                    name: 'Dr. James Wilson',
+                    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=32&h=32&fit=crop&crop=face',
+                    role: 'Healthcare Professional'
+                  },
+                  publishedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+                  category: 'Healthcare',
+                  problem: 'Mental Health Access',
+                  votes: { up: 156, down: 12 },
+                  comments: new Array(34)
+                },
+                {
+                  id: 'static-4',
+                  title: 'Affordable Housing Trust Fund',
+                  content: 'Establishing a national trust fund to address the housing affordability crisis. This policy would create dedicated funding streams through a small tax on luxury real estate transactions, provide grants for affordable housing development, support community land trusts, and offer down payment assistance for first-time homebuyers. The goal is to create 2 million affordable housing units over the next decade and ensure housing stability for working families.',
+                  author: {
+                    name: 'Maria Garcia',
+                    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&h=32&fit=crop&crop=face',
+                    role: 'Housing Advocate'
+                  },
+                  publishedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+                  category: 'Housing',
+                  problem: 'Housing Affordability',
+                  votes: { up: 189, down: 21 },
+                  comments: new Array(56)
+                },
+                {
+                  id: 'static-5',
+                  title: 'Digital Literacy for All Initiative',
+                  content: 'Bridging the digital divide through comprehensive digital literacy programs. This proposal includes providing free internet access in underserved communities, distributing refurbished devices to low-income families, offering multilingual digital skills training, and partnering with libraries and community centers. By ensuring everyone has access to technology and the skills to use it, we can create more equitable opportunities in education, employment, and civic participation.',
+                  author: {
+                    name: 'Alex Thompson',
+                    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face',
+                    role: 'Tech Policy Expert'
+                  },
+                  publishedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+                  category: 'Technology',
+                  problem: 'Digital Divide',
+                  votes: { up: 142, down: 6 },
+                  comments: new Array(28)
+                },
+                {
+                  id: 'static-6',
+                  title: 'Small Business Recovery and Growth Act',
+                  content: 'Supporting small businesses through targeted assistance programs. This comprehensive policy includes creating low-interest loan programs, providing technical assistance and mentorship, streamlining regulatory processes, offering tax incentives for hiring and expansion, and establishing procurement preferences for local businesses. By strengthening small businesses, we can revitalize local economies, create jobs, and preserve the unique character of our communities.',
+                  author: {
+                    name: 'David Park',
+                    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=32&h=32&fit=crop&crop=face',
+                    role: 'Economic Developer'
+                  },
+                  publishedAt: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString(),
+                  category: 'Economic Policy',
+                  problem: 'Small Business Support',
+                  votes: { up: 167, down: 9 },
+                  comments: new Array(41)
+                }
+              ];
+              
+              // Combine localStorage posts with static posts
+              const allPosts = [...recentPosts, ...staticPolicies];
+              const displayPosts = allPosts.slice(0, 9); // Show up to 9 posts
+              
+              if (displayPosts.length === 0) {
                 return (
                   <div className="col-span-full">
                     <Card className="p-8 text-center">
@@ -478,7 +576,7 @@ const Landing2 = () => {
                 );
               }
               
-              return recentPosts.map((post, index) => (
+              return displayPosts.map((post, index) => (
                 <Card 
                   key={post.id} 
                   className="group cursor-pointer hover:shadow-lg transition-all duration-200"
