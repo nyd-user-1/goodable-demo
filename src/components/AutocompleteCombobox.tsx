@@ -214,7 +214,7 @@ export const AutocompleteCombobox: React.FC<AutocompleteComboboxProps> = ({
           >
             <div className="relative h-full">
               {/* Input field with established styling */}
-              <div className="px-4 sm:px-6 py-4 sm:py-5">
+              <div className="px-4 sm:px-6 py-3 sm:py-4">
                 <div className="relative">
                   <Input
                     ref={inputRef}
@@ -273,7 +273,7 @@ export const AutocompleteCombobox: React.FC<AutocompleteComboboxProps> = ({
 
         {/* Clean dropdown with Radix-inspired styling */}
         {isOpen && (
-          <div className="dropdown absolute left-0 right-0 top-full bg-card border border-primary/50 border-t-0 rounded-b-2xl shadow-xl z-[9999] overflow-hidden max-h-[360px]">
+          <div className="dropdown absolute left-0 right-0 top-full bg-card border border-primary/50 border-t-0 rounded-b-2xl shadow-xl z-[9999] max-h-[360px] overflow-y-auto">
             {/* Simple header */}
             <div className="px-4 sm:px-6 py-3 border-b border-border">
               <TypingAnimation
@@ -290,35 +290,33 @@ export const AutocompleteCombobox: React.FC<AutocompleteComboboxProps> = ({
                 </span>
               </div>
             ) : suggestions.length > 0 ? (
-              <ScrollArea className="max-h-[300px]">
-                <ul
-                  ref={listboxRef}
-                  id={listboxId.current}
-                  role="listbox"
-                  aria-label="Problem statement suggestions"
-                  className="py-2"
-                >
-                  {suggestions.map((suggestion, index) => (
-                    <li
-                      key={suggestion.id}
-                      id={`${listboxId.current}-option-${index}`}
-                      role="option"
-                      aria-selected={selectedIndex === index}
-                      className={`px-4 sm:px-6 py-3 cursor-pointer transition-colors text-sm text-left ${
-                        selectedIndex === index
-                          ? 'bg-primary/10 text-foreground'
-                          : 'hover:bg-muted/50'
-                      }`}
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      onMouseEnter={() => setSelectedIndex(index)}
-                    >
-                      <span className="text-foreground">
-                        {suggestion.text.charAt(0).toUpperCase() + suggestion.text.slice(1).toLowerCase()}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </ScrollArea>
+              <ul
+                ref={listboxRef}
+                id={listboxId.current}
+                role="listbox"
+                aria-label="Problem statement suggestions"
+                className="py-2"
+              >
+                {suggestions.map((suggestion, index) => (
+                  <li
+                    key={suggestion.id}
+                    id={`${listboxId.current}-option-${index}`}
+                    role="option"
+                    aria-selected={selectedIndex === index}
+                    className={`px-4 sm:px-6 py-3 cursor-pointer transition-colors text-sm text-left ${
+                      selectedIndex === index
+                        ? 'bg-primary/10 text-foreground'
+                        : 'hover:bg-muted/50'
+                    }`}
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    onMouseEnter={() => setSelectedIndex(index)}
+                  >
+                    <span className="text-foreground">
+                      {suggestion.text.charAt(0).toUpperCase() + suggestion.text.slice(1).toLowerCase()}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             ) : (
               <div className="px-4 sm:px-6 py-8">
                 <span className="text-sm text-muted-foreground">

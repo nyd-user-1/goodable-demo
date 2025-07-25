@@ -34,6 +34,7 @@ import About from "./pages/About";
 import PublicPolicy from "./pages/PublicPolicy";
 import StyleGuide from "./pages/StyleGuide";
 import Admin from "./pages/Admin";
+import FeedPage from "./pages/FeedPage";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,7 @@ const AppLayout = () => {
                 <Route path="/style-guide" element={<StyleGuide />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/dashboard" element={<Index />} />
+                <Route path="/feed" element={<FeedPage />} />
               </Routes>
             </main>
           </SidebarInset>
