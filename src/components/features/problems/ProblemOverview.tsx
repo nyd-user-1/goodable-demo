@@ -31,18 +31,40 @@ export const ProblemOverview: React.FC<ProblemOverviewProps> = ({ problem }) => 
         setLoading(true);
         setError(null);
 
-        // Try to find matching data in the Top 50 Public Policy Problems table
-        const { data, error } = await supabase
-          .from('Top 50 Public Policy Problems')
-          .select('*')
-          .ilike('Title', `%${problem.title}%`)
+        // First, try to get the policy data title from problem_cards table
+        const { data: cardData, error: cardError } = await supabase
+          .from('problem_cards')
+          .select('policy_data_title')
+          .eq('title', problem.title)
           .single();
 
-        if (error && error.code !== 'PGRST116') {
-          throw error;
-        }
+        if (cardData && cardData.policy_data_title) {
+          // Use the mapped title to get policy data
+          const { data, error } = await supabase
+            .from('Top 50 Public Policy Problems')
+            .select('*')
+            .eq('Title', cardData.policy_data_title)
+            .single();
 
-        setPolicyData(data);
+          if (error && error.code !== 'PGRST116') {
+            throw error;
+          }
+
+          setPolicyData(data);
+        } else {
+          // Fallback: try fuzzy matching
+          const { data, error } = await supabase
+            .from('Top 50 Public Policy Problems')
+            .select('*')
+            .ilike('Title', `%${problem.title}%`)
+            .single();
+
+          if (error && error.code !== 'PGRST116') {
+            throw error;
+          }
+
+          setPolicyData(data);
+        }
       } catch (err) {
         console.error('Error fetching policy data:', err);
         setError('Unable to load policy analysis data');
