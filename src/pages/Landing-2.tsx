@@ -28,6 +28,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { ShineBorder } from '@/components/magicui/shine-border';
 import { ScrollProgress } from '@/components/magicui/scroll-progress';
 import { Marquee } from '@/components/magicui/marquee';
+import { BetaAccessModal } from '@/components/BetaAccessModal';
 import HeroVideoDialog from '@/components/magicui/hero-video-dialog';
 import { Confetti, type ConfettiRef } from '@/components/magicui/confetti';
 import { cn } from "@/lib/utils";
@@ -408,6 +409,7 @@ const Landing2 = () => {
   return (
     <div className="min-h-screen bg-background overflow-hidden">
       <ScrollProgress className="top-0" />
+      <BetaAccessModal />
       {/* Enhanced background with visual effects */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
@@ -759,7 +761,7 @@ const Landing2 = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-12 sm:py-20 bg-background relative">
+      <section id="waitlist" className="py-12 sm:py-20 bg-background relative">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <ShineBorder 
             className="rounded-xl sm:rounded-2xl"
