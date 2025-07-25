@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, ExternalLink, BookOpen, FileText } from 'lucide-react';
+import { TrendingUp, ExternalLink, BookOpen, FileText, MessageSquare } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Problem } from '@/data/problems';
+import { ProblemAIChatSheet } from './ProblemAIChatSheet';
 
 interface PolicyProblemData {
   Title: string;
@@ -24,6 +25,8 @@ export const ProblemOverview: React.FC<ProblemOverviewProps> = ({ problem }) => 
   const [policyData, setPolicyData] = useState<PolicyProblemData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPolicyData = async () => {
@@ -192,13 +195,27 @@ export const ProblemOverview: React.FC<ProblemOverviewProps> = ({ problem }) => 
                 <BookOpen className="w-3.5 h-3.5" />
                 <span>Analysis based on policy research frameworks</span>
               </div>
-              <Button variant="ghost" size="sm" className="h-7 text-xs">
-                View Research
-                <ExternalLink className="w-3 h-3 ml-1" />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-7 text-xs"
+                onClick={() => setChatOpen(true)}
+              >
+                Ask Chat
+                <MessageSquare className="w-3 h-3 ml-1" />
               </Button>
             </div>
           </CardContent>
         </Card>
+        
+        {/* AI Chat Sheet */}
+        <ProblemAIChatSheet
+          open={chatOpen}
+          onOpenChange={setChatOpen}
+          problem={problem}
+          policyData={null}
+          initialPrompt={selectedPrompt || undefined}
+        />
       </div>
     );
   }
@@ -210,9 +227,6 @@ export const ProblemOverview: React.FC<ProblemOverviewProps> = ({ problem }) => 
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl font-semibold">Policy Analysis</CardTitle>
-            <Badge className="bg-primary/10 text-primary border-primary/20">
-              Research-Backed
-            </Badge>
           </div>
         </CardHeader>
         <CardContent>
@@ -274,13 +288,27 @@ export const ProblemOverview: React.FC<ProblemOverviewProps> = ({ problem }) => 
               <BookOpen className="w-3.5 h-3.5" />
               <span>Sourced from policy research database</span>
             </div>
-            <Button variant="ghost" size="sm" className="h-7 text-xs">
-              View Citations
-              <ExternalLink className="w-3 h-3 ml-1" />
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 text-xs"
+              onClick={() => setChatOpen(true)}
+            >
+              Ask Chat
+              <MessageSquare className="w-3 h-3 ml-1" />
             </Button>
           </div>
         </CardContent>
       </Card>
+      
+      {/* AI Chat Sheet */}
+      <ProblemAIChatSheet
+        open={chatOpen}
+        onOpenChange={setChatOpen}
+        problem={problem}
+        policyData={policyData}
+        initialPrompt={selectedPrompt || undefined}
+      />
     </div>
   );
 };

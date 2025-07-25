@@ -61,10 +61,31 @@ export class ContextBuilder {
 
     switch (entityType) {
       case 'problem':
-        return `Problem Context:
+        let contextStr = `Problem Context:
 Title: ${entity.title || 'Untitled Problem'}
-Original Statement: ${entity.originalStatement || entity.description || 'No description'}
-ID: ${entity.id || 'Unknown'}`;
+Description: ${entity.description || 'No description'}`;
+
+        // Add policy data if available
+        if (entity.policyData) {
+          contextStr += `\n\nPolicy Analysis:`;
+          if (entity.policyData['Why This Matters Now']) {
+            contextStr += `\n\nWhy This Matters Now: ${entity.policyData['Why This Matters Now']}`;
+          }
+          if (entity.policyData["What We're Seeing"]) {
+            contextStr += `\n\nWhat We're Seeing: ${entity.policyData["What We're Seeing"]}`;
+          }
+          if (entity.policyData['The Real Challenge']) {
+            contextStr += `\n\nThe Real Challenge: ${entity.policyData['The Real Challenge']}`;
+          }
+          if (entity.policyData['The Path Forward']) {
+            contextStr += `\n\nThe Path Forward: ${entity.policyData['The Path Forward']}`;
+          }
+          if (entity.policyData['Your Role']) {
+            contextStr += `\n\nYour Role: ${entity.policyData['Your Role']}`;
+          }
+        }
+        
+        return contextStr;
 
       case 'bill':
         return `Bill Context:
