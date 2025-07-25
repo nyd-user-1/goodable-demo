@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { useToast } from '@/hooks/use-toast';
 import { 
   ArrowRight, 
   Sparkles, 
@@ -53,15 +55,88 @@ interface Member {
 
 const Landing2 = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const featuresRef = useRef<HTMLDivElement>(null);
   const confettiRef = useRef<ConfettiRef>(null);
   const [userProblem, setUserProblem] = useState('');
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleDoSomethingClick = () => {
     // Scroll to search or do something
+  };
+
+  const handleWaitlistSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !email.includes('@')) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      // First check if email already exists
+      const { data: existingEmail, error: checkError } = await (supabase as any)
+        .from('waitlist')
+        .select('email')
+        .eq('email', email)
+        .single();
+
+      if (existingEmail) {
+        toast({
+          title: "Already Signed Up",
+          description: "You're already on the waitlist! We'll notify you when we launch.",
+        });
+        setEmail('');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Add to waitlist
+      const { error } = await (supabase as any)
+        .from('waitlist')
+        .insert({
+          email: email,
+          created_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success!",
+        description: "You're on the waitlist! We'll notify you when we launch.",
+      });
+      
+      setEmail('');
+      
+      // Trigger confetti
+      if (confettiRef.current && !hasTriggeredConfetti) {
+        confettiRef.current.fire({
+          particleCount: 150,
+          spread: 80,
+          origin: { y: 0.8 }
+        });
+        setHasTriggeredConfetti(true);
+      }
+    } catch (error) {
+      console.error('Waitlist signup error:', error);
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Fetch real people data from Supabase
@@ -735,22 +810,31 @@ const Landing2 = () => {
               }}
             >
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-                Ready to do something good?
+                Ready to do something? Something good?
               </h2>
               <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
-                Join thousands of people who are collaborating on a future that's Goodable.
+                Join thousands collaboratively engaged in public policy development and problem solving.
               </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <form onSubmit={handleWaitlistSignup} className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full sm:flex-1"
+                  disabled={isSubmitting}
+                />
                 <Button 
+                  type="submit"
                   variant="outline" 
                   size="lg" 
-                  onClick={handleDoSomethingClick}
+                  disabled={isSubmitting}
                   className="dark:shadow-[0_0_20px_rgba(59,130,246,0.3)] dark:border-blue-500/50 dark:hover:shadow-[0_0_25px_rgba(59,130,246,0.4)] transition-all duration-300 w-full sm:w-auto"
                 >
                   <Heart className="w-4 h-4 mr-2 text-destructive" />
-                  Do Something
+                  {isSubmitting ? 'Joining...' : 'Join Waitlist'}
                 </Button>
-              </div>
+              </form>
             </div>
           </ShineBorder>
         </div>
