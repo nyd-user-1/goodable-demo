@@ -48,7 +48,7 @@ const AppLayout = () => {
         <div className="min-h-screen flex w-full">
           <AppSidebar />
           <SidebarInset className="flex-1">
-            <ScrollProgress className="top-16" />
+            <ScrollProgress className="top-0" />
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
               <HeartSidebarTrigger />
               <div className="ml-auto flex items-center gap-2">
