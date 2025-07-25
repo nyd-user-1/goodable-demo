@@ -113,7 +113,7 @@ export const Dashboard = () => {
           {/* Header Section */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="space-y-1">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Intelligence View</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Intelligence</h1>
             </div>
           </div>
 

@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
-import { AllItemsTable } from "./AllItemsTable";
 import { DashboardBillsTable } from "./DashboardBillsTable";
 import { MembersTable } from "./MembersTable";
 import { CommitteesTable } from "./CommitteesTable";
@@ -80,27 +79,12 @@ export const DashboardTabsSection = ({ bills }: DashboardTabsSectionProps) => {
           <CardTitle className="text-base sm:text-lg">Table</CardTitle>
         </CardHeader>
         <CardContent className="px-4 sm:px-6">
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-6">
-              <TabsTrigger value="all">All</TabsTrigger>
+          <Tabs defaultValue="bill" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
               <TabsTrigger value="bill">Bills</TabsTrigger>
               <TabsTrigger value="members">Members</TabsTrigger>
               <TabsTrigger value="committees">Committees</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="all" className="mt-6">
-              <AllItemsTable 
-                bills={bills}
-                problems={[]}
-                solutions={[]}
-                media={[]}
-                onBillSelect={handleBillSelect}
-                onAIAnalysis={handleAIAnalysis}
-                onFavorite={handleFavorite}
-                favoriteBillIds={favoriteBillIds}
-                billsWithAIChat={billsWithAIChat}
-              />
-            </TabsContent>
 
             <TabsContent value="bill" className="mt-6">
               <DashboardBillsTable />
