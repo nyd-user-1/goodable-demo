@@ -784,10 +784,10 @@ const Landing2 = () => {
               }}
             >
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-                Ready to do something? Something good?
+                Good trouble? That's Goodable.
               </h2>
               <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
-                Join thousands collaboratively engaged in public policy development and problem solving.
+                Join thousands collaborating on a new vision for public policy.
               </p>
               <form onSubmit={handleWaitlistSignup} className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
                 <Input
