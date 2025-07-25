@@ -518,7 +518,7 @@ const Landing2 = () => {
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-              Featured Public Policy
+              Latest Public Policy
               <span className="bg-gradient-to-r from-[#3D63DD] to-[#5A7FDB] bg-clip-text text-transparent"> Proposals</span>
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
@@ -653,7 +653,7 @@ const Landing2 = () => {
               
               return displayPosts.map((post, index) => (
                 <Card 
-                  key={post.id}
+                  key={post.id} 
                   className="group cursor-pointer hover:shadow-lg transition-all duration-200"
                   onClick={() => navigate('/public-policy')}
                 >
@@ -707,7 +707,7 @@ const Landing2 = () => {
               onClick={() => navigate('/public-policy')}
               className="hover:bg-[#3D63DD] hover:text-white"
             >
-              View All
+              View All Policies
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
