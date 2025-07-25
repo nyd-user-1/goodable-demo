@@ -1,8 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Problem } from "@/data/problems";
-import { Target, TrendingUp } from "lucide-react";
-import { StarRating } from "@/components/StarRating";
+import { Users, FileText, ArrowUp, ArrowDown, MessageSquare } from "lucide-react";
+import { useState } from "react";
 
 interface ProblemCardProps {
   problem: Problem;
@@ -10,11 +11,30 @@ interface ProblemCardProps {
 }
 
 export const ProblemCard = ({ problem, onClick }: ProblemCardProps) => {
+  const [userVote, setUserVote] = useState<'up' | 'down' | null>(null);
+  const [votes] = useState({
+    up: Math.floor(Math.random() * 100) + 20,
+    down: Math.floor(Math.random() * 20) + 5
+  });
+  const [commentCount] = useState(Math.floor(Math.random() * 30) + 5);
+
   const priorityColors = {
     urgent: 'bg-destructive/10 text-destructive border-destructive/20',
     high: 'bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20',
     normal: 'bg-primary/10 text-primary border-primary/20',
     low: 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20'
+  };
+
+  const handleVote = (e: React.MouseEvent, voteType: 'up' | 'down') => {
+    e.stopPropagation();
+    setUserVote(userVote === voteType ? null : voteType);
+  };
+
+  const getVoteColor = (voteType: 'up' | 'down') => {
+    if (userVote === voteType) {
+      return voteType === 'up' ? 'text-green-600' : 'text-red-600';
+    }
+    return 'text-muted-foreground';
   };
 
   return (
@@ -45,23 +65,42 @@ export const ProblemCard = ({ problem, onClick }: ProblemCardProps) => {
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1">
-                <Target className="w-3 h-3" />
-                <span>{problem.subProblems} sub-problems</span>
+                <Users className="w-3 h-3" />
+                <span>{problem.subProblems} collaborators</span>
               </div>
               <div className="flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />
-                <span>{problem.solutions} solutions</span>
+                <FileText className="w-3 h-3" />
+                <span>{problem.solutions} proposals</span>
               </div>
             </div>
           </div>
 
-          {/* Rating */}
-          <div className="flex items-center justify-end">
-            <StarRating 
-              problemId={problem.id} 
-              showVoteCount={false}
-              showStars={true}
-            />
+          {/* Voting and Comments */}
+          <div className="flex items-center justify-between pt-2 border-t">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => handleVote(e, 'up')}
+                className={getVoteColor('up')}
+              >
+                <ArrowUp className="w-4 h-4 mr-1" />
+                {votes.up}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => handleVote(e, 'down')}
+                className={getVoteColor('down')}
+              >
+                <ArrowDown className="w-4 h-4 mr-1" />
+                {votes.down}
+              </Button>
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <MessageSquare className="w-4 h-4" />
+                {commentCount}
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>
