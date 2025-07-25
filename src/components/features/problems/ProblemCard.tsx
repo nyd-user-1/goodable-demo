@@ -1,8 +1,8 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Problem } from "@/data/problems";
-import { Users, FileText, ArrowUp, ArrowDown, MessageSquare } from "lucide-react";
+import { ArrowUp, MessageSquare } from "lucide-react";
 import { useState } from "react";
 
 interface ProblemCardProps {
@@ -11,97 +11,61 @@ interface ProblemCardProps {
 }
 
 export const ProblemCard = ({ problem, onClick }: ProblemCardProps) => {
-  const [userVote, setUserVote] = useState<'up' | 'down' | null>(null);
   const [votes] = useState({
-    up: Math.floor(Math.random() * 100) + 20,
-    down: Math.floor(Math.random() * 20) + 5
+    up: Math.floor(Math.random() * 200) + 50
   });
-  const [commentCount] = useState(Math.floor(Math.random() * 30) + 5);
+  const [commentCount] = useState(Math.floor(Math.random() * 50) + 10);
 
-  const priorityColors = {
-    urgent: 'bg-destructive/10 text-destructive border-destructive/20',
-    high: 'bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20',
-    normal: 'bg-primary/10 text-primary border-primary/20',
-    low: 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20'
-  };
-
-  const handleVote = (e: React.MouseEvent, voteType: 'up' | 'down') => {
-    e.stopPropagation();
-    setUserVote(userVote === voteType ? null : voteType);
-  };
-
-  const getVoteColor = (voteType: 'up' | 'down') => {
-    if (userVote === voteType) {
-      return voteType === 'up' ? 'text-green-600' : 'text-red-600';
-    }
-    return 'text-muted-foreground';
+  // Mock author data
+  const author = {
+    name: "Community Member",
+    avatar: `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 100000000)}?w=32&h=32&fit=crop&crop=face`
   };
 
   return (
     <Card 
-      className="cursor-pointer hover:bg-muted/50 transition-colors hover:shadow-md h-full"
+      className="group cursor-pointer hover:shadow-lg transition-all duration-200"
       onClick={onClick}
     >
-      <CardContent className="p-6 h-full flex flex-col">
-        {/* Header with title and priority */}
-        <div className="flex items-start justify-between gap-3 mb-4">
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-lg leading-tight mb-2">
-              {problem.title}
-            </h3>
-            <Badge className={priorityColors[problem.priority]}>
-              {problem.priority.charAt(0).toUpperCase() + problem.priority.slice(1)} Priority
-            </Badge>
-          </div>
+      <div className="p-6">
+        <div className="flex items-center gap-2 mb-3">
+          <Badge variant="secondary" className="text-xs">
+            {problem.category}
+          </Badge>
+          <Badge variant="outline" className="text-xs">
+            {problem.priority} Priority
+          </Badge>
         </div>
-
-        {/* Description - flex-grow to push other content down */}
-        <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed flex-grow mb-4">
+        
+        <h3 className="text-lg font-semibold mb-2 group-hover:text-[#3D63DD] transition-colors">
+          {problem.title}
+        </h3>
+        
+        <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
           {problem.description}
         </p>
-
-        {/* Stats */}
-        <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              <Users className="w-3 h-3" />
-              <span>{problem.subProblems} collaborators</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <FileText className="w-3 h-3" />
-              <span>{problem.solutions} proposals</span>
-            </div>
+        
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Avatar className="w-4 h-4">
+              <AvatarImage src={author.avatar} />
+              <AvatarFallback>{author.name[0]}</AvatarFallback>
+            </Avatar>
+            <span>{author.name}</span>
           </div>
-        </div>
-
-        {/* Voting and Comments - always at bottom */}
-        <div className="flex items-center justify-between pt-4 border-t">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => handleVote(e, 'up')}
-              className={getVoteColor('up')}
-            >
-              <ArrowUp className="w-4 h-4 mr-1" />
+          
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <ArrowUp className="w-3 h-3" />
               {votes.up}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => handleVote(e, 'down')}
-              className={getVoteColor('down')}
-            >
-              <ArrowDown className="w-4 h-4 mr-1" />
-              {votes.down}
-            </Button>
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <MessageSquare className="w-4 h-4" />
+            </div>
+            <div className="flex items-center gap-1">
+              <MessageSquare className="w-3 h-3" />
               {commentCount}
             </div>
           </div>
         </div>
-      </CardContent>
+      </div>
     </Card>
   );
 };
