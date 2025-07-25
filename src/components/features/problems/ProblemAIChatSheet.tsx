@@ -166,15 +166,14 @@ export const ProblemAIChatSheet = ({
               <h4 className="text-sm font-medium">Policy Analysis Sections:</h4>
               <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                 {suggestedPrompts.map((prompt, index) => (
-                  <Button
+                  <button
                     key={index}
-                    variant="outline"
-                    className={`h-auto py-3 px-4 text-left whitespace-normal min-w-[200px] max-w-[250px] flex-shrink-0 leading-tight text-sm border ${prompt.colorClass}`}
-                    onClick={() => handlePromptClick(prompt.label, prompt.content)}
+                    className={`h-auto py-3 px-4 text-left whitespace-normal min-w-[200px] max-w-[250px] flex-shrink-0 leading-tight text-sm rounded-md transition-colors ${prompt.colorClass} ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    onClick={() => !isLoading && handlePromptClick(prompt.label, prompt.content)}
                     disabled={isLoading}
                   >
                     {prompt.displayLabel}
-                  </Button>
+                  </button>
                 ))}
               </div>
             </div>
