@@ -61,12 +61,12 @@ export const ProblemSummary = ({
           </div>
           
           <div>
-            <h4 className="font-medium text-sm text-muted-foreground mb-2">Sub-problems</h4>
+            <h4 className="font-medium text-sm text-muted-foreground mb-2">Proposals</h4>
             <p className="text-sm">{problem.subProblems}</p>
           </div>
           
           <div>
-            <h4 className="font-medium text-sm text-muted-foreground mb-2">Solutions</h4>
+            <h4 className="font-medium text-sm text-muted-foreground mb-2">Collaborators</h4>
             <p className="text-sm">{problem.solutions}</p>
           </div>
           

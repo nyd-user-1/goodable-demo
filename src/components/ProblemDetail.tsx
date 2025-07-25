@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft } from "lucide-react";
 import { Problem } from "@/data/problems";
 import { ProblemSummary } from "./features/problems/ProblemSummary";
-import { ProblemKeyInformation } from "./features/problems/ProblemKeyInformation";
+import { ProblemOverview } from "./features/problems/ProblemOverview";
 import { ProblemStatisticsEnhanced } from "./features/problems/ProblemStatisticsEnhanced";
 import { ProblemSolutionsWhiteboard } from "./features/problems/ProblemSolutionsWhiteboard";
 import { ProblemProposals } from "./features/problems/ProblemProposals";
@@ -68,9 +68,8 @@ export const ProblemDetail = ({ problem, onBack }: ProblemDetailProps) => {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="overview" className="mt-6 space-y-6">
-                {/* Problem Key Information Section */}
-                <ProblemKeyInformation problem={problem} />
+              <TabsContent value="overview" className="mt-6">
+                <ProblemOverview problem={problem} />
               </TabsContent>
 
               <TabsContent value="solutions" className="mt-6">
