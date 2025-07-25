@@ -71,11 +71,45 @@ const PublicPolicy = () => {
 
   const loadProposals = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      // First try the view, if it doesn't exist, fall back to the table
+      let { data, error } = await (supabase as any)
         .from('blog_proposal_stats')
         .select('*')
         .eq('status', 'published')
         .order('published_at', { ascending: false });
+
+      // If the view doesn't exist, use the main table
+      if (error && error.code === '42P01') {
+        console.log('View not found, using blog_proposals table directly');
+        const result = await (supabase as any)
+          .from('blog_proposals')
+          .select(`
+            *,
+            profiles!blog_proposals_author_id_fkey (
+              display_name,
+              username,
+              avatar_url
+            )
+          `)
+          .eq('status', 'published')
+          .order('published_at', { ascending: false });
+        
+        data = result.data;
+        error = result.error;
+        
+        // Transform the data to match expected format
+        if (data) {
+          data = data.map((post: any) => ({
+            ...post,
+            author_name: post.profiles?.display_name || post.profiles?.username || 'Unknown Author',
+            author_avatar: post.profiles?.avatar_url,
+            up_votes: 0,
+            down_votes: 0,
+            comment_count: 0,
+            total_score: 0
+          }));
+        }
+      }
 
       if (error) throw error;
 
@@ -116,11 +150,41 @@ const PublicPolicy = () => {
   const loadComments = async (proposalId: string) => {
     setLoadingComments(true);
     try {
-      const { data, error } = await (supabase as any)
+      // First try the view, if it doesn't exist, fall back to the table
+      let { data, error } = await (supabase as any)
         .from('blog_comments_with_authors')
         .select('*')
         .eq('proposal_id', proposalId)
         .order('created_at', { ascending: true });
+
+      // If the view doesn't exist, use the main table with join
+      if (error && error.code === '42P01') {
+        console.log('View not found, using blog_comments table directly');
+        const result = await (supabase as any)
+          .from('blog_comments')
+          .select(`
+            *,
+            profiles!blog_comments_author_id_fkey (
+              display_name,
+              username,
+              avatar_url
+            )
+          `)
+          .eq('proposal_id', proposalId)
+          .order('created_at', { ascending: true });
+        
+        data = result.data;
+        error = result.error;
+        
+        // Transform the data to match expected format
+        if (data) {
+          data = data.map((comment: any) => ({
+            ...comment,
+            author_name: comment.profiles?.display_name || comment.profiles?.username || 'Unknown',
+            author_avatar: comment.profiles?.avatar_url
+          }));
+        }
+      }
 
       if (error) throw error;
 
