@@ -58,39 +58,28 @@ export const CommitteesTable = ({ limit = 100 }: CommitteesTableProps) => {
           .select("*")
           .limit(limit);
 
-        if (committeesError) {
-          console.error("Supabase error:", committeesError);
-          throw committeesError;
-        }
+        if (committeesError) throw committeesError;
 
-        console.log("Raw committees data:", committeesData);
-
-        // Transform data - handle various column name possibilities
+        // Transform data based on actual column names from your database
         const transformedCommittees = (committeesData || []).map((committee) => {
-          // Log first committee to see structure
-          if (committeesData.indexOf(committee) === 0) {
-            console.log("Sample committee structure:", committee);
-          }
-          
           return {
             committee_id: committee.committee_id,
-            name: committee.committee_name || committee.name || "Unknown Committee",
+            name: committee.committee_name || "Unknown Committee",
             chamber: committee.chamber || "Unknown",
-            chair_name: committee.chair_name || committee.chair || null,
+            chair_name: committee.chair_name || null,
             chair_email: committee.chair_email || null,
-            committee_type: committee.committee_type || committee.type || null,
+            committee_type: committee.committee_type || null,
             description: committee.description || null,
             meeting_schedule: committee.meeting_schedule || null,
             next_meeting: committee.next_meeting || null,
             address: committee.address || null,
-            memberCount: committee.member_count || committee.memberCount || "0",
-            billCount: committee.bill_count || committee.billCount || committee.active_bills_count || "0"
+            memberCount: committee.member_count?.toString() || "0",
+            billCount: committee.active_bills_count?.toString() || "0"
           };
         });
 
         setCommittees(transformedCommittees);
       } catch (err: any) {
-        console.error("Error loading committees:", err);
         setError(err.message || "Failed to load committees. Please try again.");
         toast({
           title: "Error",
