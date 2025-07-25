@@ -6,11 +6,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ProblemChatSheet } from '@/components/ProblemChatSheet';
 import { AutocompleteCombobox } from '@/components/AutocompleteCombobox';
 import { ShineBorder } from '@/components/magicui/shine-border';
+import { Confetti, type ConfettiRef } from '@/components/magicui/confetti';
 
 const Home = () => {
   const [userProblem, setUserProblem] = useState('');
   const [showAIChatSheet, setShowAIChatSheet] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const confettiRef = useRef<ConfettiRef>(null);
+  const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
   const { count, loading } = useVisitorCount();
   const { user } = useAuth();
   
@@ -158,7 +161,19 @@ const Home = () => {
               borderWidth={2}
               duration={10}
             >
-              <div className="p-12 text-center">
+              <div 
+                className="p-12 text-center"
+                onMouseEnter={() => {
+                  if (!hasTriggeredConfetti) {
+                    confettiRef.current?.fire({
+                      particleCount: 100,
+                      spread: 70,
+                      origin: { y: 0.6 }
+                    });
+                    setHasTriggeredConfetti(true);
+                  }
+                }}
+              >
                 <h2 className="text-3xl md:text-4xl font-bold mb-4">
                   Ready to do something good?
                 </h2>
@@ -181,6 +196,12 @@ const Home = () => {
           </div>
         </section>
       </main>
+
+      {/* Confetti Canvas */}
+      <Confetti
+        ref={confettiRef}
+        className="fixed inset-0 pointer-events-none"
+      />
 
       {/* Problem Chat Sheet */}
       <ProblemChatSheet

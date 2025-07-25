@@ -26,6 +26,7 @@ import { ShineBorder } from '@/components/magicui/shine-border';
 import { ScrollProgress } from '@/components/magicui/scroll-progress';
 import { Marquee } from '@/components/magicui/marquee';
 import HeroVideoDialog from '@/components/magicui/hero-video-dialog';
+import { Confetti, type ConfettiRef } from '@/components/magicui/confetti';
 import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 import { problems } from '@/data/problems';
@@ -52,9 +53,11 @@ interface Member {
 const Landing2 = () => {
   const navigate = useNavigate();
   const featuresRef = useRef<HTMLDivElement>(null);
+  const confettiRef = useRef<ConfettiRef>(null);
   const [userProblem, setUserProblem] = useState('');
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
 
   const handleDoSomethingClick = () => {
     // Scroll to search or do something
@@ -607,7 +610,7 @@ const Landing2 = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-12 sm:py-20 bg-background">
+      <section className="py-12 sm:py-20 bg-background relative">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <ShineBorder 
             className="rounded-xl sm:rounded-2xl"
@@ -616,7 +619,19 @@ const Landing2 = () => {
             borderWidth={2}
             duration={10}
           >
-            <div className="p-8 sm:p-12 text-center">
+            <div 
+              className="p-8 sm:p-12 text-center"
+              onMouseEnter={() => {
+                if (!hasTriggeredConfetti) {
+                  confettiRef.current?.fire({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                  });
+                  setHasTriggeredConfetti(true);
+                }
+              }}
+            >
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
                 Ready to do something good?
               </h2>
@@ -638,6 +653,12 @@ const Landing2 = () => {
           </ShineBorder>
         </div>
       </section>
+      
+      {/* Confetti Canvas */}
+      <Confetti
+        ref={confettiRef}
+        className="fixed inset-0 pointer-events-none"
+      />
 
       {/* Footer */}
       <footer className="border-t border-border/50 bg-background">

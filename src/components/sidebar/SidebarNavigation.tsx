@@ -11,8 +11,8 @@ import { useNavigation } from "@/hooks/useNavigation";
 const researchNavItems = [
   { title: "Intelligence", url: "/dashboard", icon: TrendingUp },
   { title: "Feed", url: "/feed", icon: Rss },
-  { title: "Bills", url: "/bills", icon: FileText, requiresAuth: true },
   { title: "Members", url: "/members", icon: Users },
+  { title: "Bills", url: "/bills", icon: FileText, requiresAuth: true },
   { title: "Committees", url: "/committees", icon: Building2, requiresAuth: true },
 ];
 

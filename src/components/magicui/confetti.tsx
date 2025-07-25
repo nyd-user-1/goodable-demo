@@ -25,8 +25,12 @@ export interface ConfettiProps {
   disableForReducedMotion?: boolean;
 }
 
+export interface ConfettiRef {
+  fire: (options?: Partial<ConfettiProps>) => void;
+}
+
 export const Confetti = React.forwardRef<
-  HTMLCanvasElement,
+  ConfettiRef,
   ConfettiProps & React.HTMLAttributes<HTMLCanvasElement>
 >(
   (
@@ -53,7 +57,7 @@ export const Confetti = React.forwardRef<
   ) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    const fire = useCallback(() => {
+    const fire = useCallback((options: Partial<ConfettiProps> = {}) => {
       if (disableForReducedMotion && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         return;
       }
@@ -81,6 +85,7 @@ export const Confetti = React.forwardRef<
         shapes,
         scalar,
         zIndex,
+        ...options,
       });
     }, [
       particleCount,
@@ -100,16 +105,9 @@ export const Confetti = React.forwardRef<
       disableForReducedMotion,
     ]);
 
-    useEffect(() => {
-      const canvas = canvasRef.current;
-      if (ref) {
-        if (typeof ref === "function") {
-          ref(canvas);
-        } else {
-          ref.current = canvas;
-        }
-      }
-    }, [ref]);
+    React.useImperativeHandle(ref, () => ({
+      fire,
+    }), [fire]);
 
     return (
       <canvas

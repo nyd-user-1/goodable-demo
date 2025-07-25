@@ -30,8 +30,8 @@ export const useBillsData = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [hasNextPage, setHasNextPage] = useState(true);
   
-  // Debounce search to avoid excessive API calls
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  // Debounce search to avoid excessive API calls - reduced delay for faster response
+  const debouncedSearchTerm = useDebounce(searchTerm, 150);
   
   const BILLS_PER_PAGE = 50;
 
@@ -50,9 +50,11 @@ export const useBillsData = () => {
         .from("Bills")
         .select("*");
 
-      // Apply search filter - only search if term is at least 2 characters
-      if (debouncedSearchTerm && debouncedSearchTerm.length >= 2) {
-        const searchFilter = `title.ilike.%${debouncedSearchTerm}%,bill_number.ilike.%${debouncedSearchTerm}%,description.ilike.%${debouncedSearchTerm}%`;
+      // Apply search filter - search immediately for any non-empty term
+      if (debouncedSearchTerm && debouncedSearchTerm.trim().length > 0) {
+        const trimmedTerm = debouncedSearchTerm.trim();
+        // Enhanced search including summary and status fields for better coverage
+        const searchFilter = `title.ilike.%${trimmedTerm}%,bill_number.ilike.%${trimmedTerm}%,description.ilike.%${trimmedTerm}%,summary.ilike.%${trimmedTerm}%,status.ilike.%${trimmedTerm}%`;
         query = query.or(searchFilter);
         countQuery = countQuery.or(searchFilter);
       }
