@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CardActionButtons } from "@/components/ui/CardActionButtons";
-import { ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCommitteeFavorites } from "@/hooks/useCommitteeFavorites";
 import { useToast } from "@/hooks/use-toast";
@@ -34,7 +34,7 @@ interface CommitteesTableProps {
   limit?: number;
 }
 
-export const CommitteesTable = ({ limit = 100 }: CommitteesTableProps) => {
+export const CommitteesTable = ({ limit = 10 }: CommitteesTableProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [committees, setCommittees] = useState<Committee[]>([]);
@@ -45,6 +45,8 @@ export const CommitteesTable = ({ limit = 100 }: CommitteesTableProps) => {
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [committeesWithAIChat, setCommitteesWithAIChat] = useState<Set<number>>(new Set());
   const { favoriteCommitteeIds, toggleFavorite } = useCommitteeFavorites();
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = limit;
 
   // Fetch all committees
   useEffect(() => {
@@ -56,7 +58,7 @@ export const CommitteesTable = ({ limit = 100 }: CommitteesTableProps) => {
         const { data: committeesData, error: committeesError } = await supabase
           .from("Committees")
           .select("*")
-          .limit(limit);
+          .order("committee_name", { ascending: true });
 
         if (committeesError) throw committeesError;
 
@@ -193,6 +195,20 @@ export const CommitteesTable = ({ limit = 100 }: CommitteesTableProps) => {
     return filtered;
   }, [committees, searchQuery, sortField, sortDirection]);
 
+  // Paginate the filtered results
+  const paginatedCommittees = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return filteredAndSortedCommittees.slice(startIndex, endIndex);
+  }, [filteredAndSortedCommittees, currentPage, ITEMS_PER_PAGE]);
+
+  const totalPages = Math.ceil(filteredAndSortedCommittees.length / ITEMS_PER_PAGE);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortField, sortDirection]);
+
   return (
     <TooltipProvider>
       <div className="space-y-4">
@@ -217,7 +233,7 @@ export const CommitteesTable = ({ limit = 100 }: CommitteesTableProps) => {
             <div className="flex items-center justify-center py-8">
               <div className="text-destructive">{error}</div>
             </div>
-          ) : filteredAndSortedCommittees.length === 0 ? (
+          ) : paginatedCommittees.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-muted-foreground">
                 {searchQuery ? "No committees found matching your search" : "No committees found"}
@@ -290,7 +306,7 @@ export const CommitteesTable = ({ limit = 100 }: CommitteesTableProps) => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {filteredAndSortedCommittees.map((committee) => (
+                        {paginatedCommittees.map((committee) => (
                           <TableRow 
                             key={committee.committee_id} 
                             className="cursor-pointer hover:bg-muted/50 transition-colors"
@@ -346,6 +362,38 @@ export const CommitteesTable = ({ limit = 100 }: CommitteesTableProps) => {
             </div>
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between pt-4">
+            <p className="text-sm text-muted-foreground">
+              Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedCommittees.length)} of {filteredAndSortedCommittees.length} committees
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </Button>
+              <span className="text-sm">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </TooltipProvider>
   );
