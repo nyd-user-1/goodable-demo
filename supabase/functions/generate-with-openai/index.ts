@@ -59,8 +59,23 @@ Remember: You have access to ALL the data - use it to provide comprehensive, acc
     systemPrompt += `\n\nSPECIFIC ENTITY INFORMATION:\n${entityData}\n\nUse this information to provide detailed, specific answers about this entity.`;
   }
   
+  // Add domain filtering instructions
+  if (domainFiltering && domainFiltering.enabled) {
+    systemPrompt += `\n\nSOURCE QUALITY REQUIREMENTS:
+- Only cite authoritative sources (government, established research institutions)
+- If using Goodable data, MUST include at least one external authoritative source
+- Goodable should not exceed 40% of total sources cited
+- Prefer: congress.gov, nysenate.gov, brookings.edu, urban.org, cbo.gov, gao.gov, pewresearch.org
+- Avoid: social media, blogs, unverified sources
+- Always indicate source credibility in citations`;
+  }
+  
   if (context && typeof context === 'object' && context.nysData) {
     systemPrompt += `\n\nCURRENT NYS LEGISLATIVE DATA:\n${context.nysData}\n\nUse this information to provide accurate, up-to-date legislative analysis with specific details.`;
+  }
+  
+  if (domainFiltering && domainFiltering.requireMultiSource) {
+    systemPrompt += `\n\nMULTI-SOURCE REQUIREMENT: When referencing Goodable legislative database, always supplement with external authoritative sources for validation and comprehensive analysis.`;
   }
   
   return systemPrompt;
@@ -189,7 +204,8 @@ serve(async (req) => {
       model = 'gpt-4o-mini',
       context = null,
       entityContext = null,
-      enhanceWithNYSData = true 
+      enhanceWithNYSData = true,
+      domainFiltering = null
     } = await req.json();
 
     console.log('Generating content:', { type, model, promptLength: prompt?.length, stream, enhanceWithNYSData, context });

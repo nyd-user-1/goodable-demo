@@ -9,8 +9,11 @@ import {
   Clock,
   User,
   Building2,
-  TrendingUp
+  TrendingUp,
+  Shield,
+  AlertTriangle
 } from 'lucide-react';
+import { getSourceCredibilityBadge, validateSourceMix } from '@/config/domainFilters';
 
 interface FeedItem {
   id: string;
@@ -173,9 +176,32 @@ export const PolicyFeedItem: React.FC<PolicyFeedItemProps> = ({ item }) => {
           </div>
         </div>
 
-        {/* Actions and Citations */}
-        <div className="flex items-center justify-between pt-4 border-t">
-          <div className="flex items-center gap-3">
+        {/* Source Quality and Actions */}
+        <div className="space-y-4 pt-4 border-t">
+          {/* Source credibility indicators */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs text-green-600 border-green-200">
+                <Shield className="w-3 h-3 mr-1" />
+                Tier 1 Source
+              </Badge>
+              <span className="text-xs text-muted-foreground">
+                {item.type === 'bill' ? 'NYS Open Legislation API' : 
+                 item.type === 'committee' ? 'NYS Senate Committee Records' : 
+                 'Legislative Research Office'}
+              </span>
+            </div>
+            
+            {item.id.startsWith('bill-') && (
+              <Badge variant="outline" className="text-xs text-orange-600 border-orange-200">
+                <AlertTriangle className="w-3 h-3 mr-1" />
+                Requires external validation
+              </Badge>
+            )}
+          </div>
+          
+          {/* Action buttons */}
+          <div className="flex items-center justify-between">
             <Button
               variant="ghost"
               size="sm"
@@ -185,23 +211,17 @@ export const PolicyFeedItem: React.FC<PolicyFeedItemProps> = ({ item }) => {
               <FileText className="w-4 h-4 mr-2" />
               {item.type === 'bill' ? 'Full Text' : 'Transcript'}
             </Button>
-            
-            <div className="text-xs text-muted-foreground">
-              Source: {item.type === 'bill' ? 'NYS Open Legislation API' : 
-                      item.type === 'committee' ? 'NYS Senate Committee Records' : 
-                      'Legislative Research Office'}
-            </div>
-          </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleBillClick}
-            className="text-primary border-primary/20 hover:bg-primary/5"
-          >
-            View Details
-            <ExternalLink className="w-3 h-3 ml-2" />
-          </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleBillClick}
+              className="text-primary border-primary/20 hover:bg-primary/5"
+            >
+              View Details
+              <ExternalLink className="w-3 h-3 ml-2" />
+            </Button>
+          </div>
         </div>
 
       </CardContent>

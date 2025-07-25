@@ -103,7 +103,12 @@ export const useMessageHandler = (entity: any, entityType: EntityType) => {
           prompt: contextualPrompt,
           type: contextType,
           entityContext: { type: entityType, [entityType]: entity },
-          enhanceWithNYSData: true
+          enhanceWithNYSData: true,
+          domainFiltering: {
+            enabled: true,
+            requireMultiSource: true,
+            allowedCategories: ['Legislative', 'Research', 'Government']
+          }
         }
       });
 

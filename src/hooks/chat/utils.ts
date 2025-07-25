@@ -1,3 +1,5 @@
+import { validateSourceMix, getSourceInfo, isDomainExcluded, extractDomain } from '@/config/domainFilters';
+
 // Generate sequential problem number
 export const generateProblemNumber = (count: number): string => {
   return `P${String(count + 1).padStart(5, '0')}`;
@@ -91,4 +93,116 @@ export const parseProblemChatState = (currentState: string, problemStatement: st
       }
     ];
   }
+};
+
+// Extract and validate citations from AI response
+export const extractCitationsFromResponse = (content: string): {
+  citations: Array<{id: string, type: string, title: string, url?: string, credibility?: any}>;
+  validation: any;
+  warnings: string[];
+} => {
+  const citations: Array<{id: string, type: string, title: string, url?: string, credibility?: any}> = [];
+  const warnings: string[] = [];
+  
+  // Extract URLs from content
+  const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
+  const urls = content.match(urlRegex) || [];
+  
+  // Extract mentions of known sources
+  const sourceRegex = /(goodable\.dev|congress\.gov|nysenate\.gov|brookings\.edu|urban\.org|cbo\.gov|gao\.gov|kff\.org|pewresearch\.org)/gi;
+  const mentionedSources = content.match(sourceRegex) || [];
+  
+  // Combine URLs and mentions
+  const allSources = [...new Set([...urls, ...mentionedSources])];
+  
+  allSources.forEach((source, index) => {
+    try {
+      const domain = source.includes('http') ? new URL(source).hostname.replace('www.', '') : source;
+      const sourceInfo = getSourceInfo(domain);
+      
+      if (isDomainExcluded(domain)) {
+        warnings.push(`Excluded source detected: ${domain}`);
+        return;
+      }
+      
+      citations.push({
+        id: `citation-${index}`,
+        type: sourceInfo?.category || 'Unknown',
+        title: sourceInfo?.label || domain,
+        url: source.includes('http') ? source : undefined,
+        credibility: sourceInfo ? {
+          tier: sourceInfo.tier,
+          category: sourceInfo.category,
+          icon: sourceInfo.icon
+        } : undefined
+      });
+    } catch (error) {
+      console.warn('Failed to parse source:', source);
+    }
+  });
+  
+  // Validate source mix
+  const sourceDomains = citations.map(c => c.url || c.title).filter(Boolean);
+  const validation = validateSourceMix(sourceDomains);
+  
+  // Add validation warnings
+  warnings.push(...validation.warnings);
+  
+  return {
+    citations,
+    validation,
+    warnings
+  };
+};
+
+// Check if response meets quality standards
+export const validateResponseQuality = (content: string): {
+  isValid: boolean;
+  score: number;
+  issues: string[];
+  suggestions: string[];
+} => {
+  const issues: string[] = [];
+  const suggestions: string[] = [];
+  let score = 100;
+  
+  const { citations, validation, warnings } = extractCitationsFromResponse(content);
+  
+  // Check source requirements
+  if (!validation.valid) {
+    issues.push('Source validation failed');
+    score -= 30;
+  }
+  
+  if (validation.goodablePercentage > 40) {
+    issues.push('Too much reliance on Goodable data');
+    suggestions.push('Add more external authoritative sources');
+    score -= 20;
+  }
+  
+  if (validation.diversityScore < 2 && citations.length > 1) {
+    issues.push('Limited source diversity');
+    suggestions.push('Include sources from different categories');
+    score -= 15;
+  }
+  
+  // Check content quality indicators
+  if (content.length < 200) {
+    issues.push('Response too brief');
+    score -= 10;
+  }
+  
+  if (warnings.length > 0) {
+    issues.push(`${warnings.length} source warning(s)`);
+    score -= warnings.length * 5;
+  }
+  
+  const isValid = score >= 70 && validation.valid;
+  
+  return {
+    isValid,
+    score: Math.max(0, score),
+    issues,
+    suggestions
+  };
 };

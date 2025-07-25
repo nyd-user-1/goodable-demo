@@ -4,9 +4,17 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowUp, Upload, Brain, ChevronDown } from 'lucide-react';
+import { ArrowUp, Upload, Brain, ChevronDown, Shield, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { DocumentUploadModal } from './DocumentUploadModal';
+import { 
+  getDomainFilter, 
+  getSourceCredibilityBadge, 
+  validateSourceMix, 
+  filterUrlsByDomain,
+  LEGISLATIVE_SOURCES,
+  POLICY_RESEARCH_SOURCES
+} from '@/config/domainFilters';
 
 interface SearchSuggestion {
   id: string;
@@ -24,6 +32,10 @@ interface SourceOption {
   label: string;
   enabled: boolean;
   count?: number;
+  allowedDomains?: string[];
+  credibilityTier?: number;
+  category?: string;
+  requiresMultiSource?: boolean;
 }
 
 interface AdvancedSearchComboboxProps {
@@ -49,10 +61,40 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [sources, setSources] = useState<SourceOption[]>([
-    { id: 'nys-bills', label: 'NYS Bills & Resolutions', enabled: true, count: 4 },
-    { id: 'federal-legislation', label: 'Federal Legislation', enabled: true },
-    { id: 'committee-reports', label: 'Committee Reports & Transcripts', enabled: true },
-    { id: 'legislative-news', label: 'Legislative News & Updates', enabled: true }
+    { 
+      id: 'nys-bills', 
+      label: 'NYS Bills & Resolutions', 
+      enabled: true, 
+      count: 4,
+      allowedDomains: ['goodable.dev', 'nysenate.gov', 'assembly.state.ny.us'],
+      credibilityTier: 1,
+      category: 'Legislative',
+      requiresMultiSource: true
+    },
+    { 
+      id: 'federal-legislation', 
+      label: 'Federal Legislation', 
+      enabled: true,
+      allowedDomains: ['congress.gov', 'senate.gov', 'house.gov', 'govtrack.us'],
+      credibilityTier: 1,
+      category: 'Legislative'
+    },
+    { 
+      id: 'policy-research', 
+      label: 'Policy Research & Analysis', 
+      enabled: true,
+      allowedDomains: POLICY_RESEARCH_SOURCES.map(s => s.domain),
+      credibilityTier: 1,
+      category: 'Research'
+    },
+    { 
+      id: 'committee-reports', 
+      label: 'Committee Reports & Transcripts', 
+      enabled: true,
+      allowedDomains: getDomainFilter(),
+      credibilityTier: 1,
+      category: 'Legislative'
+    }
   ]);
   
   const inputRef = useRef<HTMLInputElement>(null);
@@ -388,6 +430,7 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
                     <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
                       {enabledSourcesCount}
                     </Badge>
+                    <Shield className="w-3 h-3 text-green-600 ml-1" title="Credible sources only" />
                     <Button
                       type="button"
                       variant="ghost"
@@ -409,30 +452,59 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
 
         {/* Sources dropdown - positioned relative to Sources tab */}
         {sourcesOpen && activeTab === 'sources' && (
-          <div className="absolute left-64 top-full mt-2 w-80 bg-card border border-border rounded-lg shadow-xl z-[9998] p-4">
+          <div className="absolute left-64 top-full mt-2 w-96 bg-card border border-border rounded-lg shadow-xl z-[9998] p-4">
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-foreground">Select Sources</h4>
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-foreground">Select Sources</h4>
+                <Badge variant="outline" className="text-xs text-green-600 border-green-200">
+                  <Shield className="w-3 h-3 mr-1" />
+                  Tier 1 Only
+                </Badge>
+              </div>
               {sources.map((source) => (
-                <div key={source.id} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      id={source.id}
-                      checked={source.enabled}
-                      onChange={() => handleSourceToggle(source.id)}
-                      className="h-4 w-4 rounded border-border"
-                    />
-                    <label htmlFor={source.id} className="text-sm text-foreground cursor-pointer">
-                      {source.label}
-                    </label>
+                <div key={source.id} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        id={source.id}
+                        checked={source.enabled}
+                        onChange={() => handleSourceToggle(source.id)}
+                        className="h-4 w-4 rounded border-border"
+                      />
+                      <div className="flex flex-col">
+                        <label htmlFor={source.id} className="text-sm text-foreground cursor-pointer font-medium">
+                          {source.label}
+                        </label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="secondary" className="text-xs">
+                            {source.category}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs text-green-600 border-green-200">
+                            Tier {source.credibilityTier}
+                          </Badge>
+                          {source.requiresMultiSource && (
+                            <Badge variant="outline" className="text-xs text-orange-600 border-orange-200">
+                              <AlertTriangle className="w-2 h-2 mr-1" />
+                              Multi-source required
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    {source.count && (
+                      <Badge variant="outline" className="text-xs">
+                        {source.count}
+                      </Badge>
+                    )}
                   </div>
-                  {source.count && (
-                    <Badge variant="outline" className="text-xs">
-                      {source.count}
-                    </Badge>
-                  )}
                 </div>
               ))}
+              <div className="pt-2 mt-3 border-t border-border">
+                <p className="text-xs text-muted-foreground">
+                  All sources are pre-filtered for credibility. Goodable data requires external validation.
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -442,9 +514,15 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
           <div className="absolute left-0 right-0 top-full bg-card border border-primary/50 border-t-0 rounded-b-2xl shadow-xl z-[9999] max-h-[360px] overflow-y-auto">
             {/* Header */}
             <div className="px-6 py-3 border-b border-border">
-              <h4 className="text-sm font-medium text-muted-foreground">
-                {value.trim() ? 'Search Results' : activeTab === 'bills' ? 'Recent Bills' : 'Legislative Intelligence'}
-              </h4>
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-muted-foreground">
+                  {value.trim() ? 'Search Results' : activeTab === 'bills' ? 'Recent Bills' : 'Legislative Intelligence'}
+                </h4>
+                <Badge variant="outline" className="text-xs text-green-600 border-green-200">
+                  <Shield className="w-3 h-3 mr-1" />
+                  Verified Sources
+                </Badge>
+              </div>
             </div>
             
             {loading ? (
