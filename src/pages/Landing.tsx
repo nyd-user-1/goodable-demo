@@ -14,6 +14,7 @@ import { ProblemChatSheet } from '@/components/ProblemChatSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ShineBorder } from '@/components/magicui/shine-border';
+import { ScrollProgress } from '@/components/magicui/scroll-progress';
 
 const Landing = () => {
   const [userProblem, setUserProblem] = useState('');
@@ -184,6 +185,7 @@ const Landing = () => {
   ];
 
   return <div className="min-h-screen text-foreground overflow-hidden bg-background">
+      <ScrollProgress className="top-0" />
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.1),transparent_50%)]" />

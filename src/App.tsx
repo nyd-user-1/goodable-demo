@@ -12,6 +12,7 @@ import { ModelSelector } from "@/components/ModelSelector";
 import { HeartSidebarTrigger } from "@/components/HeartSidebarTrigger";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import StreamButton from "@/components/StreamButton";
+import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import Landing from "./pages/Landing";
 import Landing2 from "./pages/Landing-2";
 import Home from "./pages/Home";
@@ -47,6 +48,7 @@ const AppLayout = () => {
         <div className="min-h-screen flex w-full">
           <AppSidebar />
           <SidebarInset className="flex-1">
+            <ScrollProgress className="top-16" />
             <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
               <HeartSidebarTrigger />
               <div className="ml-auto flex items-center gap-2">
