@@ -75,7 +75,7 @@ import {
 } from 'lucide-react';
 
 const Admin = () => {
-  const [selectedTab, setSelectedTab] = useState('overview');
+  const [selectedTab, setSelectedTab] = useState('dashboard');
 
   // Mock data for demonstration
   const systemStats = {
@@ -143,47 +143,27 @@ const Admin = () => {
         </div>
 
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Users
-            </TabsTrigger>
-            <TabsTrigger value="content" className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Content
+              Dashboard
             </TabsTrigger>
             <TabsTrigger value="blog" className="flex items-center gap-2">
               <MessageSquare className="w-4 h-4" />
               Blog CMS
             </TabsTrigger>
-            <TabsTrigger value="moderation" className="flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              Moderation
+            <TabsTrigger value="management" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Management
             </TabsTrigger>
             <TabsTrigger value="system" className="flex items-center gap-2">
-              <Server className="w-4 h-4" />
-              System
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
-              Settings
-            </TabsTrigger>
-            <TabsTrigger value="logs" className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Logs
+              System
             </TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
+          {/* Dashboard Tab - Overview + Analytics */}
+          <TabsContent value="dashboard" className="space-y-6">
             {/* Key Metrics */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               <Card>
