@@ -31,9 +31,9 @@ export const ProblemOverview: React.FC<ProblemOverviewProps> = ({ problem }) => 
         setLoading(true);
         setError(null);
 
-        // Try to find matching data in the Top 50 Public Policy Problem table
+        // Try to find matching data in the Top 50 Public Policy Problems table
         const { data, error } = await supabase
-          .from('Top 50 Public Policy Problem')
+          .from('Top 50 Public Policy Problems')
           .select('*')
           .ilike('Title', `%${problem.title}%`)
           .single();
