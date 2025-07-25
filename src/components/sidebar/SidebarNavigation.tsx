@@ -1,4 +1,4 @@
-import { Search, Settings, User, FileText, Lightbulb, BarChart3, Users, Building2, TrendingUp, MessageSquare, Heart, CreditCard, History, Gamepad2, Factory, Target, Star, ScrollText, Palette, Shield } from "lucide-react";
+import { Search, Settings, User, FileText, Lightbulb, BarChart3, Users, Building2, TrendingUp, MessageSquare, Heart, CreditCard, History, Gamepad2, Factory, Target, Star, ScrollText, Palette, Shield, Lock } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -10,18 +10,18 @@ import { useNavigation } from "@/hooks/useNavigation";
 
 const researchNavItems = [
   { title: "Intelligence", url: "/dashboard", icon: TrendingUp },
-  { title: "Bills", url: "/bills", icon: FileText },
+  { title: "Bills", url: "/bills", icon: FileText, requiresAuth: true },
   { title: "Members", url: "/members", icon: Users },
-  { title: "Committees", url: "/committees", icon: Building2 },
+  { title: "Committees", url: "/committees", icon: Building2, requiresAuth: true },
 ];
 
 const workflowNavItems = [
   { title: "Problems", url: "/problems", icon: Target },
+  { title: "Proposals", url: "/public-policy", icon: ScrollText },
   { title: "Chats", url: "/chats", icon: MessageSquare },
   { title: "Favorites", url: "/favorites", icon: Heart },
   { title: "Playground", url: "/playground", icon: Gamepad2 },
   { title: "Bills and Resolutions", url: "/policy-portal", icon: Factory },
-  { title: "Public Policy", url: "/public-policy", icon: ScrollText },
 ];
 
 const bottomNavItems = [
@@ -58,6 +58,7 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
                   icon={item.icon}
                   collapsed={collapsed}
                   getNavClassName={getNavClassName}
+                  requiresAuth={item.requiresAuth}
                 />
               ))}
             </SidebarMenu>

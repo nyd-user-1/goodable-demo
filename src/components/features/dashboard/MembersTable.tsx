@@ -25,14 +25,14 @@ type Member = {
   role?: string;
 };
 
-type SortField = 'name' | 'party' | 'chamber' | 'district' | 'role';
+type SortField = 'name' | 'party' | 'chamber' | 'district' | 'role' | 'phone' | 'email';
 type SortDirection = 'asc' | 'desc' | null;
 
 interface MembersTableProps {
   limit?: number;
 }
 
-export const MembersTable = ({ limit = 100 }: MembersTableProps) => {
+export const MembersTable = ({ limit = 500 }: MembersTableProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [members, setMembers] = useState<Member[]>([]);
@@ -41,6 +41,8 @@ export const MembersTable = ({ limit = 100 }: MembersTableProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(50);
   const [membersWithAIChat, setMembersWithAIChat] = useState<Set<number>>(new Set());
   const { favoriteMemberIds, toggleFavorite } = useMemberFavorites();
 
@@ -59,11 +61,16 @@ export const MembersTable = ({ limit = 100 }: MembersTableProps) => {
 
         if (membersError) throw membersError;
 
-        // Process the data to ensure we have consistent name field
-        const processedMembers = (membersData || []).map(member => ({
-          ...member,
-          name: member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim()
-        }));
+        // Process the data to ensure we have consistent name field and filter out Suite 212
+        const processedMembers = (membersData || [])
+          .filter(member => {
+            const fullName = member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim();
+            return !fullName.toLowerCase().includes('suite 212');
+          })
+          .map(member => ({
+            ...member,
+            name: member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim()
+          }));
 
         setMembers(processedMembers);
       } catch (err) {
@@ -156,7 +163,9 @@ export const MembersTable = ({ limit = 100 }: MembersTableProps) => {
         member.party?.toLowerCase().includes(query) ||
         member.chamber?.toLowerCase().includes(query) ||
         member.district?.toLowerCase().includes(query) ||
-        member.role?.toLowerCase().includes(query)
+        member.role?.toLowerCase().includes(query) ||
+        member.phone?.toLowerCase().includes(query) ||
+        member.email?.toLowerCase().includes(query)
       );
     }
 
@@ -190,6 +199,55 @@ export const MembersTable = ({ limit = 100 }: MembersTableProps) => {
 
     return filtered;
   }, [members, searchQuery, sortField, sortDirection]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredAndSortedMembers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedMembers = filteredAndSortedMembers.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const getVisiblePages = () => {
+    const delta = 2;
+    const range = [];
+    const rangeWithDots = [];
+
+    // Always show first page
+    range.push(1);
+
+    // Add pages around current page
+    for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+      range.push(i);
+    }
+
+    // Always show last page if more than 1 page
+    if (totalPages > 1) {
+      range.push(totalPages);
+    }
+
+    // Remove duplicates and sort
+    const uniqueRange = [...new Set(range)].sort((a, b) => a - b);
+
+    // Add dots between non-consecutive numbers
+    let prev = 0;
+    for (const page of uniqueRange) {
+      if (page - prev > 1) {
+        rangeWithDots.push('...');
+      }
+      rangeWithDots.push(page);
+      prev = page;
+    }
+
+    return rangeWithDots;
+  };
 
   return (
     <TooltipProvider>
@@ -229,10 +287,10 @@ export const MembersTable = ({ limit = 100 }: MembersTableProps) => {
                 <ScrollArea orientation="horizontal" className="w-full">
                   <div className="min-w-[800px] relative">
                     <Table>
-                      <TableHeader className="sticky top-0 bg-background backdrop-blur-sm z-30 border-b shadow-sm">
+                      <TableHeader className="sticky top-0 bg-background/95 backdrop-blur-sm z-30 border-b shadow-sm supports-[backdrop-filter]:bg-background/60">
                         <TableRow className="hover:bg-transparent">
                           {/* Pinned first column */}
-                          <TableHead className="sticky left-0 bg-background backdrop-blur-sm z-40 w-[200px] border-r shadow-sm">
+                          <TableHead className="sticky left-0 bg-background/95 backdrop-blur-sm z-40 w-[160px] border-r shadow-sm supports-[backdrop-filter]:bg-background/60">
                             <Button 
                               variant="ghost" 
                               size="sm" 
@@ -272,7 +330,7 @@ export const MembersTable = ({ limit = 100 }: MembersTableProps) => {
                               District {getSortIcon('district')}
                             </Button>
                           </TableHead>
-                          <TableHead className="w-[150px]">
+                          <TableHead className="w-[120px]">
                             <Button 
                               variant="ghost" 
                               size="sm" 
@@ -282,18 +340,38 @@ export const MembersTable = ({ limit = 100 }: MembersTableProps) => {
                               Role {getSortIcon('role')}
                             </Button>
                           </TableHead>
+                          <TableHead className="w-[140px]">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleSort('phone')}
+                              className="h-auto p-0 font-semibold hover:bg-transparent"
+                            >
+                              Phone {getSortIcon('phone')}
+                            </Button>
+                          </TableHead>
+                          <TableHead className="w-[200px]">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleSort('email')}
+                              className="h-auto p-0 font-semibold hover:bg-transparent"
+                            >
+                              Email {getSortIcon('email')}
+                            </Button>
+                          </TableHead>
                           <TableHead className="w-[100px]">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {filteredAndSortedMembers.map((member) => (
+                        {paginatedMembers.map((member) => (
                           <TableRow 
                             key={member.people_id} 
                             className="cursor-pointer hover:bg-muted/50 transition-colors"
                             onClick={() => handleMemberClick(member)}
                           >
                             {/* Pinned first cell */}
-                            <TableCell className="sticky left-0 bg-background backdrop-blur-sm z-20 font-medium border-r">
+                            <TableCell className="sticky left-0 bg-background/95 backdrop-blur-sm z-20 font-medium border-r supports-[backdrop-filter]:bg-background/60">
                               {member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim()}
                             </TableCell>
                             <TableCell>
@@ -309,6 +387,14 @@ export const MembersTable = ({ limit = 100 }: MembersTableProps) => {
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground">
                               {member.role || "N/A"}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {member.phone || "N/A"}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              <div className="max-w-[180px] truncate" title={member.email}>
+                                {member.email || "N/A"}
+                              </div>
                             </TableCell>
                             <TableCell>
                               <CardActionButtons
@@ -328,6 +414,54 @@ export const MembersTable = ({ limit = 100 }: MembersTableProps) => {
             </div>
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {filteredAndSortedMembers.length > 0 && totalPages > 1 && (
+          <div className="flex items-center justify-between pt-4">
+            <div className="text-sm text-muted-foreground">
+              Showing {startIndex + 1} to {Math.min(endIndex, filteredAndSortedMembers.length)} of {filteredAndSortedMembers.length} members
+            </div>
+            <div className="flex items-center space-x-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+              >
+                ‹
+              </Button>
+              
+              {getVisiblePages().map((page, index) => (
+                page === '...' ? (
+                  <span key={`dots-${index}`} className="px-2 text-muted-foreground">
+                    …
+                  </span>
+                ) : (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handlePageChange(page as number)}
+                    className="h-8 w-8 p-0"
+                  >
+                    {page}
+                  </Button>
+                )
+              ))}
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+              >
+                ›
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </TooltipProvider>
   );
