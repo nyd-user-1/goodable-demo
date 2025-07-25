@@ -463,7 +463,7 @@ const PublicPolicy = () => {
                 <FileText className="w-6 h-6 text-white" />
               </div>
             </div>
-            <h1 className="text-4xl font-bold">Public Policy</h1>
+            <h1 className="text-4xl font-bold">Public Policy Solutions</h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Community-driven policy proposals from collaborative problem-solving sessions. 
               Vote and discuss the future of governance.

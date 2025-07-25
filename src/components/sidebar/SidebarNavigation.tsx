@@ -11,28 +11,28 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const researchNavItems = [
   { title: "Intelligence", url: "/dashboard", icon: TrendingUp },
-  { title: "Feed", url: "/feed", icon: Rss },
+  { title: "Feed", url: "/feed", icon: Rss, adminOnly: true },
   { title: "Members", url: "/members", icon: Users },
   { title: "Bills", url: "/bills", icon: FileText, requiresAuth: true },
   { title: "Committees", url: "/committees", icon: Building2, requiresAuth: true },
 ];
 
 const workflowNavItems = [
-  { title: "Problems", url: "/problems", icon: Target },
-  { title: "Proposals", url: "/public-policy", icon: ScrollText },
+  { title: "Challenges", url: "/problems", icon: Target },
+  { title: "Solutions", url: "/public-policy", icon: ScrollText },
   { title: "Chats", url: "/chats", icon: MessageSquare },
   { title: "Favorites", url: "/favorites", icon: Heart },
-  { title: "Playground", url: "/playground", icon: Gamepad2 },
-  { title: "Bills and Resolutions", url: "/policy-portal", icon: Factory },
+  { title: "Playground", url: "/playground", icon: Gamepad2, adminOnly: true },
+  { title: "Bills and Resolutions", url: "/policy-portal", icon: Factory, adminOnly: true },
 ];
 
 const bottomNavItems = [
   { title: "Features", url: "/features", icon: Star },
   { title: "Plans", url: "/plans", icon: CreditCard },
-  { title: "Style Guide", url: "/style-guide", icon: Palette },
-  { title: "Admin", url: "/admin", icon: Shield },
+  { title: "Style Guide", url: "/style-guide", icon: Palette, adminOnly: true },
+  { title: "Admin", url: "/admin", icon: Shield, adminOnly: true },
   { title: "Profile", url: "/profile", icon: User },
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Settings", url: "/settings", icon: Settings, adminOnly: true },
   { title: "Change Log", url: "/changelog", icon: History },
 ];
 
@@ -53,17 +53,19 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
           <SidebarGroupLabel>Research</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {researchNavItems.map((item) => (
-                <NavigationItem
-                  key={item.title}
-                  title={item.title}
-                  url={item.url}
-                  icon={item.icon}
-                  collapsed={collapsed}
-                  getNavClassName={getNavClassName}
-                  requiresAuth={item.requiresAuth}
-                />
-              ))}
+              {researchNavItems
+                .filter(item => !item.adminOnly || isAdmin)
+                .map((item) => (
+                  <NavigationItem
+                    key={item.title}
+                    title={item.title}
+                    url={item.url}
+                    icon={item.icon}
+                    collapsed={collapsed}
+                    getNavClassName={getNavClassName}
+                    requiresAuth={item.requiresAuth}
+                  />
+                ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -75,16 +77,18 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
           <SidebarGroupLabel>Workflow</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {workflowNavItems.map((item) => (
-                <NavigationItem
-                  key={item.title}
-                  title={item.title}
-                  url={item.url}
-                  icon={item.icon}
-                  collapsed={collapsed}
-                  getNavClassName={getNavClassName}
-                />
-              ))}
+              {workflowNavItems
+                .filter(item => !item.adminOnly || isAdmin)
+                .map((item) => (
+                  <NavigationItem
+                    key={item.title}
+                    title={item.title}
+                    url={item.url}
+                    icon={item.icon}
+                    collapsed={collapsed}
+                    getNavClassName={getNavClassName}
+                  />
+                ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -95,16 +99,18 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
         <SidebarGroupLabel>Account</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            {bottomNavItems.filter(item => item.title !== "Admin" || isAdmin).map((item) => (
-              <NavigationItem
-                key={item.title}
-                title={item.title}
-                url={item.url}
-                icon={item.icon}
-                collapsed={collapsed}
-                getNavClassName={getNavClassName}
-              />
-            ))}
+            {bottomNavItems
+              .filter(item => !item.adminOnly || isAdmin)
+              .map((item) => (
+                <NavigationItem
+                  key={item.title}
+                  title={item.title}
+                  url={item.url}
+                  icon={item.icon}
+                  collapsed={collapsed}
+                  getNavClassName={getNavClassName}
+                />
+              ))}
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
