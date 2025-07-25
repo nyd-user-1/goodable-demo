@@ -65,8 +65,13 @@ export const CommitteesTable = ({ limit = 100 }: CommitteesTableProps) => {
 
         console.log("Raw committees data:", committeesData);
 
-        // Transform data - skip counts for now to isolate the issue
+        // Transform data - handle various column name possibilities
         const transformedCommittees = (committeesData || []).map((committee) => {
+          // Log first committee to see structure
+          if (committeesData.indexOf(committee) === 0) {
+            console.log("Sample committee structure:", committee);
+          }
+          
           return {
             committee_id: committee.committee_id,
             name: committee.committee_name || committee.name || "Unknown Committee",
@@ -78,8 +83,8 @@ export const CommitteesTable = ({ limit = 100 }: CommitteesTableProps) => {
             meeting_schedule: committee.meeting_schedule || null,
             next_meeting: committee.next_meeting || null,
             address: committee.address || null,
-            memberCount: "0", // Placeholder for now
-            billCount: "0" // Placeholder for now
+            memberCount: committee.member_count || committee.memberCount || "0",
+            billCount: committee.bill_count || committee.billCount || committee.active_bills_count || "0"
           };
         });
 
