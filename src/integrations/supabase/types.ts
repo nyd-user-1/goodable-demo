@@ -622,45 +622,6 @@ export type Database = {
           },
         ]
       }
-      problem_cards: {
-        Row: {
-          id: string
-          slug: string
-          title: string
-          description: string | null
-          category: string | null
-          sub_problems: number | null
-          solutions: number | null
-          policy_data_title: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          slug: string
-          title: string
-          description?: string | null
-          category?: string | null
-          sub_problems?: number | null
-          solutions?: number | null
-          policy_data_title?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          slug?: string
-          title?: string
-          description?: string | null
-          category?: string | null
-          sub_problems?: number | null
-          solutions?: number | null
-          policy_data_title?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       problem_statements: {
         Row: {
           category: string | null

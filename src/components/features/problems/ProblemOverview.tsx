@@ -31,40 +31,77 @@ export const ProblemOverview: React.FC<ProblemOverviewProps> = ({ problem }) => 
         setLoading(true);
         setError(null);
 
-        // First, try to get the policy data title from problem_cards table
-        const { data: cardData, error: cardError } = await supabase
-          .from('problem_cards')
-          .select('policy_data_title')
-          .eq('title', problem.title)
+        // Map common variations to match the policy data titles
+        let searchTitle = problem.title;
+        
+        // Handle specific known mappings
+        const titleMappings: { [key: string]: string } = {
+          'Addictive Technology': 'Addictive Tech',
+          'Healthcare Access': 'Healthcare Access',
+          'Mental Health Support': 'Mental Health',
+          'Housing Crisis': 'Housing Crisis',
+          'Income Stagnation': 'Income Stagnation',
+          'End Stage Capitalism': 'End-Stage Capitalism',
+          'Digital Divide': 'Digital Divide',
+          'Elder Care': 'Elder Care',
+          'Education Access': 'Education Access',
+          'Social Isolation': 'Social Isolation',
+          'Free Time': 'Free Time',
+          'Cultural Divisions': 'Cultural Divisions',
+          'Fake News': 'Fake News',
+          'Food Security': 'Food Security',
+          'Workplace Burnout': 'Workplace Burnout',
+          'Tax Fairness': 'Tax Fairness',
+          'Small Business Survival': 'Small Business',
+          'Digital Privacy': 'Digital Privacy',
+          'Digital Rights': 'Digital Rights',
+          'Climate Resilience': 'Climate Resilience',
+          'Clean Air and Water': 'Clean Air and Water',
+          'Aging Infrastructure': 'Aging Infrastructure',
+          'Public Transit': 'Public Transit',
+          'Transportation Equity': 'Transportation Equity',
+          'Criminal Justice Reform': 'Criminal Justice',
+          'Community Safety': 'Community Safety',
+          'Gun Violence Prevention': 'Gun Violence',
+          'Voter Access': 'Voter Access',
+          'Civic Engagement': 'Civic Engagement',
+          'Youth Opportunity': 'Youth Opportunity',
+          'Youth Justice': 'Youth Justice',
+          'Financial Literacy': 'Financial Literacy',
+          'Homelessness': 'Homelessness',
+          'Immigration Reform': 'Immigration Reform',
+          'Veterans Affairs': 'Veterans Affairs',
+          'Disability Inclusion': 'Disability Inclusion',
+          'Arts & Culture': 'Arts & Culture',
+          'Neighborhood Revitalization': 'Neighborhood Revitalization',
+          'Urban Planning': 'Urban Planning',
+          'Rural Development': 'Rural Development',
+          'Public Health Preparedness': 'Public Health',
+          'Disaster Response': 'Disaster Response',
+          'Reproductive Health': 'Reproductive Health',
+          'Substance Abuse': 'Substance Abuse',
+          'Water Security': 'Water Security',
+          'Energy Transition': 'Energy Transition',
+          'Science Investment': 'Science and Research Investment'
+        };
+
+        // Use mapped title if available
+        if (titleMappings[problem.title]) {
+          searchTitle = titleMappings[problem.title];
+        }
+
+        // Try to find matching data in the Top 50 Public Policy Problems table
+        const { data, error } = await supabase
+          .from('Top 50 Public Policy Problems')
+          .select('*')
+          .ilike('Title', `${searchTitle}%`)
           .single();
 
-        if (cardData && cardData.policy_data_title) {
-          // Use the mapped title to get policy data
-          const { data, error } = await supabase
-            .from('Top 50 Public Policy Problems')
-            .select('*')
-            .eq('Title', cardData.policy_data_title)
-            .single();
-
-          if (error && error.code !== 'PGRST116') {
-            throw error;
-          }
-
-          setPolicyData(data);
-        } else {
-          // Fallback: try fuzzy matching
-          const { data, error } = await supabase
-            .from('Top 50 Public Policy Problems')
-            .select('*')
-            .ilike('Title', `%${problem.title}%`)
-            .single();
-
-          if (error && error.code !== 'PGRST116') {
-            throw error;
-          }
-
-          setPolicyData(data);
+        if (error && error.code !== 'PGRST116') {
+          throw error;
         }
+
+        setPolicyData(data);
       } catch (err) {
         console.error('Error fetching policy data:', err);
         setError('Unable to load policy analysis data');
