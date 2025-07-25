@@ -55,73 +55,41 @@ export const CommitteesTable = ({ limit = 100 }: CommitteesTableProps) => {
 
         const { data: committeesData, error: committeesError } = await supabase
           .from("Committees")
-          .select(`
-            committee_id,
-            committee_name,
-            chamber,
-            chair_name,
-            chair_email,
-            committee_type,
-            description,
-            meeting_schedule,
-            next_meeting,
-            address
-          `)
-          .order("committee_name", { ascending: true })
+          .select("*")
           .limit(limit);
 
-        if (committeesError) throw committeesError;
+        if (committeesError) {
+          console.error("Supabase error:", committeesError);
+          throw committeesError;
+        }
 
-        // Transform data and add counts
-        const transformedCommittees = await Promise.all(
-          (committeesData || []).map(async (committee) => {
-            // Get member count - handle if table doesn't exist
-            let memberCount = 0;
-            try {
-              const { count } = await supabase
-                .from("Committee_Members")
-                .select("*", { count: 'exact', head: true })
-                .eq("committee_id", committee.committee_id);
-              memberCount = count || 0;
-            } catch (e) {
-              // Table might not exist, that's ok
-            }
+        console.log("Raw committees data:", committeesData);
 
-            // Get bill count
-            let billCount = 0;
-            try {
-              const { count } = await supabase
-                .from("Bills")
-                .select("*", { count: 'exact', head: true })
-                .eq("committee", committee.committee_name);
-              billCount = count || 0;
-            } catch (e) {
-              // Handle error
-            }
-
-            return {
-              committee_id: committee.committee_id,
-              name: committee.committee_name || "Unknown Committee",
-              chamber: committee.chamber || "Unknown",
-              chair_name: committee.chair_name,
-              chair_email: committee.chair_email,
-              committee_type: committee.committee_type,
-              description: committee.description,
-              meeting_schedule: committee.meeting_schedule,
-              next_meeting: committee.next_meeting,
-              address: committee.address,
-              memberCount: memberCount?.toString() || "0",
-              billCount: billCount?.toString() || "0"
-            };
-          })
-        );
+        // Transform data - skip counts for now to isolate the issue
+        const transformedCommittees = (committeesData || []).map((committee) => {
+          return {
+            committee_id: committee.committee_id,
+            name: committee.committee_name || committee.name || "Unknown Committee",
+            chamber: committee.chamber || "Unknown",
+            chair_name: committee.chair_name || committee.chair || null,
+            chair_email: committee.chair_email || null,
+            committee_type: committee.committee_type || committee.type || null,
+            description: committee.description || null,
+            meeting_schedule: committee.meeting_schedule || null,
+            next_meeting: committee.next_meeting || null,
+            address: committee.address || null,
+            memberCount: "0", // Placeholder for now
+            billCount: "0" // Placeholder for now
+          };
+        });
 
         setCommittees(transformedCommittees);
-      } catch (err) {
-        setError("Failed to load committees. Please try again.");
+      } catch (err: any) {
+        console.error("Error loading committees:", err);
+        setError(err.message || "Failed to load committees. Please try again.");
         toast({
           title: "Error",
-          description: "Failed to load committees. Please try again.",
+          description: err.message || "Failed to load committees. Please try again.",
           variant: "destructive",
         });
       } finally {
