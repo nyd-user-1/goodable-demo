@@ -116,23 +116,28 @@ export const ProblemAIChatSheet = ({
     const prompts = [
       {
         label: "Why This Matters Now",
-        content: policyData['Why This Matters Now']
+        content: policyData['Why This Matters Now'],
+        colorClass: "bg-red-50 hover:bg-red-100 border-red-200 dark:bg-red-950/20 dark:hover:bg-red-950/30 dark:border-red-900/50"
       },
       {
         label: "What We're Seeing",
-        content: policyData["What We're Seeing"]
+        content: policyData["What We're Seeing"],
+        colorClass: "bg-blue-50 hover:bg-blue-100 border-blue-200 dark:bg-blue-950/20 dark:hover:bg-blue-950/30 dark:border-blue-900/50"
       },
       {
         label: "The Real Challenge",
-        content: policyData['The Real Challenge']
+        content: policyData['The Real Challenge'],
+        colorClass: "bg-orange-50 hover:bg-orange-100 border-orange-200 dark:bg-orange-950/20 dark:hover:bg-orange-950/30 dark:border-orange-900/50"
       },
       {
         label: "The Path Forward",
-        content: policyData['The Path Forward']
+        content: policyData['The Path Forward'],
+        colorClass: "bg-green-50 hover:bg-green-100 border-green-200 dark:bg-green-950/20 dark:hover:bg-green-950/30 dark:border-green-900/50"
       },
       {
         label: "Your Role",
-        content: policyData['Your Role']
+        content: policyData['Your Role'],
+        colorClass: "bg-purple-50 hover:bg-purple-100 border-purple-200 dark:bg-purple-950/20 dark:hover:bg-purple-950/30 dark:border-purple-900/50"
       }
     ];
     
@@ -164,7 +169,7 @@ export const ProblemAIChatSheet = ({
                   <Button
                     key={index}
                     variant="outline"
-                    className="h-auto py-3 px-4 text-left whitespace-normal min-w-[200px] max-w-[250px] flex-shrink-0 leading-tight text-sm"
+                    className={`h-auto py-3 px-4 text-left whitespace-normal min-w-[200px] max-w-[250px] flex-shrink-0 leading-tight text-sm border ${prompt.colorClass}`}
                     onClick={() => handlePromptClick(prompt.label, prompt.content)}
                     disabled={isLoading}
                   >
