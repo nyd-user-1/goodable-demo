@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Sparkles } from "lucide-react";
 
 interface BetaAccessModalProps {
   open?: boolean;
@@ -57,8 +56,8 @@ export function BetaAccessModal({ open, onOpenChange }: BetaAccessModalProps) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="space-y-3">
           <div className="flex items-center justify-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-              <Sparkles className="h-6 w-6 text-primary" />
+            <div className="w-16 h-16 bg-card border-2 rounded-xl flex items-center justify-center">
+              <span className="text-3xl">❤️</span>
             </div>
           </div>
           <DialogTitle className="text-center text-2xl">
