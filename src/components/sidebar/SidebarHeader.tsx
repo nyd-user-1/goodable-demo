@@ -6,13 +6,11 @@ export function SidebarHeader() {
   const collapsed = state === "collapsed";
 
   return (
-    <div className="flex items-center justify-center space-x-2">
+    <div className="flex items-center">
       {!collapsed && (
-        <div className="text-center">
-          <NavLink to="/home" className="hover:text-muted-foreground transition-colors">
-            <h1 className="text-lg font-bold text-foreground">Goodable</h1>
-          </NavLink>
-        </div>
+        <NavLink to="/" className="hover:text-muted-foreground transition-colors">
+          <h1 className="text-lg font-bold text-foreground">Goodable</h1>
+        </NavLink>
       )}
     </div>
   );
