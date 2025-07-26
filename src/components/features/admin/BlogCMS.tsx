@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useAssets } from '@/hooks/useAssets';
 import {
   Dialog,
   DialogContent,
@@ -77,6 +78,7 @@ interface BlogProposal {
   published_at: string | null;
   view_count: number;
   is_featured: boolean;
+  assets?: any[]; // Assets array from the database
   created_at: string;
   updated_at: string;
   author_name?: string;
@@ -99,6 +101,9 @@ const BlogCMS = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedProposal, setSelectedProposal] = useState<BlogProposal | null>(null);
   const [savingProposal, setSavingProposal] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
   
   // Form states
   const [formData, setFormData] = useState({
@@ -108,12 +113,69 @@ const BlogCMS = () => {
     category: 'Public Policy',
     tags: '',
     status: 'draft' as 'draft' | 'published' | 'archived',
-    is_featured: false
+    is_featured: false,
+    image_asset_id: '' // Will store the asset ID
   });
+
+  const { uploadAsset } = useAssets();
 
   useEffect(() => {
     loadProposals();
   }, []);
+
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select an image file.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please select an image smaller than 5MB.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setSelectedImageFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearImageSelection = () => {
+    setSelectedImageFile(null);
+    setImagePreview('');
+    setFormData({ ...formData, image_asset_id: '' });
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      content: '',
+      summary: '',
+      category: 'Public Policy',
+      tags: '',
+      status: 'draft',
+      is_featured: false,
+      image_asset_id: ''
+    });
+    clearImageSelection();
+  };
 
   const loadProposals = async () => {
     try {
@@ -175,6 +237,40 @@ const BlogCMS = () => {
 
     setSavingProposal(true);
     try {
+      let assets = [];
+      let uploadedAsset = null;
+
+      // Upload image if selected
+      if (selectedImageFile) {
+        setUploadingImage(true);
+        try {
+          uploadedAsset = await uploadAsset(selectedImageFile, {
+            alt_text: `Featured image for ${formData.title}`,
+            caption: `Featured image for blog post: ${formData.title}`,
+            usage: ['blog_featured_image'],
+            tags: ['blog', 'featured', 'policy']
+          });
+          
+          assets = [{
+            id: uploadedAsset.id,
+            type: 'image',
+            url: uploadedAsset.url,
+            name: uploadedAsset.name,
+            alt_text: uploadedAsset.alt_text,
+            role: 'featured_image'
+          }];
+        } catch (uploadError) {
+          console.error('Error uploading image:', uploadError);
+          toast({
+            title: "Image upload failed",
+            description: "The post will be created without the image.",
+            variant: "destructive"
+          });
+        } finally {
+          setUploadingImage(false);
+        }
+      }
+
       const { error } = await (supabase as any)
         .from('blog_proposals')
         .insert({
@@ -186,14 +282,15 @@ const BlogCMS = () => {
           category: formData.category,
           tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
           published_at: formData.status === 'published' ? new Date().toISOString() : null,
-          is_featured: formData.is_featured
+          is_featured: formData.is_featured,
+          assets: assets
         });
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Blog post created successfully.",
+        description: `Blog post created successfully${uploadedAsset ? ' with image' : ''}.`,
       });
 
       setIsCreateDialogOpen(false);
@@ -398,7 +495,10 @@ const BlogCMS = () => {
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
+            setIsCreateDialogOpen(open);
+            if (open) resetForm();
+          }}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="w-4 h-4 mr-2" />
@@ -430,6 +530,57 @@ const BlogCMS = () => {
                     rows={3}
                   />
                 </div>
+                
+                {/* Image Upload Field */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Featured Image</label>
+                  <div className="space-y-3">
+                    {imagePreview ? (
+                      <div className="relative">
+                        <img 
+                          src={imagePreview} 
+                          alt="Preview" 
+                          className="w-full h-32 object-cover rounded-lg border"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-2 right-2"
+                          onClick={clearImageSelection}
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+                        <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Upload a featured image for your blog post
+                        </p>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageSelect}
+                          className="hidden"
+                          id="image-upload"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => document.getElementById('image-upload')?.click()}
+                        >
+                          Choose Image
+                        </Button>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Max 5MB • JPG, PNG, GIF
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Content</label>
                   <Textarea
@@ -489,11 +640,16 @@ const BlogCMS = () => {
                 <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateProposal} disabled={savingProposal || !formData.title || !formData.content}>
-                  {savingProposal ? (
+                <Button onClick={handleCreateProposal} disabled={savingProposal || uploadingImage || !formData.title || !formData.content}>
+                  {uploadingImage ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Creating...
+                      Uploading Image...
+                    </>
+                  ) : savingProposal ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Creating Post...
                     </>
                   ) : (
                     <>
