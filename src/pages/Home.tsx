@@ -68,7 +68,7 @@ const Home = () => {
   ].slice(0, 60); // Keep all 60 categories from the original
 
   return (
-    <div className="min-h-screen text-foreground overflow-hidden bg-background">
+    <div className="min-h-screen text-foreground bg-background flex flex-col">
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.1),transparent_50%)]" />
@@ -79,8 +79,8 @@ const Home = () => {
         <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-muted/10 rounded-full blur-xl animate-pulse delay-2000" />
       </div>
 
-      <main className="relative z-10">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-screen" style={{ paddingTop: '15px' }}>
+      <main className="relative z-10 flex-1 pb-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-[calc(100vh-20px)]" style={{ paddingTop: '15px' }}>
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-4">
               <span className="bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
@@ -210,7 +210,7 @@ const Home = () => {
         userProblem={userProblem}
       />
 
-      <footer className="border-t border-border/50 bg-background">
+      <footer className="border-t border-border/50 bg-background mt-auto">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
