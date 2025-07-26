@@ -61,16 +61,17 @@ export function BetaAccessModal({ open, onOpenChange }: BetaAccessModalProps) {
             </div>
           </div>
           <DialogTitle className="text-center text-2xl">
-            Welcome to Goodable Beta
+            Goodable.dev Beta
           </DialogTitle>
           <DialogDescription className="text-center space-y-4 pt-2">
             <p className="text-base">
-              We're thrilled by your interest in Goodable! 
+              We're thrilled you're here.
             </p>
             <p className="text-sm text-muted-foreground">
               We're currently in closed beta, working closely with our early adopters 
-              to create the most powerful legislative intelligence platform. Join our 
-              waitlist to be among the first to experience the future of policy analysis.
+              to create the future of public policy development. Join our waitlist to be 
+              among the first to experience collaborative, crowd-sourced policy making 
+              and legislative analysis.
             </p>
           </DialogDescription>
         </DialogHeader>
@@ -88,7 +89,7 @@ export function BetaAccessModal({ open, onOpenChange }: BetaAccessModalProps) {
             onClick={handleClose}
             variant="ghost"
             size="lg"
-            className="w-full"
+            className="w-full border border-border"
           >
             Explore Our Vision
           </Button>
