@@ -278,7 +278,7 @@ const Landing = () => {
                             <ChevronDown className="w-2 h-2" />
                           </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-auto min-w-0" sideOffset={8}>
+                        <DropdownMenuContent className="w-auto min-w-0" side="bottom" align="start" sideOffset={8}>
                           {sampleProblems.length === 0 ? (
                             <DropdownMenuItem className="text-muted-foreground">
                               Loading problems...

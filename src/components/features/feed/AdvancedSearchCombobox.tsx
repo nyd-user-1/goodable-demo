@@ -3,7 +3,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowUp, Upload, Brain, ChevronDown, Shield, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { DocumentUploadModal } from './DocumentUploadModal';
@@ -417,37 +416,44 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
               </div>
             </div>
 
-            {/* Tabs section */}
+            {/* Button section */}
             <div className="px-6 pb-4">
-              <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)} className="w-full">
-                <TabsList className="grid w-fit grid-cols-2 bg-muted/50">
-                  <TabsTrigger value="bills" className="flex items-center gap-2">
-                    📄 Bills
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="sources" 
-                    className="flex items-center gap-2 relative"
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={activeTab === "bills" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveTab("bills")}
+                  className="flex items-center gap-2"
+                >
+                  📄 Bills
+                </Button>
+                <Button
+                  type="button"
+                  variant={activeTab === "sources" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveTab("sources")}
+                  className="flex items-center gap-2 relative"
+                >
+                  📊 Sources
+                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                    {enabledSourcesCount}
+                  </Badge>
+                  <Shield className="w-3 h-3 text-green-600 ml-1" title="Credible sources only" />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSourcesOpen(!sourcesOpen);
+                    }}
+                    className="h-auto p-0 ml-1"
                   >
-                    📊 Sources
-                    <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
-                      {enabledSourcesCount}
-                    </Badge>
-                    <Shield className="w-3 h-3 text-green-600 ml-1" title="Credible sources only" />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSourcesOpen(!sourcesOpen);
-                      }}
-                      className="h-auto p-0 ml-1"
-                    >
-                      <ChevronDown className={`w-3 h-3 transition-transform ${sourcesOpen ? 'rotate-180' : ''}`} />
-                    </Button>
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+                    <ChevronDown className={`w-3 h-3 transition-transform ${sourcesOpen ? 'rotate-180' : ''}`} />
+                  </Button>
+                </Button>
+              </div>
             </div>
           </div>
         </form>
