@@ -355,7 +355,7 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
   };
 
   return (
-    <div className={`relative w-full ${className}`} style={{ zIndex: 1000 }}>
+    <div className={`relative w-full ${className}`} style={{ zIndex: 40 }}>
       <div className="advanced-search-wrapper relative">
         <form onSubmit={handleSubmit}>
           {/* Main search container - Fintool replica */}
@@ -393,10 +393,10 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     onClick={() => setUploadModalOpen(true)}
-                    className="h-8 px-3 text-muted-foreground hover:text-foreground"
+                    className="h-8 px-3 border border-border hover:bg-accent hover:text-accent-foreground"
                   >
                     <Upload className="w-4 h-4 mr-1" />
                     Upload
@@ -405,7 +405,9 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
                   {hasContent && (
                     <Button
                       type="submit"
-                      className="h-10 px-4 bg-primary hover:bg-primary/90 text-primary-foreground"
+                      variant="default"
+                      size="sm"
+                      className="h-8 px-3"
                     >
                       <Brain className="w-4 h-4 mr-2" />
                       Think
@@ -452,7 +454,7 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
 
         {/* Sources dropdown - positioned relative to Sources tab */}
         {sourcesOpen && activeTab === 'sources' && (
-          <div className="absolute left-64 top-full mt-2 w-96 bg-card border border-border rounded-lg shadow-xl z-[9998] p-4">
+          <div className="absolute left-64 top-full mt-2 w-96 bg-card border border-border rounded-lg shadow-xl z-50 p-4">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-medium text-foreground">Select Sources</h4>
@@ -511,7 +513,7 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
 
         {/* Search suggestions dropdown */}
         {isOpen && !sourcesOpen && (
-          <div className="absolute left-0 right-0 top-full bg-card border border-primary/50 border-t-0 rounded-b-2xl shadow-xl z-[9999] max-h-[360px] overflow-y-auto">
+          <div className="absolute left-0 right-0 top-full bg-card border border-primary/50 border-t-0 rounded-b-2xl shadow-xl z-50 max-h-[360px] overflow-y-auto">
             {/* Header */}
             <div className="px-6 py-3 border-b border-border">
               <div className="flex items-center justify-between">
