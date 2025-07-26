@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const messages = [
   "You're putting the public back in public policy.",
@@ -11,9 +12,10 @@ const messages = [
 ];
 
 export const WelcomeMessage = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [greeting, setGreeting] = useState('Good morning');
   const [messageIndex, setMessageIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Set dynamic greeting based on time of day
   useEffect(() => {
@@ -41,6 +43,19 @@ export const WelcomeMessage = () => {
     sessionStorage.setItem('welcomeMessageIndex', nextIndex.toString());
   }, []);
 
+  // Handle loading state - show skeleton while auth is loading or briefly after user loads
+  useEffect(() => {
+    if (!authLoading && user) {
+      // Add a small delay for smooth transition effect
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 800);
+      return () => clearTimeout(timer);
+    } else if (!authLoading && !user) {
+      setIsLoading(false);
+    }
+  }, [authLoading, user]);
+
   const getUserDisplayName = () => {
     if (user?.user_metadata?.display_name) return user.user_metadata.display_name;
     if (user?.user_metadata?.full_name) return user.user_metadata.full_name;
@@ -51,8 +66,20 @@ export const WelcomeMessage = () => {
   // Only show for authenticated users
   if (!user) return null;
 
+  // Show skeleton loading state
+  if (isLoading) {
+    return (
+      <div className="animate-in fade-in duration-500">
+        <Skeleton className="h-8 w-64 mb-2" />
+        <div className="mt-4">
+          <Skeleton className="h-4 w-80" />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div>
+    <div className="animate-in fade-in slide-in-from-left-4 duration-700 ease-out">
       <h3 className="text-2xl font-bold text-foreground mb-2">
         {greeting}, {getUserDisplayName()}!
       </h3>
