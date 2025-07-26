@@ -88,7 +88,7 @@ const StyleGuide = () => {
     return 'light';
   };
   
-  const [currentTheme, setCurrentTheme] = useState(getCurrentTheme());
+  const [currentTheme] = useState(getCurrentTheme());
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
