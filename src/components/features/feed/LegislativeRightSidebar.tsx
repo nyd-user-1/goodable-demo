@@ -5,13 +5,17 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentUserProfile } from '@/hooks/useUserProfile';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   CheckCircle, 
   Circle, 
   ExternalLink, 
   Clock,
   FileText,
-  BookOpen
+  BookOpen,
+  Sparkles,
+  X
 } from 'lucide-react';
 
 interface GettingStartedTask {
@@ -32,7 +36,9 @@ interface Project {
 
 export const LegislativeRightSidebar: React.FC = () => {
   const { user } = useAuth();
+  const { profile } = useCurrentUserProfile();
   const [userProgress, setUserProgress] = useState<{[key: string]: boolean}>({});
+  const [isBoxMinimized, setIsBoxMinimized] = useState(false);
 
   // Load user progress from localStorage on mount
   useEffect(() => {
@@ -40,6 +46,12 @@ export const LegislativeRightSidebar: React.FC = () => {
       const savedProgress = localStorage.getItem(`user-progress-${user.id}`);
       if (savedProgress) {
         setUserProgress(JSON.parse(savedProgress));
+      }
+      
+      // Load minimized state
+      const boxState = localStorage.getItem(`getting-started-minimized-${user.id}`);
+      if (boxState) {
+        setIsBoxMinimized(JSON.parse(boxState));
       }
     }
   }, [user?.id]);
@@ -50,6 +62,68 @@ export const LegislativeRightSidebar: React.FC = () => {
       localStorage.setItem(`user-progress-${user.id}`, JSON.stringify(userProgress));
     }
   }, [userProgress, user?.id]);
+
+  // Save minimized state
+  useEffect(() => {
+    if (user?.id) {
+      localStorage.setItem(`getting-started-minimized-${user.id}`, JSON.stringify(isBoxMinimized));
+    }
+  }, [isBoxMinimized, user?.id]);
+
+  // Live detection of task completion
+  useEffect(() => {
+    const checkLiveProgress = async () => {
+      if (!user?.id) return;
+
+      try {
+        // Check profile completion
+        if (profile && (profile.display_name || profile.bio)) {
+          setUserProgress(prev => ({ ...prev, profile: true }));
+        }
+
+        // Check for favorites (bills tracking)
+        const { data: favorites } = await supabase
+          .from('user_favorites')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1);
+        
+        if (favorites && favorites.length > 0) {
+          setUserProgress(prev => ({ ...prev, track_bill: true, watchlist: true }));
+        }
+
+        // Check for chat sessions (uploaded documents or member exploration)
+        const { data: chats } = await supabase
+          .from('chat_sessions')
+          .select('id, member_id')
+          .eq('user_id', user.id)
+          .limit(5);
+
+        if (chats && chats.length > 0) {
+          setUserProgress(prev => ({ ...prev, upload: true }));
+          
+          // Check if any chats are member-focused
+          if (chats.some(chat => chat.member_id)) {
+            setUserProgress(prev => ({ ...prev, member_profile: true }));
+          }
+        }
+
+        // Auto-mark bills section visit based on current location
+        if (window.location.pathname === '/bills') {
+          setUserProgress(prev => ({ ...prev, visit_bills: true }));
+        }
+
+      } catch (error) {
+        // Error checking progress - continue silently
+      }
+    };
+
+    // Run check immediately and then every 30 seconds for live updates
+    checkLiveProgress();
+    const interval = setInterval(checkLiveProgress, 30000);
+
+    return () => clearInterval(interval);
+  }, [user?.id, profile]);
 
   const gettingStartedTasks: GettingStartedTask[] = [
     { id: '1', text: 'Complete your profile information', completed: userProgress['profile'] || false, hasLink: true },
@@ -97,14 +171,13 @@ export const LegislativeRightSidebar: React.FC = () => {
 
   const handleTaskClick = (task: GettingStartedTask) => {
     if (task.hasLink && !task.completed) {
-      console.log('Navigating to complete task:', task.id);
       // Navigate based on task type
       switch (task.id) {
         case '1':
           window.location.href = '/profile';
           break;
         case '2':
-          // Open document upload modal
+          // Open document upload modal or navigate to upload area
           window.dispatchEvent(new CustomEvent('open-document-upload'));
           break;
         case '3':
@@ -114,70 +187,111 @@ export const LegislativeRightSidebar: React.FC = () => {
           break;
         case '5':
           window.location.href = '/members';
+          setTimeout(() => markTaskCompleted('member_profile'), 2000);
           break;
         case '6':
           window.location.href = '/favorites';
           break;
-        default:
-          console.log('Unknown task:', task.id);
       }
     }
   };
 
   const handleProjectClick = (project: Project) => {
-    console.log('Opening project:', project.name);
     // Navigate to chats with project filter
     window.location.href = `/chats?project=${encodeURIComponent(project.name)}`;
+  };
+
+  const toggleBoxMinimized = () => {
+    setIsBoxMinimized(!isBoxMinimized);
   };
 
 
   return (
     <div className="space-y-6">
       {/* Getting Started */}
-      <Card>
+      <Card className={progressPercentage === 100 ? 'border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-800' : ''}>
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold">Getting Started</CardTitle>
-            <Badge variant="secondary" className="text-xs">
-              {completedTasks} of {gettingStartedTasks.length}
-            </Badge>
-          </div>
-          <Progress value={progressPercentage} className="mt-3" />
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {gettingStartedTasks.map((task) => (
-            <div
-              key={task.id}
-              className={`flex items-start gap-3 p-3 rounded-lg transition-colors ${
-                task.hasLink && !task.completed 
-                  ? 'hover:bg-muted/50 cursor-pointer' 
-                  : ''
-              }`}
-              onClick={() => handleTaskClick(task)}
-            >
-              {task.completed ? (
-                <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-              ) : (
-                <Circle className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-lg font-semibold">Getting Started</CardTitle>
+              {progressPercentage === 100 && (
+                <Sparkles className="w-4 h-4 text-emerald-600" />
               )}
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm ${
-                  task.completed 
-                    ? 'text-muted-foreground line-through' 
-                    : 'text-foreground'
-                }`}>
-                  {task.text}
-                </p>
-                {task.hasLink && !task.completed && (
-                  <div className="flex items-center gap-1 mt-1">
-                    <ExternalLink className="w-3 h-3 text-primary" />
-                    <span className="text-xs text-primary">Start task</span>
-                  </div>
-                )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge 
+                variant={progressPercentage === 100 ? "default" : "secondary"} 
+                className={`text-xs ${progressPercentage === 100 ? 'bg-emerald-600 text-white' : ''}`}
+              >
+                {completedTasks} of {gettingStartedTasks.length}
+              </Badge>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-6 w-6 p-0"
+                onClick={toggleBoxMinimized}
+              >
+                {isBoxMinimized ? '↗' : <X className="w-3 h-3" />}
+              </Button>
+            </div>
+          </div>
+          {progressPercentage === 100 ? (
+            <div className="mt-3 p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg border border-emerald-200 dark:border-emerald-800">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-emerald-600" />
+                <span className="text-sm font-medium text-emerald-800 dark:text-emerald-200">
+                  Congratulations! You've completed the onboarding.
+                </span>
               </div>
             </div>
-          ))}
-        </CardContent>
+          ) : (
+            <Progress value={progressPercentage} className="mt-3" />
+          )}
+        </CardHeader>
+        {!isBoxMinimized && (
+          <CardContent className="space-y-3">
+            {gettingStartedTasks.map((task) => (
+              <div
+                key={task.id}
+                className={`flex items-start gap-3 p-3 rounded-lg transition-all duration-200 ${
+                  task.hasLink && !task.completed 
+                    ? 'hover:bg-muted/50 cursor-pointer hover:scale-[1.02]' 
+                    : task.completed 
+                    ? 'bg-emerald-50/50 dark:bg-emerald-950/10' 
+                    : ''
+                }`}
+                onClick={() => handleTaskClick(task)}
+              >
+                {task.completed ? (
+                  <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0 animate-in zoom-in duration-300" />
+                ) : (
+                  <Circle className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0 hover:text-primary transition-colors" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm transition-all duration-200 ${
+                    task.completed 
+                      ? 'text-emerald-700 dark:text-emerald-300 line-through' 
+                      : 'text-foreground'
+                  }`}>
+                    {task.text}
+                  </p>
+                  {task.hasLink && !task.completed && (
+                    <div className="flex items-center gap-1 mt-1 animate-in fade-in duration-200">
+                      <ExternalLink className="w-3 h-3 text-primary" />
+                      <span className="text-xs text-primary font-medium">Start task</span>
+                    </div>
+                  )}
+                  {task.completed && (
+                    <div className="flex items-center gap-1 mt-1">
+                      <CheckCircle className="w-3 h-3 text-emerald-600" />
+                      <span className="text-xs text-emerald-600 font-medium">Completed!</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        )}
       </Card>
 
       {/* Projects */}
