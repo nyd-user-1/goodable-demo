@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const messages = [
-  { text: "You're putting the public back in public policy.", colorClass: "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/50 text-blue-700 dark:text-blue-400" },
-  { text: "It has meaning if you give it meaning.", colorClass: "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400" },
-  { text: "No one is coming. It's up to you now.", colorClass: "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900/50 text-orange-700 dark:text-orange-400" },
-  { text: "Wow! That idea you have is a good one. Tell us about it.", colorClass: "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50 text-green-700 dark:text-green-400" },
-  { text: "Remember, we're all in this boat together.", colorClass: "bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900/50 text-purple-700 dark:text-purple-400" },
-  { text: "Are you looking for someone to follow. Or something to do? We've got'em both.", colorClass: "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/50 text-blue-700 dark:text-blue-400" }
+  { text: "You're putting the public back in public policy.", colorClass: "bg-blue-50 dark:bg-blue-950/30 text-blue-800 dark:text-blue-200" },
+  { text: "It has meaning if you give it meaning.", colorClass: "bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-200" },
+  { text: "No one is coming. It's up to you now.", colorClass: "bg-orange-50 dark:bg-orange-950/30 text-orange-800 dark:text-orange-200" },
+  { text: "Wow! That idea you have is a good one. Tell us about it.", colorClass: "bg-green-50 dark:bg-green-950/30 text-green-800 dark:text-green-200" },
+  { text: "Remember, we're all in this boat together.", colorClass: "bg-purple-50 dark:bg-purple-950/30 text-purple-800 dark:text-purple-200" },
+  { text: "Are you looking for someone to follow. Or something to do? We've got'em both.", colorClass: "bg-blue-50 dark:bg-blue-950/30 text-blue-800 dark:text-blue-200" }
 ];
 
 export const WelcomeMessage = () => {
@@ -54,13 +54,13 @@ export const WelcomeMessage = () => {
   if (!user) return null;
 
   return (
-    <div className={`rounded-lg border p-4 mb-8 transition-all duration-300 ${currentMessage.colorClass}`}>
-      <h2 className="text-xl font-semibold mb-1">
+    <div className={`px-3 py-2 rounded-md text-sm ${currentMessage.colorClass}`}>
+      <div className="font-medium">
         {greeting}, {getUserDisplayName()}!
-      </h2>
-      <p className="text-sm leading-relaxed">
+      </div>
+      <div className="mt-1">
         {currentMessage.text}
-      </p>
+      </div>
     </div>
   );
 };

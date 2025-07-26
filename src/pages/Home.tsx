@@ -81,15 +81,12 @@ const Home = () => {
       </div>
 
       <main className="relative z-10 flex-1 pb-20">
+        {/* Welcome Message - positioned absolutely in top left */}
+        <div className="absolute top-6 left-6 z-20">
+          <WelcomeMessage />
+        </div>
+        
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-[calc(100vh-20px)]" style={{ paddingTop: '15px' }}>
-          {/* Welcome Message - appears at top left for authenticated users */}
-          <div className="w-full max-w-4xl mx-auto mb-8">
-            <div className="flex justify-start">
-              <div className="max-w-md">
-                <WelcomeMessage />
-              </div>
-            </div>
-          </div>
           
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-4 -mt-10">
