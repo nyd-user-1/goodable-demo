@@ -107,8 +107,8 @@ export const Dashboard = () => {
   }
 
   return (
-    <div className="w-full min-h-screen bg-background overflow-x-hidden">
-      <div className="container mx-auto px-[27px] py-4 sm:py-6 max-w-7xl">
+    <div className="dashboard-container w-full min-h-screen bg-background overflow-x-hidden">
+      <div className="container mx-auto px-4 sm:px-[27px] py-4 sm:py-6 max-w-7xl">
         <div className="space-y-4 sm:space-y-6">
           {/* Header Section */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -163,9 +163,9 @@ export const Dashboard = () => {
                 <div className="flex items-center gap-2">
                   <CardTitle className="text-base sm:text-lg">Activity</CardTitle>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                    <SelectTrigger className="w-[100px]">
+                    <SelectTrigger className="w-[80px] sm:w-[100px]">
                       <SelectValue placeholder="Month" />
                     </SelectTrigger>
                     <SelectContent>
@@ -178,7 +178,7 @@ export const Dashboard = () => {
                   </Select>
                   
                   <Select value={selectedYear} onValueChange={setSelectedYear}>
-                    <SelectTrigger className="w-[100px]">
+                    <SelectTrigger className="w-[80px] sm:w-[100px]">
                       <SelectValue placeholder="Year" />
                     </SelectTrigger>
                     <SelectContent>
@@ -195,10 +195,10 @@ export const Dashboard = () => {
                 Number of bills introduced over the selected time period
               </CardDescription>
             </CardHeader>
-            <CardContent className="px-4 sm:px-6">
-              <div className="h-[250px] sm:h-[300px] lg:h-[350px] w-full">
+            <CardContent className="px-2 sm:px-6">
+              <div className="h-[200px] sm:h-[300px] lg:h-[350px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <AreaChart data={chartData} margin={{ top: 10, right: 5, left: -10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis 
                       dataKey="period" 
@@ -208,9 +208,9 @@ export const Dashboard = () => {
                     />
                     <YAxis 
                       className="text-muted-foreground"
-                      tick={{ fontSize: 11 }}
-                      tickMargin={8}
-                      width={40}
+                      tick={{ fontSize: 10 }}
+                      tickMargin={4}
+                      width={30}
                     />
                     <Tooltip 
                       contentStyle={{

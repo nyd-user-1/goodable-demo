@@ -1,6 +1,8 @@
 
 @import './styles/table-sticky-headers.css';
 @import './styles/chart-mobile.css';
+@import './styles/dashboard-mobile.css';
+@import './styles/chat-mobile.css';
 
 @tailwind base;
 @tailwind components;

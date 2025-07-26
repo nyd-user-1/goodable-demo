@@ -11,7 +11,7 @@ interface ConversationViewProps {
 
 export const ConversationView = ({ messages, onCopy, onFeedback, onSendPrompt }: ConversationViewProps) => {
   return (
-    <ScrollArea className="h-[300px] sm:h-[400px] w-full rounded-md border p-2 sm:p-4">
+    <ScrollArea className="conversation-scroll-area h-[300px] sm:h-[400px] w-full rounded-md border p-2 sm:p-4">
       <div className="space-y-4">
         {messages.map((message, index) => {
           // Check if this is the first assistant message

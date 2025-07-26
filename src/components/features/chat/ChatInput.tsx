@@ -26,7 +26,7 @@ export const ChatInput = ({
   };
 
   return (
-    <div className="flex-shrink-0 space-y-3">
+    <div className="chat-input-container flex-shrink-0 space-y-3">
       <div className="flex gap-2">
         <Input
           value={inputValue}

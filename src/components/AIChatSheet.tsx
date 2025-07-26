@@ -105,7 +105,7 @@ export const AIChatSheet = ({ open, onOpenChange, bill, member, committee }: AIC
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-2xl flex flex-col h-full">
+      <SheetContent className="chat-sheet-content w-full sm:max-w-2xl flex flex-col h-full">
         <SheetHeader className="flex-shrink-0">
           <SheetTitle>{getTitle()}</SheetTitle>
         </SheetHeader>
