@@ -53,9 +53,9 @@ export const WelcomeMessage = () => {
 
   return (
     <div>
-      <h1 className="text-4xl font-bold text-foreground mb-2">
+      <h3 className="text-2xl font-bold text-foreground mb-2">
         {greeting}, {getUserDisplayName()}!
-      </h1>
+      </h3>
       <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
         <span>{messages[messageIndex]}</span>
       </div>

@@ -13,7 +13,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useAdminStats } from '@/hooks/useAdminStats';
+import { useSystemHealth } from '@/hooks/useSystemHealth';
+import { useModerationQueue } from '@/hooks/useModerationQueue';
+import { useRealTimeAdminData } from '@/hooks/useRealTimeAdminData';
 import BlogCMS from '@/components/features/admin/BlogCMS';
 import { 
   Select,
@@ -81,6 +84,17 @@ const Admin = () => {
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState('dashboard');
   
+  // Real data hooks
+  const { stats, recentActivity, loading: statsLoading, error: statsError, refreshStats } = useAdminStats();
+  const { metrics: systemMetrics, loading: systemLoading, healthStatus } = useSystemHealth();
+  const { moderationQueue, loading: moderationLoading, approveItem, rejectItem, refreshQueue } = useModerationQueue();
+  
+  // Set up real-time subscriptions
+  useRealTimeAdminData({
+    onStatsUpdate: refreshStats,
+    onModerationUpdate: refreshQueue
+  });
+  
   // Redirect if not admin
   useEffect(() => {
     if (!hasAdminAccess && user) {
@@ -88,17 +102,8 @@ const Admin = () => {
     }
   }, [hasAdminAccess, user, navigate]);
 
-  // Mock data for demonstration
-  const systemStats = {
-    totalUsers: 2847,
-    activeUsers: 1293,
-    totalPosts: 5674,
-    pendingModeration: 23,
-    systemHealth: 98.5,
-    uptime: '99.9%',
-    avgResponseTime: '120ms',
-    dailyActiveUsers: 892
-  };
+  // Use loading state
+  const isLoading = statsLoading || systemLoading || moderationLoading;
 
   const recentUsers = [
     { id: 1, name: 'John Smith', email: 'john@example.com', role: 'Member', status: 'active', joined: '2024-01-15', lastActive: '2 hours ago' },
@@ -107,19 +112,9 @@ const Admin = () => {
     { id: 4, name: 'Emily Davis', email: 'emily@example.com', role: 'Admin', status: 'active', joined: '2024-01-05', lastActive: '30 minutes ago' }
   ];
 
-  const moderationQueue = [
-    { id: 1, type: 'Post', title: 'Housing Policy Proposal', author: 'Alex Chen', reported: 3, reason: 'Spam', priority: 'high' },
-    { id: 2, type: 'Comment', title: 'Response to Education Reform', author: 'Maria Lopez', reported: 1, reason: 'Inappropriate', priority: 'medium' },
-    { id: 3, type: 'Post', title: 'Healthcare Discussion', author: 'David Kim', reported: 2, reason: 'Misinformation', priority: 'high' },
-    { id: 4, type: 'Comment', title: 'Budget Analysis Feedback', author: 'Lisa Brown', reported: 1, reason: 'Off-topic', priority: 'low' }
-  ];
+  // Real moderation queue is now provided by the hook
 
-  const auditLogs = [
-    { id: 1, action: 'User Login', user: 'admin@goodable.com', timestamp: '2024-01-20 14:30:22', details: 'Successful login from 192.168.1.1' },
-    { id: 2, action: 'Post Moderated', user: 'moderator@goodable.com', timestamp: '2024-01-20 14:25:15', details: 'Approved post ID: 1234' },
-    { id: 3, action: 'User Suspended', user: 'admin@goodable.com', timestamp: '2024-01-20 14:20:08', details: 'Suspended user: mike@example.com' },
-    { id: 4, action: 'Settings Changed', user: 'admin@goodable.com', timestamp: '2024-01-20 14:15:33', details: 'Updated email notifications' }
-  ];
+  // Real activity logs are provided by recentActivity from the hook
 
   const featureFlags = [
     { name: 'New Dashboard', key: 'new_dashboard', enabled: true, description: 'Enable the redesigned dashboard interface' },
@@ -133,19 +128,19 @@ const Admin = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
             <div>
-              <h1 className="text-4xl font-bold mb-2">Administration</h1>
-              <p className="text-muted-foreground text-lg">
+              <h1 className="text-3xl sm:text-4xl font-bold mb-2">Administration</h1>
+              <p className="text-muted-foreground text-base sm:text-lg">
                 System management and configuration
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant={systemStats.systemHealth > 95 ? "default" : "destructive"} className="flex items-center gap-1">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Badge variant={healthStatus.percentage > 95 ? "default" : "destructive"} className="flex items-center gap-1">
                 <Activity className="w-3 h-3" />
-                {systemStats.systemHealth}% Health
+                {Math.round(healthStatus.percentage)}% Health
               </Badge>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={refreshStats}>
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Refresh
               </Button>
@@ -154,7 +149,7 @@ const Admin = () => {
         </div>
 
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               Dashboard
@@ -183,7 +178,7 @@ const Admin = () => {
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{systemStats.totalUsers.toLocaleString()}</div>
+                  <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
                   <p className="text-xs text-muted-foreground">
                     <span className="text-green-600 flex items-center">
                       <TrendingUp className="w-3 h-3 mr-1" />
@@ -199,7 +194,7 @@ const Admin = () => {
                   <Activity className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{systemStats.activeUsers.toLocaleString()}</div>
+                  <div className="text-2xl font-bold">{stats.activeUsers.toLocaleString()}</div>
                   <p className="text-xs text-muted-foreground">
                     <span className="text-green-600 flex items-center">
                       <TrendingUp className="w-3 h-3 mr-1" />
@@ -215,7 +210,7 @@ const Admin = () => {
                   <FileText className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{systemStats.totalPosts.toLocaleString()}</div>
+                  <div className="text-2xl font-bold">{stats.totalPosts.toLocaleString()}</div>
                   <p className="text-xs text-muted-foreground">
                     <span className="text-orange-600 flex items-center">
                       <TrendingDown className="w-3 h-3 mr-1" />
@@ -231,7 +226,7 @@ const Admin = () => {
                   <AlertTriangle className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{systemStats.pendingModeration}</div>
+                  <div className="text-2xl font-bold">{stats.pendingModeration}</div>
                   <p className="text-xs text-muted-foreground">
                     <span className="text-red-600 flex items-center">
                       <AlertCircle className="w-3 h-3 mr-1" />
@@ -253,30 +248,30 @@ const Admin = () => {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm">CPU Usage</span>
-                      <span className="text-sm font-medium">23%</span>
+                      <span className="text-sm font-medium">{Math.round(systemMetrics.cpuUsage)}%</span>
                     </div>
-                    <Progress value={23} />
+                    <Progress value={systemMetrics.cpuUsage} />
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm">Memory Usage</span>
-                      <span className="text-sm font-medium">67%</span>
+                      <span className="text-sm font-medium">{Math.round(systemMetrics.memoryUsage)}%</span>
                     </div>
-                    <Progress value={67} />
+                    <Progress value={systemMetrics.memoryUsage} />
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm">Storage Usage</span>
-                      <span className="text-sm font-medium">45%</span>
+                      <span className="text-sm font-medium">{Math.round(systemMetrics.storageUsage)}%</span>
                     </div>
-                    <Progress value={45} />
+                    <Progress value={systemMetrics.storageUsage} />
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm">Network Usage</span>
-                      <span className="text-sm font-medium">12%</span>
+                      <span className="text-sm font-medium">{Math.round(systemMetrics.networkUsage)}%</span>
                     </div>
-                    <Progress value={12} />
+                    <Progress value={systemMetrics.networkUsage} />
                   </div>
                 </CardContent>
               </Card>
@@ -288,13 +283,13 @@ const Admin = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {auditLogs.slice(0, 4).map((log) => (
-                      <div key={log.id} className="flex items-start space-x-4">
+                    {recentActivity.slice(0, 4).map((activity) => (
+                      <div key={activity.id} className="flex items-start space-x-4">
                         <div className="w-2 h-2 bg-primary rounded-full mt-2" />
                         <div className="flex-1 space-y-1">
-                          <p className="text-sm font-medium">{log.action}</p>
-                          <p className="text-xs text-muted-foreground">{log.details}</p>
-                          <p className="text-xs text-muted-foreground">{log.timestamp}</p>
+                          <p className="text-sm font-medium">{activity.action}</p>
+                          <p className="text-xs text-muted-foreground">{activity.details}</p>
+                          <p className="text-xs text-muted-foreground">{activity.timestamp}</p>
                         </div>
                       </div>
                     ))}
@@ -311,10 +306,10 @@ const Admin = () => {
                 <h3 className="text-lg font-semibold">User Management</h3>
                 <p className="text-muted-foreground">Manage user accounts, roles, and permissions</p>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center space-x-2">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                <div className="flex items-center space-x-2 w-full sm:w-auto">
                   <Search className="w-4 h-4 text-muted-foreground" />
-                  <Input placeholder="Search users..." className="w-64" />
+                  <Input placeholder="Search users..." className="w-full sm:w-64" />
                 </div>
                 <Button variant="outline">
                   <Filter className="w-4 h-4 mr-2" />
@@ -328,7 +323,8 @@ const Admin = () => {
             </div>
 
             <Card>
-              <Table>
+              <div className="overflow-x-auto">
+                <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>User</TableHead>
@@ -382,6 +378,7 @@ const Admin = () => {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             </Card>
           </TabsContent>
 
@@ -550,7 +547,7 @@ const Admin = () => {
                     <SelectItem value="low">Low Priority</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline">
+                <Button variant="outline" onClick={refreshQueue}>
                   <RefreshCw className="w-4 h-4 mr-2" />
                   Refresh Queue
                 </Button>
@@ -558,7 +555,8 @@ const Admin = () => {
             </div>
 
             <Card>
-              <Table>
+              <div className="overflow-x-auto">
+                <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Content</TableHead>
@@ -596,10 +594,20 @@ const Admin = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          <Button variant="ghost" size="sm" className="text-green-600">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-green-600"
+                            onClick={() => approveItem(item.id)}
+                          >
                             <CheckCircle className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="text-red-600">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-red-600"
+                            onClick={() => rejectItem(item.id)}
+                          >
                             <XCircle className="w-4 h-4" />
                           </Button>
                           <Button variant="ghost" size="sm">
@@ -611,6 +619,7 @@ const Admin = () => {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             </Card>
           </TabsContent>
 
@@ -623,7 +632,7 @@ const Admin = () => {
                   <Server className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{systemStats.uptime}</div>
+                  <div className="text-2xl font-bold">{stats.uptime}</div>
                   <p className="text-xs text-muted-foreground">
                     Last restart: 15 days ago
                   </p>
@@ -636,7 +645,7 @@ const Admin = () => {
                   <Activity className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{systemStats.avgResponseTime}</div>
+                  <div className="text-2xl font-bold">{systemMetrics.responseTime}ms</div>
                   <p className="text-xs text-muted-foreground">
                     Average over 24h
                   </p>
@@ -649,9 +658,9 @@ const Admin = () => {
                   <HardDrive className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">45%</div>
+                  <div className="text-2xl font-bold">{Math.round(systemMetrics.storageUsage)}%</div>
                   <p className="text-xs text-muted-foreground">
-                    2.3TB of 5TB used
+                    {stats.databaseSize} used
                   </p>
                 </CardContent>
               </Card>
@@ -662,9 +671,9 @@ const Admin = () => {
                   <Database className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">2.1GB</div>
+                  <div className="text-2xl font-bold">{stats.databaseSize}</div>
                   <p className="text-xs text-muted-foreground">
-                    34K active connections
+                    {stats.activeConnections.toLocaleString()} connections
                   </p>
                 </CardContent>
               </Card>
@@ -918,7 +927,8 @@ const Admin = () => {
             </div>
 
             <Card>
-              <Table>
+              <div className="overflow-x-auto">
+                <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Timestamp</TableHead>
@@ -929,14 +939,14 @@ const Admin = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {auditLogs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell className="font-mono text-sm">{log.timestamp}</TableCell>
+                  {recentActivity.map((activity) => (
+                    <TableRow key={activity.id}>
+                      <TableCell className="font-mono text-sm">{activity.timestamp}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{log.action}</Badge>
+                        <Badge variant="outline">{activity.action}</Badge>
                       </TableCell>
-                      <TableCell>{log.user}</TableCell>
-                      <TableCell className="max-w-xs truncate">{log.details}</TableCell>
+                      <TableCell>{activity.user}</TableCell>
+                      <TableCell className="max-w-xs truncate">{activity.details}</TableCell>
                       <TableCell>
                         <Badge variant="default">Success</Badge>
                       </TableCell>
@@ -944,6 +954,7 @@ const Admin = () => {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             </Card>
           </TabsContent>
         </Tabs>

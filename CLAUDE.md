@@ -183,6 +183,7 @@ The recent Radix redesign work was exceptional - maintain this level of design q
 
 #### Mobile-First Development
 - **PIXEL PERFECT ON MOBILE OR IT'S NOT DONE**
+- **Any changes must pass mobile-first responsiveness testing to be considered complete. Non-responsive implementations are not functional and block progress.**
 - Mobile-first responsive design approach
 - Test thoroughly on mobile devices before desktop
 - Touch-friendly interactions and proper spacing

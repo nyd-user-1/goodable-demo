@@ -145,7 +145,7 @@ const BlogCMS = () => {
         if (data) {
           data = data.map((post: any) => ({
             ...post,
-            author_name: post.profiles?.display_name || post.profiles?.username || 'Unknown Author',
+            author_name: post.profiles?.display_name || post.profiles?.username || 'Goodable',
             author_avatar: post.profiles?.avatar_url,
             up_votes: 0,
             down_votes: 0,
@@ -633,9 +633,11 @@ const BlogCMS = () => {
                   <div className="flex items-center gap-2">
                     <Avatar className="w-8 h-8">
                       <AvatarImage src={proposal.author_avatar} />
-                      <AvatarFallback>{proposal.author_name?.[0] || 'U'}</AvatarFallback>
+                      <AvatarFallback>
+                        {proposal.author_name === 'Goodable' ? '❤️' : (proposal.author_name?.[0] || 'G')}
+                      </AvatarFallback>
                     </Avatar>
-                    <span className="text-sm">{proposal.author_name || 'Unknown'}</span>
+                    <span className="text-sm">{proposal.author_name || 'Goodable'}</span>
                   </div>
                 </TableCell>
                 <TableCell>
