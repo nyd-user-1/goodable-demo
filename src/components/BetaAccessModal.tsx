@@ -65,13 +65,11 @@ export function BetaAccessModal({ open, onOpenChange }: BetaAccessModalProps) {
           </DialogTitle>
           <DialogDescription className="text-center space-y-4 pt-2">
             <p className="text-base">
-              Join Beta testing.
+              Now in Beta testing.
             </p>
             <p className="text-sm text-muted-foreground">
-              We're working closely with our early adopters 
-              to create the future of public policy development. Join our waitlist to be 
-              among the first to experience collaborative, crowd-sourced policy making 
-              and legislative analysis.
+              Join our waitlist to be among the first to experience modern legislative 
+              analysis and collaborative public policy development.
             </p>
           </DialogDescription>
         </DialogHeader>

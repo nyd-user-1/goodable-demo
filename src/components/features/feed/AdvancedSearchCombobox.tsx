@@ -464,10 +464,6 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-medium text-foreground">Select Sources</h4>
-                <Badge variant="outline" className="text-xs text-green-600 border-green-200">
-                  <Shield className="w-3 h-3 mr-1" />
-                  Tier 1 Only
-                </Badge>
               </div>
               {sources.map((source) => (
                 <div key={source.id} className="space-y-2">
@@ -484,27 +480,13 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
                         <label htmlFor={source.id} className="text-sm text-foreground cursor-pointer font-medium">
                           {source.label}
                         </label>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="secondary" className="text-xs">
+                        <div className="mt-1">
+                          <span className="text-xs text-muted-foreground">
                             {source.category}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs text-green-600 border-green-200">
-                            Tier {source.credibilityTier}
-                          </Badge>
-                          {source.requiresMultiSource && (
-                            <Badge variant="outline" className="text-xs text-orange-600 border-orange-200">
-                              <AlertTriangle className="w-2 h-2 mr-1" />
-                              Multi-source required
-                            </Badge>
-                          )}
+                          </span>
                         </div>
                       </div>
                     </div>
-                    {source.count && (
-                      <Badge variant="outline" className="text-xs">
-                        {source.count}
-                      </Badge>
-                    )}
                   </div>
                 </div>
               ))}
