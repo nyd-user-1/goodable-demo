@@ -36,6 +36,7 @@ import PublicPolicy from "./pages/PublicPolicy";
 import StyleGuide from "./pages/StyleGuide";
 import Admin from "./pages/Admin";
 import FeedPage from "./pages/FeedPage";
+import ImageUploadTest from "./pages/ImageUploadTest";
 
 const queryClient = new QueryClient();
 
@@ -81,6 +82,7 @@ const AppLayout = () => {
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/dashboard" element={<Index />} />
                 <Route path="/feed" element={<FeedPage />} />
+                <Route path="/image-upload-test" element={<ImageUploadTest />} />
               </Routes>
             </main>
           </SidebarInset>
