@@ -61,14 +61,14 @@ export function BetaAccessModal({ open, onOpenChange }: BetaAccessModalProps) {
             </div>
           </div>
           <DialogTitle className="text-center text-2xl">
-            Goodable.dev Beta
+            Goodable.dev
           </DialogTitle>
           <DialogDescription className="text-center space-y-4 pt-2">
             <p className="text-base">
-              We're thrilled you're here.
+              Join Beta testing.
             </p>
             <p className="text-sm text-muted-foreground">
-              We're currently in closed beta, working closely with our early adopters 
+              We're working closely with our early adopters 
               to create the future of public policy development. Join our waitlist to be 
               among the first to experience collaborative, crowd-sourced policy making 
               and legislative analysis.

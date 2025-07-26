@@ -58,6 +58,8 @@ export const BillSummary = ({
               hasAIChat={hasAIChat}
               showFavorite={!!onFavorite}
               showAIAnalysis={!!onAIAnalysis}
+              billNumber={bill.bill_number}
+              showPDF={true}
               size="sm"
               variant="outline"
             />
