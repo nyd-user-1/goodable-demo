@@ -175,6 +175,7 @@ const BlogCMS = () => {
       image_asset_id: ''
     });
     clearImageSelection();
+    setSelectedProposal(null);
   };
 
   const loadProposals = async () => {
@@ -422,19 +423,6 @@ const BlogCMS = () => {
       is_featured: proposal.is_featured
     });
     setIsEditDialogOpen(true);
-  };
-
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      content: '',
-      summary: '',
-      category: 'Public Policy',
-      tags: '',
-      status: 'draft',
-      is_featured: false
-    });
-    setSelectedProposal(null);
   };
 
   const filteredProposals = proposals.filter(proposal => {
