@@ -23,6 +23,15 @@ interface SearchSuggestion {
     billNumber?: string;
     sponsor?: string;
     status?: string;
+    committee?: string;
+    party?: string;
+    role?: string;
+    district?: string;
+    chamber?: string;
+    description?: string;
+    chair?: string;
+    memberCount?: string;
+    activeBills?: string;
   };
 }
 
@@ -62,7 +71,7 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
   const [sources, setSources] = useState<SourceOption[]>([
     { 
       id: 'nys-bills', 
-      label: 'NYS Bills & Resolutions', 
+      label: 'NYS Bills & Resolutions (18K+)', 
       enabled: true, 
       count: 4,
       allowedDomains: ['goodable.dev', 'nysenate.gov', 'assembly.state.ny.us'],
@@ -71,10 +80,18 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
       requiresMultiSource: true
     },
     { 
-      id: 'federal-legislation', 
-      label: 'Federal Legislation', 
+      id: 'legislators', 
+      label: 'NYS Legislators & Members (200+)', 
       enabled: true,
-      allowedDomains: ['congress.gov', 'senate.gov', 'house.gov', 'govtrack.us'],
+      allowedDomains: ['goodable.dev', 'nysenate.gov', 'assembly.state.ny.us'],
+      credibilityTier: 1,
+      category: 'Legislative'
+    },
+    { 
+      id: 'committee-reports', 
+      label: 'Committee Reports & Data (80+)', 
+      enabled: true,
+      allowedDomains: getDomainFilter(),
       credibilityTier: 1,
       category: 'Legislative'
     },
@@ -85,14 +102,6 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
       allowedDomains: POLICY_RESEARCH_SOURCES.map(s => s.domain),
       credibilityTier: 1,
       category: 'Research'
-    },
-    { 
-      id: 'committee-reports', 
-      label: 'Committee Reports & Transcripts', 
-      enabled: true,
-      allowedDomains: getDomainFilter(),
-      credibilityTier: 1,
-      category: 'Legislative'
     }
   ]);
   
@@ -137,43 +146,80 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
           
           
         case 'sources':
-          // Multi-source search across enabled sources
+          // Comprehensive search across all enabled sources
           const promises = [];
           
+          // Bills search (18,000+ bills)
           if (sources.find(s => s.id === 'nys-bills')?.enabled) {
             promises.push(
               supabase
                 .from('Bills')
-                .select('bill_id, bill_number, title, sponsor')
-                .or(`title.ilike.%${query}%, bill_number.ilike.%${query}%`)
-                .limit(5)
+                .select('bill_id, bill_number, title, sponsor, status_desc, committee')
+                .or(`title.ilike.%${query}%, bill_number.ilike.%${query}%, sponsor.ilike.%${query}%, description.ilike.%${query}%`)
+                .limit(6)
             );
           }
           
+          // Members/Legislators search (200+ members)
+          promises.push(
+            supabase
+              .from('People')
+              .select('people_id, name, first_name, last_name, party, role, district, chamber')
+              .or(`name.ilike.%${query}%, first_name.ilike.%${query}%, last_name.ilike.%${query}%, role.ilike.%${query}%`)
+              .eq('archived', false)
+              .limit(4)
+          );
+          
+          // Committees search (80+ committees)  
           if (sources.find(s => s.id === 'committee-reports')?.enabled) {
             promises.push(
               supabase
                 .from('Committees')
-                .select('committee_id, name, description')
-                .ilike('name', `%${query}%`)
-                .limit(3)
+                .select('committee_id, committee_name, chamber, description, chair_name, member_count, active_bills_count')
+                .or(`committee_name.ilike.%${query}%, description.ilike.%${query}%, chair_name.ilike.%${query}%`)
+                .limit(4)
             );
           }
           
           const results = await Promise.all(promises);
           
           data = [
+            // Bills results
             ...(results[0]?.data || []).map((bill: any) => ({
               id: `bill-${bill.bill_id}`,
               text: bill.title,
               type: 'bill' as const,
-              metadata: { billNumber: bill.bill_number, sponsor: bill.sponsor }
+              metadata: { 
+                billNumber: bill.bill_number, 
+                sponsor: bill.sponsor,
+                status: bill.status_desc,
+                committee: bill.committee
+              }
             })),
-            ...(results[1]?.data || []).map((committee: any) => ({
+            // Members results
+            ...(results[1]?.data || []).map((member: any) => ({
+              id: `member-${member.people_id}`,
+              text: member.name,
+              type: 'member' as const,
+              metadata: { 
+                party: member.party,
+                role: member.role,
+                district: member.district,
+                chamber: member.chamber
+              }
+            })),
+            // Committees results
+            ...(results[2]?.data || []).map((committee: any) => ({
               id: `committee-${committee.committee_id}`,
-              text: committee.name,
+              text: committee.committee_name,
               type: 'committee' as const,
-              metadata: { description: committee.description }
+              metadata: { 
+                description: committee.description,
+                chair: committee.chair_name,
+                chamber: committee.chamber,
+                memberCount: committee.member_count,
+                activeBills: committee.active_bills_count
+              }
             }))
           ];
           break;
@@ -181,7 +227,7 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
       
       setSuggestions(data);
     } catch (error) {
-      console.error('Error fetching suggestions:', error);
+      // Error fetching suggestions - will show empty state
     } finally {
       setLoading(false);
     }
@@ -190,41 +236,81 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
   const fetchTrendingSuggestions = useCallback(async () => {
     setLoading(true);
     try {
-      // Get recent bills and popular searches
-      const { data: recentBills } = await supabase
-        .from('Bills')
-        .select('bill_id, bill_number, title, sponsor')
-        .order('last_action_date', { ascending: false })
-        .limit(8);
+      // Parallel fetch of trending content across all data types
+      const [billsResult, membersResult, committeesResult] = await Promise.all([
+        // Recent active bills
+        supabase
+          .from('Bills')
+          .select('bill_id, bill_number, title, sponsor, status_desc')
+          .order('last_action_date', { ascending: false })
+          .limit(5),
+        
+        // Active legislators  
+        supabase
+          .from('People')
+          .select('people_id, name, party, role, chamber')
+          .eq('archived', false)
+          .limit(4),
+          
+        // Active committees
+        supabase
+          .from('Committees')
+          .select('committee_id, committee_name, chair_name, active_bills_count')
+          .order('active_bills_count', { ascending: false })
+          .limit(3)
+      ]);
       
       const trendingQueries = [
-        'Healthcare reform impact analysis',
-        'Education funding allocation review',
-        'Infrastructure spending priorities',
-        'Climate change legislation status',
-        'Criminal justice reform updates'
+        'Healthcare reform legislation',
+        'Education budget allocation',
+        'Climate policy updates',
+        'Criminal justice reform'
       ];
       
       const suggestions = [
-        ...(recentBills || []).map((bill, index) => ({
-          id: `recent-bill-${bill.bill_id}`,
+        // Recent bills
+        ...(billsResult.data || []).map((bill: any) => ({
+          id: `trending-bill-${bill.bill_id}`,
           text: bill.title,
           type: 'bill' as const,
           metadata: {
             billNumber: bill.bill_number,
-            sponsor: bill.sponsor
+            sponsor: bill.sponsor,
+            status: bill.status_desc
           }
         })),
+        // Key legislators
+        ...(membersResult.data || []).map((member: any) => ({
+          id: `trending-member-${member.people_id}`,
+          text: member.name,
+          type: 'member' as const,
+          metadata: {
+            party: member.party,
+            role: member.role,
+            chamber: member.chamber
+          }
+        })),
+        // Active committees
+        ...(committeesResult.data || []).map((committee: any) => ({
+          id: `trending-committee-${committee.committee_id}`,
+          text: committee.committee_name,
+          type: 'committee' as const,
+          metadata: {
+            chair: committee.chair_name,
+            activeBills: committee.active_bills_count
+          }
+        })),
+        // Trending policy queries
         ...trendingQueries.map((query, index) => ({
-          id: `trending-${index}`,
+          id: `trending-policy-${index}`,
           text: query,
           type: 'policy' as const
         }))
       ];
       
-      setSuggestions(suggestions.slice(0, 12));
+      setSuggestions(suggestions.slice(0, 15));
     } catch (error) {
-      console.error('Error fetching trending suggestions:', error);
+      // Error fetching trending suggestions - show empty state
     } finally {
       setLoading(false);
     }
@@ -378,7 +464,7 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
                   onBlur={handleInputBlur}
                   onKeyDown={handleKeyDown}
                   placeholder={placeholder}
-                  className="h-14 pr-24 bg-transparent border-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground text-foreground text-lg font-medium"
+                  className="h-14 pr-20 bg-transparent border-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground text-foreground text-lg font-medium"
                   role="combobox"
                   aria-expanded={isOpen}
                   aria-autocomplete="list"
@@ -388,20 +474,9 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
                   }
                 />
                 
-                {/* Action buttons */}
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setUploadModalOpen(true)}
-                    className="h-8 px-3 border border-border hover:bg-accent hover:text-accent-foreground"
-                  >
-                    <Upload className="w-4 h-4 mr-1" />
-                    Upload
-                  </Button>
-                  
-                  {hasContent && (
+                {/* Submit button only */}
+                {hasContent && (
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
                     <Button
                       type="submit"
                       variant="default"
@@ -411,8 +486,8 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
                       <Brain className="w-4 h-4 mr-2" />
                       Think
                     </Button>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -424,22 +499,21 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
                   variant={activeTab === "bills" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setActiveTab("bills")}
-                  className="flex items-center gap-2"
+                  className="h-8"
                 >
-                  📄 Bills
+                  Bills
                 </Button>
                 <Button
                   type="button"
                   variant={activeTab === "sources" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setActiveTab("sources")}
-                  className="flex items-center gap-2 relative"
+                  className="flex items-center gap-2 h-8"
                 >
-                  📊 Sources
+                  Sources
                   <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
                     {enabledSourcesCount}
                   </Badge>
-                  <Shield className="w-3 h-3 text-green-600 ml-1" title="Credible sources only" />
                   <Button
                     type="button"
                     variant="ghost"
@@ -452,6 +526,16 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
                   >
                     <ChevronDown className={`w-3 h-3 transition-transform ${sourcesOpen ? 'rotate-180' : ''}`} />
                   </Button>
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setUploadModalOpen(true)}
+                  className="h-8 px-3"
+                >
+                  <Upload className="w-4 h-4 mr-1" />
+                  Upload
                 </Button>
               </div>
             </div>
@@ -549,7 +633,8 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
                           {suggestion.text}
                         </div>
                         {suggestion.metadata && (
-                          <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            {/* Bill metadata */}
                             {suggestion.metadata.billNumber && (
                               <Badge variant="outline" className="text-xs">
                                 {suggestion.metadata.billNumber}
@@ -559,6 +644,45 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
                               <span className="text-xs text-muted-foreground">
                                 Sponsor: {suggestion.metadata.sponsor}
                               </span>
+                            )}
+                            {suggestion.metadata.status && (
+                              <Badge variant="secondary" className="text-xs">
+                                {suggestion.metadata.status}
+                              </Badge>
+                            )}
+                            
+                            {/* Member metadata */}
+                            {suggestion.metadata.party && (
+                              <Badge variant="outline" className="text-xs">
+                                {suggestion.metadata.party}
+                              </Badge>
+                            )}
+                            {suggestion.metadata.role && (
+                              <span className="text-xs text-muted-foreground">
+                                {suggestion.metadata.role}
+                              </span>
+                            )}
+                            {suggestion.metadata.district && (
+                              <span className="text-xs text-muted-foreground">
+                                District {suggestion.metadata.district}
+                              </span>
+                            )}
+                            {suggestion.metadata.chamber && (
+                              <Badge variant="secondary" className="text-xs">
+                                {suggestion.metadata.chamber}
+                              </Badge>
+                            )}
+                            
+                            {/* Committee metadata */}
+                            {suggestion.metadata.chair && (
+                              <span className="text-xs text-muted-foreground">
+                                Chair: {suggestion.metadata.chair}
+                              </span>
+                            )}
+                            {suggestion.metadata.activeBills && (
+                              <Badge variant="outline" className="text-xs">
+                                {suggestion.metadata.activeBills} bills
+                              </Badge>
                             )}
                           </div>
                         )}
