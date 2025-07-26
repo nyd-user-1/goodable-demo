@@ -206,11 +206,14 @@ export const AutocompleteCombobox: React.FC<AutocompleteComboboxProps> = ({
       <div className="input-wrapper relative">
         <form onSubmit={handleSubmit}>
           <div 
-            className={`relative bg-card border transition-all duration-300 shadow-md min-h-[60px] sm:min-h-[80px] ${
+            className={`relative bg-card border shadow-md min-h-[60px] sm:min-h-[80px] ${
               isOpen 
                 ? 'rounded-t-2xl border-b-0 border-primary/50' 
                 : 'rounded-2xl border-border'
             } focus-within:border-primary/50`}
+            style={{
+              transition: 'border-color 300ms ease-in-out, border-radius 300ms ease-in-out, border-bottom-width 0ms'
+            }}
           >
             <div className="relative h-full">
               {/* Input field with established styling */}
