@@ -90,7 +90,6 @@ const Home = () => {
               <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">something good.</span>
             </h1>
 
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">Create change by chatting with ai -- and other people.</p>
 
             <div className="w-full mb-16 px-2 sm:px-4 lg:px-0">
               <AutocompleteCombobox
