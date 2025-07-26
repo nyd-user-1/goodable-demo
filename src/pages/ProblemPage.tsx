@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, TrendingUp, Users, Clock, Target, ExternalLink } from 'lucide-react';
 import { getProblemBySlug, getRelatedProblems, Problem } from '@/data/problems';
 import { StarRating } from '@/components/StarRating';
+import { ProblemCollabStream } from '@/components/features/problems/ProblemCollabStream';
 
 const ProblemPage: React.FC = () => {
   const { problemSlug } = useParams<{ problemSlug: string }>();
@@ -157,7 +158,7 @@ const ProblemPage: React.FC = () => {
                   Overview
                 </TabsTrigger>
                 <TabsTrigger value="solutions" className="h-10 rounded-md text-sm font-medium">
-                  Solutions
+                  Colab
                 </TabsTrigger>
                 <TabsTrigger value="statistics" className="h-10 rounded-md text-sm font-medium">
                   Statistics
@@ -193,38 +194,8 @@ const ProblemPage: React.FC = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="solutions" className="space-y-6">
-                <div className="grid gap-6">
-                  {problem.solutionsList.map((solution, index) => (
-                    <Card key={solution.id}>
-                      <CardHeader>
-                        <CardTitle className="flex items-center justify-between">
-                          {solution.title}
-                          <Badge variant="outline">{solution.id}</Badge>
-                        </CardTitle>
-                        <CardDescription>{solution.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium">Feasibility</span>
-                              <span className="text-sm text-muted-foreground">{solution.feasibility}/10</span>
-                            </div>
-                            <Progress value={solution.feasibility * 10} className="h-2" />
-                          </div>
-                          <div>
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium">Impact</span>
-                              <span className="text-sm text-muted-foreground">{solution.impact}/10</span>
-                            </div>
-                            <Progress value={solution.impact * 10} className="h-2" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+              <TabsContent value="solutions" className="mt-6">
+                <ProblemCollabStream problem={problem} />
               </TabsContent>
 
               <TabsContent value="statistics" className="space-y-6">

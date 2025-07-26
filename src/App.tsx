@@ -12,7 +12,6 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { ModelSelector } from "@/components/ModelSelector";
 import { HeartSidebarTrigger } from "@/components/HeartSidebarTrigger";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import StreamButton from "@/components/StreamButton";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import Landing from "./pages/Landing";
 import Landing2 from "./pages/Landing-2";
@@ -53,7 +52,6 @@ const AppLayout = () => {
             <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background/80 backdrop-blur-md backdrop-saturate-150 supports-[backdrop-filter]:bg-background/60">
               <HeartSidebarTrigger />
               <div className="ml-auto flex items-center gap-2">
-                <StreamButton />
                 <ThemeToggle />
                 <ModelSelector 
                   selectedModel={selectedModel}
