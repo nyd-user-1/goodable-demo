@@ -32,6 +32,8 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, Dr
 import { Calendar } from '@/components/ui/calendar';
 import { 
   Calendar as CalendarIcon,
+  Check,
+  ChevronsUpDown,
   Settings,
   User,
   Mail,
@@ -74,6 +76,15 @@ const ShadcnShowcase = () => {
     from: Date | undefined;
     to: Date | undefined;
   }>({ from: undefined, to: undefined });
+  
+  // Combobox states
+  const [frameworkOpen, setFrameworkOpen] = useState(false);
+  const [frameworkValue, setFrameworkValue] = useState("");
+  const [languageOpen, setLanguageOpen] = useState(false);
+  const [languageValue, setLanguageValue] = useState("");
+  const [statusOpen, setStatusOpen] = useState(false);
+  const [statusValue, setStatusValue] = useState("");
+  
   const { toast } = useToast();
 
   const showToast = () => {
@@ -82,6 +93,37 @@ const ShadcnShowcase = () => {
       description: "This is a sample toast notification!",
     });
   };
+
+  // Combobox data
+  const frameworks = [
+    { value: "next.js", label: "Next.js" },
+    { value: "sveltekit", label: "SvelteKit" },
+    { value: "nuxt.js", label: "Nuxt.js" },
+    { value: "remix", label: "Remix" },
+    { value: "astro", label: "Astro" },
+    { value: "vite", label: "Vite" },
+    { value: "react", label: "React" },
+    { value: "vue", label: "Vue.js" },
+  ];
+
+  const languages = [
+    { value: "javascript", label: "JavaScript" },
+    { value: "typescript", label: "TypeScript" },
+    { value: "python", label: "Python" },
+    { value: "java", label: "Java" },
+    { value: "csharp", label: "C#" },
+    { value: "go", label: "Go" },
+    { value: "rust", label: "Rust" },
+    { value: "php", label: "PHP" },
+  ];
+
+  const statuses = [
+    { value: "backlog", label: "Backlog" },
+    { value: "todo", label: "Todo" },
+    { value: "in-progress", label: "In Progress" },
+    { value: "done", label: "Done" },
+    { value: "canceled", label: "Canceled" },
+  ];
 
   return (
     <TooltipProvider>
@@ -711,6 +753,461 @@ const [date, setDate] = React.useState<Date | undefined>(new Date())
   onSelect={setDate}
   className="rounded-lg border"
 />`}
+                    </code>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Combobox Components */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Combobox & Autocomplete</CardTitle>
+              <CardDescription>Searchable dropdown components with filtering</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Basic Combobox */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Framework Selector</h4>
+                <div className="flex flex-col lg:flex-row gap-6">
+                  <div className="flex-1">
+                    <Popover open={frameworkOpen} onOpenChange={setFrameworkOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={frameworkOpen}
+                          className="w-[280px] justify-between"
+                        >
+                          {frameworkValue
+                            ? frameworks.find((framework) => framework.value === frameworkValue)?.label
+                            : "Select framework..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[280px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Search framework..." />
+                          <CommandList>
+                            <CommandEmpty>No framework found.</CommandEmpty>
+                            <CommandGroup>
+                              {frameworks.map((framework) => (
+                                <CommandItem
+                                  key={framework.value}
+                                  value={framework.value}
+                                  onSelect={(currentValue) => {
+                                    setFrameworkValue(currentValue === frameworkValue ? "" : currentValue);
+                                    setFrameworkOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      frameworkValue === framework.value ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {framework.label}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <p className="text-sm font-medium">Selected Framework:</p>
+                    <p className="text-sm text-muted-foreground">
+                      {frameworkValue 
+                        ? frameworks.find(f => f.value === frameworkValue)?.label 
+                        : "No framework selected"}
+                    </p>
+                    <Button 
+                      size="sm" 
+                      onClick={() => setFrameworkValue("")}
+                      variant="outline"
+                      disabled={!frameworkValue}
+                    >
+                      Clear Selection
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Language Selector */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Programming Language</h4>
+                <div className="flex flex-col lg:flex-row gap-6">
+                  <div className="flex-1">
+                    <Popover open={languageOpen} onOpenChange={setLanguageOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={languageOpen}
+                          className="w-[280px] justify-between"
+                        >
+                          {languageValue
+                            ? languages.find((language) => language.value === languageValue)?.label
+                            : "Select language..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[280px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Search language..." />
+                          <CommandList>
+                            <CommandEmpty>No language found.</CommandEmpty>
+                            <CommandGroup>
+                              {languages.map((language) => (
+                                <CommandItem
+                                  key={language.value}
+                                  value={language.value}
+                                  onSelect={(currentValue) => {
+                                    setLanguageValue(currentValue === languageValue ? "" : currentValue);
+                                    setLanguageOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      languageValue === language.value ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {language.label}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <p className="text-sm font-medium">Selected Language:</p>
+                    <p className="text-sm text-muted-foreground">
+                      {languageValue 
+                        ? languages.find(l => l.value === languageValue)?.label 
+                        : "No language selected"}
+                    </p>
+                    <Button 
+                      size="sm" 
+                      onClick={() => setLanguageValue("")}
+                      variant="outline"
+                      disabled={!languageValue}
+                    >
+                      Clear Selection
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Status Combobox with Colors */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Status Selector</h4>
+                <div className="flex flex-col lg:flex-row gap-6">
+                  <div className="flex-1">
+                    <Popover open={statusOpen} onOpenChange={setStatusOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={statusOpen}
+                          className="w-[280px] justify-between"
+                        >
+                          {statusValue ? (
+                            <div className="flex items-center">
+                              <div className={cn(
+                                "w-2 h-2 rounded-full mr-2",
+                                statusValue === "backlog" && "bg-gray-500",
+                                statusValue === "todo" && "bg-blue-500",
+                                statusValue === "in-progress" && "bg-yellow-500",
+                                statusValue === "done" && "bg-green-500",
+                                statusValue === "canceled" && "bg-red-500"
+                              )} />
+                              {statuses.find((status) => status.value === statusValue)?.label}
+                            </div>
+                          ) : (
+                            "Select status..."
+                          )}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[280px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Search status..." />
+                          <CommandList>
+                            <CommandEmpty>No status found.</CommandEmpty>
+                            <CommandGroup>
+                              {statuses.map((status) => (
+                                <CommandItem
+                                  key={status.value}
+                                  value={status.value}
+                                  onSelect={(currentValue) => {
+                                    setStatusValue(currentValue === statusValue ? "" : currentValue);
+                                    setStatusOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      statusValue === status.value ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  <div className={cn(
+                                    "w-2 h-2 rounded-full mr-2",
+                                    status.value === "backlog" && "bg-gray-500",
+                                    status.value === "todo" && "bg-blue-500",
+                                    status.value === "in-progress" && "bg-yellow-500",
+                                    status.value === "done" && "bg-green-500",
+                                    status.value === "canceled" && "bg-red-500"
+                                  )} />
+                                  {status.label}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <p className="text-sm font-medium">Selected Status:</p>
+                    <div className="flex items-center gap-2">
+                      {statusValue && (
+                        <div className={cn(
+                          "w-2 h-2 rounded-full",
+                          statusValue === "backlog" && "bg-gray-500",
+                          statusValue === "todo" && "bg-blue-500",
+                          statusValue === "in-progress" && "bg-yellow-500",
+                          statusValue === "done" && "bg-green-500",
+                          statusValue === "canceled" && "bg-red-500"
+                        )} />
+                      )}
+                      <p className="text-sm text-muted-foreground">
+                        {statusValue 
+                          ? statuses.find(s => s.value === statusValue)?.label 
+                          : "No status selected"}
+                      </p>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      onClick={() => setStatusValue("")}
+                      variant="outline"
+                      disabled={!statusValue}
+                    >
+                      Clear Selection
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Multiple Comboboxes in Form */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Form with Multiple Comboboxes</h4>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Framework</label>
+                    <Popover open={frameworkOpen} onOpenChange={setFrameworkOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={frameworkOpen}
+                          className="w-full justify-between"
+                        >
+                          {frameworkValue
+                            ? frameworks.find((framework) => framework.value === frameworkValue)?.label
+                            : "Select..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0">
+                        <Command>
+                          <CommandInput placeholder="Search..." />
+                          <CommandList>
+                            <CommandEmpty>No option found.</CommandEmpty>
+                            <CommandGroup>
+                              {frameworks.map((framework) => (
+                                <CommandItem
+                                  key={framework.value}
+                                  value={framework.value}
+                                  onSelect={(currentValue) => {
+                                    setFrameworkValue(currentValue === frameworkValue ? "" : currentValue);
+                                    setFrameworkOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      frameworkValue === framework.value ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {framework.label}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Language</label>
+                    <Popover open={languageOpen} onOpenChange={setLanguageOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={languageOpen}
+                          className="w-full justify-between"
+                        >
+                          {languageValue
+                            ? languages.find((language) => language.value === languageValue)?.label
+                            : "Select..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0">
+                        <Command>
+                          <CommandInput placeholder="Search..." />
+                          <CommandList>
+                            <CommandEmpty>No option found.</CommandEmpty>
+                            <CommandGroup>
+                              {languages.map((language) => (
+                                <CommandItem
+                                  key={language.value}
+                                  value={language.value}
+                                  onSelect={(currentValue) => {
+                                    setLanguageValue(currentValue === languageValue ? "" : currentValue);
+                                    setLanguageOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      languageValue === language.value ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {language.label}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Status</label>
+                    <Popover open={statusOpen} onOpenChange={setStatusOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={statusOpen}
+                          className="w-full justify-between"
+                        >
+                          {statusValue
+                            ? statuses.find((status) => status.value === statusValue)?.label
+                            : "Select..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0">
+                        <Command>
+                          <CommandInput placeholder="Search..." />
+                          <CommandList>
+                            <CommandEmpty>No option found.</CommandEmpty>
+                            <CommandGroup>
+                              {statuses.map((status) => (
+                                <CommandItem
+                                  key={status.value}
+                                  value={status.value}
+                                  onSelect={(currentValue) => {
+                                    setStatusValue(currentValue === statusValue ? "" : currentValue);
+                                    setStatusOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      statusValue === status.value ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {status.label}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => {
+                    toast({
+                      title: "Form Submitted!",
+                      description: `Framework: ${frameworkValue || "None"}, Language: ${languageValue || "None"}, Status: ${statusValue || "None"}`,
+                    });
+                  }}
+                  className="w-full md:w-auto"
+                >
+                  Submit Form
+                </Button>
+              </div>
+
+              <Separator />
+
+              {/* Implementation Examples */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Implementation Examples</h4>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <div className="text-sm space-y-2">
+                    <p className="font-medium">Basic Combobox Usage:</p>
+                    <code className="block bg-background p-2 rounded text-xs">
+{`import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Button } from "@/components/ui/button"
+import { Check, ChevronsUpDown } from "lucide-react"
+
+const [open, setOpen] = React.useState(false)
+const [value, setValue] = React.useState("")
+
+<Popover open={open} onOpenChange={setOpen}>
+  <PopoverTrigger asChild>
+    <Button variant="outline" role="combobox" aria-expanded={open}>
+      {value ? options.find(opt => opt.value === value)?.label : "Select..."}
+      <ChevronsUpDown className="ml-2 h-4 w-4" />
+    </Button>
+  </PopoverTrigger>
+  <PopoverContent>
+    <Command>
+      <CommandInput placeholder="Search..." />
+      <CommandList>
+        <CommandEmpty>No option found.</CommandEmpty>
+        <CommandGroup>
+          {options.map((option) => (
+            <CommandItem key={option.value} value={option.value}>
+              <Check className={value === option.value ? "opacity-100" : "opacity-0"} />
+              {option.label}
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      </CommandList>
+    </Command>
+  </PopoverContent>
+</Popover>`}
                     </code>
                   </div>
                 </div>
