@@ -40,6 +40,7 @@ import { ChartBarEngagement } from '@/components/charts/ChartBarEngagement';
 import { ChartPieBillStatus } from '@/components/charts/ChartPieBillStatus';
 import { ChartLinePolicyImpact } from '@/components/charts/ChartLinePolicyImpact';
 import { ProblemsBentoGrid } from '@/components/features/problems';
+import FAQ from '@/components/FAQ';
 import '@/components/magicui/animated-background.css';
 
 interface Member {
@@ -687,6 +688,9 @@ const Landing2 = () => {
           </div>
         </div>
       </section>
+
+      {/* FAQ Section */}
+      <FAQ />
 
       {/* Pricing */}
       <section className="py-12 sm:py-20 px-4 sm:px-6">
