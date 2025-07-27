@@ -32,7 +32,6 @@ const bottomNavItems = [
   { title: "Style Guide", url: "/style-guide", icon: Palette, adminOnly: true },
   { title: "Admin", url: "/admin", icon: Shield, adminOnly: true },
   { title: "Profile", url: "/profile", icon: User },
-  { title: "Settings", url: "/settings", icon: Settings, adminOnly: true },
   { title: "Change Log", url: "/changelog", icon: History },
 ];
 
