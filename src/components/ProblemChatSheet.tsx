@@ -207,6 +207,7 @@ export const ProblemChatSheet = ({ open, onOpenChange, userProblem }: ProblemCha
       generateDynamicTitle(generatedText, sessionData.id);
 
     } catch (error) {
+      console.error('Error in startStreaming:', error);
       setIsStreaming(false);
       
       // If we have a session but failed to update it, try to clean up
@@ -217,14 +218,18 @@ export const ProblemChatSheet = ({ open, onOpenChange, userProblem }: ProblemCha
             'Error generating problem statement. Please try again.'
           );
         } catch (cleanupError) {
+          console.error('Cleanup error:', cleanupError);
         }
       }
       
-      toast({
-        title: "Error",
-        description: "Failed to generate problem statement. Please try again.",
-        variant: "destructive",
-      });
+      // Only show error toast if we actually failed to generate content
+      if (!aiProblemStatement && !streamingRef.current) {
+        toast({
+          title: "Error",
+          description: "Failed to generate problem statement. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -353,6 +358,11 @@ export const ProblemChatSheet = ({ open, onOpenChange, userProblem }: ProblemCha
       }
 
     } catch (error) {
+      console.error('Error in sendMessage:', error);
+      
+      // Remove the failed user message from the UI
+      setMessages(messages);
+      
       toast({
         title: "Error", 
         description: "Failed to send message. Please try again.",
