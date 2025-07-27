@@ -41,6 +41,7 @@ import { ChartPieBillStatus } from '@/components/charts/ChartPieBillStatus';
 import { ChartLinePolicyImpact } from '@/components/charts/ChartLinePolicyImpact';
 import { ProblemsBentoGrid } from '@/components/features/problems';
 import FAQ from '@/components/FAQ';
+import HorizontalBlogCarousel from '@/components/HorizontalBlogCarousel';
 import '@/components/magicui/animated-background.css';
 
 interface Member {
@@ -688,6 +689,9 @@ const Landing2 = () => {
           </div>
         </div>
       </section>
+
+      {/* Blog Carousel Section */}
+      <HorizontalBlogCarousel />
 
       {/* FAQ Section */}
       <FAQ />
