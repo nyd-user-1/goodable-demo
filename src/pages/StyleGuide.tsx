@@ -35,7 +35,7 @@ const PlaceholderImage: React.FC<{
   size?: 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'default' | 'rounded' | 'circle';
 }> = ({ className = '', size = 'md', variant = 'default' }) => {
-  const { asset: placeholderAsset } = useAsset('goodable-heart-terrarium');
+  const { asset: placeholderAsset } = useAsset('goodable-night');
   
   const sizeClasses = {
     sm: 'w-16 h-16',
@@ -64,7 +64,7 @@ const PlaceholderImage: React.FC<{
       {placeholderAsset ? (
         <img 
           src={placeholderUrl} 
-          alt="Goodable heart terrarium - site placeholder" 
+          alt="Goodable site placeholder" 
           className="w-full h-full object-cover"
         />
       ) : (

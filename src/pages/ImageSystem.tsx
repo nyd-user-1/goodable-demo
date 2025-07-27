@@ -23,7 +23,7 @@ const PlaceholderImage: React.FC<{
   size?: 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'default' | 'rounded' | 'circle';
 }> = ({ className = '', size = 'md', variant = 'default' }) => {
-  const { asset: placeholderAsset } = useAsset('goodable-heart-terrarium');
+  const { asset: placeholderAsset } = useAsset('goodable-night');
   
   const sizeClasses = {
     sm: 'w-16 h-16',
@@ -52,7 +52,7 @@ const PlaceholderImage: React.FC<{
       {placeholderAsset ? (
         <img 
           src={placeholderUrl} 
-          alt="Goodable heart terrarium - site placeholder" 
+          alt="Goodable site placeholder" 
           className="w-full h-full object-cover"
         />
       ) : (
@@ -65,34 +65,34 @@ const PlaceholderImage: React.FC<{
   );
 };
 
-// All images from public directory
+// All images from public directory (actual files)
 const publicAssets = [
+  'OAI LOGO.png',
+  'PPLX LOGO.png',
+  'alt-ai-small-button.png',
+  'apple-touch-icon.png',
+  'claude-ai-icon-65aa.png',
+  'gdble-beach.jpg',
+  'gdble-mtn-2.avif',
+  'gdble-mtn-3.jpg',
+  'goodable 15.avif',
+  'goodable 15.png',
+  'goodable 4.avif',
+  'goodable pwa.jpg',
+  'goodable-botanical.avif',
+  'goodable-dandelion.avif',
+  'goodable-dream-state.avif',
+  'goodable-heart-pwa.png',
+  'goodable-heart.avif',
+  'goodable-mtn-1.avif',
   'goodable-night.avif',
-  'goodable-day.avif',
-  'goodable-heart-terrarium.png',
-  'goodable-loading.gif',
-  'ai-content-disclaimer.png',
-  'bills-pdf-icon.svg',
-  'goodable-bills-pdf-icon.svg',
-  'goodable-calendar-icon.svg',
-  'goodable-chart-icon.svg',
-  'goodable-clock-icon.svg',
-  'goodable-file-icon.svg',
-  'goodable-folder-icon.svg',
-  'goodable-heart-icon.svg',
-  'goodable-home-icon.svg',
-  'goodable-key-icon.svg',
-  'goodable-lightning-icon.svg',
-  'goodable-map-icon.svg',
-  'goodable-message-icon.svg',
-  'goodable-phone-icon.svg',
-  'goodable-plus-icon.svg',
-  'goodable-question-icon.svg',
-  'goodable-search-icon.svg',
-  'goodable-settings-icon.svg',
-  'goodable-star-icon.svg',
-  'goodable-user-icon.svg',
-  'goodable-window-icon.svg'
+  'goodable-path-2.avif',
+  'goodable-path.avif',
+  'goodable-text.jpg',
+  'heart-icon-192x192.png',
+  'heart-icon-512x512.png',
+  'legislative research.png',
+  'placeholder.svg'
 ];
 
 const ImageSystem = () => {
@@ -247,29 +247,34 @@ const ImageSystem = () => {
                     <Card key={asset} className="p-4">
                       <div className="aspect-square w-full mb-4 rounded-lg border overflow-hidden bg-muted flex items-center justify-center">
                         <img 
-                          src={`/${asset}`} 
+                          src={`/${encodeURIComponent(asset)}`} 
                           alt={asset}
                           className="w-full h-full object-contain"
                           onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                            e.currentTarget.nextElementSibling!.classList.remove('hidden');
+                            const target = e.currentTarget;
+                            target.style.display = 'none';
+                            const fallback = target.nextElementSibling as HTMLElement;
+                            if (fallback) {
+                              fallback.classList.remove('hidden');
+                              fallback.classList.add('flex');
+                            }
                           }}
                         />
                         <div className="hidden flex-col items-center justify-center text-muted-foreground">
                           <Image className="w-8 h-8 mb-2" />
-                          <span className="text-xs">Asset</span>
+                          <span className="text-xs">{asset.split('.')[0]}</span>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <h5 className="font-medium text-sm truncate">{asset}</h5>
                         <div className="flex items-center justify-between">
                           <code className="text-xs bg-muted px-2 py-1 rounded">
-                            /{asset}
+                            /{encodeURIComponent(asset)}
                           </code>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => copyToClipboard(`/${asset}`, asset)}
+                            onClick={() => copyToClipboard(`/${encodeURIComponent(asset)}`, asset)}
                             className="p-1"
                           >
                             {copiedItem === asset ? (
