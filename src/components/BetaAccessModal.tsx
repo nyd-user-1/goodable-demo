@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface BetaAccessModalProps {
   open?: boolean;
@@ -16,13 +17,14 @@ interface BetaAccessModalProps {
 
 export function BetaAccessModal({ open, onOpenChange }: BetaAccessModalProps) {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    // Check if modal has been shown in this session
+    // Check if modal has been shown in this session or if user is admin
     const hasShownModal = sessionStorage.getItem('betaAccessModalShown');
     
-    if (!hasShownModal) {
+    if (!hasShownModal && !isAdmin) {
       // Show modal after a short delay to ensure smooth page load
       const timer = setTimeout(() => {
         setIsOpen(true);
@@ -31,7 +33,7 @@ export function BetaAccessModal({ open, onOpenChange }: BetaAccessModalProps) {
       
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [isAdmin]);
 
   const handleOpenChange = (newOpen: boolean) => {
     setIsOpen(newOpen);
