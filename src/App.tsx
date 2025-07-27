@@ -18,6 +18,7 @@ import Landing2 from "./pages/Landing-2";
 import Home from "./pages/Home";
 import Index from "./pages/Index";
 import { Auth } from "./pages/Auth";
+import Auth2 from "./pages/Auth2";
 import Profile from "./pages/Profile";
 import Bills from "./pages/Bills";
 import Members from "./pages/Members";
@@ -106,6 +107,7 @@ const App = () => {
                 <Route path="/" element={<Landing2 />} />
                 <Route path="/alt" element={<Landing />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/auth-2" element={<Auth2 />} />
                 <Route path="*" element={<AppLayout />} />
               </Routes>
             </BrowserRouter>
