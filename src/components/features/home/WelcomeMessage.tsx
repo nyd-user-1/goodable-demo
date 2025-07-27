@@ -140,14 +140,11 @@ export const WelcomeMessage = () => {
   }, [user?.id, profile]);
 
 
-  // Handle loading state - show skeleton while auth is loading or briefly after user loads
+  // Handle loading state - minimize skeleton showing time
   useEffect(() => {
     if (!authLoading && user) {
-      // Add a small delay for smooth transition effect
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-      }, 800);
-      return () => clearTimeout(timer);
+      // Immediately set loading to false to show typing animation
+      setIsLoading(false);
     } else if (!authLoading && !user) {
       setIsLoading(false);
     }
@@ -187,6 +184,7 @@ export const WelcomeMessage = () => {
       let index = 0;
       setDisplayedUsername('');
       
+      // Start typing animation immediately
       const typingInterval = setInterval(() => {
         if (index <= username.length) {
           setDisplayedUsername(username.slice(0, index));
