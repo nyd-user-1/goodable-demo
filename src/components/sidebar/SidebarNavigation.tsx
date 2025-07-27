@@ -1,4 +1,4 @@
-import { Search, Settings, User, FileText, Lightbulb, BarChart3, Users, Building2, TrendingUp, MessageSquare, Heart, CreditCard, History, Gamepad2, Factory, Target, Star, ScrollText, Palette, Shield, Lock, Rss } from "lucide-react";
+import { Search, Settings, User, FileText, Lightbulb, BarChart3, Users, Building2, TrendingUp, MessageSquare, Heart, CreditCard, History, Gamepad2, Factory, Target, Star, ScrollText, Palette, Shield, Lock, Rss, Home } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -9,7 +9,8 @@ import { NavigationItem } from "./NavigationItem";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useAuth } from "@/contexts/AuthContext";
 
-const researchNavItems = [
+const navigateNavItems = [
+  { title: "Home", url: "/home", icon: Home },
   { title: "Intelligence", url: "/dashboard", icon: TrendingUp },
   { title: "Feed", url: "/feed", icon: Rss, adminOnly: true },
   { title: "Members", url: "/members", icon: Users },
@@ -47,13 +48,13 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
 
   return (
     <>
-      {/* Research Navigation - Hidden when searching */}
+      {/* Navigate Navigation - Hidden when searching */}
       {!hasSearchResults && (
         <SidebarGroup>
-          <SidebarGroupLabel>Research</SidebarGroupLabel>
+          <SidebarGroupLabel>Navigate</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {researchNavItems
+              {navigateNavItems
                 .filter(item => !item.adminOnly || isAdmin)
                 .map((item) => (
                   <NavigationItem

@@ -8,7 +8,7 @@ export function SidebarHeader() {
   return (
     <div className="flex items-center">
       {!collapsed && (
-        <NavLink to="/" className="hover:text-muted-foreground transition-colors">
+        <NavLink to="/home" className="hover:text-muted-foreground transition-colors">
           <h1 className="text-lg font-bold text-foreground">Goodable</h1>
         </NavLink>
       )}
