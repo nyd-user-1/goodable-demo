@@ -7,7 +7,35 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Bot, Zap, Search, Brain, Globe, Sparkles } from "lucide-react";
+import { ChevronDown, Bot, Sparkles } from "lucide-react";
+
+// Custom icon components for each provider
+const OpenAIIcon = ({ className }: { className?: string }) => (
+  <img 
+    src="/OAI LOGO.png" 
+    alt="OpenAI"
+    className={`object-contain ${className}`}
+    style={{ maxWidth: '12px', maxHeight: '12px', width: 'auto', height: 'auto' }}
+  />
+);
+
+const ClaudeIcon = ({ className }: { className?: string }) => (
+  <img 
+    src="/claude-ai-icon-65aa.png" 
+    alt="Claude"
+    className={`object-contain ${className}`}
+    style={{ maxWidth: '12px', maxHeight: '12px', width: 'auto', height: 'auto' }}
+  />
+);
+
+const PerplexityIcon = ({ className }: { className?: string }) => (
+  <img 
+    src="/PPLX LOGO.png" 
+    alt="Perplexity"
+    className={`object-contain ${className}`}
+    style={{ maxWidth: '12px', maxHeight: '12px', width: 'auto', height: 'auto' }}
+  />
+);
 
 export type ModelProvider = "openai" | "anthropic" | "perplexity";
 export type ModelType = "gpt-4o-mini" | "gpt-4o" | "claude-3-5-sonnet-20241022" | "claude-3-5-haiku-20241022" | "llama-3.1-sonar-small-128k-online" | "llama-3.1-sonar-large-128k-online";
@@ -17,10 +45,10 @@ interface ModelSelectorProps {
   onModelChange: (model: ModelType) => void;
 }
 
-const models: Record<ModelProvider, { name: string; icon: any; color: string; models: { id: ModelType; name: string; description: string }[] }> = {
+const models: Record<ModelProvider, { name: string; icon: React.ComponentType<{ className?: string }>; color: string; models: { id: ModelType; name: string; description: string }[] }> = {
   openai: {
     name: "OpenAI",
-    icon: Zap,
+    icon: OpenAIIcon,
     color: "text-green-600",
     models: [
       { id: "gpt-4o", name: "GPT-4o", description: "Most capable model" },
@@ -29,7 +57,7 @@ const models: Record<ModelProvider, { name: string; icon: any; color: string; mo
   },
   anthropic: {
     name: "Anthropic",
-    icon: Brain,
+    icon: ClaudeIcon,
     color: "text-orange-600",
     models: [
       { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet", description: "Most intelligent model" },
@@ -38,7 +66,7 @@ const models: Record<ModelProvider, { name: string; icon: any; color: string; mo
   },
   perplexity: {
     name: "Perplexity",
-    icon: Globe,
+    icon: PerplexityIcon,
     color: "text-blue-600",
     models: [
       { id: "llama-3.1-sonar-large-128k-online", name: "Sonar Large", description: "Large model with web access" },
@@ -80,8 +108,8 @@ export const ModelSelector = ({ selectedModel, onModelChange }: ModelSelectorPro
                 >
                   <div className="flex items-start space-x-3 w-full">
                     <div className="flex-shrink-0 mt-0.5">
-                      <div className={`w-6 h-6 ${provider.color === 'text-green-600' ? 'bg-green-100' : provider.color === 'text-orange-600' ? 'bg-orange-100' : 'bg-blue-100'} rounded-full flex items-center justify-center`}>
-                        <Icon className={`h-3 w-3 ${provider.color}`} />
+                      <div className="w-6 h-6 bg-muted/50 rounded-full flex items-center justify-center">
+                        <Icon className="h-3 w-3" />
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Copy } from "lucide-react";
 import { ChatInput } from "@/components/features/chat/ChatInput";
+import { MorphingHeartLoader } from "@/components/ui/MorphingHeartLoader";
 import { generateProblemFromScenario } from "@/utils/problemStatementHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,7 +33,7 @@ export const ProblemChatSheet = ({ open, onOpenChange, userProblem }: ProblemCha
   const [isStreaming, setIsStreaming] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [suggestedPrompts, setSuggestedPrompts] = useState<string[]>([]);
-  const [chatTitle, setChatTitle] = useState('Problem 1');
+  const [chatTitle, setChatTitle] = useState('Problem Statement');
   const [chatSessionId, setChatSessionId] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -63,10 +64,22 @@ export const ProblemChatSheet = ({ open, onOpenChange, userProblem }: ProblemCha
     }
   };
 
-  // Start streaming when sheet opens
+  // Start streaming when sheet opens and cleanup when closed
   useEffect(() => {
     if (open && userProblem && !isStreaming && !aiProblemStatement) {
       startStreaming();
+    } else if (!open) {
+      // Reset state when sheet closes
+      setAiProblemStatement('');
+      setIsStreaming(false);
+      setIsComplete(false);
+      setSuggestedPrompts([]);
+      setChatTitle('Problem Statement');
+      setChatSessionId(null);
+      setInputValue('');
+      setMessages([]);
+      setIsLoading(false);
+      streamingRef.current = '';
     }
   }, [open, userProblem]);
 
@@ -257,16 +270,20 @@ export const ProblemChatSheet = ({ open, onOpenChange, userProblem }: ProblemCha
         
         // Clean markdown from title
         const cleanTitle = rawTitle.replace(/\*\*/g, '').replace(/\*/g, '').replace(/^#+\s*/g, '').trim();
-        setChatTitle(cleanTitle);
+        
+        // Only update if we got a meaningful title (more than just the fallback)
+        if (cleanTitle && cleanTitle !== 'Problem Statement' && cleanTitle.length > 0) {
+          setChatTitle(cleanTitle);
 
-        // Update the database with the clean title
-        if (sessionId) {
-          try {
-            await supabase
-              .from('problem_chats')
-              .update({ title: cleanTitle })
-              .eq('id', sessionId);
-          } catch (titleError) {
+          // Update the database with the clean title
+          if (sessionId) {
+            try {
+              await supabase
+                .from('problem_chats')
+                .update({ title: cleanTitle })
+                .eq('id', sessionId);
+            } catch (titleError) {
+            }
           }
         }
       }
@@ -397,18 +414,38 @@ Remember: You're not just answering questions - you're actively partnering with 
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-2xl flex flex-col h-full">
         <SheetHeader className="flex-shrink-0">
-          <SheetTitle>Problem Statement</SheetTitle>
+          <SheetTitle>{chatTitle}</SheetTitle>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-4 py-4">
+        <div className="flex-1 overflow-y-auto space-y-4 py-4 px-6">
+          {/* Initial loading animation for first generation */}
+          {isStreaming && messages.length === 0 && (
+            <div className="space-y-2">
+              <div className="flex justify-start">
+                <div className="w-full rounded-lg p-3 bg-muted flex items-center gap-3" style={{ marginLeft: '1rem', marginRight: '1rem' }}>
+                  <div className="flex items-center justify-center">
+                    <MorphingHeartLoader size={20} className="text-red-500" />
+                  </div>
+                  <span className="text-sm text-muted-foreground">Searching my heart</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Display all messages */}
           {messages.map((message) => (
             <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`rounded-lg px-4 py-3 max-w-[90%] ${
+              <div className={`rounded-lg px-4 py-3 ${
                 message.role === 'user' 
                   ? 'bg-primary text-primary-foreground' 
                   : 'bg-muted relative'
-              }`}>
+              }`}
+              style={{ 
+                width: 'calc(100% - 2rem)', 
+                marginLeft: '1rem', 
+                marginRight: '1rem',
+                maxWidth: 'calc(100% - 2rem)' 
+              }}>
                 {message.role === 'assistant' ? (
                   <div className="prose prose-sm max-w-none break-words overflow-wrap-anywhere">
                     <ReactMarkdown>{message.content}</ReactMarkdown>
@@ -431,11 +468,16 @@ Remember: You're not just answering questions - you're actively partnering with 
             </div>
           ))}
 
-          {/* Loading indicator for new messages */}
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-muted rounded-lg px-4 py-3 max-w-[90%]">
-                <div className="text-muted-foreground">Generating response...</div>
+          {/* Loading indicator for follow-up messages */}
+          {isLoading && !isStreaming && (
+            <div className="space-y-2">
+              <div className="flex justify-start">
+                <div className="w-full rounded-lg p-3 bg-muted flex items-center gap-3" style={{ marginLeft: '1rem', marginRight: '1rem' }}>
+                  <div className="flex items-center justify-center">
+                    <MorphingHeartLoader size={20} className="text-red-500" />
+                  </div>
+                  <span className="text-sm text-muted-foreground">Searching my heart</span>
+                </div>
               </div>
             </div>
           )}
