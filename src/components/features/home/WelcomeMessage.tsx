@@ -96,9 +96,25 @@ export const WelcomeMessage = () => {
           }
         }
 
-        // Auto-mark bills section visit based on current location
-        if (window.location.pathname === '/bills') {
+        // Auto-mark section visits based on current location
+        const currentPath = window.location.pathname;
+        if (currentPath === '/bills') {
           setUserProgress(prev => ({ ...prev, visit_bills: true }));
+        }
+        if (currentPath === '/members') {
+          setUserProgress(prev => ({ ...prev, visit_members: true }));
+        }
+        if (currentPath === '/feed') {
+          setUserProgress(prev => ({ ...prev, visit_intel: true }));
+        }
+        if (currentPath === '/challenges') {
+          setUserProgress(prev => ({ ...prev, explore_challenges: true }));
+        }
+        if (currentPath === '/solutions') {
+          setUserProgress(prev => ({ ...prev, explore_solutions: true }));
+        }
+        if (currentPath === '/chats' || currentPath === '/playground') {
+          setUserProgress(prev => ({ ...prev, try_chat: true }));
         }
 
       } catch (error) {
@@ -136,11 +152,13 @@ export const WelcomeMessage = () => {
 
   const gettingStartedTasks: GettingStartedTask[] = [
     { id: '1', text: 'Complete your profile information', completed: userProgress['profile'] || false, hasLink: true },
-    { id: '2', text: 'Upload and analyze a legislative document', completed: userProgress['upload'] || false, hasLink: true },
-    { id: '3', text: 'Track your first bill', completed: userProgress['track_bill'] || false, hasLink: true },
-    { id: '4', text: 'Visit the Bills section', completed: userProgress['visit_bills'] || false, hasLink: true },
-    { id: '5', text: 'Explore a member profile', completed: userProgress['member_profile'] || false, hasLink: true },
-    { id: '6', text: 'Create your first watchlist', completed: userProgress['watchlist'] || false, hasLink: true }
+    { id: '2', text: 'Visit the Intel Section', completed: userProgress['visit_intel'] || false, hasLink: true },
+    { id: '3', text: 'Visit the Bills section', completed: userProgress['visit_bills'] || false, hasLink: true },
+    { id: '4', text: 'Visit the Members section', completed: userProgress['visit_members'] || false, hasLink: true },
+    { id: '5', text: 'Explore Challenges', completed: userProgress['explore_challenges'] || false, hasLink: true },
+    { id: '6', text: 'Explore Solutions', completed: userProgress['explore_solutions'] || false, hasLink: true },
+    { id: '7', text: 'Select a Model', completed: userProgress['select_model'] || false, hasLink: true },
+    { id: '8', text: 'Try Chat', completed: userProgress['try_chat'] || false, hasLink: true }
   ];
 
   const completedTasks = gettingStartedTasks.filter(task => task.completed).length;
@@ -160,20 +178,32 @@ export const WelcomeMessage = () => {
           window.location.href = '/profile';
           break;
         case '2':
-          // Open document upload modal or navigate to upload area
-          window.dispatchEvent(new CustomEvent('open-document-upload'));
+          window.location.href = '/feed';
+          setTimeout(() => markTaskCompleted('visit_intel'), 1000);
           break;
         case '3':
-        case '4':
           window.location.href = '/bills';
           setTimeout(() => markTaskCompleted('visit_bills'), 1000);
           break;
-        case '5':
+        case '4':
           window.location.href = '/members';
-          setTimeout(() => markTaskCompleted('member_profile'), 2000);
+          setTimeout(() => markTaskCompleted('visit_members'), 1000);
+          break;
+        case '5':
+          window.location.href = '/challenges';
+          setTimeout(() => markTaskCompleted('explore_challenges'), 1000);
           break;
         case '6':
-          window.location.href = '/favorites';
+          window.location.href = '/solutions';
+          setTimeout(() => markTaskCompleted('explore_solutions'), 1000);
+          break;
+        case '7':
+          // Mark model selection as completed when they interact with model selector
+          setUserProgress(prev => ({ ...prev, select_model: true }));
+          break;
+        case '8':
+          window.location.href = '/playground';
+          setTimeout(() => markTaskCompleted('try_chat'), 1000);
           break;
       }
     }
@@ -206,7 +236,7 @@ export const WelcomeMessage = () => {
               Getting Started
             </span>
           </HoverCardTrigger>
-          <HoverCardContent className="w-96 p-0" side="bottom" align="start">
+          <HoverCardContent className="w-80 max-w-[90vw] p-0" side="bottom" align="start">
             <div className={`p-4 ${progressPercentage === 100 ? 'border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-800' : ''}`}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -236,7 +266,7 @@ export const WelcomeMessage = () => {
                 <Progress value={progressPercentage} className="mb-4" />
               )}
 
-              <div className="space-y-3 max-h-80 overflow-y-auto">
+              <div className="space-y-3 max-h-80 overflow-y-auto overflow-x-hidden">
                 {gettingStartedTasks.map((task) => (
                   <div
                     key={task.id}
@@ -255,7 +285,7 @@ export const WelcomeMessage = () => {
                       <Circle className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0 hover:text-primary transition-colors" />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm transition-all duration-200 ${
+                      <p className={`text-sm transition-all duration-200 break-words ${
                         task.completed 
                           ? 'text-emerald-700 dark:text-emerald-300 line-through' 
                           : 'text-foreground'
