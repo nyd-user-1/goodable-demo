@@ -5,10 +5,9 @@ import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import { useAsset } from '@/hooks/useAssets';
 
 export const Auth: React.FC = () => {
-  const { asset: backgroundAsset, loading } = useAsset('goodable-heart-terrarium');
-  
-  // Use asset URL if available, otherwise fallback to public directory
-  const backgroundUrl = backgroundAsset?.url || '/goodable 15.avif';
+  // Directly use the AVIF image without the asset system for now
+  const backgroundUrl = '/goodable%2015.avif';
+  const loading = false;
 
   return (
     <div 
