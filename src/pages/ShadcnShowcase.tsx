@@ -385,8 +385,35 @@ const ShadcnShowcase = () => {
             </p>
           </div>
 
+          {/* Component Index/Navigation */}
+          <Card className="sticky top-4 z-10 bg-background/95 backdrop-blur border-2">
+            <CardHeader>
+              <CardTitle>Component Index</CardTitle>
+              <CardDescription>Click any component below to jump to its section</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 text-sm">
+                <a href="#form-controls" className="text-primary hover:underline font-medium">Form Controls</a>
+                <a href="#display-components" className="text-primary hover:underline font-medium">Display Components</a>
+                <a href="#navigation-layout" className="text-primary hover:underline font-medium">Navigation & Layout</a>
+                <a href="#overlays-dialogs" className="text-primary hover:underline font-medium">Overlays & Dialogs</a>
+                <a href="#alerts-notifications" className="text-primary hover:underline font-medium">Alerts & Notifications</a>
+                <a href="#data-display" className="text-primary hover:underline font-medium">Data Display</a>
+                <a href="#calendar-date" className="text-primary hover:underline font-medium">Calendar & Date</a>
+                <a href="#combobox-autocomplete" className="text-primary hover:underline font-medium">Combobox & Autocomplete</a>
+                <a href="#data-table" className="text-primary hover:underline font-medium">Data Table</a>
+                <a href="#hover-card" className="text-primary hover:underline font-medium">Hover Card</a>
+                <a href="#menubar" className="text-primary hover:underline font-medium">Menubar</a>
+                <a href="#navigation-menu" className="text-primary hover:underline font-medium">Navigation Menu</a>
+                <a href="#slider" className="text-primary hover:underline font-medium">Slider</a>
+                <a href="#toggle-group" className="text-primary hover:underline font-medium">Toggle Group</a>
+                <a href="#command" className="text-primary hover:underline font-medium">Command</a>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Form Controls */}
-          <Card>
+          <Card id="form-controls">
             <CardHeader>
               <CardTitle>Form Controls</CardTitle>
               <CardDescription>Input fields, buttons, and form elements</CardDescription>
@@ -502,7 +529,7 @@ const ShadcnShowcase = () => {
           </Card>
 
           {/* Display Components */}
-          <Card>
+          <Card id="display-components">
             <CardHeader>
               <CardTitle>Display Components</CardTitle>
               <CardDescription>Badges, avatars, and visual elements</CardDescription>
@@ -549,7 +576,7 @@ const ShadcnShowcase = () => {
           </Card>
 
           {/* Navigation & Layout */}
-          <Card>
+          <Card id="navigation-layout">
             <CardHeader>
               <CardTitle>Navigation & Layout</CardTitle>
               <CardDescription>Tabs, accordions, and organizational components</CardDescription>
@@ -622,7 +649,7 @@ const ShadcnShowcase = () => {
           </Card>
 
           {/* Overlays & Dialogs */}
-          <Card>
+          <Card id="overlays-dialogs">
             <CardHeader>
               <CardTitle>Overlays & Dialogs</CardTitle>
               <CardDescription>Modals, sheets, popovers, and overlays</CardDescription>
@@ -743,7 +770,7 @@ const ShadcnShowcase = () => {
           </Card>
 
           {/* Alerts */}
-          <Card>
+          <Card id="alerts-notifications">
             <CardHeader>
               <CardTitle>Alerts & Notifications</CardTitle>
               <CardDescription>Different alert styles and notifications</CardDescription>
@@ -768,7 +795,7 @@ const ShadcnShowcase = () => {
           </Card>
 
           {/* Data Display */}
-          <Card>
+          <Card id="data-display">
             <CardHeader>
               <CardTitle>Data Display</CardTitle>
               <CardDescription>Tables and data presentation components</CardDescription>
@@ -849,7 +876,7 @@ const ShadcnShowcase = () => {
           </Card>
 
           {/* Calendar Components */}
-          <Card>
+          <Card id="calendar-date">
             <CardHeader>
               <CardTitle>Calendar & Date Picker</CardTitle>
               <CardDescription>Date selection and calendar components</CardDescription>
@@ -1009,7 +1036,7 @@ const [date, setDate] = React.useState<Date | undefined>(new Date())
           </Card>
 
           {/* Combobox Components */}
-          <Card>
+          <Card id="combobox-autocomplete">
             <CardHeader>
               <CardTitle>Combobox & Autocomplete</CardTitle>
               <CardDescription>Searchable dropdown components with filtering</CardDescription>
@@ -1464,7 +1491,7 @@ const [value, setValue] = React.useState("")
           </Card>
 
           {/* Data Table Components */}
-          <Card>
+          <Card id="data-table">
             <CardHeader>
               <CardTitle>Data Table with TanStack Table</CardTitle>
               <CardDescription>Advanced data tables with sorting, filtering, pagination, and row selection</CardDescription>
@@ -1796,7 +1823,7 @@ const table = useReactTable({
           </Card>
 
           {/* Hover Card Components */}
-          <Card>
+          <Card id="hover-card">
             <CardHeader>
               <CardTitle>Hover Card</CardTitle>
               <CardDescription>Preview content on hover for enhanced user experience</CardDescription>
@@ -2236,7 +2263,7 @@ const table = useReactTable({
           </Card>
 
           {/* Menubar */}
-          <Card>
+          <Card id="menubar">
             <CardHeader>
               <CardTitle>Menubar</CardTitle>
               <CardDescription>A visually persistent menu common in desktop applications</CardDescription>
@@ -2412,7 +2439,7 @@ const table = useReactTable({
           </Card>
 
           {/* Navigation Menu */}
-          <Card>
+          <Card id="navigation-menu">
             <CardHeader>
               <CardTitle>Navigation Menu</CardTitle>
               <CardDescription>A collection of links for navigating websites</CardDescription>
@@ -2585,7 +2612,7 @@ const table = useReactTable({
           </Card>
 
           {/* Slider */}
-          <Card>
+          <Card id="slider">
             <CardHeader>
               <CardTitle>Slider</CardTitle>
               <CardDescription>An input where the user selects a value from within a given range</CardDescription>
@@ -2715,7 +2742,7 @@ const [value, setValue] = useState([50])
           </Card>
 
           {/* Toggle Group */}
-          <Card>
+          <Card id="toggle-group">
             <CardHeader>
               <CardTitle>Toggle Group</CardTitle>
               <CardDescription>A set of two-state buttons that can be toggled on or off</CardDescription>
@@ -2873,7 +2900,7 @@ const [value, setValue] = useState([50])
           </Card>
 
           {/* Command */}
-          <Card>
+          <Card id="command">
             <CardHeader>
               <CardTitle>Command</CardTitle>
               <CardDescription>Fast, composable, unstyled command menu for React</CardDescription>
