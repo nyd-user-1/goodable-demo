@@ -28,11 +28,14 @@ const workflowNavItems = [
 ];
 
 const bottomNavItems = [
-  { title: "Plans", url: "/plans", icon: CreditCard },
-  { title: "Style Guide", url: "/style-guide", icon: Palette, adminOnly: true },
-  { title: "Admin", url: "/admin", icon: Shield, adminOnly: true },
   { title: "Profile", url: "/profile", icon: User },
+  { title: "Plans", url: "/plans", icon: CreditCard },
   { title: "Change Log", url: "/changelog", icon: History },
+];
+
+const adminNavItems = [
+  { title: "Style Guide", url: "/style-guide", icon: Palette },
+  { title: "Control Panel", url: "/admin", icon: Shield },
 ];
 
 interface SidebarNavigationProps {
@@ -113,6 +116,27 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
+
+      {/* Admin Navigation - Only visible to admins */}
+      {isAdmin && (
+        <SidebarGroup>
+          <SidebarGroupLabel>Admin</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {adminNavItems.map((item) => (
+                <NavigationItem
+                  key={item.title}
+                  title={item.title}
+                  url={item.url}
+                  icon={item.icon}
+                  collapsed={collapsed}
+                  getNavClassName={getNavClassName}
+                />
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      )}
     </>
   );
 }

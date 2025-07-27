@@ -26,8 +26,7 @@ export default function HorizontalBlogCarousel() {
         "Learn how to build web applications that are accessible to everyone using React best practices and ARIA attributes.",
       date: "Apr 15, 2023",
       category: "Development",
-      imageUrl:
-        "https://images.unsplash.com/photo-1593720213428-28a5b9e94613?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      imageUrl: "/u5335162829_A_luminous_botanical_garden_where_policy_ideas_gr_1fdebf67-68a6-45a4-a78c-0a9d56a0734c_2.avif",
       slug: "creating-accessible-web-applications",
     },
     {
@@ -37,8 +36,7 @@ export default function HorizontalBlogCarousel() {
         "Explore the trends and innovations shaping design systems and component libraries this year.",
       date: "Mar 28, 2023",
       category: "Design",
-      imageUrl:
-        "https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=2000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      imageUrl: "/u5335162829_A_luminous_botanical_garden_where_policy_ideas_gr_1fdebf67-68a6-45a4-a78c-0a9d56a0734c_3.avif",
       slug: "future-of-design-systems",
     },
     {
@@ -48,8 +46,7 @@ export default function HorizontalBlogCarousel() {
         "Practical strategies to improve loading times and overall performance in your Next.js web applications.",
       date: "Mar 12, 2023",
       category: "Performance",
-      imageUrl:
-        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2015&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      imageUrl: "/u5335162829_A_luminous_botanical_garden_where_policy_ideas_gr_83d5ad78-6216-4ef5-a78e-d9ec077213c9_0.avif",
       slug: "optimizing-nextjs-performance",
     },
     {
@@ -59,8 +56,7 @@ export default function HorizontalBlogCarousel() {
         "How to design user onboarding that reduces friction and increases conversion rates for your product.",
       date: "Feb 24, 2023",
       category: "UX Design",
-      imageUrl:
-        "https://images.unsplash.com/photo-1559028012-481c04fa702d?q=80&w=2036&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      imageUrl: "/u5335162829_A_solitary_figure_steps_through_an_ordinary_door__4e09c9bc-3405-4488-819f-fb6c815259d2_0.avif",
       slug: "effective-user-onboarding",
     },
     {
@@ -70,8 +66,7 @@ export default function HorizontalBlogCarousel() {
         "Tips and strategies for creating a portfolio that showcases your best work and attracts clients.",
       date: "Feb 10, 2023",
       category: "Career",
-      imageUrl:
-        "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      imageUrl: "/u5335162829_Night_scene_where_each_act_of_civic_kindness_crea_4a44b9ca-25de-4638-9b13-46e4a172579d_1 (1).avif",
       slug: "design-portfolio-tips",
     },
     {
@@ -81,8 +76,7 @@ export default function HorizontalBlogCarousel() {
         "How to adapt your responsive design strategies for the emerging market of foldable and dual-screen devices.",
       date: "Jan 28, 2023",
       category: "Design",
-      imageUrl:
-        "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      imageUrl: "/u5335162829_a_vast_field_of_wildflowers_-_vibrant_purples_yel_5cd62d21-a53a-49bb-9b41-31efcc36c6de_3.avif",
       slug: "responsive-design-foldable-devices",
     },
   ];
