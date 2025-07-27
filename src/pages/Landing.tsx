@@ -15,6 +15,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ShineBorder } from '@/components/magicui/shine-border';
 import { ScrollProgress } from '@/components/magicui/scroll-progress';
+import FAQ from '@/components/FAQ';
+import { SubscriptionPlans } from '@/components/shared/SubscriptionPlans';
 
 const Landing = () => {
   const [userProblem, setUserProblem] = useState('');
@@ -382,6 +384,24 @@ const Landing = () => {
                 })}
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <FAQ />
+
+        {/* Pricing Section */}
+        <section id="pricing" className="py-20 bg-muted/20">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Choose Your Plan
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                From individual advocates to large organizations, we have a plan that fits your needs.
+              </p>
+            </div>
+            <SubscriptionPlans />
           </div>
         </section>
 
