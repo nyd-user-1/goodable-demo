@@ -28,7 +28,6 @@ const workflowNavItems = [
 ];
 
 const bottomNavItems = [
-  { title: "Features", url: "/features", icon: Star },
   { title: "Plans", url: "/plans", icon: CreditCard },
   { title: "Style Guide", url: "/style-guide", icon: Palette, adminOnly: true },
   { title: "Admin", url: "/admin", icon: Shield, adminOnly: true },
