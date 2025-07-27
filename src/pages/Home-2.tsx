@@ -264,38 +264,46 @@ const Home2 = () => {
 
             <div className="mt-10 flex flex-wrap justify-center gap-2 sm:mt-20 mb-16">
               {categories.map((category) => (
-                <DropdownMenu 
+                <div 
                   key={category.id}
-                  open={openDropdown === category.id}
-                  onOpenChange={(open) => setOpenDropdown(open ? category.id : null)}
+                  className="relative"
+                  onMouseEnter={() => setOpenDropdown(category.id)}
+                  onMouseLeave={() => setOpenDropdown(null)}
                 >
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline">
-                      <category.icon className="mr-2 h-auto w-3 flex-shrink-0" />
-                      {category.label}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent 
-                    align="start" 
-                    side="bottom"
-                    className="w-56"
+                  <DropdownMenu 
+                    open={openDropdown === category.id}
+                    onOpenChange={(open) => setOpenDropdown(open ? category.id : null)}
                   >
-                    <DropdownMenuLabel>{category.label} Topics</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {category.items.map((item) => (
-                      <DropdownMenuItem 
-                        key={item.value}
-                        onClick={() => {
-                          setUserProblem(item.label);
-                          setOpenDropdown(null);
-                        }}
-                        className="cursor-pointer"
-                      >
-                        {item.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline">
+                        <category.icon className="mr-2 h-auto w-3 flex-shrink-0" />
+                        {category.label}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent 
+                      align="start" 
+                      side="bottom"
+                      className="w-56"
+                      onMouseEnter={() => setOpenDropdown(category.id)}
+                      onMouseLeave={() => setOpenDropdown(null)}
+                    >
+                      <DropdownMenuLabel>{category.label} Topics</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {category.items.map((item) => (
+                        <DropdownMenuItem 
+                          key={item.value}
+                          onClick={() => {
+                            setUserProblem(item.label);
+                            setOpenDropdown(null);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          {item.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               ))}
             </div>
 
