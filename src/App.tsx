@@ -19,6 +19,7 @@ import Home from "./pages/Home";
 import Index from "./pages/Index";
 import { Auth } from "./pages/Auth";
 import Auth2 from "./pages/Auth2";
+import ShadcnShowcase from "./pages/ShadcnShowcase";
 import Profile from "./pages/Profile";
 import Bills from "./pages/Bills";
 import Members from "./pages/Members";
@@ -83,6 +84,7 @@ const AppLayout = () => {
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/dashboard" element={<Index />} />
                 <Route path="/feed" element={<FeedPage />} />
+                <Route path="/shadcn-showcase" element={<ShadcnShowcase />} />
                 <Route path="/image-upload-test" element={<ImageUploadTest />} />
               </Routes>
             </main>
