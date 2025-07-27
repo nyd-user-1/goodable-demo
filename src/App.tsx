@@ -16,6 +16,7 @@ import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import Landing from "./pages/Landing";
 import Landing2 from "./pages/Landing-2";
 import Home from "./pages/Home";
+import Home2 from "./pages/Home-2";
 import Index from "./pages/Index";
 import { Auth } from "./pages/Auth";
 import Auth2 from "./pages/Auth2";
@@ -65,6 +66,7 @@ const AppLayout = () => {
             <main className="flex-1">
               <Routes>
                 <Route path="/home" element={<Home />} />
+                <Route path="/home-2" element={<Home2 />} />
                 <Route path="/chats" element={<Chats />} />
                 <Route path="/favorites" element={<Favorites />} />
                 <Route path="/playground" element={<Playground />} />
