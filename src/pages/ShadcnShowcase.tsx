@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,13 +22,17 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut, CommandDialog } from '@/components/ui/command';
+import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from '@/components/ui/menubar';
+import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, NavigationMenuViewport } from '@/components/ui/navigation-menu';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Toggle } from '@/components/ui/toggle';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Calendar } from '@/components/ui/calendar';
 import {
   ColumnDef,
@@ -76,7 +80,36 @@ import {
   Share,
   ExternalLink,
   Filter,
-  SortAsc
+  SortAsc,
+  Bold,
+  Italic,
+  Underline,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Calculator,
+  Calendar as CalendarLucide,
+  Smile,
+  Command as CommandIcon,
+  Code,
+  Github,
+  Twitter,
+  Zap,
+  BookOpen,
+  Users,
+  Settings2,
+  HelpCircle,
+  LogOut,
+  CreditCard,
+  Keyboard,
+  UserPlus,
+  PlusCircle,
+  LifeBuoy,
+  Cloud,
+  Building,
+  Scale,
+  BarChart,
+  Clock
 } from 'lucide-react';
 
 const ShadcnShowcase = () => {
@@ -105,6 +138,13 @@ const ShadcnShowcase = () => {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
   
+  // New component states
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [commandDialogOpen, setCommandDialogOpen] = useState(false);
+  const [toggleGroupValue, setToggleGroupValue] = useState("center");
+  const [toggleGroupMultiple, setToggleGroupMultiple] = useState<string[]>(["bold"]);
+  const [togglePressed, setTogglePressed] = useState(false);
+  
   const { toast } = useToast();
 
   const showToast = () => {
@@ -113,6 +153,18 @@ const ShadcnShowcase = () => {
       description: "This is a sample toast notification!",
     });
   };
+
+  // Command dialog keyboard shortcut
+  React.useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setCommandDialogOpen((open) => !open);
+      }
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
 
   // Combobox data
   const frameworks = [
@@ -1737,6 +1789,1339 @@ const table = useReactTable({
                   >
                     Show All Columns
                   </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Hover Card Components */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Hover Card</CardTitle>
+              <CardDescription>Preview content on hover for enhanced user experience</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Basic Hover Card */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Basic Hover Card</h4>
+                <div className="flex items-center gap-4">
+                  <p className="text-sm">
+                    Hover over{" "}
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <span className="underline cursor-pointer text-blue-600 hover:text-blue-800">
+                          @shadcn
+                        </span>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-80">
+                        <div className="flex justify-between space-x-4">
+                          <Avatar>
+                            <AvatarImage src="https://github.com/shadcn.png" />
+                            <AvatarFallback>SC</AvatarFallback>
+                          </Avatar>
+                          <div className="space-y-1">
+                            <h4 className="text-sm font-semibold">@shadcn</h4>
+                            <p className="text-sm">
+                              The React Framework – created and maintained by @vercel.
+                            </p>
+                            <div className="flex items-center pt-2">
+                              <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
+                              <span className="text-xs text-muted-foreground">
+                                Joined December 2021
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                    {" "}to see their profile information.
+                  </p>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* User Profile Hover Cards */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">User Profile Hover Cards</h4>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <div className="flex items-center gap-2 cursor-pointer">
+                          <Avatar className="w-8 h-8">
+                            <AvatarFallback>JD</AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm underline">John Doe</span>
+                        </div>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-80">
+                        <div className="flex justify-between space-x-4">
+                          <Avatar>
+                            <AvatarFallback>JD</AvatarFallback>
+                          </Avatar>
+                          <div className="space-y-1">
+                            <h4 className="text-sm font-semibold">John Doe</h4>
+                            <p className="text-sm">Senior Software Engineer</p>
+                            <p className="text-sm text-muted-foreground">
+                              Full-stack developer with 8+ years of experience in React, Node.js, and cloud technologies.
+                            </p>
+                            <div className="flex items-center pt-2">
+                              <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
+                              <span className="text-xs text-muted-foreground">
+                                Joined January 2020
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                    
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <div className="flex items-center gap-2 cursor-pointer">
+                          <Avatar className="w-8 h-8">
+                            <AvatarFallback>SM</AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm underline">Sarah Miller</span>
+                        </div>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-80">
+                        <div className="flex justify-between space-x-4">
+                          <Avatar>
+                            <AvatarFallback>SM</AvatarFallback>
+                          </Avatar>
+                          <div className="space-y-1">
+                            <h4 className="text-sm font-semibold">Sarah Miller</h4>
+                            <p className="text-sm">Product Manager</p>
+                            <p className="text-sm text-muted-foreground">
+                              Product strategist focused on user experience and data-driven decision making.
+                            </p>
+                            <div className="flex items-center pt-2">
+                              <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
+                              <span className="text-xs text-muted-foreground">
+                                Joined March 2019
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Technical Documentation Hover Cards */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Documentation Hover Cards</h4>
+                <div className="space-y-4">
+                  <p className="text-sm">
+                    Learn more about{" "}
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <span className="underline cursor-pointer text-blue-600 hover:text-blue-800">
+                          React Query
+                        </span>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-96">
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold">TanStack Query (React Query)</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Powerful data synchronization for React applications. 
+                            Fetch, cache and update data without touching any "global state".
+                          </p>
+                          <div className="grid grid-cols-2 gap-4 pt-2">
+                            <div>
+                              <p className="text-xs font-medium">Key Features:</p>
+                              <ul className="text-xs text-muted-foreground space-y-1 mt-1">
+                                <li>• Caching</li>
+                                <li>• Background Updates</li>
+                                <li>• Optimistic Updates</li>
+                              </ul>
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium">Latest Version:</p>
+                              <p className="text-xs text-muted-foreground mt-1">v5.0.0</p>
+                            </div>
+                          </div>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                    {", "}
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <span className="underline cursor-pointer text-blue-600 hover:text-blue-800">
+                          TypeScript
+                        </span>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-96">
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold">TypeScript</h4>
+                          <p className="text-sm text-muted-foreground">
+                            TypeScript is a strongly typed programming language that builds on JavaScript.
+                          </p>
+                          <div className="grid grid-cols-2 gap-4 pt-2">
+                            <div>
+                              <p className="text-xs font-medium">Benefits:</p>
+                              <ul className="text-xs text-muted-foreground space-y-1 mt-1">
+                                <li>• Type Safety</li>
+                                <li>• Better IDE Support</li>
+                                <li>• Refactoring</li>
+                              </ul>
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium">Current Version:</p>
+                              <p className="text-xs text-muted-foreground mt-1">v5.6.2</p>
+                            </div>
+                          </div>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                    {", and "}
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <span className="underline cursor-pointer text-blue-600 hover:text-blue-800">
+                          Tailwind CSS
+                        </span>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-96">
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold">Tailwind CSS</h4>
+                          <p className="text-sm text-muted-foreground">
+                            A utility-first CSS framework for rapidly building custom user interfaces.
+                          </p>
+                          <div className="grid grid-cols-2 gap-4 pt-2">
+                            <div>
+                              <p className="text-xs font-medium">Advantages:</p>
+                              <ul className="text-xs text-muted-foreground space-y-1 mt-1">
+                                <li>• Utility Classes</li>
+                                <li>• No CSS Writing</li>
+                                <li>• Responsive Design</li>
+                              </ul>
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium">Version:</p>
+                              <p className="text-xs text-muted-foreground mt-1">v3.4.0</p>
+                            </div>
+                          </div>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                    {" "}for modern web development.
+                  </p>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Legislative/Political Hover Cards */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Legislative Information Hover Cards</h4>
+                <div className="space-y-4">
+                  <p className="text-sm">
+                    View details about{" "}
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <span className="underline cursor-pointer text-blue-600 hover:text-blue-800">
+                          H.R. 1234
+                        </span>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-96">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-semibold">H.R. 1234</h4>
+                            <Badge variant="secondary">In Committee</Badge>
+                          </div>
+                          <p className="text-sm font-medium">Infrastructure Investment and Jobs Act</p>
+                          <p className="text-sm text-muted-foreground">
+                            A bill to authorize funds for Federal-aid highways, highway safety programs, 
+                            and transit programs, and for other purposes.
+                          </p>
+                          <div className="grid grid-cols-2 gap-4 pt-2">
+                            <div>
+                              <p className="text-xs font-medium">Sponsor:</p>
+                              <p className="text-xs text-muted-foreground">Rep. Jane Smith (D-CA)</p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium">Introduced:</p>
+                              <p className="text-xs text-muted-foreground">March 15, 2024</p>
+                            </div>
+                          </div>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                    {", "}
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <span className="underline cursor-pointer text-blue-600 hover:text-blue-800">
+                          Sen. John Wilson
+                        </span>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-80">
+                        <div className="flex justify-between space-x-4">
+                          <Avatar>
+                            <AvatarFallback>JW</AvatarFallback>
+                          </Avatar>
+                          <div className="space-y-1">
+                            <h4 className="text-sm font-semibold">Sen. John Wilson</h4>
+                            <p className="text-sm">Senator (R-TX)</p>
+                            <p className="text-sm text-muted-foreground">
+                              Serves on the Finance Committee and Environment Committee. 
+                              Focus areas include energy policy and economic development.
+                            </p>
+                            <div className="flex items-center pt-2">
+                              <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
+                              <span className="text-xs text-muted-foreground">
+                                In office since 2018
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                    {", and the "}
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <span className="underline cursor-pointer text-blue-600 hover:text-blue-800">
+                          House Finance Committee
+                        </span>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-96">
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold">House Committee on Financial Services</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Oversees the financial services industry, including banking, housing, 
+                            insurance, and securities.
+                          </p>
+                          <div className="grid grid-cols-2 gap-4 pt-2">
+                            <div>
+                              <p className="text-xs font-medium">Chair:</p>
+                              <p className="text-xs text-muted-foreground">Rep. Mary Johnson</p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium">Members:</p>
+                              <p className="text-xs text-muted-foreground">54 Representatives</p>
+                            </div>
+                          </div>
+                          <div className="pt-2">
+                            <p className="text-xs font-medium">Active Bills:</p>
+                            <p className="text-xs text-muted-foreground">23 bills under consideration</p>
+                          </div>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                    .
+                  </p>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Feature Showcase */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Hover Card Features</h4>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium">⚡ Instant Preview</h5>
+                    <p className="text-xs text-muted-foreground">
+                      Content appears instantly on hover without page navigation
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium">📱 Accessible</h5>
+                    <p className="text-xs text-muted-foreground">
+                      Works with keyboard navigation and screen readers
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium">🎯 Customizable</h5>
+                    <p className="text-xs text-muted-foreground">
+                      Flexible content layout and positioning options
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium">⏱️ Smart Timing</h5>
+                    <p className="text-xs text-muted-foreground">
+                      Configurable open/close delays for better UX
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium">🎨 Rich Content</h5>
+                    <p className="text-xs text-muted-foreground">
+                      Support for avatars, badges, links, and complex layouts
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium">📐 Smart Positioning</h5>
+                    <p className="text-xs text-muted-foreground">
+                      Automatically positions to stay within viewport
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Implementation Examples */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Implementation Examples</h4>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <div className="text-sm space-y-2">
+                    <p className="font-medium">Basic Hover Card Usage:</p>
+                    <code className="block bg-background p-2 rounded text-xs">
+{`import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
+
+<HoverCard>
+  <HoverCardTrigger asChild>
+    <span className="underline cursor-pointer">@username</span>
+  </HoverCardTrigger>
+  <HoverCardContent className="w-80">
+    <div className="flex justify-between space-x-4">
+      <Avatar>
+        <AvatarImage src="/avatar.jpg" />
+        <AvatarFallback>UN</AvatarFallback>
+      </Avatar>
+      <div className="space-y-1">
+        <h4 className="text-sm font-semibold">Username</h4>
+        <p className="text-sm">User description here...</p>
+        <div className="flex items-center pt-2">
+          <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
+          <span className="text-xs text-muted-foreground">
+            Joined December 2021
+          </span>
+        </div>
+      </div>
+    </div>
+  </HoverCardContent>
+</HoverCard>`}
+                    </code>
+                  </div>
+                </div>
+              </div>
+
+              {/* Use Cases */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Perfect Use Cases for Goodable</h4>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <h5 className="text-sm font-medium mb-2">🏛️ Legislator Profiles</h5>
+                    <p className="text-xs text-muted-foreground">
+                      Show member bio, committee assignments, and voting record on hover
+                    </p>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <h5 className="text-sm font-medium mb-2">📋 Bill Summaries</h5>
+                    <p className="text-xs text-muted-foreground">
+                      Display bill status, sponsor, and key details without navigation
+                    </p>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <h5 className="text-sm font-medium mb-2">🏢 Committee Info</h5>
+                    <p className="text-xs text-muted-foreground">
+                      Preview committee membership, jurisdiction, and active bills
+                    </p>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <h5 className="text-sm font-medium mb-2">📊 Vote Details</h5>
+                    <p className="text-xs text-muted-foreground">
+                      Show vote breakdown, date, and outcome on hover
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Menubar */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Menubar</CardTitle>
+              <CardDescription>A visually persistent menu common in desktop applications</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Basic Menubar */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Basic Menubar</h4>
+                <Menubar>
+                  <MenubarMenu>
+                    <MenubarTrigger>File</MenubarTrigger>
+                    <MenubarContent>
+                      <MenubarItem>
+                        New Tab <MenubarShortcut>⌘T</MenubarShortcut>
+                      </MenubarItem>
+                      <MenubarItem>
+                        New Window <MenubarShortcut>⌘N</MenubarShortcut>
+                      </MenubarItem>
+                      <MenubarSeparator />
+                      <MenubarItem disabled>
+                        New Incognito Window
+                      </MenubarItem>
+                      <MenubarSeparator />
+                      <MenubarItem>
+                        Print... <MenubarShortcut>⌘P</MenubarShortcut>
+                      </MenubarItem>
+                    </MenubarContent>
+                  </MenubarMenu>
+                  <MenubarMenu>
+                    <MenubarTrigger>Edit</MenubarTrigger>
+                    <MenubarContent>
+                      <MenubarItem>
+                        Undo <MenubarShortcut>⌘Z</MenubarShortcut>
+                      </MenubarItem>
+                      <MenubarItem>
+                        Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
+                      </MenubarItem>
+                      <MenubarSeparator />
+                      <MenubarItem>
+                        Find <MenubarShortcut>⌘F</MenubarShortcut>
+                      </MenubarItem>
+                    </MenubarContent>
+                  </MenubarMenu>
+                  <MenubarMenu>
+                    <MenubarTrigger>View</MenubarTrigger>
+                    <MenubarContent>
+                      <MenubarItem>Always Show Bookmarks Bar</MenubarItem>
+                      <MenubarItem>Always Show Full URLs</MenubarItem>
+                      <MenubarSeparator />
+                      <MenubarItem>
+                        Reload <MenubarShortcut>⌘R</MenubarShortcut>
+                      </MenubarItem>
+                      <MenubarItem disabled>
+                        Force Reload <MenubarShortcut>⇧⌘R</MenubarShortcut>
+                      </MenubarItem>
+                      <MenubarSeparator />
+                      <MenubarItem>Toggle Fullscreen</MenubarItem>
+                    </MenubarContent>
+                  </MenubarMenu>
+                  <MenubarMenu>
+                    <MenubarTrigger>Profiles</MenubarTrigger>
+                    <MenubarContent>
+                      <MenubarItem>John Smith</MenubarItem>
+                      <MenubarItem>Sarah Johnson</MenubarItem>
+                      <MenubarSeparator />
+                      <MenubarItem>
+                        Add Profile...
+                      </MenubarItem>
+                      <MenubarItem>Manage Profiles...</MenubarItem>
+                    </MenubarContent>
+                  </MenubarMenu>
+                </Menubar>
+              </div>
+
+              {/* Legislative Menubar */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Legislative Application Menubar</h4>
+                <Menubar>
+                  <MenubarMenu>
+                    <MenubarTrigger>Bills</MenubarTrigger>
+                    <MenubarContent>
+                      <MenubarItem>
+                        <FileText className="mr-2 h-4 w-4" />
+                        View All Bills
+                      </MenubarItem>
+                      <MenubarItem>
+                        <Search className="mr-2 h-4 w-4" />
+                        Search Bills <MenubarShortcut>⌘K</MenubarShortcut>
+                      </MenubarItem>
+                      <MenubarSeparator />
+                      <MenubarItem>
+                        <Star className="mr-2 h-4 w-4" />
+                        Favorite Bills
+                      </MenubarItem>
+                      <MenubarItem>
+                        <Bell className="mr-2 h-4 w-4" />
+                        Bill Alerts
+                      </MenubarItem>
+                    </MenubarContent>
+                  </MenubarMenu>
+                  <MenubarMenu>
+                    <MenubarTrigger>Members</MenubarTrigger>
+                    <MenubarContent>
+                      <MenubarItem>
+                        <Users className="mr-2 h-4 w-4" />
+                        All Legislators
+                      </MenubarItem>
+                      <MenubarItem>
+                        <Building className="mr-2 h-4 w-4" />
+                        House Members
+                      </MenubarItem>
+                      <MenubarItem>
+                        <Scale className="mr-2 h-4 w-4" />
+                        Senate Members
+                      </MenubarItem>
+                      <MenubarSeparator />
+                      <MenubarItem>
+                        <Heart className="mr-2 h-4 w-4" />
+                        Favorite Members
+                      </MenubarItem>
+                    </MenubarContent>
+                  </MenubarMenu>
+                  <MenubarMenu>
+                    <MenubarTrigger>Tools</MenubarTrigger>
+                    <MenubarContent>
+                      <MenubarItem>
+                        <Calculator className="mr-2 h-4 w-4" />
+                        Bill Impact Calculator
+                      </MenubarItem>
+                      <MenubarItem>
+                        <BarChart className="mr-2 h-4 w-4" />
+                        Voting Analytics
+                      </MenubarItem>
+                      <MenubarSeparator />
+                      <MenubarItem>
+                        <Download className="mr-2 h-4 w-4" />
+                        Export Data <MenubarShortcut>⌘E</MenubarShortcut>
+                      </MenubarItem>
+                    </MenubarContent>
+                  </MenubarMenu>
+                </Menubar>
+              </div>
+
+              <Separator />
+
+              {/* Implementation Examples */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Implementation Examples</h4>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <div className="text-sm space-y-2">
+                    <p className="font-medium">Basic Menubar Usage:</p>
+                    <code className="block bg-background p-2 rounded text-xs">
+{`import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from "@/components/ui/menubar"
+
+<Menubar>
+  <MenubarMenu>
+    <MenubarTrigger>File</MenubarTrigger>
+    <MenubarContent>
+      <MenubarItem>
+        New Tab <MenubarShortcut>⌘T</MenubarShortcut>
+      </MenubarItem>
+      <MenubarItem>New Window</MenubarItem>
+      <MenubarSeparator />
+      <MenubarItem>Print</MenubarItem>
+    </MenubarContent>
+  </MenubarMenu>
+</Menubar>`}
+                    </code>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Navigation Menu */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Navigation Menu</CardTitle>
+              <CardDescription>A collection of links for navigating websites</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Basic Navigation Menu */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Basic Navigation Menu</h4>
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger>Getting started</NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+                          <li className="row-span-3">
+                            <NavigationMenuLink asChild>
+                              <a
+                                className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                                href="/"
+                              >
+                                <Heart className="h-6 w-6" />
+                                <div className="mb-2 mt-4 text-lg font-medium">
+                                  Goodable
+                                </div>
+                                <p className="text-sm leading-tight text-muted-foreground">
+                                  Legislative policy analysis and tracking platform
+                                </p>
+                              </a>
+                            </NavigationMenuLink>
+                          </li>
+                          <li>
+                            <NavigationMenuLink asChild>
+                              <a
+                                className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                href="/bills"
+                              >
+                                <div className="text-sm font-medium leading-none">Bills</div>
+                                <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                  Browse and track legislative bills
+                                </p>
+                              </a>
+                            </NavigationMenuLink>
+                          </li>
+                          <li>
+                            <NavigationMenuLink asChild>
+                              <a
+                                className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                href="/members"
+                              >
+                                <div className="text-sm font-medium leading-none">Members</div>
+                                <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                  Explore legislator profiles and voting records
+                                </p>
+                              </a>
+                            </NavigationMenuLink>
+                          </li>
+                          <li>
+                            <NavigationMenuLink asChild>
+                              <a
+                                className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                href="/committees"
+                              >
+                                <div className="text-sm font-medium leading-none">Committees</div>
+                                <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                  Track committee activities and memberships
+                                </p>
+                              </a>
+                            </NavigationMenuLink>
+                          </li>
+                        </ul>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger>Components</NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                          <li>
+                            <NavigationMenuLink asChild>
+                              <a
+                                className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                href="/shadcn-showcase"
+                              >
+                                <div className="text-sm font-medium leading-none">UI Components</div>
+                                <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                  Complete shadcn/ui component showcase
+                                </p>
+                              </a>
+                            </NavigationMenuLink>
+                          </li>
+                          <li>
+                            <NavigationMenuLink asChild>
+                              <a
+                                className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                href="/dashboard"
+                              >
+                                <div className="text-sm font-medium leading-none">Dashboard</div>
+                                <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                  Analytics and overview dashboard
+                                </p>
+                              </a>
+                            </NavigationMenuLink>
+                          </li>
+                          <li>
+                            <NavigationMenuLink asChild>
+                              <a
+                                className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                href="/policy-portal"
+                              >
+                                <div className="text-sm font-medium leading-none">Policy Portal</div>
+                                <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                  Collaborative policy drafting tools
+                                </p>
+                              </a>
+                            </NavigationMenuLink>
+                          </li>
+                          <li>
+                            <NavigationMenuLink asChild>
+                              <a
+                                className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                href="/playground"
+                              >
+                                <div className="text-sm font-medium leading-none">AI Playground</div>
+                                <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                  Experiment with AI-powered analysis
+                                </p>
+                              </a>
+                            </NavigationMenuLink>
+                          </li>
+                        </ul>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                    <NavigationMenuItem>
+                      <NavigationMenuLink
+                        className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+                        href="/docs"
+                      >
+                        Documentation
+                      </NavigationMenuLink>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
+              </div>
+
+              <Separator />
+
+              {/* Implementation Examples */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Implementation Examples</h4>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <div className="text-sm space-y-2">
+                    <p className="font-medium">Basic Navigation Menu Usage:</p>
+                    <code className="block bg-background p-2 rounded text-xs">
+{`import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu"
+
+<NavigationMenu>
+  <NavigationMenuList>
+    <NavigationMenuItem>
+      <NavigationMenuTrigger>Item One</NavigationMenuTrigger>
+      <NavigationMenuContent>
+        <NavigationMenuLink>Link</NavigationMenuLink>
+      </NavigationMenuContent>
+    </NavigationMenuItem>
+  </NavigationMenuList>
+</NavigationMenu>`}
+                    </code>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Slider */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Slider</CardTitle>
+              <CardDescription>An input where the user selects a value from within a given range</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Basic Slider */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Basic Slider</h4>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Volume: {sliderValue[0]}</label>
+                    <Slider
+                      value={sliderValue}
+                      onValueChange={setSliderValue}
+                      max={100}
+                      step={1}
+                      className="w-[60%]"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Range Slider</label>
+                    <Slider
+                      defaultValue={[20, 80]}
+                      max={100}
+                      step={1}
+                      className="w-[60%]"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Disabled Slider</label>
+                    <Slider
+                      defaultValue={[50]}
+                      max={100}
+                      step={1}
+                      disabled
+                      className="w-[60%]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Legislative Use Cases */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Legislative Application Examples</h4>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">📊 Voting Confidence: 85%</label>
+                    <Slider
+                      defaultValue={[85]}
+                      max={100}
+                      step={1}
+                      className="w-full"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Adjust confidence threshold for vote predictions
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">💰 Budget Range: $2M - $8M</label>
+                    <Slider
+                      defaultValue={[20, 80]}
+                      max={100}
+                      step={1}
+                      className="w-full"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Filter bills by estimated budget impact
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">📅 Timeline: 6 months</label>
+                    <Slider
+                      defaultValue={[6]}
+                      max={24}
+                      step={1}
+                      className="w-full"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Set bill tracking timeline
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">🎯 Priority Score: 75</label>
+                    <Slider
+                      defaultValue={[75]}
+                      max={100}
+                      step={1}
+                      className="w-full"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Adjust bill priority weighting
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Implementation Examples */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Implementation Examples</h4>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <div className="text-sm space-y-2">
+                    <p className="font-medium">Basic Slider Usage:</p>
+                    <code className="block bg-background p-2 rounded text-xs">
+{`import { Slider } from "@/components/ui/slider"
+
+const [value, setValue] = useState([50])
+
+<Slider
+  value={value}
+  onValueChange={setValue}
+  max={100}
+  step={1}
+  className="w-[60%]"
+/>`}
+                    </code>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Toggle Group */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Toggle Group</CardTitle>
+              <CardDescription>A set of two-state buttons that can be toggled on or off</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Basic Toggle Groups */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Basic Toggle Groups</h4>
+                <div className="space-y-4">
+                  {/* Single Selection */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Text Alignment (Single)</label>
+                    <ToggleGroup type="single" value={toggleGroupValue} onValueChange={setToggleGroupValue}>
+                      <ToggleGroupItem value="left" aria-label="Align left">
+                        <AlignLeft className="h-4 w-4" />
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="center" aria-label="Align center">
+                        <AlignCenter className="h-4 w-4" />
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="right" aria-label="Align right">
+                        <AlignRight className="h-4 w-4" />
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                  </div>
+
+                  {/* Multiple Selection */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Text Formatting (Multiple)</label>
+                    <ToggleGroup type="multiple" value={toggleGroupMultiple} onValueChange={setToggleGroupMultiple}>
+                      <ToggleGroupItem value="bold" aria-label="Bold">
+                        <Bold className="h-4 w-4" />
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="italic" aria-label="Italic">
+                        <Italic className="h-4 w-4" />
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="underline" aria-label="Underline">
+                        <Underline className="h-4 w-4" />
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                  </div>
+
+                  {/* Outline Variant */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Outline Style</label>
+                    <ToggleGroup type="single" variant="outline">
+                      <ToggleGroupItem value="a">A</ToggleGroupItem>
+                      <ToggleGroupItem value="b">B</ToggleGroupItem>
+                      <ToggleGroupItem value="c">C</ToggleGroupItem>
+                    </ToggleGroup>
+                  </div>
+
+                  {/* Different Sizes */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Size Variants</label>
+                    <div className="flex items-center gap-4">
+                      <ToggleGroup type="single" size="sm">
+                        <ToggleGroupItem value="small">Small</ToggleGroupItem>
+                      </ToggleGroup>
+                      <ToggleGroup type="single">
+                        <ToggleGroupItem value="default">Default</ToggleGroupItem>
+                      </ToggleGroup>
+                      <ToggleGroup type="single" size="lg">
+                        <ToggleGroupItem value="large">Large</ToggleGroupItem>
+                      </ToggleGroup>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Legislative Use Cases */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Legislative Application Examples</h4>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">🏛️ Chamber Selection</label>
+                    <ToggleGroup type="single" defaultValue="house">
+                      <ToggleGroupItem value="house">
+                        <Building className="h-4 w-4 mr-2" />
+                        House
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="senate">
+                        <Scale className="h-4 w-4 mr-2" />
+                        Senate
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="both">
+                        <Users className="h-4 w-4 mr-2" />
+                        Both
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">📊 Bill Status Filters</label>
+                    <ToggleGroup type="multiple" defaultValue={["active", "passed"]}>
+                      <ToggleGroupItem value="active" variant="outline">
+                        <Zap className="h-4 w-4 mr-2" />
+                        Active
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="passed" variant="outline">
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Passed
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="failed" variant="outline">
+                        <X className="h-4 w-4 mr-2" />
+                        Failed
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="pending" variant="outline">
+                        <Clock className="h-4 w-4 mr-2" />
+                        Pending
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">🎯 Analysis Views</label>
+                    <ToggleGroup type="single" defaultValue="summary">
+                      <ToggleGroupItem value="summary">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Summary
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="details">
+                        <Info className="h-4 w-4 mr-2" />
+                        Details
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="timeline">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Timeline
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Implementation Examples */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Implementation Examples</h4>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <div className="text-sm space-y-2">
+                    <p className="font-medium">Basic Toggle Group Usage:</p>
+                    <code className="block bg-background p-2 rounded text-xs">
+{`import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+
+<ToggleGroup type="single">
+  <ToggleGroupItem value="a">A</ToggleGroupItem>
+  <ToggleGroupItem value="b">B</ToggleGroupItem>
+  <ToggleGroupItem value="c">C</ToggleGroupItem>
+</ToggleGroup>`}
+                    </code>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Command */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Command</CardTitle>
+              <CardDescription>Fast, composable, unstyled command menu for React</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Basic Command */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Basic Command Menu</h4>
+                <Command className="rounded-lg border shadow-md max-w-md">
+                  <CommandInput placeholder="Type a command or search..." />
+                  <CommandList>
+                    <CommandEmpty>No results found.</CommandEmpty>
+                    <CommandGroup heading="Suggestions">
+                      <CommandItem>
+                        <CalendarLucide className="mr-2 h-4 w-4" />
+                        <span>Calendar</span>
+                      </CommandItem>
+                      <CommandItem>
+                        <Smile className="mr-2 h-4 w-4" />
+                        <span>Search Emoji</span>
+                      </CommandItem>
+                      <CommandItem>
+                        <Calculator className="mr-2 h-4 w-4" />
+                        <span>Calculator</span>
+                      </CommandItem>
+                    </CommandGroup>
+                    <CommandSeparator />
+                    <CommandGroup heading="Settings">
+                      <CommandItem>
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
+                        <CommandShortcut>⌘P</CommandShortcut>
+                      </CommandItem>
+                      <CommandItem>
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        <span>Billing</span>
+                        <CommandShortcut>⌘B</CommandShortcut>
+                      </CommandItem>
+                      <CommandItem>
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Settings</span>
+                        <CommandShortcut>⌘S</CommandShortcut>
+                      </CommandItem>
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </div>
+
+              {/* Command Dialog */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Command Dialog</h4>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCommandDialogOpen(true)}
+                  >
+                    <CommandIcon className="mr-2 h-4 w-4" />
+                    Open Command Menu
+                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 ml-2">
+                      <span className="text-xs">⌘</span>K
+                    </kbd>
+                  </Button>
+                  <p className="text-sm text-muted-foreground">
+                    Press ⌘K to open
+                  </p>
+                </div>
+
+                <CommandDialog open={commandDialogOpen} onOpenChange={setCommandDialogOpen}>
+                  <CommandInput placeholder="Type a command or search..." />
+                  <CommandList>
+                    <CommandEmpty>No results found.</CommandEmpty>
+                    <CommandGroup heading="🏛️ Legislative">
+                      <CommandItem>
+                        <FileText className="mr-2 h-4 w-4" />
+                        <span>Search Bills</span>
+                      </CommandItem>
+                      <CommandItem>
+                        <Users className="mr-2 h-4 w-4" />
+                        <span>Find Legislators</span>
+                      </CommandItem>
+                      <CommandItem>
+                        <Building className="mr-2 h-4 w-4" />
+                        <span>Browse Committees</span>
+                      </CommandItem>
+                    </CommandGroup>
+                    <CommandSeparator />
+                    <CommandGroup heading="📊 Tools">
+                      <CommandItem>
+                        <BarChart className="mr-2 h-4 w-4" />
+                        <span>Analytics Dashboard</span>
+                        <CommandShortcut>⌘D</CommandShortcut>
+                      </CommandItem>
+                      <CommandItem>
+                        <Calculator className="mr-2 h-4 w-4" />
+                        <span>Impact Calculator</span>
+                      </CommandItem>
+                      <CommandItem>
+                        <Download className="mr-2 h-4 w-4" />
+                        <span>Export Data</span>
+                      </CommandItem>
+                    </CommandGroup>
+                    <CommandSeparator />
+                    <CommandGroup heading="⚙️ Settings">
+                      <CommandItem>
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
+                        <CommandShortcut>⌘P</CommandShortcut>
+                      </CommandItem>
+                      <CommandItem>
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Settings</span>
+                        <CommandShortcut>⌘S</CommandShortcut>
+                      </CommandItem>
+                      <CommandItem>
+                        <Keyboard className="mr-2 h-4 w-4" />
+                        <span>Keyboard shortcuts</span>
+                      </CommandItem>
+                    </CommandGroup>
+                  </CommandList>
+                </CommandDialog>
+              </div>
+
+              {/* Legislative Command Menu */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Legislative Search Command</h4>
+                <Command className="rounded-lg border shadow-md max-w-md">
+                  <CommandInput placeholder="Search bills, members, committees..." />
+                  <CommandList>
+                    <CommandEmpty>No results found.</CommandEmpty>
+                    <CommandGroup heading="📋 Recent Bills">
+                      <CommandItem>
+                        <FileText className="mr-2 h-4 w-4" />
+                        <span>H.R. 1234 - Climate Action Bill</span>
+                      </CommandItem>
+                      <CommandItem>
+                        <FileText className="mr-2 h-4 w-4" />
+                        <span>S. 567 - Healthcare Reform Act</span>
+                      </CommandItem>
+                      <CommandItem>
+                        <FileText className="mr-2 h-4 w-4" />
+                        <span>H.R. 890 - Infrastructure Investment</span>
+                      </CommandItem>
+                    </CommandGroup>
+                    <CommandSeparator />
+                    <CommandGroup heading="👥 Legislators">
+                      <CommandItem>
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Sen. John Smith (D-CA)</span>
+                      </CommandItem>
+                      <CommandItem>
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Rep. Sarah Johnson (R-TX)</span>
+                      </CommandItem>
+                    </CommandGroup>
+                    <CommandSeparator />
+                    <CommandGroup heading="🏢 Committees">
+                      <CommandItem>
+                        <Building className="mr-2 h-4 w-4" />
+                        <span>House Judiciary Committee</span>
+                      </CommandItem>
+                      <CommandItem>
+                        <Building className="mr-2 h-4 w-4" />
+                        <span>Senate Finance Committee</span>
+                      </CommandItem>
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </div>
+
+              <Separator />
+
+              {/* Implementation Examples */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Implementation Examples</h4>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <div className="text-sm space-y-2">
+                    <p className="font-medium">Basic Command Usage:</p>
+                    <code className="block bg-background p-2 rounded text-xs">
+{`import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut } from "@/components/ui/command"
+
+<Command>
+  <CommandInput placeholder="Type a command or search..." />
+  <CommandList>
+    <CommandEmpty>No results found.</CommandEmpty>
+    <CommandGroup heading="Suggestions">
+      <CommandItem>Calendar</CommandItem>
+      <CommandItem>Search Emoji</CommandItem>
+      <CommandItem>Calculator</CommandItem>
+    </CommandGroup>
+  </CommandList>
+</Command>`}
+                    </code>
+                  </div>
+                </div>
+              </div>
+
+              {/* Feature Grid */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Key Features</h4>
+                <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <h5 className="text-sm font-medium">⚡ Fast Search</h5>
+                    <p className="text-xs text-muted-foreground">
+                      Instant search and filtering with keyboard navigation
+                    </p>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <h5 className="text-sm font-medium">⌨️ Keyboard Shortcuts</h5>
+                    <p className="text-xs text-muted-foreground">
+                      Full keyboard support with customizable shortcuts
+                    </p>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <h5 className="text-sm font-medium">🎯 Grouped Results</h5>
+                    <p className="text-xs text-muted-foreground">
+                      Organize commands and results into logical groups
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Use Cases */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Perfect Use Cases for Goodable</h4>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <h5 className="text-sm font-medium mb-2">🔍 Global Search</h5>
+                    <p className="text-xs text-muted-foreground">
+                      Quick search across bills, legislators, committees, and documents
+                    </p>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <h5 className="text-sm font-medium mb-2">⚡ Quick Actions</h5>
+                    <p className="text-xs text-muted-foreground">
+                      Fast access to common tools like export, filter, and analysis
+                    </p>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <h5 className="text-sm font-medium mb-2">🎯 Command Palette</h5>
+                    <p className="text-xs text-muted-foreground">
+                      Power user interface for advanced legislative research
+                    </p>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <h5 className="text-sm font-medium mb-2">📊 Context-Aware</h5>
+                    <p className="text-xs text-muted-foreground">
+                      Show relevant commands based on current page or selection
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
