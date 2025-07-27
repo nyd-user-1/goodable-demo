@@ -8,7 +8,7 @@ export const Auth: React.FC = () => {
   const { asset: backgroundAsset, loading } = useAsset('goodable-heart-terrarium');
   
   // Use asset URL if available, otherwise fallback to public directory
-  const backgroundUrl = backgroundAsset?.url || '/goodable 15.png';
+  const backgroundUrl = backgroundAsset?.url || '/goodable 15.avif';
 
   return (
     <div 
