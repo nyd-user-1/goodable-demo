@@ -3,8 +3,8 @@ import { LoginForm } from "@/components/login-form";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
 
 export const Auth2: React.FC = () => {
-  // URL-encoded filename for the background image
-  const backgroundUrl = '/rectangle%201.avif';
+  // URL-encoded filename for the background image (note capital R)
+  const backgroundUrl = '/Rectangle%201.avif';
 
   return (
     <div className="flex min-h-screen">
