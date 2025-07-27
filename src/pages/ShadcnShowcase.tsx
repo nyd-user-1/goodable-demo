@@ -30,10 +30,24 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { useToast } from '@/hooks/use-toast';
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { Calendar } from '@/components/ui/calendar';
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
 import { 
   Calendar as CalendarIcon,
   Check,
   ChevronsUpDown,
+  ArrowUpDown,
+  MoreHorizontal,
   Settings,
   User,
   Mail,
@@ -85,6 +99,12 @@ const ShadcnShowcase = () => {
   const [statusOpen, setStatusOpen] = useState(false);
   const [statusValue, setStatusValue] = useState("");
   
+  // Data Table states
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState({});
+  
   const { toast } = useToast();
 
   const showToast = () => {
@@ -124,6 +144,181 @@ const ShadcnShowcase = () => {
     { value: "done", label: "Done" },
     { value: "canceled", label: "Canceled" },
   ];
+
+  // Sample data for Data Table
+  type Payment = {
+    id: string;
+    amount: number;
+    status: "pending" | "processing" | "success" | "failed";
+    email: string;
+    date: string;
+  };
+
+  const samplePayments: Payment[] = [
+    { id: "728ed52f", amount: 100, status: "pending", email: "m@example.com", date: "2024-01-15" },
+    { id: "489e1d42", amount: 125, status: "processing", email: "example@gmail.com", date: "2024-01-14" },
+    { id: "147f2f6b", amount: 316, status: "success", email: "john@company.com", date: "2024-01-13" },
+    { id: "3c5d8f9a", amount: 242, status: "success", email: "sarah@startup.io", date: "2024-01-12" },
+    { id: "92b4c7e1", amount: 837, status: "processing", email: "dev@techcorp.com", date: "2024-01-11" },
+    { id: "6f8a9c2d", amount: 462, status: "failed", email: "user@domain.org", date: "2024-01-10" },
+    { id: "5e7b8a1c", amount: 193, status: "success", email: "client@business.net", date: "2024-01-09" },
+    { id: "4d6a9b2e", amount: 751, status: "pending", email: "contact@agency.com", date: "2024-01-08" },
+  ];
+
+  // Column definitions for Data Table
+  const paymentColumns: ColumnDef<Payment>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "id",
+      header: "Payment ID",
+      cell: ({ row }) => (
+        <div className="font-mono text-xs">{row.getValue("id")}</div>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.getValue("status") as string;
+        return (
+          <Badge
+            variant={
+              status === "success" ? "default" :
+              status === "processing" ? "secondary" :
+              status === "pending" ? "outline" :
+              "destructive"
+            }
+          >
+            {status}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: "email",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Email
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
+    },
+    {
+      accessorKey: "amount",
+      header: () => <div className="text-right">Amount</div>,
+      cell: ({ row }) => {
+        const amount = parseFloat(row.getValue("amount"));
+        const formatted = new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+        }).format(amount);
+        return <div className="text-right font-medium">{formatted}</div>;
+      },
+    },
+    {
+      accessorKey: "date",
+      header: "Date",
+      cell: ({ row }) => {
+        const date = new Date(row.getValue("date"));
+        return <div>{date.toLocaleDateString()}</div>;
+      },
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const payment = row.original;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => {
+                  navigator.clipboard.writeText(payment.id);
+                  toast({
+                    title: "Payment ID copied",
+                    description: "Payment ID has been copied to clipboard.",
+                  });
+                }}
+              >
+                Copy payment ID
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => toast({
+                  title: "View Customer",
+                  description: `Viewing customer: ${payment.email}`,
+                })}
+              >
+                View customer
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => toast({
+                  title: "View Payment Details",
+                  description: `Payment: ${payment.id} - ${payment.amount}`,
+                })}
+              >
+                View payment details
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
+
+  // Create table instance
+  const table = useReactTable({
+    data: samplePayments,
+    columns: paymentColumns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+  });
 
   return (
     <TooltipProvider>
@@ -1210,6 +1405,338 @@ const [value, setValue] = React.useState("")
 </Popover>`}
                     </code>
                   </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Data Table Components */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Data Table with TanStack Table</CardTitle>
+              <CardDescription>Advanced data tables with sorting, filtering, pagination, and row selection</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Table Controls */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Input
+                    placeholder="Filter emails..."
+                    value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
+                    onChange={(event) =>
+                      table.getColumn("email")?.setFilterValue(event.target.value)
+                    }
+                    className="max-w-sm"
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="ml-auto">
+                        Columns <ChevronDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {table
+                        .getAllColumns()
+                        .filter((column) => column.getCanHide())
+                        .map((column) => {
+                          return (
+                            <DropdownMenuItem
+                              key={column.id}
+                              className="capitalize"
+                              onClick={() => column.toggleVisibility(!column.getIsVisible())}
+                            >
+                              <Checkbox
+                                checked={column.getIsVisible()}
+                                className="mr-2"
+                              />
+                              {column.id}
+                            </DropdownMenuItem>
+                          );
+                        })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+
+              {/* Data Table */}
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <TableRow key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => {
+                          return (
+                            <TableHead key={header.id}>
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                  )}
+                            </TableHead>
+                          );
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableHeader>
+                  <TableBody>
+                    {table.getRowModel().rows?.length ? (
+                      table.getRowModel().rows.map((row) => (
+                        <TableRow
+                          key={row.id}
+                          data-state={row.getIsSelected() && "selected"}
+                        >
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell key={cell.id}>
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell
+                          colSpan={paymentColumns.length}
+                          className="h-24 text-center"
+                        >
+                          No results.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Table Footer with Pagination and Selection */}
+              <div className="flex items-center justify-between space-x-2 py-4">
+                <div className="flex-1 text-sm text-muted-foreground">
+                  {table.getFilteredSelectedRowModel().rows.length} of{" "}
+                  {table.getFilteredRowModel().rows.length} row(s) selected.
+                </div>
+                <div className="flex items-center space-x-6 lg:space-x-8">
+                  <div className="flex items-center space-x-2">
+                    <p className="text-sm font-medium">Rows per page</p>
+                    <Select
+                      value={`${table.getState().pagination.pageSize}`}
+                      onValueChange={(value) => {
+                        table.setPageSize(Number(value));
+                      }}
+                    >
+                      <SelectTrigger className="h-8 w-[70px]">
+                        <SelectValue placeholder={table.getState().pagination.pageSize} />
+                      </SelectTrigger>
+                      <SelectContent side="top">
+                        {[5, 10, 20, 30, 40, 50].map((pageSize) => (
+                          <SelectItem key={pageSize} value={`${pageSize}`}>
+                            {pageSize}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                    Page {table.getState().pagination.pageIndex + 1} of{" "}
+                    {table.getPageCount()}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      className="hidden h-8 w-8 p-0 lg:flex"
+                      onClick={() => table.setPageIndex(0)}
+                      disabled={!table.getCanPreviousPage()}
+                    >
+                      <span className="sr-only">Go to first page</span>
+                      <ChevronDown className="h-4 w-4 rotate-90" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-8 w-8 p-0"
+                      onClick={() => table.previousPage()}
+                      disabled={!table.getCanPreviousPage()}
+                    >
+                      <span className="sr-only">Go to previous page</span>
+                      <ChevronDown className="h-4 w-4 rotate-90" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-8 w-8 p-0"
+                      onClick={() => table.nextPage()}
+                      disabled={!table.getCanNextPage()}
+                    >
+                      <span className="sr-only">Go to next page</span>
+                      <ChevronDown className="h-4 w-4 -rotate-90" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="hidden h-8 w-8 p-0 lg:flex"
+                      onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                      disabled={!table.getCanNextPage()}
+                    >
+                      <span className="sr-only">Go to last page</span>
+                      <ChevronDown className="h-4 w-4 -rotate-90" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Features Overview */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Data Table Features</h4>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium">✅ Sorting</h5>
+                    <p className="text-xs text-muted-foreground">Click column headers to sort data ascending/descending</p>
+                  </div>
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium">🔍 Filtering</h5>
+                    <p className="text-xs text-muted-foreground">Search and filter data with real-time updates</p>
+                  </div>
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium">📄 Pagination</h5>
+                    <p className="text-xs text-muted-foreground">Navigate through pages with customizable page sizes</p>
+                  </div>
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium">☑️ Row Selection</h5>
+                    <p className="text-xs text-muted-foreground">Select individual rows or all rows with checkboxes</p>
+                  </div>
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium">👁️ Column Visibility</h5>
+                    <p className="text-xs text-muted-foreground">Show/hide columns with the column visibility toggle</p>
+                  </div>
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium">⚡ Row Actions</h5>
+                    <p className="text-xs text-muted-foreground">Context menus with copy, view, and action options</p>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Implementation Examples */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Implementation Examples</h4>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <div className="text-sm space-y-2">
+                    <p className="font-medium">Basic Data Table Setup:</p>
+                    <code className="block bg-background p-2 rounded text-xs">
+{`import { useReactTable, getCoreRowModel, ColumnDef } from "@tanstack/react-table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+
+type Data = {
+  id: string
+  name: string
+  status: string
+}
+
+const columns: ColumnDef<Data>[] = [
+  {
+    accessorKey: "name",
+    header: "Name",
+  },
+  {
+    accessorKey: "status", 
+    header: "Status",
+  },
+]
+
+const table = useReactTable({
+  data,
+  columns,
+  getCoreRowModel: getCoreRowModel(),
+})
+
+<Table>
+  <TableHeader>
+    {table.getHeaderGroups().map((headerGroup) => (
+      <TableRow key={headerGroup.id}>
+        {headerGroup.headers.map((header) => (
+          <TableHead key={header.id}>
+            {flexRender(header.column.columnDef.header, header.getContext())}
+          </TableHead>
+        ))}
+      </TableRow>
+    ))}
+  </TableHeader>
+  <TableBody>
+    {table.getRowModel().rows.map((row) => (
+      <TableRow key={row.id}>
+        {row.getVisibleCells().map((cell) => (
+          <TableCell key={cell.id}>
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </TableCell>
+        ))}
+      </TableRow>
+    ))}
+  </TableBody>
+</Table>`}
+                    </code>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Quick Actions</h4>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      table.toggleAllRowsSelected(false);
+                      toast({
+                        title: "Selection Cleared",
+                        description: "All row selections have been cleared.",
+                      });
+                    }}
+                  >
+                    Clear Selection
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      table.resetSorting();
+                      toast({
+                        title: "Sorting Reset",
+                        description: "All sorting has been reset to default.",
+                      });
+                    }}
+                  >
+                    Reset Sorting
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      table.resetColumnFilters();
+                      toast({
+                        title: "Filters Cleared",
+                        description: "All column filters have been cleared.",
+                      });
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      table.resetColumnVisibility();
+                      toast({
+                        title: "Columns Reset",
+                        description: "All columns are now visible.",
+                      });
+                    }}
+                  >
+                    Show All Columns
+                  </Button>
                 </div>
               </div>
             </CardContent>
