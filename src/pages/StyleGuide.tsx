@@ -50,7 +50,7 @@ const PlaceholderImage: React.FC<{
     circle: 'rounded-full'
   };
   
-  const placeholderUrl = placeholderAsset?.url || '/goodable-night.avif';
+  const placeholderUrl = placeholderAsset?.url || '/goodable%2015.avif';
   
   return (
     <div className={cn(

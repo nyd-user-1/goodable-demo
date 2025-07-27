@@ -38,7 +38,7 @@ const PlaceholderImage: React.FC<{
     circle: 'rounded-full'
   };
   
-  const placeholderUrl = placeholderAsset?.url || '/goodable-night.avif';
+  const placeholderUrl = placeholderAsset?.url || '/goodable%2015.avif';
   
   return (
     <div className={cn(
@@ -100,7 +100,10 @@ const ImageSystem = () => {
   const [animationStates, setAnimationStates] = useState({
     fadeIn: false,
     slideIn: false,
-    bounce: false
+    bounce: false,
+    rotate: false,
+    pulse: false,
+    scale: false
   });
 
   const copyToClipboard = (text: string, id: string) => {
@@ -294,7 +297,7 @@ const ImageSystem = () => {
 
           {/* Animation Tab */}
           <TabsContent value="animation" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {/* Fade In Animation */}
               <Card>
                 <CardHeader>
@@ -393,6 +396,107 @@ const ImageSystem = () => {
                   </div>
                   <code className="text-xs bg-muted p-2 rounded block">
                     animate-bounce scale-110
+                  </code>
+                </CardContent>
+              </Card>
+
+              {/* Rotate Animation */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Rotate</CardTitle>
+                  <CardDescription>360 degree rotation effect</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="aspect-square w-full rounded-lg border overflow-hidden bg-muted flex items-center justify-center">
+                    <div 
+                      className={cn(
+                        "transition-transform duration-1000 ease-in-out",
+                        animationStates.rotate ? "rotate-360" : "rotate-0"
+                      )}
+                    >
+                      <PlaceholderImage size="lg" />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toggleAnimation('rotate')}
+                      className="flex-1"
+                    >
+                      {animationStates.rotate ? <RotateCcw className="w-3 h-3 mr-1" /> : <Play className="w-3 h-3 mr-1" />}
+                      {animationStates.rotate ? 'Reset' : 'Rotate'}
+                    </Button>
+                  </div>
+                  <code className="text-xs bg-muted p-2 rounded block">
+                    transition-transform duration-1000 ease-in-out rotate-360
+                  </code>
+                </CardContent>
+              </Card>
+
+              {/* Pulse Animation */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Pulse</CardTitle>
+                  <CardDescription>Rhythmic scale pulsing</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="aspect-square w-full rounded-lg border overflow-hidden bg-muted flex items-center justify-center">
+                    <div 
+                      className={cn(
+                        animationStates.pulse ? "animate-pulse" : ""
+                      )}
+                    >
+                      <PlaceholderImage size="lg" />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toggleAnimation('pulse')}
+                      className="flex-1"
+                    >
+                      {animationStates.pulse ? <Pause className="w-3 h-3 mr-1" /> : <Play className="w-3 h-3 mr-1" />}
+                      {animationStates.pulse ? 'Stop' : 'Pulse'}
+                    </Button>
+                  </div>
+                  <code className="text-xs bg-muted p-2 rounded block">
+                    animate-pulse
+                  </code>
+                </CardContent>
+              </Card>
+
+              {/* Scale Animation */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Scale</CardTitle>
+                  <CardDescription>Smooth scale transformation</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="aspect-square w-full rounded-lg border overflow-hidden bg-muted flex items-center justify-center">
+                    <div 
+                      className={cn(
+                        "transition-transform duration-500 ease-out",
+                        animationStates.scale ? "scale-125" : "scale-100"
+                      )}
+                    >
+                      <PlaceholderImage size="lg" />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toggleAnimation('scale')}
+                      className="flex-1"
+                    >
+                      {animationStates.scale ? <RotateCcw className="w-3 h-3 mr-1" /> : <Play className="w-3 h-3 mr-1" />}
+                      {animationStates.scale ? 'Reset' : 'Scale Up'}
+                    </Button>
+                  </div>
+                  <code className="text-xs bg-muted p-2 rounded block">
+                    transition-transform duration-500 ease-out scale-125
                   </code>
                 </CardContent>
               </Card>
