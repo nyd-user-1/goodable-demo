@@ -1,20 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const messages = [
-  "You're putting the public back in public policy.",
-  "It has meaning if you give it meaning.",
-  "No one is coming. It's up to you now.",
-  "Wow! That idea you have is a good one. Tell us about it.",
-  "Remember, we're all in this boat together.",
-  "Are you looking for someone to follow. Or something to do? We've got'em both."
-];
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 
 export const WelcomeMessage = () => {
   const { user, loading: authLoading } = useAuth();
   const [greeting, setGreeting] = useState('Good morning');
-  const [messageIndex, setMessageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   // Set dynamic greeting based on time of day
@@ -29,19 +20,6 @@ export const WelcomeMessage = () => {
     }
   }, []);
 
-  // Get message index from session storage or initialize
-  useEffect(() => {
-    const storedIndex = sessionStorage.getItem('welcomeMessageIndex');
-    if (storedIndex) {
-      setMessageIndex(parseInt(storedIndex));
-    }
-  }, []);
-
-  // Rotate message on each page load
-  useEffect(() => {
-    const nextIndex = (messageIndex + 1) % messages.length;
-    sessionStorage.setItem('welcomeMessageIndex', nextIndex.toString());
-  }, []);
 
   // Handle loading state - show skeleton while auth is loading or briefly after user loads
   useEffect(() => {
@@ -84,7 +62,41 @@ export const WelcomeMessage = () => {
         {greeting}, {getUserDisplayName()}!
       </h3>
       <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
-        <span>{messages[messageIndex]}</span>
+        <HoverCard>
+          <HoverCardTrigger asChild>
+            <span className="cursor-pointer underline decoration-dotted hover:text-foreground transition-colors">
+              Getting Started
+            </span>
+          </HoverCardTrigger>
+          <HoverCardContent className="w-80">
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold">Welcome to Goodable!</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span>Start by entering a problem you'd like to solve in the search box below</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span>Browse existing policy solutions and legislative ideas</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span>Connect with other policy makers and collaborate on solutions</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span>Use AI-powered analysis to refine your policy proposals</span>
+                </div>
+              </div>
+              <div className="pt-2 border-t">
+                <p className="text-xs text-muted-foreground">
+                  You're putting the public back in public policy.
+                </p>
+              </div>
+            </div>
+          </HoverCardContent>
+        </HoverCard>
       </div>
     </div>
   );
