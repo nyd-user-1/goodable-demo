@@ -212,7 +212,7 @@ const StyleGuide = () => {
         </div>
 
         <Tabs defaultValue="colors" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="colors" className="flex items-center gap-2">
               <Palette className="w-4 h-4" />
               Colors
@@ -228,10 +228,6 @@ const StyleGuide = () => {
             <TabsTrigger value="components" className="flex items-center gap-2">
               <Layers className="w-4 h-4" />
               Components
-            </TabsTrigger>
-            <TabsTrigger value="images" className="flex items-center gap-2">
-              <Image className="w-4 h-4" />
-              Images
             </TabsTrigger>
             <TabsTrigger value="effects" className="flex items-center gap-2">
               <Zap className="w-4 h-4" />
@@ -527,117 +523,6 @@ const StyleGuide = () => {
             </div>
           </TabsContent>
 
-          {/* Images Tab */}
-          <TabsContent value="images" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Placeholder Images</CardTitle>
-                <CardDescription>
-                  Site-wide placeholder image component with consistent styling
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <h4 className="font-semibold">Default Placeholder</h4>
-                  <div className="flex items-center gap-6">
-                    <PlaceholderImage />
-                    <div className="space-y-2 text-sm">
-                      <p><strong>Usage:</strong> Standard placeholder for content areas</p>
-                      <p><strong>Size:</strong> Medium (128x128px)</p>
-                      <p><strong>Variant:</strong> Default (rounded-lg)</p>
-                      <code className="block bg-muted p-2 rounded text-xs">
-                        {'<PlaceholderImage />'}
-                      </code>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="font-semibold">Size Variants</h4>
-                  <div className="flex items-end gap-4">
-                    <div className="text-center space-y-2">
-                      <PlaceholderImage size="sm" />
-                      <p className="text-xs text-muted-foreground">Small (64x64px)</p>
-                      <code className="text-xs bg-muted px-1 rounded">size="sm"</code>
-                    </div>
-                    <div className="text-center space-y-2">
-                      <PlaceholderImage size="md" />
-                      <p className="text-xs text-muted-foreground">Medium (128x128px)</p>
-                      <code className="text-xs bg-muted px-1 rounded">size="md"</code>
-                    </div>
-                    <div className="text-center space-y-2">
-                      <PlaceholderImage size="lg" />
-                      <p className="text-xs text-muted-foreground">Large (192x192px)</p>
-                      <code className="text-xs bg-muted px-1 rounded">size="lg"</code>
-                    </div>
-                    <div className="text-center space-y-2">
-                      <PlaceholderImage size="xl" />
-                      <p className="text-xs text-muted-foreground">Extra Large (256x256px)</p>
-                      <code className="text-xs bg-muted px-1 rounded">size="xl"</code>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="font-semibold">Style Variants</h4>
-                  <div className="flex items-center gap-6">
-                    <div className="text-center space-y-2">
-                      <PlaceholderImage variant="default" />
-                      <p className="text-xs text-muted-foreground">Default</p>
-                      <code className="text-xs bg-muted px-1 rounded">variant="default"</code>
-                    </div>
-                    <div className="text-center space-y-2">
-                      <PlaceholderImage variant="rounded" />
-                      <p className="text-xs text-muted-foreground">Rounded</p>
-                      <code className="text-xs bg-muted px-1 rounded">variant="rounded"</code>
-                    </div>
-                    <div className="text-center space-y-2">
-                      <PlaceholderImage variant="circle" />
-                      <p className="text-xs text-muted-foreground">Circle</p>
-                      <code className="text-xs bg-muted px-1 rounded">variant="circle"</code>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="font-semibold">Implementation</h4>
-                  <div className="bg-muted p-4 rounded-lg">
-                    <pre className="text-sm">
-{`import { PlaceholderImage } from '@/components/ui/placeholder-image';
-
-// Basic usage
-<PlaceholderImage />
-
-// With size and variant
-<PlaceholderImage 
-  size="lg" 
-  variant="circle" 
-  className="custom-styles" 
-/>
-
-// All props
-<PlaceholderImage 
-  size="sm" | "md" | "lg" | "xl"
-  variant="default" | "rounded" | "circle"
-  className="additional-classes"
-/>`}
-                    </pre>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="font-semibold">Features</h4>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>Automatically loads heart terrarium image from assets system</li>
-                    <li>Graceful fallback to branded placeholder when image unavailable</li>
-                    <li>Responsive design with hover effects</li>
-                    <li>Dark mode support with appropriate gradients</li>
-                    <li>Consistent sizing and styling across all variants</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Effects Tab */}
           <TabsContent value="effects" className="space-y-6">

@@ -1,4 +1,4 @@
-import { Search, Settings, User, FileText, Lightbulb, BarChart3, Users, Building2, TrendingUp, MessageSquare, Heart, CreditCard, History, Gamepad2, Factory, Target, Star, ScrollText, Palette, Shield, Lock, Rss, Home } from "lucide-react";
+import { Search, Settings, User, FileText, Lightbulb, BarChart3, Users, Building2, TrendingUp, MessageSquare, Heart, CreditCard, History, Gamepad2, Factory, Target, Star, ScrollText, Palette, Shield, Lock, Rss, Home, Image } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -35,6 +35,7 @@ const bottomNavItems = [
 
 const adminNavItems = [
   { title: "Style Guide", url: "/style-guide", icon: Palette },
+  { title: "Image System", url: "/image-system", icon: Image },
   { title: "Control Panel", url: "/admin", icon: Shield },
 ];
 

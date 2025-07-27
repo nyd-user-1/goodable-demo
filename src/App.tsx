@@ -36,6 +36,7 @@ import Problems from "./pages/Problems";
 import About from "./pages/About";
 import PublicPolicy from "./pages/PublicPolicy";
 import StyleGuide from "./pages/StyleGuide";
+import ImageSystem from "./pages/ImageSystem";
 import Admin from "./pages/Admin";
 import FeedPage from "./pages/FeedPage";
 import ImageUploadTest from "./pages/ImageUploadTest";
@@ -81,6 +82,7 @@ const AppLayout = () => {
                 <Route path="/about" element={<About />} />
                 <Route path="/public-policy" element={<PublicPolicy />} />
                 <Route path="/style-guide" element={<StyleGuide />} />
+                <Route path="/image-system" element={<ImageSystem />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/dashboard" element={<Index />} />
                 <Route path="/feed" element={<FeedPage />} />
