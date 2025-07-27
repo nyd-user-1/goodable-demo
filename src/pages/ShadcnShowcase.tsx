@@ -29,8 +29,9 @@ import { Toggle } from '@/components/ui/toggle';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+import { Calendar } from '@/components/ui/calendar';
 import { 
-  Calendar,
+  Calendar as CalendarIcon,
   Settings,
   User,
   Mail,
@@ -68,6 +69,11 @@ const ShadcnShowcase = () => {
   const [switchChecked, setSwitchChecked] = useState(false);
   const [checkboxChecked, setCheckboxChecked] = useState(false);
   const [radioValue, setRadioValue] = useState('option1');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedRange, setSelectedRange] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({ from: undefined, to: undefined });
   const { toast } = useToast();
 
   const showToast = () => {
@@ -518,7 +524,7 @@ const ShadcnShowcase = () => {
                     <CommandEmpty>No results found.</CommandEmpty>
                     <CommandGroup heading="Suggestions">
                       <CommandItem>
-                        <Calendar className="mr-2 h-4 w-4" />
+                        <CalendarIcon className="mr-2 h-4 w-4" />
                         <span>Calendar</span>
                       </CommandItem>
                       <CommandItem>
@@ -548,6 +554,166 @@ const ShadcnShowcase = () => {
                     ))}
                   </div>
                 </ScrollArea>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Calendar Components */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Calendar & Date Picker</CardTitle>
+              <CardDescription>Date selection and calendar components</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Single Date Calendar */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Single Date Selection</h4>
+                <div className="flex flex-col lg:flex-row gap-6">
+                  <div className="flex-1">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      className="rounded-lg border w-fit"
+                    />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <p className="text-sm font-medium">Selected Date:</p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedDate ? selectedDate.toLocaleDateString() : "No date selected"}
+                    </p>
+                    <div className="space-y-2">
+                      <Button 
+                        size="sm" 
+                        onClick={() => setSelectedDate(new Date())}
+                        variant="outline"
+                      >
+                        Select Today
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={() => setSelectedDate(undefined)}
+                        variant="outline"
+                      >
+                        Clear Selection
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Range Calendar */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Date Range Selection</h4>
+                <div className="flex flex-col lg:flex-row gap-6">
+                  <div className="flex-1">
+                    <Calendar
+                      mode="range"
+                      selected={selectedRange}
+                      onSelect={setSelectedRange}
+                      className="rounded-lg border w-fit"
+                      numberOfMonths={2}
+                    />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <p className="text-sm font-medium">Selected Range:</p>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      <p>From: {selectedRange?.from ? selectedRange.from.toLocaleDateString() : "Not selected"}</p>
+                      <p>To: {selectedRange?.to ? selectedRange.to.toLocaleDateString() : "Not selected"}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          const today = new Date();
+                          const nextWeek = new Date(today);
+                          nextWeek.setDate(today.getDate() + 7);
+                          setSelectedRange({ from: today, to: nextWeek });
+                        }}
+                        variant="outline"
+                      >
+                        Select This Week
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={() => setSelectedRange({ from: undefined, to: undefined })}
+                        variant="outline"
+                      >
+                        Clear Range
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Multiple Calendars */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Multiple Month View</h4>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  className="rounded-lg border w-fit"
+                  numberOfMonths={3}
+                />
+              </div>
+
+              <Separator />
+
+              {/* Calendar with Disabled Dates */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Calendar with Disabled Dates</h4>
+                <div className="flex flex-col lg:flex-row gap-6">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    className="rounded-lg border w-fit"
+                    disabled={(date) => {
+                      // Disable weekends
+                      return date.getDay() === 0 || date.getDay() === 6;
+                    }}
+                  />
+                  <div className="flex-1">
+                    <div className="p-4 bg-muted/50 rounded-lg">
+                      <p className="text-sm font-medium mb-2">Features:</p>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• Weekends are disabled</li>
+                        <li>• Only weekdays can be selected</li>
+                        <li>• Great for business date picking</li>
+                        <li>• Fully customizable disabled logic</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Calendar Usage Examples */}
+              <div className="space-y-3">
+                <h4 className="font-semibold">Implementation Examples</h4>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <div className="text-sm space-y-2">
+                    <p className="font-medium">Basic Usage:</p>
+                    <code className="block bg-background p-2 rounded text-xs">
+{`import { Calendar } from "@/components/ui/calendar"
+
+const [date, setDate] = React.useState<Date | undefined>(new Date())
+
+<Calendar
+  mode="single"
+  selected={date}
+  onSelect={setDate}
+  className="rounded-lg border"
+/>`}
+                    </code>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
