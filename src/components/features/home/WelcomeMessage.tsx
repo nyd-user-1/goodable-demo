@@ -28,6 +28,7 @@ export const WelcomeMessage = () => {
   const [greeting, setGreeting] = useState('Good morning');
   const [isLoading, setIsLoading] = useState(true);
   const [userProgress, setUserProgress] = useState<{[key: string]: boolean}>({});
+  const [gettingStartedClicked, setGettingStartedClicked] = useState(false);
 
   // Set dynamic greeting based on time of day
   useEffect(() => {
@@ -47,6 +48,12 @@ export const WelcomeMessage = () => {
       const savedProgress = localStorage.getItem(`user-progress-${user.id}`);
       if (savedProgress) {
         setUserProgress(JSON.parse(savedProgress));
+      }
+      
+      // Load getting started clicked state
+      const clickedState = localStorage.getItem(`getting-started-clicked-${user.id}`);
+      if (clickedState === 'true') {
+        setGettingStartedClicked(true);
       }
     }
   }, [user?.id]);
@@ -230,9 +237,22 @@ export const WelcomeMessage = () => {
         {greeting}, {getUserDisplayName()}!
       </h3>
       <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
-        <HoverCard>
+        <HoverCard onOpenChange={(open) => {
+          if (open && !gettingStartedClicked) {
+            setGettingStartedClicked(true);
+            if (user?.id) {
+              localStorage.setItem(`getting-started-clicked-${user.id}`, 'true');
+            }
+          }
+        }}>
           <HoverCardTrigger asChild>
-            <span className="cursor-pointer underline decoration-dotted hover:text-foreground transition-colors">
+            <span 
+              className={`cursor-pointer underline decoration-dotted transition-colors ${
+                gettingStartedClicked 
+                  ? 'text-[#8B8D98]' // Accent gray after clicked
+                  : 'text-[#5A7FDB] hover:text-[#3D63DD]' // Secondary blue default, primary blue on hover
+              }`}
+            >
               Getting Started
             </span>
           </HoverCardTrigger>
