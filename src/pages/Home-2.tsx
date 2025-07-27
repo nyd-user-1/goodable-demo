@@ -10,6 +10,14 @@ import { ShineBorder } from '@/components/magicui/shine-border';
 import { Confetti, type ConfettiRef } from '@/components/magicui/confetti';
 import { WelcomeMessage } from '@/components/features/home/WelcomeMessage';
 import CompactMetricList from '@/components/CompactMetricList';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Home2 = () => {
   const [userProblem, setUserProblem] = useState('');
@@ -17,6 +25,7 @@ const Home2 = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const confettiRef = useRef<ConfettiRef>(null);
   const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const { count, loading } = useVisitorCount();
   const { user } = useAuth();
   
@@ -25,6 +34,82 @@ const Home2 = () => {
   
   // Check if input has meaningful content (not just whitespace)
   const hasContent = userProblem.trim().length > 0;
+  
+  // Categories with dropdown items
+  const categories = [
+    {
+      id: 'business',
+      label: 'Business',
+      icon: BriefcaseIcon,
+      items: [
+        { label: 'Small Business Support', value: 'small-business' },
+        { label: 'Corporate Responsibility', value: 'corporate-responsibility' },
+        { label: 'Economic Development', value: 'economic-development' },
+        { label: 'Entrepreneurship Programs', value: 'entrepreneurship' },
+        { label: 'Workforce Development', value: 'workforce' }
+      ]
+    },
+    {
+      id: 'strategy',
+      label: 'Strategy',
+      icon: SettingsIcon,
+      items: [
+        { label: 'Policy Planning', value: 'policy-planning' },
+        { label: 'Strategic Initiatives', value: 'strategic-initiatives' },
+        { label: 'Long-term Vision', value: 'long-term-vision' },
+        { label: 'Implementation Roadmaps', value: 'implementation' },
+        { label: 'Performance Metrics', value: 'performance-metrics' }
+      ]
+    },
+    {
+      id: 'health',
+      label: 'Health',
+      icon: HeartIcon,
+      items: [
+        { label: 'Public Health', value: 'public-health' },
+        { label: 'Healthcare Access', value: 'healthcare-access' },
+        { label: 'Mental Health Services', value: 'mental-health' },
+        { label: 'Preventive Care', value: 'preventive-care' },
+        { label: 'Health Equity', value: 'health-equity' }
+      ]
+    },
+    {
+      id: 'creative',
+      label: 'Creative',
+      icon: LightbulbIcon,
+      items: [
+        { label: 'Arts & Culture', value: 'arts-culture' },
+        { label: 'Innovation Labs', value: 'innovation-labs' },
+        { label: 'Creative Economy', value: 'creative-economy' },
+        { label: 'Design Thinking', value: 'design-thinking' },
+        { label: 'Community Art Programs', value: 'community-art' }
+      ]
+    },
+    {
+      id: 'environment',
+      label: 'Environment',
+      icon: FlowerIcon,
+      items: [
+        { label: 'Climate Action', value: 'climate-action' },
+        { label: 'Sustainability', value: 'sustainability' },
+        { label: 'Conservation', value: 'conservation' },
+        { label: 'Green Infrastructure', value: 'green-infrastructure' },
+        { label: 'Environmental Justice', value: 'environmental-justice' }
+      ]
+    },
+    {
+      id: 'adventure',
+      label: 'Adventure',
+      icon: MountainSnow,
+      items: [
+        { label: 'Outdoor Recreation', value: 'outdoor-recreation' },
+        { label: 'Tourism Development', value: 'tourism' },
+        { label: 'Parks & Trails', value: 'parks-trails' },
+        { label: 'Adventure Sports', value: 'adventure-sports' },
+        { label: 'Ecotourism', value: 'ecotourism' }
+      ]
+    }
+  ];
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -178,30 +263,40 @@ const Home2 = () => {
             </div>
 
             <div className="mt-10 flex flex-wrap justify-center gap-2 sm:mt-20 mb-16">
-              <Button variant={"outline"}>
-                <BriefcaseIcon className="mr-2 h-auto w-3 flex-shrink-0" />
-                Business
-              </Button>
-              <Button variant={"outline"}>
-                <SettingsIcon className="mr-2 h-auto w-3 flex-shrink-0" />
-                Strategy
-              </Button>
-              <Button variant={"outline"}>
-                <HeartIcon className="mr-2 h-auto w-3 flex-shrink-0" />
-                Health
-              </Button>
-              <Button variant={"outline"}>
-                <LightbulbIcon className="mr-2 h-auto w-3 flex-shrink-0" />
-                Creative
-              </Button>
-              <Button variant={"outline"}>
-                <FlowerIcon className="mr-2 h-auto w-3 flex-shrink-0" />
-                Environment
-              </Button>
-              <Button variant={"outline"}>
-                <MountainSnow className="mr-2 h-auto w-3 flex-shrink-0" />
-                Adventure
-              </Button>
+              {categories.map((category) => (
+                <DropdownMenu 
+                  key={category.id}
+                  open={openDropdown === category.id}
+                  onOpenChange={(open) => setOpenDropdown(open ? category.id : null)}
+                >
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline">
+                      <category.icon className="mr-2 h-auto w-3 flex-shrink-0" />
+                      {category.label}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent 
+                    align="start" 
+                    side="bottom"
+                    className="w-56"
+                  >
+                    <DropdownMenuLabel>{category.label} Topics</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {category.items.map((item) => (
+                      <DropdownMenuItem 
+                        key={item.value}
+                        onClick={() => {
+                          setUserProblem(item.label);
+                          setOpenDropdown(null);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        {item.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ))}
             </div>
 
             <div className="flex flex-col items-center justify-center gap-4 mb-16">
