@@ -29,6 +29,9 @@ export const WelcomeMessage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userProgress, setUserProgress] = useState<{[key: string]: boolean}>({});
   const [gettingStartedClicked, setGettingStartedClicked] = useState(false);
+  const [displayedUsername, setDisplayedUsername] = useState('');
+  const [displayedGettingStarted, setDisplayedGettingStarted] = useState('');
+  const [showTypingCursor, setShowTypingCursor] = useState(true);
 
   // Set dynamic greeting based on time of day
   useEffect(() => {
@@ -157,6 +160,60 @@ export const WelcomeMessage = () => {
     return 'there';
   };
 
+  // Typing animation for "Getting Started"
+  const startGettingStartedTyping = () => {
+    const text = 'Getting Started';
+    let index = 0;
+    setDisplayedGettingStarted('');
+    
+    const typingInterval = setInterval(() => {
+      if (index <= text.length) {
+        setDisplayedGettingStarted(text.slice(0, index));
+        index++;
+      } else {
+        clearInterval(typingInterval);
+        // Stop showing cursor after both animations complete
+        setTimeout(() => {
+          setShowTypingCursor(false);
+        }, 1000);
+      }
+    }, 60); // Slightly faster typing speed for "Getting Started"
+  };
+
+  // Typing animation for username
+  useEffect(() => {
+    if (!isLoading && user) {
+      const username = getUserDisplayName();
+      let index = 0;
+      setDisplayedUsername('');
+      
+      const typingInterval = setInterval(() => {
+        if (index <= username.length) {
+          setDisplayedUsername(username.slice(0, index));
+          index++;
+        } else {
+          clearInterval(typingInterval);
+          // Start "Getting Started" animation after username is complete
+          setTimeout(() => {
+            startGettingStartedTyping();
+          }, 500);
+        }
+      }, 80); // Typing speed for username
+
+      return () => clearInterval(typingInterval);
+    }
+  }, [isLoading, user]);
+
+  // Cursor blinking animation
+  useEffect(() => {
+    if (showTypingCursor) {
+      const cursorInterval = setInterval(() => {
+        // Cursor blinking is handled via CSS animation
+      }, 500);
+      return () => clearInterval(cursorInterval);
+    }
+  }, [showTypingCursor]);
+
   const gettingStartedTasks: GettingStartedTask[] = [
     { id: '1', text: 'Complete your profile information', completed: userProgress['profile'] || false, hasLink: true },
     { id: '2', text: 'Visit the Intel Section', completed: userProgress['visit_intel'] || false, hasLink: true },
@@ -234,7 +291,12 @@ export const WelcomeMessage = () => {
   return (
     <div className="animate-in fade-in slide-in-from-left-4 duration-700 ease-out">
       <h3 className="text-2xl font-bold text-foreground mb-2">
-        {greeting}, {getUserDisplayName()}!
+        {greeting}, <span className="relative">
+          {displayedUsername}
+          {showTypingCursor && displayedUsername.length < getUserDisplayName().length && (
+            <span className="animate-pulse">|</span>
+          )}
+        </span>!
       </h3>
       <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
         <HoverCard onOpenChange={(open) => {
@@ -247,13 +309,16 @@ export const WelcomeMessage = () => {
         }}>
           <HoverCardTrigger asChild>
             <span 
-              className={`cursor-pointer underline decoration-dotted transition-colors ${
+              className={`cursor-pointer underline decoration-dotted transition-colors relative ${
                 gettingStartedClicked 
                   ? 'text-[#8B8D98]' // Accent gray after clicked
                   : 'text-[#5A7FDB] hover:text-[#3D63DD]' // Secondary blue default, primary blue on hover
               }`}
             >
-              Getting Started
+              {displayedGettingStarted}
+              {showTypingCursor && displayedGettingStarted.length < 'Getting Started'.length && displayedUsername.length >= getUserDisplayName().length && (
+                <span className="animate-pulse">|</span>
+              )}
             </span>
           </HoverCardTrigger>
           <HoverCardContent className="w-80 max-w-[90vw] p-0" side="bottom" align="start">
