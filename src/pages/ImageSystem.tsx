@@ -12,7 +12,9 @@ import {
   Sparkles,
   Play,
   Pause,
-  RotateCcw
+  RotateCcw,
+  Filter,
+  X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 // Site-wide Placeholder Image Component (moved from StyleGuide)
@@ -51,38 +53,41 @@ const PlaceholderImage: React.FC<{
   );
 };
 
-// All images from public directory (actual files)
-const publicAssets = [
-  'OAI LOGO.png',
-  'PPLX LOGO.png',
-  'alt-ai-small-button.png',
-  'apple-touch-icon.png',
-  'claude-ai-icon-65aa.png',
-  'gdble-beach.jpg',
-  'gdble-mtn-2.avif',
-  'gdble-mtn-3.jpg',
-  'goodable 15.avif',
-  'goodable 15.png',
-  'goodable 4.avif',
-  'goodable pwa.jpg',
-  'goodable-botanical.avif',
-  'goodable-dandelion.avif',
-  'goodable-dream-state.avif',
-  'goodable-heart-pwa.png',
-  'goodable-heart.avif',
-  'goodable-mtn-1.avif',
-  'goodable-night.avif',
-  'goodable-path-2.avif',
-  'goodable-path.avif',
-  'goodable-text.jpg',
-  'heart-icon-192x192.png',
-  'heart-icon-512x512.png',
-  'legislative research.png',
-  'placeholder.svg'
+// All images from public directory with tags
+interface Asset {
+  filename: string;
+  tags: string[];
+}
+
+const publicAssets: Asset[] = [
+  { filename: 'OAI LOGO.png', tags: ['logo'] },
+  { filename: 'PPLX LOGO.png', tags: ['logo'] },
+  { filename: 'alt-ai-small-button.png', tags: ['logo'] },
+  { filename: 'claude-ai-icon-65aa.png', tags: ['logo'] },
+  { filename: 'goodable pwa.jpg', tags: ['logo'] },
+  { filename: 'goodable-text.jpg', tags: ['logo'] },
+  { filename: 'gdble-beach.jpg', tags: ['blog-image'] },
+  { filename: 'gdble-mtn-2.avif', tags: ['blog-image'] },
+  { filename: 'gdble-mtn-3.jpg', tags: ['blog-image'] },
+  { filename: 'goodable 15.avif', tags: ['blog-image'] },
+  { filename: 'goodable 15.png', tags: ['blog-image'] },
+  { filename: 'goodable 4.avif', tags: ['blog-image'] },
+  { filename: 'goodable-botanical.avif', tags: ['blog-image'] },
+  { filename: 'goodable-dandelion.avif', tags: ['blog-image'] },
+  { filename: 'goodable-dream-state.avif', tags: ['blog-image'] },
+  { filename: 'goodable-heart-pwa.png', tags: ['blog-image'] },
+  { filename: 'goodable-heart.avif', tags: ['blog-image'] },
+  { filename: 'goodable-mtn-1.avif', tags: ['blog-image'] },
+  { filename: 'goodable-night.avif', tags: ['blog-image'] },
+  { filename: 'goodable-path-2.avif', tags: ['blog-image'] },
+  { filename: 'goodable-path.avif', tags: ['blog-image'] }
 ];
+
+const allTags = ['logo', 'blog-image'];
 
 const ImageSystem = () => {
   const [copiedItem, setCopiedItem] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [animationStates, setAnimationStates] = useState({
     fadeIn: false,
     slideIn: false,
@@ -91,6 +96,24 @@ const ImageSystem = () => {
     pulse: false,
     scale: false
   });
+
+  const filteredAssets = selectedTags.length === 0 
+    ? publicAssets 
+    : publicAssets.filter(asset => 
+        selectedTags.some(tag => asset.tags.includes(tag))
+      );
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) 
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    );
+  };
+
+  const clearFilters = () => {
+    setSelectedTags([]);
+  };
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -112,7 +135,8 @@ const ImageSystem = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-4xl font-bold mb-2">Image System</h1>
+              <h1 className="text-4xl font-bold mb-2">Goodable Image System</h1>
+              <p className="text-muted-foreground">Visual assets, components, and animations for Goodable platform</p>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="flex items-center gap-1">
@@ -132,7 +156,7 @@ const ImageSystem = () => {
               Assets: {publicAssets.length}
             </div>
             <div>Last Updated: Today</div>
-            <div>Components: 1</div>
+            <div>Components: 2</div>
           </div>
         </div>
 
@@ -158,7 +182,7 @@ const ImageSystem = () => {
               <CardHeader>
                 <CardTitle>Placeholder Image Component</CardTitle>
                 <CardDescription>
-                  Reusable image component with multiple size and variant options
+                  Reusable image component with multiple size and variant options for Goodable content
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -180,6 +204,53 @@ const ImageSystem = () => {
                     <div className="text-center space-y-2">
                       <PlaceholderImage size="xl" />
                       <code className="text-xs bg-muted px-2 py-1 rounded">xl</code>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-semibold">Blog Image Examples</h4>
+                  <p className="text-sm text-muted-foreground">Sample blog images for Goodable policy content</p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center space-y-2">
+                      <div className="aspect-video rounded-lg overflow-hidden border">
+                        <img 
+                          src="/goodable-heart.avif" 
+                          alt="Goodable heart" 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <code className="text-xs bg-muted px-2 py-1 rounded">goodable-heart.avif</code>
+                    </div>
+                    <div className="text-center space-y-2">
+                      <div className="aspect-video rounded-lg overflow-hidden border">
+                        <img 
+                          src="/goodable-night.avif" 
+                          alt="Goodable night" 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <code className="text-xs bg-muted px-2 py-1 rounded">goodable-night.avif</code>
+                    </div>
+                    <div className="text-center space-y-2">
+                      <div className="aspect-video rounded-lg overflow-hidden border">
+                        <img 
+                          src="/goodable-botanical.avif" 
+                          alt="Goodable botanical" 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <code className="text-xs bg-muted px-2 py-1 rounded">goodable-botanical.avif</code>
+                    </div>
+                    <div className="text-center space-y-2">
+                      <div className="aspect-video rounded-lg overflow-hidden border">
+                        <img 
+                          src="/goodable%2015.avif" 
+                          alt="Goodable 15" 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <code className="text-xs bg-muted px-2 py-1 rounded">goodable 15.avif</code>
                     </div>
                   </div>
                 </div>
@@ -222,19 +293,52 @@ const ImageSystem = () => {
           <TabsContent value="assets" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Public Directory Assets</CardTitle>
+                <CardTitle>Goodable Asset Library</CardTitle>
                 <CardDescription>
-                  All images available in the public directory ({publicAssets.length} items)
+                  All visual assets for the Goodable platform ({publicAssets.length} items)
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-6">
+                {/* Filter Controls */}
+                <div className="flex flex-wrap items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Filter by tag:</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {allTags.map((tag) => (
+                      <Button
+                        key={tag}
+                        variant={selectedTags.includes(tag) ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => toggleTag(tag)}
+                        className="text-xs"
+                      >
+                        {tag}
+                      </Button>
+                    ))}
+                  </div>
+                  {selectedTags.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearFilters}
+                      className="text-xs text-muted-foreground"
+                    >
+                      <X className="w-3 h-3 mr-1" />
+                      Clear filters
+                    </Button>
+                  )}
+                </div>
+
+                {/* Assets Grid */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {publicAssets.map((asset) => (
-                    <Card key={asset} className="p-4">
+                  {filteredAssets.map((asset) => (
+                    <Card key={asset.filename} className="p-4">
                       <div className="aspect-square w-full mb-4 rounded-lg border overflow-hidden bg-muted flex items-center justify-center">
                         <img 
-                          src={`/${encodeURIComponent(asset)}`} 
-                          alt={asset}
+                          src={`/${encodeURIComponent(asset.filename)}`} 
+                          alt={asset.filename}
                           className="w-full h-full object-contain"
                           onError={(e) => {
                             const target = e.currentTarget;
@@ -248,22 +352,29 @@ const ImageSystem = () => {
                         />
                         <div className="hidden flex-col items-center justify-center text-muted-foreground">
                           <Image className="w-8 h-8 mb-2" />
-                          <span className="text-xs">{asset.split('.')[0]}</span>
+                          <span className="text-xs">{asset.filename.split('.')[0]}</span>
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <h5 className="font-medium text-sm truncate">{asset}</h5>
+                        <h5 className="font-medium text-sm truncate">{asset.filename}</h5>
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {asset.tags.map((tag) => (
+                            <Badge key={tag} variant="secondary" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
                         <div className="flex items-center justify-between">
                           <code className="text-xs bg-muted px-2 py-1 rounded">
-                            /{encodeURIComponent(asset)}
+                            /{encodeURIComponent(asset.filename)}
                           </code>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => copyToClipboard(`/${encodeURIComponent(asset)}`, asset)}
+                            onClick={() => copyToClipboard(`/${encodeURIComponent(asset.filename)}`, asset.filename)}
                             className="p-1"
                           >
-                            {copiedItem === asset ? (
+                            {copiedItem === asset.filename ? (
                               <Check className="w-3 h-3 text-green-500" />
                             ) : (
                               <Copy className="w-3 h-3" />
@@ -274,6 +385,14 @@ const ImageSystem = () => {
                     </Card>
                   ))}
                 </div>
+                
+                {filteredAssets.length === 0 && selectedTags.length > 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Filter className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <h3 className="text-lg font-semibold mb-2">No assets found</h3>
+                    <p>No assets match the selected filters. Try clearing filters or selecting different tags.</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -488,19 +607,20 @@ const ImageSystem = () => {
             {/* Animation Guidelines */}
             <Card>
               <CardHeader>
-                <CardTitle>Animation Guidelines</CardTitle>
-                <CardDescription>Best practices for Goodable animations</CardDescription>
+                <CardTitle>Goodable Animation Guidelines</CardTitle>
+                <CardDescription>Animation principles for civic engagement platform experiences</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <h4 className="font-semibold text-green-600">Do</h4>
                     <ul className="text-sm space-y-1 text-muted-foreground">
-                      <li>• Use subtle, purposeful animations</li>
-                      <li>• Keep durations between 200-700ms</li>
-                      <li>• Use easing functions (ease-out, ease-in-out)</li>
-                      <li>• Provide reduced motion alternatives</li>
-                      <li>• Test performance on lower-end devices</li>
+                      <li>• Use subtle, joyful animations that enhance user experience</li>
+                      <li>• Keep durations between 200-700ms for optimal perception</li>
+                      <li>• Use easing functions (ease-out, ease-in-out) for natural motion</li>
+                      <li>• Provide reduced motion alternatives for accessibility</li>
+                      <li>• Test performance on all devices to ensure inclusivity</li>
+                      <li>• Create dopamine-driven micro-interactions</li>
                     </ul>
                   </div>
                   <div className="space-y-2">
@@ -508,11 +628,18 @@ const ImageSystem = () => {
                     <ul className="text-sm space-y-1 text-muted-foreground">
                       <li>• Overuse flashy or distracting animations</li>
                       <li>• Create animations longer than 1 second</li>
-                      <li>• Use linear timing functions</li>
+                      <li>• Use linear timing functions without purpose</li>
                       <li>• Animate too many elements simultaneously</li>
-                      <li>• Ignore accessibility preferences</li>
+                      <li>• Ignore accessibility and motion sensitivity preferences</li>
+                      <li>• Sacrifice performance for visual flair</li>
                     </ul>
                   </div>
+                </div>
+                <div className="pt-4 border-t">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Goodable Philosophy:</strong> Animations should make civic engagement feel approachable and delightful, 
+                    encouraging users to participate in democracy through subtle, unexpected moments of joy.
+                  </p>
                 </div>
               </CardContent>
             </Card>

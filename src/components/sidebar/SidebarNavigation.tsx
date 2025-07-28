@@ -1,10 +1,13 @@
-import { Search, Settings, User, FileText, Lightbulb, BarChart3, Users, Building2, TrendingUp, MessageSquare, Heart, CreditCard, History, Gamepad2, Factory, Target, Star, ScrollText, Palette, Shield, Lock, Rss, Home, Image, BookOpen } from "lucide-react";
+import { useState } from "react";
+import { Search, Settings, User, FileText, Lightbulb, BarChart3, Users, Building2, TrendingUp, MessageSquare, Heart, CreditCard, History, Gamepad2, Factory, Target, Star, ScrollText, Palette, Shield, Lock, Rss, Home, Image, BookOpen, ChevronDown, ChevronRight } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
 } from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
 import { NavigationItem } from "./NavigationItem";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -35,9 +38,9 @@ const bottomNavItems = [
 ];
 
 const adminNavItems = [
+  { title: "Control Panel", url: "/admin", icon: Shield },
   { title: "Style Guide", url: "/style-guide", icon: Palette },
   { title: "Image System", url: "/image-system", icon: Image },
-  { title: "Control Panel", url: "/admin", icon: Shield },
 ];
 
 interface SidebarNavigationProps {
@@ -48,6 +51,8 @@ interface SidebarNavigationProps {
 export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNavigationProps) {
   const { getNavClassName } = useNavigation();
   const { isAdmin } = useAuth();
+  const [isAccountOpen, setIsAccountOpen] = useState(true);
+  const [isAdminOpen, setIsAdminOpen] = useState(true);
 
   return (
     <>
@@ -98,45 +103,77 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
         </SidebarGroup>
       )}
 
-      {/* Account Navigation */}
+      {/* Account Navigation - Collapsible */}
       <SidebarGroup>
-        <SidebarGroupLabel>Account</SidebarGroupLabel>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            {bottomNavItems
-              .filter(item => !item.adminOnly || isAdmin)
-              .map((item) => (
-                <NavigationItem
-                  key={item.title}
-                  title={item.title}
-                  url={item.url}
-                  icon={item.icon}
-                  collapsed={collapsed}
-                  getNavClassName={getNavClassName}
-                />
-              ))}
-          </SidebarMenu>
-        </SidebarGroupContent>
+        <Collapsible open={isAccountOpen} onOpenChange={setIsAccountOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-between px-2 py-1 h-8 text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+            >
+              <span>Account</span>
+              {isAccountOpen ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {bottomNavItems
+                  .filter(item => !item.adminOnly || isAdmin)
+                  .map((item) => (
+                    <NavigationItem
+                      key={item.title}
+                      title={item.title}
+                      url={item.url}
+                      icon={item.icon}
+                      collapsed={collapsed}
+                      getNavClassName={getNavClassName}
+                    />
+                  ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </CollapsibleContent>
+        </Collapsible>
       </SidebarGroup>
 
-      {/* Admin Navigation - Only visible to admins */}
+      {/* Admin Navigation - Only visible to admins, Collapsible */}
       {isAdmin && (
         <SidebarGroup>
-          <SidebarGroupLabel>Admin</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {adminNavItems.map((item) => (
-                <NavigationItem
-                  key={item.title}
-                  title={item.title}
-                  url={item.url}
-                  icon={item.icon}
-                  collapsed={collapsed}
-                  getNavClassName={getNavClassName}
-                />
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
+          <Collapsible open={isAdminOpen} onOpenChange={setIsAdminOpen}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full justify-between px-2 py-1 h-8 text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+              >
+                <span>Admin</span>
+                {isAdminOpen ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {adminNavItems.map((item) => (
+                    <NavigationItem
+                      key={item.title}
+                      title={item.title}
+                      url={item.url}
+                      icon={item.icon}
+                      collapsed={collapsed}
+                      getNavClassName={getNavClassName}
+                    />
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </Collapsible>
         </SidebarGroup>
       )}
     </>
