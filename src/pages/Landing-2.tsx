@@ -597,8 +597,7 @@ const Landing2 = () => {
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-              Featured Public Policy
-              <span className="bg-gradient-to-r from-[#3D63DD] to-[#5A7FDB] bg-clip-text text-transparent"> Proposals</span>
+              Featured Policy Proposals
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
               Community-driven policy solutions from collaborative problem-solving sessions
@@ -606,57 +605,70 @@ const Landing2 = () => {
           </div>
           
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {featuredPosts.map((post) => (
-              <Card key={post.id} className="h-full hover:bg-muted/50 transition-colors">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold mb-2">{post.title}</h3>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-muted" />
-                          <span>{post.author_name || 'Anonymous'}</span>
-                        </div>
-                        <span>•</span>
-                        <span>{new Date(post.published_at).toLocaleDateString()}</span>
+            {featuredPosts.slice(0, 6).map((post, index) => (
+              <Card key={post.id} className="cursor-pointer hover:bg-muted/50 transition-colors hover:shadow-md h-full">
+                <CardContent className="p-6 h-full flex flex-col">
+                  {/* Header with title */}
+                  <div className="mb-4">
+                    <h3 className="font-semibold text-lg leading-tight">
+                      {post.title}
+                    </h3>
+                  </div>
+
+                  {/* Description - flex-grow to push other content down */}
+                  <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed flex-grow mb-6">
+                    {post.summary || post.content.substring(0, 200) + '...'}
+                  </p>
+
+                  {/* Category badges - moved below content */}
+                  <div className="mb-6">
+                    {post.tags && post.tags.length > 0 ? (
+                      <div className="flex gap-2">
+                        {post.tags.slice(0, 2).map((tag, idx) => {
+                          const priorityColors = {
+                            0: 'bg-primary/10 text-primary border-primary/20',
+                            1: 'bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20'
+                          };
+                          return (
+                            <Badge key={idx} className={priorityColors[idx] || priorityColors[0]} variant="secondary">
+                              {tag}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <Badge className="bg-primary/10 text-primary border-primary/20" variant="secondary">
+                        Policy
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Voting and Comments - always at bottom */}
+                  <div className="flex items-center justify-between pt-6 border-t">
+                    <div className="flex items-center gap-4">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground hover:text-green-600"
+                      >
+                        <ArrowUp className="w-4 h-4 mr-1" />
+                        {post.vote_up || 0}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground hover:text-red-600"
+                      >
+                        <ArrowDown className="w-4 h-4 mr-1" />
+                        {post.vote_down || 0}
+                      </Button>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <MessageSquare className="w-4 h-4" />
+                        {post.comment_count || 0}
                       </div>
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <p className="text-sm text-muted-foreground line-clamp-4">
-                    {post.summary || post.content.substring(0, 200) + '...'}
-                  </p>
-                  {post.tags && post.tags.length > 0 && (
-                    <div className="flex gap-2 mt-4">
-                      {post.tags.slice(0, 2).map((tag, idx) => (
-                        <Badge key={idx} variant="secondary" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
                 </CardContent>
-                <CardFooter className="flex items-center justify-between">
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <button className="flex items-center gap-1 hover:text-green-600 transition-colors">
-                      <ArrowUp className="w-4 h-4" />
-                      <span>{post.vote_up || 0}</span>
-                    </button>
-                    <button className="flex items-center gap-1 hover:text-red-600 transition-colors">
-                      <ArrowDown className="w-4 h-4" />
-                      <span>{post.vote_down || 0}</span>
-                    </button>
-                    <div className="flex items-center gap-1">
-                      <MessageSquare className="w-4 h-4" />
-                      <span>{post.comment_count || 0}</span>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={() => navigate('/public-policy')}>
-                    Read More
-                    <ArrowRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </CardFooter>
               </Card>
             ))}
             {featuredPosts.length === 0 && (
@@ -677,13 +689,19 @@ const Landing2 = () => {
             )}
           </div>
           
-          <div className="text-center mt-8">
-            <Button 
-              variant="outline" 
+          <div className="flex justify-center gap-4 mt-8">
+            <Button
+              variant="outline"
               onClick={() => navigate('/public-policy')}
-              className="hover:bg-[#3D63DD] hover:text-white"
+              className="hover:bg-muted"
             >
-              View All Proposals
+              Load More
+            </Button>
+            <Button
+              onClick={() => navigate('/public-policy')}
+              className="bg-[#3D63DD] text-white hover:bg-[#2D53CD]"
+            >
+              View All
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>

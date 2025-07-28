@@ -43,39 +43,27 @@ export const ProblemCard = ({ problem, onClick }: ProblemCardProps) => {
       onClick={onClick}
     >
       <CardContent className="p-6 h-full flex flex-col">
-        {/* Header with title and priority */}
-        <div className="flex items-start justify-between gap-3 mb-4">
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-lg leading-tight mb-2">
-              {problem.title}
-            </h3>
-            <Badge className={priorityColors[problem.priority]}>
-              {problem.priority.charAt(0).toUpperCase() + problem.priority.slice(1)} Priority
-            </Badge>
-          </div>
+        {/* Header with title */}
+        <div className="mb-4">
+          <h3 className="font-semibold text-lg leading-tight">
+            {problem.title}
+          </h3>
         </div>
 
         {/* Description - flex-grow to push other content down */}
-        <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed flex-grow mb-4">
+        <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed flex-grow mb-6">
           {problem.description}
         </p>
 
-        {/* Stats */}
-        <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              <Users className="w-3 h-3" />
-              <span>{problem.subProblems} collaborators</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <FileText className="w-3 h-3" />
-              <span>{problem.solutions} proposals</span>
-            </div>
-          </div>
+        {/* Priority badge - moved below content */}
+        <div className="mb-6">
+          <Badge className={priorityColors[problem.priority]} variant="secondary">
+            {problem.priority.charAt(0).toUpperCase() + problem.priority.slice(1)} Priority
+          </Badge>
         </div>
 
         {/* Voting and Comments - always at bottom */}
-        <div className="flex items-center justify-between pt-4 border-t">
+        <div className="flex items-center justify-between pt-6 border-t">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"

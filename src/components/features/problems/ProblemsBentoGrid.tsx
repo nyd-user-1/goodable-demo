@@ -7,16 +7,15 @@ import { ArrowRight } from "lucide-react";
 export function ProblemsBentoGrid() {
   const navigate = useNavigate();
   
-  // Get the first 9 problems
-  const featuredProblems = problems.slice(0, 9);
+  // Get the first 6 problems
+  const featuredProblems = problems.slice(0, 6);
 
   return (
     <section className="py-12 sm:py-20 px-4 sm:px-6">
       <div className="mx-auto max-w-7xl">
         <div className="text-center mb-8 sm:mb-12">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-            Featured Problems
-            <span className="bg-gradient-to-r from-[#3D63DD] to-[#5A7FDB] bg-clip-text text-transparent"> We're Solving</span>
+            Featured Problem Statements
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
             Join our community in tackling society's most pressing challenges through collaborative problem-solving
@@ -33,13 +32,19 @@ export function ProblemsBentoGrid() {
           ))}
         </div>
 
-        <div className="text-center mt-8">
+        <div className="flex justify-center gap-4 mt-8">
           <Button
             variant="outline"
             onClick={() => navigate('/problems')}
-            className="hover:bg-[#3D63DD] hover:text-white"
+            className="hover:bg-muted"
           >
-            View All Problems
+            Load More
+          </Button>
+          <Button
+            onClick={() => navigate('/problems')}
+            className="bg-[#3D63DD] text-white hover:bg-[#2D53CD]"
+          >
+            View All
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
