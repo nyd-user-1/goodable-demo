@@ -23,6 +23,7 @@ import {
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { problems } from "@/data/problems";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
@@ -51,9 +52,29 @@ export default function FeatureChat() {
   const [problemStatements, setProblemStatements] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Use first 10 problem statements from local data
+  // Fetch from Sample Problems table in Supabase
   useEffect(() => {
-    setProblemStatements(problems.slice(0, 10).map(problem => problem.title));
+    const fetchSampleProblems = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('Sample Problems')
+          .select('Sample Problems')
+          .limit(10);
+        
+        if (error) {
+          console.error('Error fetching sample problems:', error);
+          // Fallback to local data
+          setProblemStatements(problems.slice(0, 10).map(problem => problem.title));
+        } else {
+          setProblemStatements(data?.map(item => item['Sample Problems']) || []);
+        }
+      } catch {
+        // Fallback to local data if Supabase fails
+        setProblemStatements(problems.slice(0, 10).map(problem => problem.title));
+      }
+    };
+
+    fetchSampleProblems();
   }, []);
 
   const handleSendMessage = () => {
@@ -86,7 +107,7 @@ export default function FeatureChat() {
   };
 
   const handleSuggestedPrompt = (prompt: string) => {
-    setInputValue(prompt);
+    setInputValue(`It's a problem that ${prompt.toLowerCase()}`);
   };
 
   return (
@@ -224,17 +245,21 @@ export default function FeatureChat() {
             <h3 className="text-lg font-medium">Suggested prompts</h3>
             <div className="overflow-x-auto">
               <div className="flex gap-2 pb-2" style={{ minWidth: 'max-content' }}>
-                {problemStatements.map((statement, index) => (
-                  <Badge
-                    key={index}
-                    variant="outline"
-                    className="hover:bg-primary/10 cursor-pointer py-1.5 whitespace-nowrap transition-colors"
-                    onClick={() => handleSuggestedPrompt(statement)}
-                  >
-                    <MessageSquare className="mr-1 h-3.5 w-3.5" />
-                    {statement}
-                  </Badge>
-                ))}
+                {problemStatements.length > 0 ? (
+                  problemStatements.map((statement, index) => (
+                    <Badge
+                      key={index}
+                      variant="outline"
+                      className="hover:bg-primary/10 cursor-pointer py-1.5 whitespace-nowrap transition-colors"
+                      onClick={() => handleSuggestedPrompt(statement)}
+                    >
+                      <MessageSquare className="mr-1 h-3.5 w-3.5" />
+                      {statement}
+                    </Badge>
+                  ))
+                ) : (
+                  <div className="text-muted-foreground text-sm">Loading suggested prompts...</div>
+                )}
               </div>
             </div>
           </div>
