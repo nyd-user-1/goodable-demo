@@ -118,7 +118,7 @@ export default function FeatureChat() {
           Policy Playground
         </h2>
         <p className="text-muted-foreground mx-auto max-w-[700px] md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-          Explore policy solutions based on real legislative data sets and up to the minute intel
+          Explore ideas and solutions based on real data sets and up to the minute intel
         </p>
       </div>
 
