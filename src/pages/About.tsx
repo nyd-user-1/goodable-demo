@@ -420,7 +420,7 @@ const About = () => {
             {values.map((value, index) => (
               <Card key={index} className="p-6 h-full">
                 <div className="text-center">
-                  <div className="w-12 h-12 bg-[#3D63DD] rounded-lg flex items-center justify-center text-white mx-auto mb-4">
+                  <div className="w-12 h-12 bg-muted/50 hover:bg-muted transition-colors duration-200 rounded-lg flex items-center justify-center text-foreground mx-auto mb-4">
                     {value.icon}
                   </div>
                   <h3 className="text-lg font-semibold mb-3">{value.title}</h3>
@@ -447,7 +447,7 @@ const About = () => {
           <div className="grid md:grid-cols-2 gap-8">
             {features.map((feature, index) => (
               <div key={index} className="flex items-start space-x-4">
-                <div className="w-10 h-10 bg-[#3D63DD] rounded-lg flex items-center justify-center text-white flex-shrink-0">
+                <div className="w-10 h-10 bg-muted/50 hover:bg-muted transition-colors duration-200 rounded-lg flex items-center justify-center text-foreground flex-shrink-0">
                   {feature.icon}
                 </div>
                 <div>
