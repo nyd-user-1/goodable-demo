@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { problems } from "@/data/problems";
 import { supabase } from "@/integrations/supabase/client";
 import { Confetti, type ConfettiRef } from '@/components/magicui/confetti';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   id: string;
@@ -33,6 +34,8 @@ interface Message {
   feature?: string;
   timestamp: Date;
   isTyping?: boolean;
+  isStreaming?: boolean;
+  streamedContent?: string;
 }
 
 type ConversationStage = 'initial' | 'problem_received' | 'statement_sent' | 'five_whys' | 'complete';
@@ -64,6 +67,34 @@ export default function FeatureChat() {
   // Problem-solving wizard state
   const [conversationStage, setConversationStage] = useState<ConversationStage>('initial');
   const [userProblem, setUserProblem] = useState('');
+
+  // Stream text effect - blazing fast
+  const streamText = (text: string, messageId: string) => {
+    const words = text.split(' ');
+    let currentIndex = 0;
+    
+    const streamInterval = setInterval(() => {
+      if (currentIndex < words.length) {
+        const streamedText = words.slice(0, currentIndex + 1).join(' ');
+        
+        setMessages(prev => prev.map(msg => 
+          msg.id === messageId 
+            ? { ...msg, streamedContent: streamedText, isStreaming: true }
+            : msg
+        ));
+        
+        currentIndex++;
+      } else {
+        // Streaming complete
+        setMessages(prev => prev.map(msg => 
+          msg.id === messageId 
+            ? { ...msg, isStreaming: false, streamedContent: text }
+            : msg
+        ));
+        clearInterval(streamInterval);
+      }
+    }, 30); // Very fast - 30ms per word
+  };
 
   // Generate problem statement based on user input
   const generateProblemStatement = (problem: string): string => {
@@ -178,13 +209,6 @@ This is pure gold - now you know what to actually fix instead of just treating s
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
 
-    // Trigger confetti
-    confettiRef.current?.fire({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-    });
-
     // Add user message
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -200,16 +224,15 @@ This is pure gold - now you know what to actually fix instead of just treating s
 
     // Handle conversation flow based on current stage
     setTimeout(() => {
-      let assistantResponse: Message;
+      let responseContent: string;
+      const messageId = `assistant-${Date.now()}`;
 
       if (conversationStage === 'initial') {
         // User described their problem
         setUserProblem(currentInput);
         setConversationStage('problem_received');
         
-        assistantResponse = {
-          id: `assistant-${Date.now()}`,
-          content: `I hear you, and what you're experiencing sounds genuinely challenging. 
+        responseContent = `I hear you, and what you're experiencing sounds genuinely challenging. 
 
 You know what? A well-crafted problem statement could be incredibly valuable here. It's like having a GPS for solutions - it helps you:
 
@@ -220,18 +243,13 @@ You know what? A well-crafted problem statement could be incredibly valuable her
 
 Think of it as turning frustration into a roadmap.
 
-**Shall I draw up that problem statement for you right now?** 📝`,
-          sender: "assistant",
-          timestamp: new Date(),
-        };
+**Shall I draw up that problem statement for you right now?** 📝`;
       } else if (conversationStage === 'problem_received' && currentInput.toLowerCase().includes('yes')) {
         // User agreed to problem statement
         setConversationStage('statement_sent');
         const problemStatement = generateProblemStatement(userProblem);
         
-        assistantResponse = {
-          id: `assistant-${Date.now()}`,
-          content: `Here's your problem statement:
+        responseContent = `Here's your problem statement:
 
 ${problemStatement}
 
@@ -239,18 +257,13 @@ ${problemStatement}
 
 Now, want to go deeper? I can walk you through a "5 Whys" analysis - it's like detective work that uncovers the root cause hiding beneath the surface symptoms.
 
-**Ready to dig into the real source of this problem?** 🔍`,
-          sender: "assistant",
-          timestamp: new Date(),
-        };
+**Ready to dig into the real source of this problem?** 🔍`;
       } else if (conversationStage === 'statement_sent' && currentInput.toLowerCase().includes('yes')) {
         // User agreed to 5 whys
         setConversationStage('five_whys');
         const fiveWhysAnalysis = generateFiveWhys(userProblem);
         
-        assistantResponse = {
-          id: `assistant-${Date.now()}`,
-          content: `Perfect! The "5 Whys" technique peels back the layers to find what's really causing your problem. Think of it like:
+        responseContent = `Perfect! The "5 Whys" technique peels back the layers to find what's really causing your problem. Think of it like:
 
 • **Why #1:** Gets past the obvious
 • **Why #2:** Reveals the deeper issue  
@@ -260,22 +273,27 @@ Now, want to go deeper? I can walk you through a "5 Whys" analysis - it's like d
 
 ${fiveWhysAnalysis}
 
-🎯 **What's Next?** Now that you've identified the root cause, you can focus your energy on solutions that actually address the core issue rather than just symptoms. Want to explore some policy approaches or next steps?`,
-          sender: "assistant",
-          timestamp: new Date(),
-        };
+🎯 **What's Next?** Now that you've identified the root cause, you can focus your energy on solutions that actually address the core issue rather than just symptoms. Want to explore some policy approaches or next steps?`;
       } else {
         // Default response for other cases
-        assistantResponse = {
-          id: `assistant-${Date.now()}`,
-          content: `I'm here to help you work through problems step by step. If you'd like to start over with a new problem, just tell me what's bothering you, or if you want to continue with your current issue, let me know how I can help!`,
-          sender: "assistant",
-          timestamp: new Date(),
-        };
+        responseContent = `I'm here to help you work through problems step by step. If you'd like to start over with a new problem, just tell me what's bothering you, or if you want to continue with your current issue, let me know how I can help!`;
       }
+
+      // Create message with streaming support
+      const assistantResponse: Message = {
+        id: messageId,
+        content: responseContent,
+        sender: "assistant",
+        timestamp: new Date(),
+        isStreaming: true,
+        streamedContent: '',
+      };
 
       setMessages((prev) => [...prev, assistantResponse]);
       setIsAssistantTyping(false);
+      
+      // Start streaming the response
+      streamText(responseContent, messageId);
     }, 1500);
   };
 
@@ -341,7 +359,18 @@ ${fiveWhysAnalysis}
                       : "bg-muted rounded-bl-none",
                   )}
                 >
-                  <p>{message.content}</p>
+                  {message.sender === "assistant" ? (
+                    <div className="prose prose-sm max-w-none dark:prose-invert">
+                      <ReactMarkdown>
+                        {message.isStreaming ? message.streamedContent || '' : message.content}
+                      </ReactMarkdown>
+                      {message.isStreaming && (
+                        <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1">|</span>
+                      )}
+                    </div>
+                  ) : (
+                    <p>{message.content}</p>
+                  )}
                   <div
                     className={cn(
                       "mt-1 flex items-center gap-2 text-xs",
