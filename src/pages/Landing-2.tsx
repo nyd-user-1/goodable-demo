@@ -600,7 +600,7 @@ const Landing2 = () => {
               Featured Policy Proposals
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-              Community-driven policy solutions from collaborative problem-solving sessions
+              See each other. Support each other. Agree on an approach forward and vote for it.
             </p>
           </div>
           
