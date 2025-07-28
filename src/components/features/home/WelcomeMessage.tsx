@@ -317,13 +317,13 @@ export const WelcomeMessage = () => {
   // Only show for authenticated users
   if (!user) return null;
 
-  // Show skeleton loading state
+  // Minimal loading state - no skeleton artifacts
   if (isLoading) {
     return (
-      <div className="animate-in fade-in duration-500">
-        <Skeleton className="h-8 w-64 mb-2" />
+      <div className="animate-in fade-in duration-200">
+        <div className="h-8 w-64 mb-2 bg-transparent" />
         <div className="mt-4">
-          <Skeleton className="h-4 w-80" />
+          <div className="h-4 w-80 bg-transparent" />
         </div>
       </div>
     );

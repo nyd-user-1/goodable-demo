@@ -8,50 +8,68 @@ interface PageTransitionProps {
 export const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
   const location = useLocation();
   const [displayLocation, setDisplayLocation] = useState(location);
-  const [transitionStage, setTransitionStage] = useState("fadeIn");
+  const [transitionStage, setTransitionStage] = useState("slideIn");
   const [isTransitioning, setIsTransitioning] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Clear any existing transitions on mount
+  useEffect(() => {
+    // Force clear any cached transition states
+    setTransitionStage("slideIn");
+    setIsTransitioning(false);
+    
+    // Clear any pending timeouts
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     if (location.pathname !== displayLocation.pathname) {
       setIsTransitioning(true);
-      setTransitionStage("fadeOut");
+      setTransitionStage("slideUp");
       
-      // Clear any existing timeout
+      // Clear any existing timeout to prevent conflicts
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
       
-      // After fade out completes, update location and fade in
+      // After old page slides up, update location and slide new page in from below
       timeoutRef.current = setTimeout(() => {
         setDisplayLocation(location);
-        setTransitionStage("fadeIn");
+        setTransitionStage("slideIn");
         
-        // Allow fade in to complete
+        // Complete transition
         timeoutRef.current = setTimeout(() => {
           setIsTransitioning(false);
-        }, 300);
-      }, 300);
+        }, 400);
+      }, 400);
     }
   }, [location.pathname, displayLocation.pathname]);
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
     };
   }, []);
 
   return (
     <div
-      className={`transition-all duration-300 ease-in-out transform ${
-        transitionStage === "fadeOut" 
-          ? "opacity-0 scale-[0.98]" 
-          : "opacity-100 scale-100"
+      className={`h-full w-full transition-transform duration-[400ms] ease-out ${
+        transitionStage === "slideUp" 
+          ? "transform -translate-y-full" 
+          : transitionStage === "slideIn"
+          ? "transform translate-y-0"
+          : "transform translate-y-full"
       }`}
       style={{
-        transformOrigin: 'center center',
+        willChange: 'transform',
+        minHeight: '100vh',
       }}
     >
       {children}

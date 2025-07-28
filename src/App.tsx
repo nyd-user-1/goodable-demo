@@ -66,7 +66,7 @@ const AppLayout = () => {
                 />
               </div>
             </header>
-            <main className="flex-1">
+            <main className="flex-1 overflow-hidden">
               <PageTransition>
                 <Routes>
                   <Route path="/home" element={<Home />} />
