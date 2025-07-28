@@ -81,8 +81,8 @@ export default function HorizontalBlogCarousel() {
     },
   ];
 
-  const title = "Latest Writing";
-  const description = "Browse through my latest articles and insights";
+  const title = "Original Proposals";
+  const description = "Browse Goodable's original policy proposals";
 
   return (
     <section className="w-full py-12">
@@ -133,7 +133,7 @@ export default function HorizontalBlogCarousel() {
                     </CardHeader>
 
                     <CardFooter>
-                      <Button asChild variant="ghost">
+                      <Button asChild>
                         <Link to="#">
                           Read more
                           <span className="sr-only">

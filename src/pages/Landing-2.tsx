@@ -42,6 +42,7 @@ import { ChartLinePolicyImpact } from '@/components/charts/ChartLinePolicyImpact
 import { ProblemsBentoGrid } from '@/components/features/problems';
 import FAQ from '@/components/FAQ';
 import HorizontalBlogCarousel from '@/components/HorizontalBlogCarousel';
+import FeatureChat from '@/components/blocks/feature-sections/paid/feature-chat';
 import '@/components/magicui/animated-background.css';
 
 interface Member {
@@ -529,8 +530,7 @@ const Landing2 = () => {
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-              Everything You Need for
-              <span className="bg-gradient-to-r from-[#3D63DD] to-[#5A7FDB] bg-clip-text text-transparent"> Legislative Success</span>
+              Everything You Need
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
               Comprehensive tools and insights to track, analyze, and influence policy at every level
@@ -562,7 +562,7 @@ const Landing2 = () => {
       </section>
 
       {/* Analytics Section */}
-      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-muted/20">
+      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-muted/30">
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
@@ -593,7 +593,7 @@ const Landing2 = () => {
       <ProblemsBentoGrid />
 
       {/* Public Policy Blog Posts */}
-      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-background">
+      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-muted/30">
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
@@ -713,6 +713,9 @@ const Landing2 = () => {
 
       {/* FAQ Section */}
       <FAQ />
+      
+      {/* Feature Chat */}
+      <FeatureChat />
 
       {/* Pricing */}
       <section className="py-12 sm:py-20 px-4 sm:px-6">

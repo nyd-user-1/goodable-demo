@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Heart } from "lucide-react";
+import { Heart, BriefcaseIcon, FlowerIcon, HeartIcon, LightbulbIcon, MountainSnow, SettingsIcon } from "lucide-react";
 import { useVisitorCount } from '@/hooks/useVisitorCount';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProblemChatSheet } from '@/components/ProblemChatSheet';
@@ -8,6 +8,15 @@ import { AutocompleteCombobox } from '@/components/AutocompleteCombobox';
 import { ShineBorder } from '@/components/magicui/shine-border';
 import { Confetti, type ConfettiRef } from '@/components/magicui/confetti';
 import { WelcomeMessage } from '@/components/features/home/WelcomeMessage';
+import CompactMetricList from '@/components/CompactMetricList';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Home = () => {
   const [userProblem, setUserProblem] = useState('');
@@ -15,6 +24,7 @@ const Home = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const confettiRef = useRef<ConfettiRef>(null);
   const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const { count, loading } = useVisitorCount();
   const { user } = useAuth();
   
@@ -23,6 +33,82 @@ const Home = () => {
   
   // Check if input has meaningful content (not just whitespace)
   const hasContent = userProblem.trim().length > 0;
+  
+  // Categories with dropdown items tied to problem statements
+  const categories = [
+    {
+      id: 'business',
+      label: 'Business',
+      icon: BriefcaseIcon,
+      items: [
+        { label: 'Small Business Support', value: 'small-business' },
+        { label: 'Corporate Responsibility', value: 'corporate-responsibility' },
+        { label: 'Economic Development', value: 'economic-development' },
+        { label: 'Entrepreneurship Programs', value: 'entrepreneurship' },
+        { label: 'Workforce Development', value: 'workforce' }
+      ]
+    },
+    {
+      id: 'strategy',
+      label: 'Strategy',
+      icon: SettingsIcon,
+      items: [
+        { label: 'Policy Planning', value: 'policy-planning' },
+        { label: 'Strategic Initiatives', value: 'strategic-initiatives' },
+        { label: 'Long-term Vision', value: 'long-term-vision' },
+        { label: 'Implementation Roadmaps', value: 'implementation' },
+        { label: 'Performance Metrics', value: 'performance-metrics' }
+      ]
+    },
+    {
+      id: 'health',
+      label: 'Health',
+      icon: HeartIcon,
+      items: [
+        { label: 'Public Health', value: 'public-health' },
+        { label: 'Healthcare Access', value: 'healthcare-access' },
+        { label: 'Mental Health Services', value: 'mental-health' },
+        { label: 'Preventive Care', value: 'preventive-care' },
+        { label: 'Health Equity', value: 'health-equity' }
+      ]
+    },
+    {
+      id: 'creative',
+      label: 'Creative',
+      icon: LightbulbIcon,
+      items: [
+        { label: 'Arts & Culture', value: 'arts-culture' },
+        { label: 'Innovation Labs', value: 'innovation-labs' },
+        { label: 'Creative Economy', value: 'creative-economy' },
+        { label: 'Design Thinking', value: 'design-thinking' },
+        { label: 'Community Art Programs', value: 'community-art' }
+      ]
+    },
+    {
+      id: 'environment',
+      label: 'Environment',
+      icon: FlowerIcon,
+      items: [
+        { label: 'Climate Action', value: 'climate-action' },
+        { label: 'Sustainability', value: 'sustainability' },
+        { label: 'Conservation', value: 'conservation' },
+        { label: 'Green Infrastructure', value: 'green-infrastructure' },
+        { label: 'Environmental Justice', value: 'environmental-justice' }
+      ]
+    },
+    {
+      id: 'adventure',
+      label: 'Adventure',
+      icon: MountainSnow,
+      items: [
+        { label: 'Outdoor Recreation', value: 'outdoor-recreation' },
+        { label: 'Tourism Development', value: 'tourism' },
+        { label: 'Parks & Trails', value: 'parks-trails' },
+        { label: 'Adventure Sports', value: 'adventure-sports' },
+        { label: 'Ecotourism', value: 'ecotourism' }
+      ]
+    }
+  ];
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -98,7 +184,7 @@ const Home = () => {
             </h1>
 
 
-            <div className="w-full mb-16 px-2 sm:px-4 lg:px-0">
+            <div className="relative mx-auto mt-7 max-w-xl sm:mt-12 mb-16 px-2 sm:px-4 lg:px-0">
               <AutocompleteCombobox
                 value={userProblem}
                 onChange={setUserProblem}
@@ -106,6 +192,101 @@ const Home = () => {
                 placeholder={placeholderTexts[currentPlaceholder]}
                 isTyping={false}
               />
+              
+              {/* Vibrant Scribbles - SVG Elements */}
+              <div className="absolute end-0 top-0 hidden translate-x-20 -translate-y-12 md:block">
+                <svg
+                  className="h-auto w-16 text-orange-500"
+                  width={121}
+                  height={135}
+                  viewBox="0 0 121 135"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M5 16.4754C11.7688 27.4499 21.2452 57.3224 5 89.0164"
+                    stroke="currentColor"
+                    strokeWidth={10}
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M33.6761 112.104C44.6984 98.1239 74.2618 57.6776 83.4821 5"
+                    stroke="currentColor"
+                    strokeWidth={10}
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M50.5525 130C68.2064 127.495 110.731 117.541 116 78.0874"
+                    stroke="currentColor"
+                    strokeWidth={10}
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+              
+              <div className="absolute start-0 bottom-0 hidden -translate-x-32 translate-y-10 md:block">
+                <svg
+                  className="h-auto w-40 text-cyan-500"
+                  width={347}
+                  height={188}
+                  viewBox="0 0 347 188"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M4 82.4591C54.7956 92.8751 30.9771 162.782 68.2065 181.385C112.642 203.59 127.943 78.57 122.161 25.5053C120.504 2.2376 93.4028 -8.11128 89.7468 25.5053C85.8633 61.2125 130.186 199.678 180.982 146.248L214.898 107.02C224.322 95.4118 242.9 79.2851 258.6 107.02C274.299 134.754 299.315 125.589 309.861 117.539L343 93.4426"
+                    stroke="currentColor"
+                    strokeWidth={7}
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            {/* Dropdown Buttons */}
+            <div className="mt-10 flex flex-wrap justify-center gap-2 sm:mt-20 mb-16">
+              {categories.map((category) => (
+                <div 
+                  key={category.id}
+                  className="relative"
+                  onMouseEnter={() => setOpenDropdown(category.id)}
+                  onMouseLeave={() => setOpenDropdown(null)}
+                >
+                  <DropdownMenu 
+                    open={openDropdown === category.id}
+                    onOpenChange={(open) => setOpenDropdown(open ? category.id : null)}
+                  >
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="hover:bg-muted">
+                        <category.icon className="mr-2 h-auto w-3 flex-shrink-0" />
+                        {category.label}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent 
+                      align="start" 
+                      side="bottom"
+                      className="w-56"
+                      onMouseEnter={() => setOpenDropdown(category.id)}
+                      onMouseLeave={() => setOpenDropdown(null)}
+                    >
+                      <DropdownMenuLabel>{category.label} Topics</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {category.items.map((item) => (
+                        <DropdownMenuItem 
+                          key={item.value}
+                          onClick={() => {
+                            setUserProblem(`It's a problem that ${item.label.toLowerCase()}`);
+                            setOpenDropdown(null);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          {item.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              ))}
             </div>
 
             <div className="flex flex-col items-center justify-center gap-4 mb-16">
@@ -157,6 +338,11 @@ const Home = () => {
             </div>
           </section>
         )}
+
+        {/* Compact Metric List Section - with light gray background */}
+        <section className="py-12 sm:py-20 px-4 sm:px-6 bg-muted/30">
+          <CompactMetricList />
+        </section>
 
         <section className="py-20 bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">

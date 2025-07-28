@@ -18,11 +18,11 @@ export const ProblemCard = ({ problem, onClick }: ProblemCardProps) => {
   });
   const [commentCount] = useState(Math.floor(Math.random() * 30) + 5);
 
-  const priorityColors = {
-    urgent: 'bg-destructive/10 text-destructive border-destructive/20',
-    high: 'bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20',
-    normal: 'bg-primary/10 text-primary border-primary/20',
-    low: 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20'
+  const priorityConfig = {
+    urgent: { text: 'Destructive', variant: 'destructive' as const },
+    high: { text: 'Warning', className: 'bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20' },
+    normal: { text: 'Normal', variant: 'secondary' as const },
+    low: { text: 'Default', variant: 'default' as const }
   };
 
   const handleVote = (e: React.MouseEvent, voteType: 'up' | 'down') => {
@@ -57,9 +57,15 @@ export const ProblemCard = ({ problem, onClick }: ProblemCardProps) => {
 
         {/* Priority badge - moved below content */}
         <div className="mb-6">
-          <Badge className={priorityColors[problem.priority]} variant="secondary">
-            {problem.priority.charAt(0).toUpperCase() + problem.priority.slice(1)} Priority
-          </Badge>
+          {priorityConfig[problem.priority].variant ? (
+            <Badge variant={priorityConfig[problem.priority].variant}>
+              {priorityConfig[problem.priority].text}
+            </Badge>
+          ) : (
+            <Badge className={priorityConfig[problem.priority].className}>
+              {priorityConfig[problem.priority].text}
+            </Badge>
+          )}
         </div>
 
         {/* Voting and Comments - always at bottom */}

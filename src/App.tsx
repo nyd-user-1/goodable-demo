@@ -13,6 +13,7 @@ import { ModelSelector } from "@/components/ModelSelector";
 import { HeartSidebarTrigger } from "@/components/HeartSidebarTrigger";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
+import { PageTransition } from "@/components/PageTransition";
 import Landing from "./pages/Landing";
 import Landing2 from "./pages/Landing-2";
 import Home from "./pages/Home";
@@ -66,33 +67,35 @@ const AppLayout = () => {
               </div>
             </header>
             <main className="flex-1">
-              <Routes>
-                <Route path="/home" element={<Home />} />
-                <Route path="/home-2" element={<Home2 />} />
-                <Route path="/chats" element={<Chats />} />
-                <Route path="/favorites" element={<Favorites />} />
-                <Route path="/playground" element={<Playground />} />
-                <Route path="/policy-portal" element={<PolicyPortal />} />
-                <Route path="/bills" element={<Bills />} />
-                <Route path="/members" element={<Members />} />
-                <Route path="/problems" element={<Problems />} />
-                <Route path="/problems/:problemSlug" element={<ProblemPage />} />
-                <Route path="/committees" element={<Committees />} />
-                <Route path="/plans" element={<Plans />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/changelog" element={<ChangeLog />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/public-policy" element={<PublicPolicy />} />
-                <Route path="/style-guide" element={<StyleGuide />} />
-                <Route path="/image-system" element={<ImageSystem />} />
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/blog/:id" element={<BlogPost />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/dashboard" element={<Index />} />
-                <Route path="/feed" element={<FeedPage />} />
-                <Route path="/shadcn-showcase" element={<ShadcnShowcase />} />
-                <Route path="/image-upload-test" element={<ImageUploadTest />} />
-              </Routes>
+              <PageTransition>
+                <Routes>
+                  <Route path="/home" element={<Home />} />
+                  <Route path="/home-2" element={<Home2 />} />
+                  <Route path="/chats" element={<Chats />} />
+                  <Route path="/favorites" element={<Favorites />} />
+                  <Route path="/playground" element={<Playground />} />
+                  <Route path="/policy-portal" element={<PolicyPortal />} />
+                  <Route path="/bills" element={<Bills />} />
+                  <Route path="/members" element={<Members />} />
+                  <Route path="/problems" element={<Problems />} />
+                  <Route path="/problems/:problemSlug" element={<ProblemPage />} />
+                  <Route path="/committees" element={<Committees />} />
+                  <Route path="/plans" element={<Plans />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/changelog" element={<ChangeLog />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/public-policy" element={<PublicPolicy />} />
+                  <Route path="/style-guide" element={<StyleGuide />} />
+                  <Route path="/image-system" element={<ImageSystem />} />
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/blog/:id" element={<BlogPost />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route path="/dashboard" element={<Index />} />
+                  <Route path="/feed" element={<FeedPage />} />
+                  <Route path="/shadcn-showcase" element={<ShadcnShowcase />} />
+                  <Route path="/image-upload-test" element={<ImageUploadTest />} />
+                </Routes>
+              </PageTransition>
             </main>
           </SidebarInset>
         </div>
@@ -111,13 +114,15 @@ const App = () => {
             <Sonner />
             <SpeedInsights />
             <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Landing2 />} />
-                <Route path="/alt" element={<Landing />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/auth-2" element={<Auth2 />} />
-                <Route path="*" element={<AppLayout />} />
-              </Routes>
+              <PageTransition>
+                <Routes>
+                  <Route path="/" element={<Landing2 />} />
+                  <Route path="/alt" element={<Landing />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/auth-2" element={<Auth2 />} />
+                  <Route path="*" element={<AppLayout />} />
+                </Routes>
+              </PageTransition>
             </BrowserRouter>
           </ModelProvider>
         </AuthProvider>

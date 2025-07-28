@@ -30,18 +30,46 @@ export const WelcomeMessage = () => {
   const [userProgress, setUserProgress] = useState<{[key: string]: boolean}>({});
   const [displayedUsername, setDisplayedUsername] = useState('');
   const [displayedGettingStarted, setDisplayedGettingStarted] = useState('');
+  const [displayedDateTime, setDisplayedDateTime] = useState('');
+  const [currentDateTime, setCurrentDateTime] = useState('');
   const [showTypingCursor, setShowTypingCursor] = useState(true);
 
-  // Set dynamic greeting based on time of day
+  // Set dynamic greeting based on time of day and update current time
   useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) {
-      setGreeting('Good morning');
-    } else if (hour < 17) {
-      setGreeting('Good afternoon');
-    } else {
-      setGreeting('Good evening');
-    }
+    const updateTimeAndGreeting = () => {
+      const now = new Date();
+      const estTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
+      const hour = estTime.getHours();
+      
+      if (hour < 12) {
+        setGreeting('Good morning');
+      } else if (hour < 17) {
+        setGreeting('Good afternoon');
+      } else {
+        setGreeting('Good evening');
+      }
+      
+      // Update current date/time
+      const timeStr = estTime.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      }).toLowerCase();
+      const dateStr = estTime.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      });
+      setCurrentDateTime(`It is now ${timeStr} on ${dateStr}.`);
+    };
+    
+    // Update immediately
+    updateTimeAndGreeting();
+    
+    // Update every minute
+    const interval = setInterval(updateTimeAndGreeting, 60000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   // Load user progress from localStorage on mount
@@ -151,9 +179,10 @@ export const WelcomeMessage = () => {
     return 'there';
   };
 
-  // Typing animation for "Getting Started"
+
+  // Typing animation for "Are you ready to get started?"
   const startGettingStartedTyping = () => {
-    const text = 'Getting Started';
+    const text = 'Are you ready to get started?';
     let index = 0;
     setDisplayedGettingStarted('');
     
@@ -163,17 +192,37 @@ export const WelcomeMessage = () => {
         index++;
       } else {
         clearInterval(typingInterval);
-        // Stop showing cursor after both animations complete
+        // Stop showing cursor after all animations complete
         setTimeout(() => {
           setShowTypingCursor(false);
         }, 1000);
       }
-    }, 60); // Slightly faster typing speed for "Getting Started"
+    }, 60); // Slightly faster typing speed
+  };
+
+  // Typing animation for date/time
+  const startDateTimeTyping = () => {
+    const text = currentDateTime;
+    let index = 0;
+    setDisplayedDateTime('');
+    
+    const typingInterval = setInterval(() => {
+      if (index <= text.length) {
+        setDisplayedDateTime(text.slice(0, index));
+        index++;
+      } else {
+        clearInterval(typingInterval);
+        // Start "Are you ready to get started?" animation after date/time is complete
+        setTimeout(() => {
+          startGettingStartedTyping();
+        }, 500);
+      }
+    }, 50); // Fast typing speed for date/time
   };
 
   // Typing animation for username
   useEffect(() => {
-    if (!isLoading && user) {
+    if (!isLoading && user && currentDateTime) {
       const username = getUserDisplayName();
       let index = 0;
       setDisplayedUsername('');
@@ -185,16 +234,16 @@ export const WelcomeMessage = () => {
           index++;
         } else {
           clearInterval(typingInterval);
-          // Start "Getting Started" animation after username is complete
+          // Start date/time animation after username is complete
           setTimeout(() => {
-            startGettingStartedTyping();
+            startDateTimeTyping();
           }, 500);
         }
       }, 80); // Typing speed for username
 
       return () => clearInterval(typingInterval);
     }
-  }, [isLoading, user]);
+  }, [isLoading, user, currentDateTime]);
 
   // Cursor blinking animation
   useEffect(() => {
@@ -290,6 +339,17 @@ export const WelcomeMessage = () => {
           )}
         </span>!
       </h3>
+      
+      {/* Dynamic date/time display */}
+      <div className="mt-3 text-sm text-muted-foreground">
+        <span className="relative">
+          {displayedDateTime}
+          {showTypingCursor && displayedDateTime.length < currentDateTime.length && displayedUsername.length >= getUserDisplayName().length && (
+            <span className="animate-pulse">|</span>
+          )}
+        </span>
+      </div>
+      
       <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
         <HoverCard>
           <HoverCardTrigger asChild>
@@ -297,7 +357,7 @@ export const WelcomeMessage = () => {
               className="cursor-pointer underline decoration-dotted transition-colors relative text-[#5A7FDB] hover:text-[#3D63DD]"
             >
               {displayedGettingStarted}
-              {showTypingCursor && displayedGettingStarted.length < 'Getting Started'.length && displayedUsername.length >= getUserDisplayName().length && (
+              {showTypingCursor && displayedGettingStarted.length < 'Are you ready to get started?'.length && displayedDateTime.length >= currentDateTime.length && (
                 <span className="animate-pulse">|</span>
               )}
             </span>
