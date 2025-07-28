@@ -711,12 +711,12 @@ const Landing2 = () => {
       {/* Blog Carousel Section */}
       <HorizontalBlogCarousel />
 
-      {/* FAQ Section */}
-      <FAQ />
-      
       {/* Feature Chat */}
       <FeatureChat />
 
+      {/* FAQ Section */}
+      <FAQ />
+      
       {/* Pricing */}
       <section className="py-12 sm:py-20 px-4 sm:px-6">
         <div className="mx-auto max-w-7xl">
