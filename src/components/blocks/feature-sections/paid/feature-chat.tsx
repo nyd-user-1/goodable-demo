@@ -304,10 +304,10 @@ ${fiveWhysAnalysis}
     <section className="container mx-auto space-y-12 px-4 py-24 md:px-6 2xl:max-w-[1400px]">
       <div className="space-y-4 text-center">
         <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-          Policy Playground
+          Play Don't Work
         </h2>
         <p className="text-muted-foreground mx-auto max-w-[700px] md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-          Explore ideas and solutions based on real data sets and up to the minute intel
+          Space to make a mess, to learn, to explore and the support to make change possible.
         </p>
       </div>
 
@@ -318,7 +318,7 @@ ${fiveWhysAnalysis}
           <div className="flex items-center gap-3 border-b p-4 relative">
             <Avatar className="h-10 w-10">
               <AvatarImage
-                src="/goodable-heart.avif"
+                src="/goodable%20pwa.jpg"
                 alt="Goodable Assistant"
               />
               <AvatarFallback className="bg-primary/10 text-primary">
@@ -328,7 +328,7 @@ ${fiveWhysAnalysis}
             <div className="flex-1">
               <h3 className="font-semibold">Goodable.dev</h3>
               <p className="text-muted-foreground text-xs">
-                Problem-solving wizard ready to help
+                A policy playground for problems and proposals.
               </p>
             </div>
             <Badge variant="outline" className="ml-auto">
@@ -443,7 +443,7 @@ ${fiveWhysAnalysis}
         {/* Suggested Questions with horizontal scrolling - moved below chat */}
         <div className="w-full max-w-4xl">
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Suggested prompts</h3>
+            <h3 className="text-lg font-medium">Sample problem prompts</h3>
             <div className="overflow-x-auto scrollbar-hide">
               <div className="flex gap-2 pb-2" style={{ minWidth: 'max-content' }}>
                 {problemStatements.length > 0 ? (

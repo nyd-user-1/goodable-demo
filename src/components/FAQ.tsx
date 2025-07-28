@@ -49,33 +49,59 @@ const faqs = [
 ];
 
 export default function FAQ() {
+  // Split FAQs into two columns (4 questions each)
+  const firstColumn = faqs.slice(0, 4);
+  const secondColumn = faqs.slice(4, 8);
+
   return (
     <>
       <div className="max-w-[85rem] container mx-auto px-4 md:px-6 2xl:max-w-[1400px] py-24 lg:py-32">
-        {/* Title */}
-        <div className="max-w-2xl mx-auto text-center mb-10 lg:mb-14">
-          <h2 className="text-2xl font-bold md:text-4xl md:leading-tight">
-            Your questions, answered
-          </h2>
-          <p className="mt-1 text-muted-foreground">
-            Answers to the most frequently asked questions about Goodable.
-          </p>
+        {/* Title - aligned left like blog section */}
+        <div className="flex flex-col gap-4 mb-10 lg:mb-14">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold md:text-4xl md:leading-tight">
+              Questions? Answers.
+            </h2>
+            <p className="text-muted-foreground max-w-[700px]">
+              Answers to the most frequently asked questions about Goodable.
+            </p>
+          </div>
         </div>
         {/* End Title */}
 
-        <div className="max-w-2xl mx-auto">
-          <Accordion type="single" collapsible className="w-full">
-            {faqs.map((faq, index) => (
-              <AccordionItem value={`item-${index}`} key={faq.question}>
-                <AccordionTrigger className="text-lg font-semibold text-left">
-                  {faq.question}
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground text-base">
-                  {faq.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+        {/* Two-column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl">
+          {/* First Column */}
+          <div>
+            <Accordion type="single" collapsible className="w-full">
+              {firstColumn.map((faq, index) => (
+                <AccordionItem value={`item-${index}`} key={faq.question}>
+                  <AccordionTrigger className="text-lg font-semibold text-left">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground text-base">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+
+          {/* Second Column */}
+          <div>
+            <Accordion type="single" collapsible className="w-full">
+              {secondColumn.map((faq, index) => (
+                <AccordionItem value={`item-second-${index}`} key={faq.question}>
+                  <AccordionTrigger className="text-lg font-semibold text-left">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground text-base">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
         </div>
       </div>
     </>
