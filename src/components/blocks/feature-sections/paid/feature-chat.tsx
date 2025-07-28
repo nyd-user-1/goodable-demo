@@ -18,9 +18,18 @@ import {
   Sparkles,
   ThumbsUp,
   Zap,
+  ChevronDown,
+  Heart,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { problems } from "@/data/problems";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Message {
   id: string;
@@ -31,93 +40,34 @@ interface Message {
   isTyping?: boolean;
 }
 
-interface Feature {
-  id: string;
-  name: string;
-  description: string;
-  icon: LucideIcon;
-  color: string;
-  triggerWords: string[];
-}
-
-const features: Feature[] = [
-  {
-    id: "performance",
-    name: "Lightning Performance",
-    description:
-      "Our platform delivers exceptional performance with optimized algorithms and efficient resource management.",
-    icon: Zap,
-    color: "text-amber-500",
-    triggerWords: ["fast", "performance", "speed", "quick", "efficient"],
-  },
-  {
-    id: "ai",
-    name: "AI-Powered Tools",
-    description:
-      "Leverage artificial intelligence to automate tasks, gain insights, and enhance productivity.",
-    icon: Sparkles,
-    color: "text-purple-500",
-    triggerWords: ["ai", "intelligence", "smart", "automation", "learn"],
-  },
-  {
-    id: "security",
-    name: "Enterprise Security",
-    description:
-      "End-to-end encryption and advanced security protocols keep your data safe.",
-    icon: Shield,
-    color: "text-blue-500",
-    triggerWords: ["secure", "security", "protection", "safe", "encrypt"],
-  },
-  {
-    id: "api",
-    name: "Developer API",
-    description:
-      "Integrate with your existing tools and workflows using our comprehensive API.",
-    icon: Code2,
-    color: "text-emerald-500",
-    triggerWords: ["api", "integration", "code", "developer", "connect"],
-  },
-  {
-    id: "cli",
-    name: "Command Line Interface",
-    description:
-      "Powerful CLI tools for developers who prefer terminal-based workflows.",
-    icon: Command,
-    color: "text-gray-500",
-    triggerWords: ["cli", "command", "terminal", "console", "shell"],
-  },
+// Model options for the dropdown
+const modelOptions = [
+  { id: "gpt-4", name: "GPT-4" },
+  { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo" },
+  { id: "claude-3", name: "Claude 3" },
+  { id: "claude-3-haiku", name: "Claude 3 Haiku" },
+  { id: "gemini-pro", name: "Gemini Pro" },
 ];
 
 const initialMessages: Message[] = [
   {
     id: "1",
     content:
-      "Hello! I'm your product assistant. I can help you discover our key features. What would you like to know about?",
+      "Hello! I'm here to help you explore policy solutions. Try a sample problem statement or suggested prompt to get started.",
     sender: "assistant",
     timestamp: new Date(),
   },
 ];
 
-const suggestedQuestions = [
-  "How fast is your platform?",
-  "Tell me about your security features",
-  "Do you have AI capabilities?",
-  "Is there an API for developers?",
-  "Can I use the CLI to manage tasks?",
-];
+// Use problem statements from our data
+const problemStatements = problems.slice(0, 10).map(problem => problem.title);
 
 export default function FeatureChat() {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [inputValue, setInputValue] = useState("");
   const [isAssistantTyping, setIsAssistantTyping] = useState(false);
+  const [selectedModel, setSelectedModel] = useState(modelOptions[0]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const findRelevantFeature = (text: string): Feature | undefined => {
-    const lowerText = text.toLowerCase();
-    return features.find((feature) =>
-      feature.triggerWords.some((word) => lowerText.includes(word)),
-    );
-  };
 
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
@@ -134,104 +84,62 @@ export default function FeatureChat() {
     setInputValue("");
     setIsAssistantTyping(true);
 
-    // Determine which feature the user is asking about
-    const relevantFeature = findRelevantFeature(inputValue);
-
-    // Simulate assistant typing delay
+    // Simulate assistant typing delay with morphing heart loader
     setTimeout(() => {
-      let assistantResponse: Message;
-
-      if (relevantFeature) {
-        assistantResponse = {
-          id: `assistant-${Date.now()}`,
-          content: `${relevantFeature.description} Would you like to learn more about ${relevantFeature.name}?`,
-          sender: "assistant",
-          feature: relevantFeature.id,
-          timestamp: new Date(),
-        };
-      } else {
-        assistantResponse = {
-          id: `assistant-${Date.now()}`,
-          content:
-            "I'm not sure I understand. Could you tell me which specific feature you're interested in? We have performance optimizations, AI capabilities, security features, developer APIs, and CLI tools.",
-          sender: "assistant",
-          timestamp: new Date(),
-        };
-      }
+      const assistantResponse: Message = {
+        id: `assistant-${Date.now()}`,
+        content: `I'm analyzing policy solutions for "${inputValue}" using ${selectedModel.name}. Here are some relevant insights and legislative approaches...`,
+        sender: "assistant",
+        timestamp: new Date(),
+      };
 
       setMessages((prev) => [...prev, assistantResponse]);
       setIsAssistantTyping(false);
     }, 1500);
   };
 
-  const handleSuggestedQuestion = (question: string) => {
-    setInputValue(question);
-    // Optional: Automatically send the message
-    // setTimeout(handleSendMessage, 100);
+  const handleSuggestedPrompt = (prompt: string) => {
+    setInputValue(prompt);
   };
 
   return (
     <section className="container mx-auto space-y-12 px-4 py-24 md:px-6 2xl:max-w-[1400px]">
       <div className="space-y-4 text-center">
         <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-          Chat with our product assistant
+          Policy Playground
         </h2>
         <p className="text-muted-foreground mx-auto max-w-[700px] md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-          Discover our powerful features through an interactive conversation
+          Explore policy solutions based on real legislative data sets and up to the minute intel
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 lg:gap-12">
-        <div className="space-y-6 lg:col-span-1">
+      <div className="flex flex-col items-center gap-8">
+        {/* Suggested Questions with horizontal scrolling - left aligned with chat */}
+        <div className="w-full max-w-4xl">
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Key features</h3>
-
-            <div className="space-y-3">
-              {features.map((feature) => (
-                <div
-                  key={feature.id}
-                  className="hover:border-primary hover:bg-primary/5 flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-all"
-                  onClick={() =>
-                    handleSuggestedQuestion(
-                      `Tell me about your ${feature.name.toLowerCase()}`,
-                    )
-                  }
-                >
-                  <div className={cn("bg-muted rounded-md p-2", feature.color)}>
-                    <feature.icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium">{feature.name}</h4>
-                    <p className="text-muted-foreground line-clamp-2 text-sm">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
+            <h3 className="text-lg font-medium">Suggested prompts</h3>
+            <div className="overflow-x-auto">
+              <div className="flex gap-2 pb-2" style={{ minWidth: 'max-content' }}>
+                {problemStatements.map((statement, index) => (
+                  <Badge
+                    key={index}
+                    variant="outline"
+                    className="hover:bg-primary/10 cursor-pointer py-1.5 whitespace-nowrap"
+                    onClick={() => handleSuggestedPrompt(statement)}
+                  >
+                    <MessageSquare className="mr-1 h-3.5 w-3.5" />
+                    {statement}
+                  </Badge>
+                ))}
+              </div>
             </div>
           </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Suggested questions</h3>
-            <div className="flex flex-wrap gap-2">
-              {suggestedQuestions.map((question, index) => (
-                <Badge
-                  key={index}
-                  variant="outline"
-                  className="hover:bg-primary/10 cursor-pointer py-1.5"
-                  onClick={() => handleSuggestedQuestion(question)}
-                >
-                  <MessageSquare className="mr-1 h-3.5 w-3.5" />
-                  {question}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          <div className="hidden lg:block">
+          
+          {/* Browse feature documentation - centered */}
+          <div className="text-center mt-6">
             <Link
               to="#"
-              className="text-muted-foreground hover:text-primary flex items-center gap-1 text-sm"
+              className="text-muted-foreground hover:text-primary inline-flex items-center gap-1 text-sm"
             >
               <Search className="h-4 w-4" />
               Browse feature documentation
@@ -239,28 +147,45 @@ export default function FeatureChat() {
           </div>
         </div>
 
-        <div className="flex h-[600px] flex-col rounded-xl border shadow-sm lg:col-span-2">
+        {/* Centered Chat Section */}
+        <div className="flex h-[600px] w-full max-w-4xl flex-col rounded-xl border shadow-sm">
           {/* Chat header */}
           <div className="flex items-center gap-3 border-b p-4">
             <Avatar className="h-10 w-10">
               <AvatarImage
-                src="/images/bot-avatar.png"
-                alt="Product Assistant"
+                src="/goodable-heart.avif"
+                alt="Goodable Assistant"
               />
               <AvatarFallback className="bg-primary/10 text-primary">
-                PA
+                <Heart className="w-5 h-5 text-red-500" />
               </AvatarFallback>
             </Avatar>
-            <div>
-              <h3 className="font-semibold">Product Assistant</h3>
+            <div className="flex-1">
+              <h3 className="font-semibold">Goodable.dev</h3>
               <p className="text-muted-foreground text-xs">
-                Ask me about our features
+                Try a sample problem statement or suggested prompt
               </p>
             </div>
-            <Badge variant="outline" className="ml-auto">
-              <span className="mr-1 h-2 w-2 rounded-full bg-green-500"></span>
-              Online
-            </Badge>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Badge variant="outline" className="ml-auto cursor-pointer hover:bg-muted">
+                  <span className="mr-2 h-2 w-2 rounded-full bg-green-500"></span>
+                  {selectedModel.name}
+                  <ChevronDown className="ml-1 h-3 w-3" />
+                </Badge>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" side="bottom" className="w-48">
+                {modelOptions.map((model) => (
+                  <DropdownMenuItem
+                    key={model.id}
+                    onClick={() => setSelectedModel(model)}
+                    className="cursor-pointer text-sm py-1.5"
+                  >
+                    {model.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Chat messages */}
@@ -281,31 +206,7 @@ export default function FeatureChat() {
                       : "bg-muted rounded-bl-none",
                   )}
                 >
-                  {message.feature ? (
-                    <div className="space-y-2">
-                      <p>{message.content}</p>
-                      <div className="flex items-center gap-2 text-sm">
-                        {(() => {
-                          const feature = features.find(
-                            (f) => f.id === message.feature,
-                          );
-                          if (!feature) return null;
-                          return (
-                            <>
-                              <feature.icon
-                                className={cn("h-4 w-4", feature.color)}
-                              />
-                              <span className="font-medium">
-                                {feature.name}
-                              </span>
-                            </>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                  ) : (
-                    <p>{message.content}</p>
-                  )}
+                  <p>{message.content}</p>
                   <div
                     className={cn(
                       "mt-1 flex items-center gap-2 text-xs",
@@ -329,10 +230,13 @@ export default function FeatureChat() {
             {isAssistantTyping && (
               <div className="flex justify-start">
                 <div className="bg-muted rounded-lg rounded-bl-none p-3">
-                  <div className="flex space-x-2">
-                    <div className="bg-muted-foreground/50 h-2 w-2 animate-bounce rounded-full"></div>
-                    <div className="bg-muted-foreground/50 h-2 w-2 animate-bounce rounded-full delay-75"></div>
-                    <div className="bg-muted-foreground/50 h-2 w-2 animate-bounce rounded-full delay-150"></div>
+                  <div className="flex items-center space-x-2">
+                    <Heart className="h-4 w-4 text-red-500 animate-pulse" />
+                    <div className="flex space-x-1">
+                      <div className="bg-muted-foreground/50 h-2 w-2 animate-bounce rounded-full"></div>
+                      <div className="bg-muted-foreground/50 h-2 w-2 animate-bounce rounded-full delay-75"></div>
+                      <div className="bg-muted-foreground/50 h-2 w-2 animate-bounce rounded-full delay-150"></div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -375,21 +279,6 @@ export default function FeatureChat() {
             </form>
           </div>
         </div>
-      </div>
-
-      <div className="space-y-4 rounded-xl border p-8 text-center">
-        <h3 className="text-xl font-bold">
-          Ready to explore all our features?
-        </h3>
-        <p className="text-muted-foreground mx-auto max-w-[600px]">
-          Get a personalized demo from our product experts and see how our
-          platform can help your business.
-        </p>
-        <Button asChild size="lg" className="mt-2">
-          <Link to="#">
-            Schedule a demo <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
       </div>
     </section>
   );

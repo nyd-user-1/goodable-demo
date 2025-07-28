@@ -708,11 +708,13 @@ const Landing2 = () => {
         </div>
       </section>
 
-      {/* Blog Carousel Section */}
-      <HorizontalBlogCarousel />
-
-      {/* Feature Chat */}
+      {/* Feature Chat - Policy Playground */}
       <FeatureChat />
+
+      {/* Blog Carousel Section with light gray background */}
+      <div className="bg-muted/30">
+        <HorizontalBlogCarousel />
+      </div>
 
       {/* FAQ Section */}
       <FAQ />
