@@ -110,38 +110,96 @@ export default function FeatureChat() {
     }, 30); // Very fast - 30ms per word
   };
 
-  // Generate AI response using the working chat-with-persona API
+  // Generate AI response using the exact working pattern from ProblemChatSheet
   const generateAIResponse = async (prompt: string, stage: ConversationStage): Promise<string> => {
     try {
-      let systemPrompt = '';
-      let userMessage = '';
-      
       if (stage === 'problem_received') {
-        systemPrompt = `You are an expert problem-solving coach. Respond empathetically to the user's problem, then offer to create a structured problem statement. Explain how a problem statement helps with clarifying what needs fixing, identifying stakeholders, understanding impact, and focusing energy. Keep your response conversational but professional. Ask if they want you to create the problem statement.`;
-        userMessage = `I have this problem: ${userProblem}`;
-      } else if (stage === 'statement_sent') {
-        systemPrompt = `You are an expert problem-solving coach. Create a comprehensive, well-structured problem statement with clear markdown sections: **Problem Statement: [Category] Challenge**, **The Issue:** [Clear description], **Who's Affected:** [Stakeholders], **The Impact:** [Consequences], **Why It Matters:** [Importance]. Then explain why this statement is valuable and offer to do a "5 Whys" root cause analysis.`;
-        userMessage = `Create a detailed problem statement for: ${userProblem}`;
-      } else if (stage === 'five_whys') {
-        systemPrompt = `You are an expert root cause analyst. Perform a comprehensive "5 Whys" analysis. First explain the technique briefly, then provide: **Your 5 Whys Analysis:** 🔍 **Why #1-5:** [Progressive deeper causes], **💎 The Root Cause:** [Summary]. Conclude with next steps for addressing the root cause.`;
-        userMessage = `Perform a 5 Whys root cause analysis for: ${userProblem}`;
-      }
+        // Use the exact working API call from ProblemChatSheet
+        const { data, error } = await supabase.functions.invoke('generate-with-openai', {
+          body: {
+            prompt: userProblem,
+            type: 'problem',
+            context: 'landing_page',
+            stream: false
+          }
+        });
 
-      const { data, error } = await supabase.functions.invoke('chat-with-persona', {
-        body: {
-          messages: [{ role: 'user', content: userMessage }],
-          systemPrompt: systemPrompt,
-          temperature: 0.7,
-          maxWords: 400
+        if (error) {
+          console.error('API Error:', error);
+          return 'I apologize, but I encountered an error generating a response. Please try again.';
         }
-      });
 
-      if (error) {
-        console.error('API Error:', error);
-        return 'I apologize, but I encountered an error generating a response. Please try again.';
+        // Add the validation response before the problem statement
+        const problemStatement = data?.generatedText || '';
+        return `I hear you, and what you're experiencing sounds genuinely challenging. 
+
+You know what? A well-crafted problem statement could be incredibly valuable here. It's like having a GPS for solutions - it helps you:
+
+• **Clarify exactly what needs fixing** (no more spinning wheels)
+• **Identify who's affected** (so you know your stakeholders)  
+• **Understand the real impact** (why this matters)
+• **Focus your energy** (instead of shooting in the dark)
+
+Think of it as turning frustration into a roadmap.
+
+**Shall I draw up that problem statement for you right now?** 📝`;
+      } else if (stage === 'statement_sent') {
+        // Generate the actual problem statement
+        const { data, error } = await supabase.functions.invoke('generate-with-openai', {
+          body: {
+            prompt: userProblem,
+            type: 'problem',
+            context: 'landing_page',
+            stream: false
+          }
+        });
+
+        if (error) {
+          console.error('API Error:', error);
+          return 'I apologize, but I encountered an error generating the problem statement. Please try again.';
+        }
+
+        const problemStatement = data?.generatedText || '';
+        return `Here's your problem statement:
+
+${problemStatement}
+
+**Why this matters:** This statement gives you clarity, helps communicate the issue to others, and becomes your north star for finding solutions. It transforms a messy situation into something you can actually tackle.
+
+Now, want to go deeper? I can walk you through a "5 Whys" analysis - it's like detective work that uncovers the root cause hiding beneath the surface symptoms.
+
+**Ready to dig into the real source of this problem?** 🔍`;
+      } else if (stage === 'five_whys') {
+        // Generate 5 Whys analysis using the same API
+        const { data, error } = await supabase.functions.invoke('generate-with-openai', {
+          body: {
+            prompt: `Perform a comprehensive "5 Whys" root cause analysis for this problem: ${userProblem}`,
+            type: 'default',
+            model: 'gpt-4o-mini'
+          }
+        });
+
+        if (error) {
+          console.error('API Error:', error);
+          return 'I apologize, but I encountered an error generating the 5 Whys analysis. Please try again.';
+        }
+
+        const fiveWhysAnalysis = data?.generatedText || '';
+        return `Perfect! The "5 Whys" technique peels back the layers to find what's really causing your problem. Think of it like:
+
+• **Why #1:** Gets past the obvious
+• **Why #2:** Reveals the deeper issue  
+• **Why #3:** Uncovers systemic problems
+• **Why #4:** Finds the real culprit
+• **Why #5:** Hits the root cause
+
+${fiveWhysAnalysis}
+
+🎯 **What's Next?** Now that you've identified the root cause, you can focus your energy on solutions that actually address the core issue rather than just symptoms. Want to explore some policy approaches or next steps?`;
       }
 
-      return data.response || 'I apologize, but I was unable to generate a response. Please try again.';
+      // Default response
+      return 'I\'m here to help you work through problems step by step. If you\'d like to start over with a new problem, just tell me what\'s bothering you, or if you want to continue with your current issue, let me know how I can help!';
     } catch (error) {
       console.error('Error calling AI API:', error);
       return 'I apologize, but I encountered an error. Please try again.';
