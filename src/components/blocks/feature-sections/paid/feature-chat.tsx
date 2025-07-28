@@ -110,58 +110,29 @@ export default function FeatureChat() {
     }, 30); // Very fast - 30ms per word
   };
 
-  // Generate AI response using Claude API
+  // Generate AI response using the working chat-with-persona API
   const generateAIResponse = async (prompt: string, stage: ConversationStage): Promise<string> => {
     try {
-      // Use Claude model for better, more reliable content
-      const modelToUse = selectedModel.startsWith('claude-') ? selectedModel : 'claude-3-5-sonnet-20241022';
-      
       let systemPrompt = '';
+      let userMessage = '';
       
       if (stage === 'problem_received') {
-        systemPrompt = `You are an expert problem-solving coach. The user has described a problem: "${userProblem}". 
-
-Respond empathetically, then offer to create a structured problem statement. Explain how a problem statement helps with:
-- Clarifying what needs fixing
-- Identifying stakeholders
-- Understanding impact
-- Focusing energy
-
-Keep your response conversational but professional. Ask if they want you to create the problem statement.`;
+        systemPrompt = `You are an expert problem-solving coach. Respond empathetically to the user's problem, then offer to create a structured problem statement. Explain how a problem statement helps with clarifying what needs fixing, identifying stakeholders, understanding impact, and focusing energy. Keep your response conversational but professional. Ask if they want you to create the problem statement.`;
+        userMessage = `I have this problem: ${userProblem}`;
       } else if (stage === 'statement_sent') {
-        systemPrompt = `You are an expert problem-solving coach. Create a comprehensive, well-structured problem statement for: "${userProblem}"
-
-Format as markdown with clear sections:
-**Problem Statement: [Category] Challenge**
-**The Issue:** [Clear description]
-**Who's Affected:** [Stakeholders]
-**The Impact:** [Consequences]
-**Why It Matters:** [Importance]
-
-Then explain why this statement is valuable and offer to do a "5 Whys" root cause analysis.`;
+        systemPrompt = `You are an expert problem-solving coach. Create a comprehensive, well-structured problem statement with clear markdown sections: **Problem Statement: [Category] Challenge**, **The Issue:** [Clear description], **Who's Affected:** [Stakeholders], **The Impact:** [Consequences], **Why It Matters:** [Importance]. Then explain why this statement is valuable and offer to do a "5 Whys" root cause analysis.`;
+        userMessage = `Create a detailed problem statement for: ${userProblem}`;
       } else if (stage === 'five_whys') {
-        systemPrompt = `You are an expert root cause analyst. Perform a comprehensive "5 Whys" analysis for the problem: "${userProblem}"
-
-First explain the 5 Whys technique briefly, then provide:
-
-**Your 5 Whys Analysis:**
-🔍 **Why #1:** [Surface cause]
-🔍 **Why #2:** [Deeper cause]
-🔍 **Why #3:** [System issue]
-🔍 **Why #4:** [Root factor]
-🔍 **Why #5:** [Ultimate root cause]
-
-**💎 The Root Cause:** [Summary]
-
-Conclude with next steps for addressing the root cause.`;
+        systemPrompt = `You are an expert root cause analyst. Perform a comprehensive "5 Whys" analysis. First explain the technique briefly, then provide: **Your 5 Whys Analysis:** 🔍 **Why #1-5:** [Progressive deeper causes], **💎 The Root Cause:** [Summary]. Conclude with next steps for addressing the root cause.`;
+        userMessage = `Perform a 5 Whys root cause analysis for: ${userProblem}`;
       }
 
-      const { data, error } = await supabase.functions.invoke('generate-with-openai', {
+      const { data, error } = await supabase.functions.invoke('chat-with-persona', {
         body: {
-          prompt: systemPrompt,
-          type: 'chat',
-          model: modelToUse,
-          context: 'problem_solving_wizard'
+          messages: [{ role: 'user', content: userMessage }],
+          systemPrompt: systemPrompt,
+          temperature: 0.7,
+          maxWords: 400
         }
       });
 
@@ -170,7 +141,7 @@ Conclude with next steps for addressing the root cause.`;
         return 'I apologize, but I encountered an error generating a response. Please try again.';
       }
 
-      return data.generatedText || 'I apologize, but I was unable to generate a response. Please try again.';
+      return data.response || 'I apologize, but I was unable to generate a response. Please try again.';
     } catch (error) {
       console.error('Error calling AI API:', error);
       return 'I apologize, but I encountered an error. Please try again.';
