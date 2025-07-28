@@ -39,7 +39,7 @@ const bottomNavItems = [
 
 const adminNavItems = [
   { title: "Control Panel", url: "/admin", icon: Shield },
-  { title: "Style Guide", url: "/style-guide", icon: Palette },
+  { title: "Design System", url: "/style-guide", icon: Palette },
   { title: "Image System", url: "/image-system", icon: Image },
 ];
 

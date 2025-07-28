@@ -4,6 +4,25 @@ import { supabase } from '@/integrations/supabase/client';
 import { formatDate } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 
+// Blog image assets from our asset library
+const blogImages = [
+  '/goodable-botanical.avif',
+  '/goodable-heart.avif', 
+  '/goodable-night.avif',
+  '/goodable-path.avif',
+  '/goodable-dandelion.avif',
+  '/goodable-dream-state.avif',
+  '/goodable-mtn-1.avif',
+  '/goodable-path-2.avif',
+  '/goodable%2015.avif',
+  '/goodable%204.avif'
+];
+
+// Function to get a consistent image for each post
+const getPostImage = (postId: string, index: number) => {
+  return blogImages[index % blogImages.length];
+};
+
 interface BlogPost {
   id: string;
   title: string;
@@ -113,14 +132,13 @@ export default function BlogPage() {
               key={post.id}
               className="group relative flex flex-col space-y-2"
             >
-              {/* Placeholder for future image support */}
-              <div className="aspect-video rounded-md border bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <div className="w-16 h-16 mx-auto mb-2 rounded-lg bg-primary/20 flex items-center justify-center">
-                    <span className="text-2xl">📄</span>
-                  </div>
-                  <p className="text-sm font-medium">{post.category || 'Policy'}</p>
-                </div>
+              {/* Blog post image */}
+              <div className="aspect-video rounded-md border overflow-hidden bg-muted">
+                <img 
+                  src={getPostImage(post.id, index)} 
+                  alt={post.title}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
               </div>
               
               <h2 className="text-2xl font-extrabold group-hover:text-primary transition-colors">
@@ -185,8 +203,12 @@ export default function BlogPage() {
         </div>
       ) : (
         <div className="text-center py-12">
-          <div className="w-24 h-24 mx-auto mb-4 rounded-lg bg-muted flex items-center justify-center">
-            <span className="text-4xl">📝</span>
+          <div className="w-24 h-24 mx-auto mb-4 rounded-lg overflow-hidden bg-muted">
+            <img 
+              src="/goodable-heart.avif" 
+              alt="No posts yet" 
+              className="w-full h-full object-cover"
+            />
           </div>
           <h3 className="text-lg font-semibold mb-2">No posts published yet</h3>
           <p className="text-muted-foreground">
