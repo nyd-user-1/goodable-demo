@@ -26,6 +26,7 @@ import { problems } from "@/data/problems";
 import { supabase } from "@/integrations/supabase/client";
 import { Confetti, type ConfettiRef } from '@/components/magicui/confetti';
 import ReactMarkdown from 'react-markdown';
+import { useModel } from '@/contexts/ModelContext';
 
 interface Message {
   id: string;
@@ -58,6 +59,7 @@ export default function FeatureChat() {
   const [problemStatements, setProblemStatements] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const confettiRef = useRef<ConfettiRef>(null);
+  const { selectedModel } = useModel();
 
   // Auto-scroll to bottom only within the chat container, and only for new messages
   const [messageCount, setMessageCount] = useState(messages.length);
@@ -108,86 +110,71 @@ export default function FeatureChat() {
     }, 30); // Very fast - 30ms per word
   };
 
-  // Generate problem statement based on user input
-  const generateProblemStatement = (problem: string): string => {
-    const keywords = problem.toLowerCase();
-    let category = "General";
-    let stakeholders = "community members";
-    let impact = "quality of life";
+  // Generate AI response using Perplexity API
+  const generateAIResponse = async (prompt: string, stage: ConversationStage): Promise<string> => {
+    try {
+      // Use Perplexity model for better, more current content
+      const modelToUse = selectedModel.startsWith('llama-') ? selectedModel : 'llama-3.1-sonar-large-128k-online';
+      
+      let systemPrompt = '';
+      
+      if (stage === 'problem_received') {
+        systemPrompt = `You are an expert problem-solving coach. The user has described a problem: "${userProblem}". 
 
-    // Simple categorization based on keywords
-    if (keywords.includes('housing') || keywords.includes('rent') || keywords.includes('home')) {
-      category = "Housing";
-      stakeholders = "residents and families";
-      impact = "housing stability and affordability";
-    } else if (keywords.includes('food') || keywords.includes('nutrition') || keywords.includes('hunger')) {
-      category = "Food Security";
-      stakeholders = "families and individuals";
-      impact = "health and nutrition access";
-    } else if (keywords.includes('education') || keywords.includes('school') || keywords.includes('student')) {
-      category = "Education";
-      stakeholders = "students, families, and educators";
-      impact = "educational outcomes and opportunities";
-    } else if (keywords.includes('health') || keywords.includes('medical') || keywords.includes('care')) {
-      category = "Healthcare";
-      stakeholders = "patients and healthcare providers";
-      impact = "health outcomes and access to care";
+Respond empathetically, then offer to create a structured problem statement. Explain how a problem statement helps with:
+- Clarifying what needs fixing
+- Identifying stakeholders
+- Understanding impact
+- Focusing energy
+
+Keep your response conversational but professional. Ask if they want you to create the problem statement.`;
+      } else if (stage === 'statement_sent') {
+        systemPrompt = `You are an expert problem-solving coach. Create a comprehensive, well-structured problem statement for: "${userProblem}"
+
+Format as markdown with clear sections:
+**Problem Statement: [Category] Challenge**
+**The Issue:** [Clear description]
+**Who's Affected:** [Stakeholders]
+**The Impact:** [Consequences]
+**Why It Matters:** [Importance]
+
+Then explain why this statement is valuable and offer to do a "5 Whys" root cause analysis.`;
+      } else if (stage === 'five_whys') {
+        systemPrompt = `You are an expert root cause analyst. Perform a comprehensive "5 Whys" analysis for the problem: "${userProblem}"
+
+First explain the 5 Whys technique briefly, then provide:
+
+**Your 5 Whys Analysis:**
+🔍 **Why #1:** [Surface cause]
+🔍 **Why #2:** [Deeper cause]
+🔍 **Why #3:** [System issue]
+🔍 **Why #4:** [Root factor]
+🔍 **Why #5:** [Ultimate root cause]
+
+**💎 The Root Cause:** [Summary]
+
+Conclude with next steps for addressing the root cause.`;
+      }
+
+      const { data, error } = await supabase.functions.invoke('generate-with-openai', {
+        body: {
+          prompt: systemPrompt,
+          type: 'chat',
+          model: modelToUse,
+          context: 'problem_solving_wizard'
+        }
+      });
+
+      if (error) {
+        console.error('API Error:', error);
+        return 'I apologize, but I encountered an error generating a response. Please try again.';
+      }
+
+      return data.generatedText || 'I apologize, but I was unable to generate a response. Please try again.';
+    } catch (error) {
+      console.error('Error calling AI API:', error);
+      return 'I apologize, but I encountered an error. Please try again.';
     }
-
-    return `**Problem Statement: ${category} Challenge**
-
-**The Issue:** ${problem}
-
-**Who's Affected:** This challenge primarily impacts ${stakeholders} in our community.
-
-**The Impact:** Without addressing this issue, we risk continued deterioration of ${impact}, potentially affecting broader community wellbeing and economic stability.
-
-**Why It Matters:** Solving this problem would create measurable improvements in people's daily lives and strengthen our community's foundation for future growth.`;
-  };
-
-  // Generate 5 Whys analysis
-  const generateFiveWhys = (problem: string): string => {
-    // This is a simplified version - in production you'd want more sophisticated analysis
-    const baseWhy = problem.toLowerCase();
-    
-    let whys = [];
-    if (baseWhy.includes('housing') || baseWhy.includes('rent')) {
-      whys = [
-        "Housing costs are rising faster than wages",
-        "Limited housing supply meets growing demand", 
-        "Zoning laws restrict dense, affordable development",
-        "Local policies prioritize property values over affordability",
-        "Economic incentives favor luxury over affordable housing"
-      ];
-    } else if (baseWhy.includes('food')) {
-      whys = [
-        "Families lack access to affordable, healthy food",
-        "Food deserts exist in low-income neighborhoods",
-        "Transportation barriers limit shopping options",
-        "Economic policies don't support local food systems",
-        "Agricultural subsidies favor processed over fresh foods"
-      ];
-    } else {
-      whys = [
-        "The immediate symptoms are visible but underlying causes remain",
-        "Systemic barriers prevent effective solutions from taking hold",
-        "Resource allocation doesn't match the scale of the problem", 
-        "Policy frameworks weren't designed for current challenges",
-        "Root cause lies in misaligned economic or social incentives"
-      ];
-    }
-
-    return `**Your 5 Whys Analysis:**
-
-🔍 **Why #1:** ${whys[0]}
-🔍 **Why #2:** ${whys[1]}  
-🔍 **Why #3:** ${whys[2]}
-🔍 **Why #4:** ${whys[3]}
-🔍 **Why #5:** ${whys[4]}
-
-**💎 The Root Cause:** ${whys[4]}
-
-This is pure gold - now you know what to actually fix instead of just treating symptoms!`;
   };
 
   // Fetch from Sample Problems table in Supabase
@@ -235,57 +222,23 @@ This is pure gold - now you know what to actually fix instead of just treating s
     setIsAssistantTyping(true);
 
     // Handle conversation flow based on current stage
-    setTimeout(() => {
-      let responseContent: string;
+    const handleResponse = async () => {
       const messageId = `assistant-${Date.now()}`;
+      let responseContent: string;
 
       if (conversationStage === 'initial') {
         // User described their problem
         setUserProblem(currentInput);
         setConversationStage('problem_received');
-        
-        responseContent = `I hear you, and what you're experiencing sounds genuinely challenging. 
-
-You know what? A well-crafted problem statement could be incredibly valuable here. It's like having a GPS for solutions - it helps you:
-
-• **Clarify exactly what needs fixing** (no more spinning wheels)
-• **Identify who's affected** (so you know your stakeholders)  
-• **Understand the real impact** (why this matters)
-• **Focus your energy** (instead of shooting in the dark)
-
-Think of it as turning frustration into a roadmap.
-
-**Shall I draw up that problem statement for you right now?** 📝`;
+        responseContent = await generateAIResponse(currentInput, 'problem_received');
       } else if (conversationStage === 'problem_received' && currentInput.toLowerCase().includes('yes')) {
         // User agreed to problem statement
         setConversationStage('statement_sent');
-        const problemStatement = generateProblemStatement(userProblem);
-        
-        responseContent = `Here's your problem statement:
-
-${problemStatement}
-
-**Why this matters:** This statement gives you clarity, helps communicate the issue to others, and becomes your north star for finding solutions. It transforms a messy situation into something you can actually tackle.
-
-Now, want to go deeper? I can walk you through a "5 Whys" analysis - it's like detective work that uncovers the root cause hiding beneath the surface symptoms.
-
-**Ready to dig into the real source of this problem?** 🔍`;
+        responseContent = await generateAIResponse(userProblem, 'statement_sent');
       } else if (conversationStage === 'statement_sent' && currentInput.toLowerCase().includes('yes')) {
         // User agreed to 5 whys
         setConversationStage('five_whys');
-        const fiveWhysAnalysis = generateFiveWhys(userProblem);
-        
-        responseContent = `Perfect! The "5 Whys" technique peels back the layers to find what's really causing your problem. Think of it like:
-
-• **Why #1:** Gets past the obvious
-• **Why #2:** Reveals the deeper issue  
-• **Why #3:** Uncovers systemic problems
-• **Why #4:** Finds the real culprit
-• **Why #5:** Hits the root cause
-
-${fiveWhysAnalysis}
-
-🎯 **What's Next?** Now that you've identified the root cause, you can focus your energy on solutions that actually address the core issue rather than just symptoms. Want to explore some policy approaches or next steps?`;
+        responseContent = await generateAIResponse(userProblem, 'five_whys');
       } else {
         // Default response for other cases
         responseContent = `I'm here to help you work through problems step by step. If you'd like to start over with a new problem, just tell me what's bothering you, or if you want to continue with your current issue, let me know how I can help!`;
@@ -306,7 +259,9 @@ ${fiveWhysAnalysis}
       
       // Start streaming the response
       streamText(responseContent, messageId);
-    }, 1500);
+    };
+
+    handleResponse();
   };
 
   const handleSuggestedPrompt = (prompt: string) => {
