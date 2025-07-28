@@ -246,7 +246,7 @@ export default function FeatureChat() {
         <div className="w-full max-w-4xl">
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Suggested prompts</h3>
-            <div className="overflow-x-auto scrollbar-hide relative">
+            <div className="overflow-x-auto">
               <div className="flex gap-2 pb-2" style={{ minWidth: 'max-content' }}>
                 {problemStatements.length > 0 ? (
                   problemStatements.map((statement, index) => (
@@ -264,25 +264,18 @@ export default function FeatureChat() {
                   <div className="text-muted-foreground text-sm">Loading suggested prompts...</div>
                 )}
               </div>
-              {/* Gradient fade indicators for scrollability */}
-              <div className="absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-background to-transparent pointer-events-none" />
-              <div className="absolute top-0 left-0 w-4 h-full bg-gradient-to-r from-background to-transparent pointer-events-none" />
             </div>
           </div>
           
-          {/* Command K button - moved below prompts */}
+          {/* Browse feature documentation - moved below prompts */}
           <div className="text-center mt-6">
-            <Button
-              variant="outline"
-              className="inline-flex items-center gap-2 text-sm"
-              onClick={() => {
-                // TODO: Implement command palette
-                console.log('Command K pressed');
-              }}
+            <Link
+              to="#"
+              className="text-muted-foreground hover:text-primary inline-flex items-center gap-1 text-sm"
             >
-              <Command className="h-4 w-4" />
-              ⌘K
-            </Button>
+              <Search className="h-4 w-4" />
+              Browse feature documentation
+            </Link>
           </div>
         </div>
       </div>
