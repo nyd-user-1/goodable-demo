@@ -1,4 +1,4 @@
-import { Search, Settings, User, FileText, Lightbulb, BarChart3, Users, Building2, TrendingUp, MessageSquare, Heart, CreditCard, History, Gamepad2, Factory, Target, Star, ScrollText, Palette, Shield, Lock, Rss, Home, Image } from "lucide-react";
+import { Search, Settings, User, FileText, Lightbulb, BarChart3, Users, Building2, TrendingUp, MessageSquare, Heart, CreditCard, History, Gamepad2, Factory, Target, Star, ScrollText, Palette, Shield, Lock, Rss, Home, Image, BookOpen } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -13,6 +13,7 @@ const navigateNavItems = [
   { title: "Home", url: "/home", icon: Home },
   { title: "Intelligence", url: "/dashboard", icon: TrendingUp },
   { title: "Feed", url: "/feed", icon: Rss, adminOnly: true },
+  { title: "Blog", url: "/blog", icon: BookOpen },
   { title: "Members", url: "/members", icon: Users },
   { title: "Bills", url: "/bills", icon: FileText, requiresAuth: true },
   { title: "Committees", url: "/committees", icon: Building2, requiresAuth: true },

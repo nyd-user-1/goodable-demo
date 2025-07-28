@@ -37,6 +37,8 @@ import About from "./pages/About";
 import PublicPolicy from "./pages/PublicPolicy";
 import StyleGuide from "./pages/StyleGuide";
 import ImageSystem from "./pages/ImageSystem";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import Admin from "./pages/Admin";
 import FeedPage from "./pages/FeedPage";
 import ImageUploadTest from "./pages/ImageUploadTest";
@@ -83,6 +85,8 @@ const AppLayout = () => {
                 <Route path="/public-policy" element={<PublicPolicy />} />
                 <Route path="/style-guide" element={<StyleGuide />} />
                 <Route path="/image-system" element={<ImageSystem />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:id" element={<BlogPost />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/dashboard" element={<Index />} />
                 <Route path="/feed" element={<FeedPage />} />
