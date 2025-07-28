@@ -110,11 +110,11 @@ export default function FeatureChat() {
     }, 30); // Very fast - 30ms per word
   };
 
-  // Generate AI response using Perplexity API
+  // Generate AI response using Claude API
   const generateAIResponse = async (prompt: string, stage: ConversationStage): Promise<string> => {
     try {
-      // Use Perplexity model for better, more current content
-      const modelToUse = selectedModel.startsWith('llama-') ? selectedModel : 'llama-3.1-sonar-large-128k-online';
+      // Use Claude model for better, more reliable content
+      const modelToUse = selectedModel.startsWith('claude-') ? selectedModel : 'claude-3-5-sonnet-20241022';
       
       let systemPrompt = '';
       
