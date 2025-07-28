@@ -482,16 +482,16 @@ const Landing2 = () => {
             <HeroVideoDialog
               className="block dark:hidden"
               animationStyle="from-center"
-              videoSrc="https://www.youtube.com/embed/qh3NGpYRG3I?si=4rb-zSdDkVK9qxxb"
-              thumbnailSrc="https://startup-template-sage.vercel.app/hero-light.png"
-              thumbnailAlt="Goodable Demo Video"
+              videoSrc="https://www.loom.com/embed/ae7a56105d3e44529caee8593c1a3ffe"
+              thumbnailSrc="/goodable-analytics-demo.png"
+              thumbnailAlt="Goodable Analytics Dashboard Demo"
             />
             <HeroVideoDialog
               className="hidden dark:block"
               animationStyle="from-center"
-              videoSrc="https://www.youtube.com/embed/qh3NGpYRG3I?si=4rb-zSdDkVK9qxxb"
-              thumbnailSrc="https://startup-template-sage.vercel.app/hero-dark.png"
-              thumbnailAlt="Goodable Demo Video"
+              videoSrc="https://www.loom.com/embed/ae7a56105d3e44529caee8593c1a3ffe"
+              thumbnailSrc="/goodable-analytics-demo.png"
+              thumbnailAlt="Goodable Analytics Dashboard Demo"
             />
           </div>
         </div>
