@@ -56,21 +56,24 @@ export default function FeatureChat() {
   useEffect(() => {
     const fetchSampleProblems = async () => {
       try {
+        // Query the Sample Problems table with the exact column name
         const { data, error } = await supabase
           .from('Sample Problems')
-          .select('Sample Problems')
+          .select('"Sample Problems"')
+          .order('id', { ascending: true })
           .limit(10);
         
         if (error) {
           console.error('Error fetching sample problems:', error);
-          // Fallback to local data
-          setProblemStatements(problems.slice(0, 10).map(problem => problem.title));
-        } else {
-          setProblemStatements(data?.map(item => item['Sample Problems']) || []);
+          return;
         }
-      } catch {
-        // Fallback to local data if Supabase fails
-        setProblemStatements(problems.slice(0, 10).map(problem => problem.title));
+        
+        if (data && data.length > 0) {
+          setProblemStatements(data.map(item => item['Sample Problems']));
+        }
+      } catch (err) {
+        console.error('Failed to fetch sample problems:', err);
+        // Just leave problemStatements empty if it fails
       }
     };
 
