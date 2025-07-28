@@ -501,10 +501,10 @@ const Landing2 = () => {
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-              Trusted by Policy Professionals
+              Public Policy Looks Different Now
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground px-4">
-              Join legislators and advocates using Goodable to create change
+              We think that's a good thing.
             </p>
           </div>
               
@@ -533,7 +533,7 @@ const Landing2 = () => {
               Everything You Need
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-              Comprehensive tools and insights to track, analyze, and influence policy at every level
+              To do something.
             </p>
           </div>
               
