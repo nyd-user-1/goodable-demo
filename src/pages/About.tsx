@@ -211,6 +211,178 @@ const About = () => {
         )}
       </section>
 
+      {/* Alternating Features Section */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl mb-4">
+              Transforming Democracy Through Technology
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+              We're building bridges between citizens and their government, making legislative 
+              processes more transparent, accessible, and participatory than ever before.
+            </p>
+          </div>
+
+          {/* Feature 1: Real-Time Legislative Tracking */}
+          <div className="grid gap-12 lg:gap-16 items-center mb-24">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="order-2 md:order-1">
+                <h3 className="text-2xl font-bold tracking-tight sm:text-3xl mb-4">
+                  Track Every Bill, Every Vote, Every Impact
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  Our platform provides real-time tracking of legislative activities across all levels 
+                  of government. From bill introductions to committee hearings, amendments to final votes, 
+                  stay informed about the policies that matter to you.
+                </p>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-[#3D63DD] mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-muted-foreground">
+                      Real-time notifications for bills matching your interests
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-[#3D63DD] mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-muted-foreground">
+                      Comprehensive voting records and legislator scorecards
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-[#3D63DD] mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-muted-foreground">
+                      AI-powered summaries of complex legislation
+                    </span>
+                  </li>
+                </ul>
+                <Button 
+                  onClick={() => navigate('/bills')}
+                  className="bg-[#3D63DD] text-white hover:bg-[#2D53CD]"
+                >
+                  Explore Bills
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+              <div className="order-1 md:order-2">
+                <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-[#3D63DD]/10 to-[#5A7FDB]/10 p-2">
+                  <img
+                    src="/legislative%20research.png"
+                    alt="Legislative tracking dashboard"
+                    className="rounded-lg w-full h-auto"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Feature 2: Collaborative Problem Solving */}
+          <div className="grid gap-12 lg:gap-16 items-center mb-24">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="order-2">
+                <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-[#3D63DD]/10 to-[#5A7FDB]/10 p-2">
+                  <img
+                    src="/goodable-heart.avif"
+                    alt="Collaborative problem solving"
+                    className="rounded-lg w-full h-auto"
+                  />
+                </div>
+              </div>
+              <div className="order-1">
+                <h3 className="text-2xl font-bold tracking-tight sm:text-3xl mb-4">
+                  Crowdsource Solutions to Complex Challenges
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  Connect with a community of engaged citizens, policy experts, and lawmakers to 
+                  tackle society's most pressing problems. Our collaborative workspace enables 
+                  meaningful dialogue and actionable solutions.
+                </p>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-[#3D63DD] mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-muted-foreground">
+                      Structured problem-solving frameworks and methodologies
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-[#3D63DD] mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-muted-foreground">
+                      Connect directly with legislators and policy makers
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-[#3D63DD] mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-muted-foreground">
+                      Turn ideas into actionable policy proposals
+                    </span>
+                  </li>
+                </ul>
+                <Button 
+                  onClick={() => navigate('/problems')}
+                  className="bg-[#3D63DD] text-white hover:bg-[#2D53CD]"
+                >
+                  Start Collaborating
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Feature 3: AI-Powered Policy Intelligence */}
+          <div className="grid gap-12 lg:gap-16 items-center">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="order-2 md:order-1">
+                <h3 className="text-2xl font-bold tracking-tight sm:text-3xl mb-4">
+                  Harness AI for Smarter Policy Analysis
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  Our advanced AI tools help you understand the real impact of proposed legislation. 
+                  From predicting economic effects to identifying unintended consequences, make 
+                  informed decisions backed by data and intelligence.
+                </p>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-[#3D63DD] mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-muted-foreground">
+                      Multi-model AI support for comprehensive analysis
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-[#3D63DD] mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-muted-foreground">
+                      Predictive modeling for policy outcomes
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="w-5 h-5 text-[#3D63DD] mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-muted-foreground">
+                      Natural language processing for document analysis
+                    </span>
+                  </li>
+                </ul>
+                <Button 
+                  onClick={() => navigate('/playground')}
+                  className="bg-[#3D63DD] text-white hover:bg-[#2D53CD]"
+                >
+                  Try AI Analysis
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+              <div className="order-1 md:order-2">
+                <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-[#3D63DD]/10 to-[#5A7FDB]/10 p-2">
+                  <img
+                    src="/ai-content-disclaimer.png"
+                    alt="AI-powered policy analysis"
+                    className="rounded-lg w-full h-auto"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Mission Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30">
         <div className="mx-auto max-w-4xl">
