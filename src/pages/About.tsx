@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -15,12 +15,15 @@ import {
   MessageSquare,
   Lightbulb,
   Scale,
-  Building2
+  Building2,
+  Play,
+  X
 } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 
 const About = () => {
   const navigate = useNavigate();
+  const [videoModal, setVideoModal] = useState(false);
 
   const values = [
     {
@@ -104,44 +107,108 @@ const About = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="relative py-20 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl text-center">
-          <div className="flex items-center justify-center mb-6">
-            <div className="w-12 h-12 bg-card border rounded-lg flex items-center justify-center">
-              <span className="text-2xl">❤️</span>
+      {/* Video Background Hero Section */}
+      <section className="relative min-h-[85vh] overflow-hidden bg-black/90">
+        {/* Video background */}
+        <video
+          autoPlay
+          muted
+          loop
+          className="absolute inset-0 h-full w-full object-cover opacity-40"
+          poster="https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3"
+        >
+          <source
+            src="https://player.vimeo.com/progressive_redirect/playback/772380223/rendition/720p/file.mp4?loc=external"
+            type="video/mp4"
+          />
+          Your browser does not support the video tag.
+        </video>
+
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20"></div>
+
+        {/* Content */}
+        <div className="relative container mx-auto flex min-h-[85vh] flex-col items-center justify-center gap-6 px-4 py-24 text-center md:px-6 md:py-32 2xl:max-w-[1400px]">
+          <div className="flex flex-col items-center gap-2">
+            <span className="inline-flex items-center rounded-full border border-white/10 px-3 py-1 text-sm font-medium text-white">
+              Building the Future of Democracy
+            </span>
+          </div>
+          <h1 className="max-w-4xl text-4xl font-bold tracking-tighter text-white md:text-5xl/tight lg:text-6xl/tight">
+            Empowering Better Governance Through Intelligent Collaboration
+          </h1>
+          <p className="max-w-[700px] text-white/80 md:text-xl/relaxed">
+            We're creating a platform where lawmakers, advocates, researchers, and citizens 
+            can work together effectively to solve our most pressing challenges.
+          </p>
+
+          <div className="mt-6 flex flex-col gap-4 sm:flex-row">
+            <Button 
+              size="lg" 
+              variant="secondary"
+              onClick={() => navigate('/auth')}
+            >
+              Get Started Free
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+            <Button
+              size="lg"
+              variant="default"
+              onClick={() => setVideoModal(true)}
+            >
+              <Play className="mr-2 h-4 w-4" />
+              Watch Our Story
+            </Button>
+          </div>
+
+          <div className="mt-8 flex items-center gap-4 text-sm text-white/80">
+            <div className="flex items-center gap-1">
+              <Building2 className="h-5 w-5" />
+              <span>Government Ready</span>
+            </div>
+            <div className="h-1 w-1 rounded-full bg-white/30"></div>
+            <div className="flex items-center gap-1">
+              <Users className="h-5 w-5" />
+              <span>Collaborative Platform</span>
+            </div>
+            <div className="h-1 w-1 rounded-full bg-white/30"></div>
+            <div className="flex items-center gap-1">
+              <Scale className="h-5 w-5" />
+              <span>Policy Intelligence</span>
             </div>
           </div>
-          
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
-            <span className="bg-gradient-to-r from-[#3D63DD] to-[#5A7FDB] bg-clip-text text-transparent">
-              About Goodable
-            </span>
-          </h1>
-          
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            We're building the future of democratic participation through technology that makes 
-            legislative processes more transparent, collaborative, and effective.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              onClick={() => navigate('/auth')}
-              className="bg-[#3D63DD] text-white hover:bg-[#2D53CD]"
-            >
-              Get Started
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              onClick={() => navigate('/problems')}
-            >
-              Explore Problems
-            </Button>
-          </div>
         </div>
+
+        {/* Video Modal */}
+        {videoModal && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+            onClick={() => setVideoModal(false)}
+          >
+            <div
+              className="relative w-full max-w-4xl p-2"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                className="absolute -top-10 right-0 text-white hover:text-white/80"
+                onClick={() => setVideoModal(false)}
+              >
+                <X className="h-6 w-6" />
+                <span className="sr-only">Close</span>
+              </button>
+              <div className="aspect-video w-full overflow-hidden rounded-lg">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+                  title="Goodable Story"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Mission Section */}

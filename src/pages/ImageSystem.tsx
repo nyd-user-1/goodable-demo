@@ -15,16 +15,12 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAsset } from '@/hooks/useAssets';
-
 // Site-wide Placeholder Image Component (moved from StyleGuide)
 const PlaceholderImage: React.FC<{
   className?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'default' | 'rounded' | 'circle';
 }> = ({ className = '', size = 'md', variant = 'default' }) => {
-  const { asset: placeholderAsset } = useAsset('goodable-night');
-  
   const sizeClasses = {
     sm: 'w-16 h-16',
     md: 'w-32 h-32',
@@ -38,29 +34,19 @@ const PlaceholderImage: React.FC<{
     circle: 'rounded-full'
   };
   
-  const placeholderUrl = placeholderAsset?.url || '/goodable%2015.avif';
-  
   return (
     <div className={cn(
       sizeClasses[size],
       variantClasses[variant],
-      'bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900/20 dark:to-blue-900/20',
       'border border-border overflow-hidden flex items-center justify-center',
       'transition-all duration-300 hover:scale-105 hover:shadow-lg',
       className
     )}>
-      {placeholderAsset ? (
-        <img 
-          src={placeholderUrl} 
-          alt="Goodable site placeholder" 
-          className="w-full h-full object-cover"
-        />
-      ) : (
-        <div className="flex flex-col items-center justify-center text-muted-foreground">
-          <Heart className="w-6 h-6 mb-1" />
-          <span className="text-xs font-medium">Goodable</span>
-        </div>
-      )}
+      <img 
+        src="/goodable%2015.avif" 
+        alt="Goodable site placeholder" 
+        className="w-full h-full object-cover"
+      />
     </div>
   );
 };
@@ -127,9 +113,6 @@ const ImageSystem = () => {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-4xl font-bold mb-2">Image System</h1>
-              <p className="text-muted-foreground text-lg">
-                Visual assets, components, and animations for Goodable
-              </p>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="flex items-center gap-1">
