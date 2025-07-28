@@ -60,7 +60,7 @@ export const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
 
   return (
     <div
-      className={`h-full w-full transition-transform duration-[400ms] ease-out ${
+      className={`transition-transform duration-[400ms] ease-out ${
         transitionStage === "slideUp" 
           ? "transform -translate-y-full" 
           : transitionStage === "slideIn"
@@ -69,7 +69,6 @@ export const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
       }`}
       style={{
         willChange: 'transform',
-        minHeight: '100vh',
       }}
     >
       {children}

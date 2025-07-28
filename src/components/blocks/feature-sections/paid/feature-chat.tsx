@@ -18,19 +18,12 @@ import {
   Sparkles,
   ThumbsUp,
   Zap,
-  ChevronDown,
   Heart,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { problems } from "@/data/problems";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 interface Message {
   id: string;
@@ -41,14 +34,6 @@ interface Message {
   isTyping?: boolean;
 }
 
-// Model options for the dropdown
-const modelOptions = [
-  { id: "gpt-4", name: "GPT-4" },
-  { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo" },
-  { id: "claude-3", name: "Claude 3" },
-  { id: "claude-3-haiku", name: "Claude 3 Haiku" },
-  { id: "gemini-pro", name: "Gemini Pro" },
-];
 
 const initialMessages: Message[] = [
   {
@@ -64,7 +49,6 @@ export default function FeatureChat() {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [inputValue, setInputValue] = useState("");
   const [isAssistantTyping, setIsAssistantTyping] = useState(false);
-  const [selectedModel, setSelectedModel] = useState(modelOptions[0]);
   const [problemStatements, setProblemStatements] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -113,7 +97,7 @@ export default function FeatureChat() {
     setTimeout(() => {
       const assistantResponse: Message = {
         id: `assistant-${Date.now()}`,
-        content: `I'm analyzing policy solutions for "${inputValue}" using ${selectedModel.name}. Here are some relevant insights and legislative approaches...`,
+        content: `I'm analyzing policy solutions for "${inputValue}". Here are some relevant insights and legislative approaches...`,
         sender: "assistant",
         timestamp: new Date(),
       };
@@ -158,34 +142,10 @@ export default function FeatureChat() {
                 Try a sample problem statement or suggested prompt
               </p>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Badge variant="outline" className="ml-auto cursor-pointer hover:bg-muted transition-colors">
-                  <span className="mr-2 h-2 w-2 rounded-full bg-green-500"></span>
-                  {selectedModel.name}
-                  <ChevronDown className="ml-1 h-3 w-3" />
-                </Badge>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent 
-                align="end" 
-                side="bottom" 
-                className="w-48"
-                sideOffset={4}
-                avoidCollisions={true}
-                collisionPadding={8}
-              >
-                {modelOptions.map((model) => (
-                  <DropdownMenuItem
-                    key={model.id}
-                    onClick={() => setSelectedModel(model)}
-                    className="cursor-pointer text-sm py-1.5 hover:bg-muted focus:bg-muted"
-                  >
-                    <span className="mr-2 h-2 w-2 rounded-full bg-green-500"></span>
-                    {model.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Badge variant="outline" className="ml-auto">
+              <span className="mr-2 h-2 w-2 rounded-full bg-green-500 shadow-green-500/50 shadow-md animate-pulse"></span>
+              Live
+            </Badge>
           </div>
 
           {/* Chat messages */}
