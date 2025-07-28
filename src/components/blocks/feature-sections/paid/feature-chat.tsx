@@ -35,12 +35,14 @@ interface Message {
   isTyping?: boolean;
 }
 
+type ConversationStage = 'initial' | 'problem_received' | 'statement_sent' | 'five_whys' | 'complete';
+
 
 const initialMessages: Message[] = [
   {
     id: "1",
     content:
-      "Hello! I'm here to help you explore policy solutions. Try a sample problem statement or suggested prompt to get started.",
+      "Hey! What's your problem? 🤔 Tell me what's bothering you, what challenge you're facing, or what issue needs solving. I'm here to help you think through it!",
     sender: "assistant",
     timestamp: new Date(),
   },
@@ -53,6 +55,97 @@ export default function FeatureChat() {
   const [problemStatements, setProblemStatements] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const confettiRef = useRef<ConfettiRef>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+  
+  // Problem-solving wizard state
+  const [conversationStage, setConversationStage] = useState<ConversationStage>('initial');
+  const [userProblem, setUserProblem] = useState('');
+
+  // Generate problem statement based on user input
+  const generateProblemStatement = (problem: string): string => {
+    const keywords = problem.toLowerCase();
+    let category = "General";
+    let stakeholders = "community members";
+    let impact = "quality of life";
+
+    // Simple categorization based on keywords
+    if (keywords.includes('housing') || keywords.includes('rent') || keywords.includes('home')) {
+      category = "Housing";
+      stakeholders = "residents and families";
+      impact = "housing stability and affordability";
+    } else if (keywords.includes('food') || keywords.includes('nutrition') || keywords.includes('hunger')) {
+      category = "Food Security";
+      stakeholders = "families and individuals";
+      impact = "health and nutrition access";
+    } else if (keywords.includes('education') || keywords.includes('school') || keywords.includes('student')) {
+      category = "Education";
+      stakeholders = "students, families, and educators";
+      impact = "educational outcomes and opportunities";
+    } else if (keywords.includes('health') || keywords.includes('medical') || keywords.includes('care')) {
+      category = "Healthcare";
+      stakeholders = "patients and healthcare providers";
+      impact = "health outcomes and access to care";
+    }
+
+    return `**Problem Statement: ${category} Challenge**
+
+**The Issue:** ${problem}
+
+**Who's Affected:** This challenge primarily impacts ${stakeholders} in our community.
+
+**The Impact:** Without addressing this issue, we risk continued deterioration of ${impact}, potentially affecting broader community wellbeing and economic stability.
+
+**Why It Matters:** Solving this problem would create measurable improvements in people's daily lives and strengthen our community's foundation for future growth.`;
+  };
+
+  // Generate 5 Whys analysis
+  const generateFiveWhys = (problem: string): string => {
+    // This is a simplified version - in production you'd want more sophisticated analysis
+    const baseWhy = problem.toLowerCase();
+    
+    let whys = [];
+    if (baseWhy.includes('housing') || baseWhy.includes('rent')) {
+      whys = [
+        "Housing costs are rising faster than wages",
+        "Limited housing supply meets growing demand", 
+        "Zoning laws restrict dense, affordable development",
+        "Local policies prioritize property values over affordability",
+        "Economic incentives favor luxury over affordable housing"
+      ];
+    } else if (baseWhy.includes('food')) {
+      whys = [
+        "Families lack access to affordable, healthy food",
+        "Food deserts exist in low-income neighborhoods",
+        "Transportation barriers limit shopping options",
+        "Economic policies don't support local food systems",
+        "Agricultural subsidies favor processed over fresh foods"
+      ];
+    } else {
+      whys = [
+        "The immediate symptoms are visible but underlying causes remain",
+        "Systemic barriers prevent effective solutions from taking hold",
+        "Resource allocation doesn't match the scale of the problem", 
+        "Policy frameworks weren't designed for current challenges",
+        "Root cause lies in misaligned economic or social incentives"
+      ];
+    }
+
+    return `**Your 5 Whys Analysis:**
+
+🔍 **Why #1:** ${whys[0]}
+🔍 **Why #2:** ${whys[1]}  
+🔍 **Why #3:** ${whys[2]}
+🔍 **Why #4:** ${whys[3]}
+🔍 **Why #5:** ${whys[4]}
+
+**💎 The Root Cause:** ${whys[4]}
+
+This is pure gold - now you know what to actually fix instead of just treating symptoms!`;
+  };
 
   // Fetch from Sample Problems table in Supabase
   useEffect(() => {
@@ -101,17 +194,85 @@ export default function FeatureChat() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue("");
     setIsAssistantTyping(true);
 
-    // Simulate assistant typing delay with morphing heart loader
+    // Handle conversation flow based on current stage
     setTimeout(() => {
-      const assistantResponse: Message = {
-        id: `assistant-${Date.now()}`,
-        content: `I'm analyzing policy solutions for "${inputValue}". Here are some relevant insights and legislative approaches...`,
-        sender: "assistant",
-        timestamp: new Date(),
-      };
+      let assistantResponse: Message;
+
+      if (conversationStage === 'initial') {
+        // User described their problem
+        setUserProblem(currentInput);
+        setConversationStage('problem_received');
+        
+        assistantResponse = {
+          id: `assistant-${Date.now()}`,
+          content: `I hear you, and what you're experiencing sounds genuinely challenging. 
+
+You know what? A well-crafted problem statement could be incredibly valuable here. It's like having a GPS for solutions - it helps you:
+
+• **Clarify exactly what needs fixing** (no more spinning wheels)
+• **Identify who's affected** (so you know your stakeholders)  
+• **Understand the real impact** (why this matters)
+• **Focus your energy** (instead of shooting in the dark)
+
+Think of it as turning frustration into a roadmap.
+
+**Shall I draw up that problem statement for you right now?** 📝`,
+          sender: "assistant",
+          timestamp: new Date(),
+        };
+      } else if (conversationStage === 'problem_received' && currentInput.toLowerCase().includes('yes')) {
+        // User agreed to problem statement
+        setConversationStage('statement_sent');
+        const problemStatement = generateProblemStatement(userProblem);
+        
+        assistantResponse = {
+          id: `assistant-${Date.now()}`,
+          content: `Here's your problem statement:
+
+${problemStatement}
+
+**Why this matters:** This statement gives you clarity, helps communicate the issue to others, and becomes your north star for finding solutions. It transforms a messy situation into something you can actually tackle.
+
+Now, want to go deeper? I can walk you through a "5 Whys" analysis - it's like detective work that uncovers the root cause hiding beneath the surface symptoms.
+
+**Ready to dig into the real source of this problem?** 🔍`,
+          sender: "assistant",
+          timestamp: new Date(),
+        };
+      } else if (conversationStage === 'statement_sent' && currentInput.toLowerCase().includes('yes')) {
+        // User agreed to 5 whys
+        setConversationStage('five_whys');
+        const fiveWhysAnalysis = generateFiveWhys(userProblem);
+        
+        assistantResponse = {
+          id: `assistant-${Date.now()}`,
+          content: `Perfect! The "5 Whys" technique peels back the layers to find what's really causing your problem. Think of it like:
+
+• **Why #1:** Gets past the obvious
+• **Why #2:** Reveals the deeper issue  
+• **Why #3:** Uncovers systemic problems
+• **Why #4:** Finds the real culprit
+• **Why #5:** Hits the root cause
+
+${fiveWhysAnalysis}
+
+🎯 **What's Next?** Now that you've identified the root cause, you can focus your energy on solutions that actually address the core issue rather than just symptoms. Want to explore some policy approaches or next steps?`,
+          sender: "assistant",
+          timestamp: new Date(),
+        };
+      } else {
+        // Default response for other cases
+        assistantResponse = {
+          id: `assistant-${Date.now()}`,
+          content: `I'm here to help you work through problems step by step. If you'd like to start over with a new problem, just tell me what's bothering you, or if you want to continue with your current issue, let me know how I can help!`,
+          sender: "assistant",
+          timestamp: new Date(),
+        };
+      }
 
       setMessages((prev) => [...prev, assistantResponse]);
       setIsAssistantTyping(false);
@@ -119,6 +280,9 @@ export default function FeatureChat() {
   };
 
   const handleSuggestedPrompt = (prompt: string) => {
+    // Reset conversation state when using suggested prompt
+    setConversationStage('initial');
+    setUserProblem('');
     setInputValue(`It's a problem that ${prompt.toLowerCase()}`);
   };
 
@@ -150,7 +314,7 @@ export default function FeatureChat() {
             <div className="flex-1">
               <h3 className="font-semibold">Goodable.dev</h3>
               <p className="text-muted-foreground text-xs">
-                Try a sample problem statement or suggested prompt
+                Problem-solving wizard ready to help
               </p>
             </div>
             <Badge variant="outline" className="ml-auto">
@@ -236,7 +400,7 @@ export default function FeatureChat() {
               <Input
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Ask about our features..."
+                placeholder="Tell me what's bothering you..."
                 className="flex-grow"
               />
               <Button
