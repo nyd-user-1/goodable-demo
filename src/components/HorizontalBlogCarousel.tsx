@@ -17,13 +17,13 @@ import {
 } from "@/components/ui/carousel";
 
 export default function HorizontalBlogCarousel() {
-  // Sample blog posts data
+  // Policy proposal blog posts
   const posts = [
     {
       id: "1",
       title: "Creating Accessible Web Applications with React and ARIA",
       excerpt:
-        "Learn how to build web applications that are accessible to everyone using React best practices and ARIA attributes.",
+        "Learn how to build web applications that are accessible to everyone using React best practices and ARIA.",
       date: "Apr 15, 2023",
       category: "Development",
       imageUrl: "/goodable-botanical.avif",
@@ -33,7 +33,7 @@ export default function HorizontalBlogCarousel() {
       id: "2",
       title: "The Future of Design Systems in 2023",
       excerpt:
-        "Explore the trends and innovations shaping design systems and component libraries this year.",
+        "Explore the trends and innovations shaping design systems and component libraries in modern design.",
       date: "Mar 28, 2023",
       category: "Design",
       imageUrl: "/goodable-heart.avif",
@@ -43,7 +43,7 @@ export default function HorizontalBlogCarousel() {
       id: "3",
       title: "Optimizing Performance in Next.js Applications",
       excerpt:
-        "Practical strategies to improve loading times and overall performance in your Next.js web applications.",
+        "Practical strategies to improve loading times and overall performance in your web applications.",
       date: "Mar 12, 2023",
       category: "Performance",
       imageUrl: "/goodable-night.avif",
@@ -53,31 +53,11 @@ export default function HorizontalBlogCarousel() {
       id: "4",
       title: "Crafting Effective User Onboarding Experiences",
       excerpt:
-        "How to design user onboarding that reduces friction and increases conversion rates for your product.",
+        "How to design user onboarding experiences that reduce friction and increase conversions.",
       date: "Feb 24, 2023",
       category: "UX Design",
       imageUrl: "/goodable-path.avif",
       slug: "effective-user-onboarding",
-    },
-    {
-      id: "5",
-      title: "Building a Design Portfolio That Stands Out",
-      excerpt:
-        "Tips and strategies for creating a portfolio that showcases your best work and attracts clients.",
-      date: "Feb 10, 2023",
-      category: "Career",
-      imageUrl: "/goodable-dandelion.avif",
-      slug: "design-portfolio-tips",
-    },
-    {
-      id: "6",
-      title: "Responsive Design in the Age of Foldable Devices",
-      excerpt:
-        "How to adapt your responsive design strategies for the emerging market of foldable and dual-screen devices.",
-      date: "Jan 28, 2023",
-      category: "Design",
-      imageUrl: "/goodable-dream-state.avif",
-      slug: "responsive-design-foldable-devices",
     },
   ];
 
@@ -134,7 +114,7 @@ export default function HorizontalBlogCarousel() {
 
                     <CardFooter>
                       <Button asChild>
-                        <Link to="#">
+                        <Link to={`/blog/${post.slug}`}>
                           Read more
                           <span className="sr-only">
                             Read more about {post.title}

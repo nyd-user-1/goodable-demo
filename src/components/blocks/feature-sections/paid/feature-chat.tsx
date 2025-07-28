@@ -24,6 +24,7 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { problems } from "@/data/problems";
 import { supabase } from "@/integrations/supabase/client";
+import { Confetti, type ConfettiRef } from '@/components/magicui/confetti';
 
 interface Message {
   id: string;
@@ -51,6 +52,7 @@ export default function FeatureChat() {
   const [isAssistantTyping, setIsAssistantTyping] = useState(false);
   const [problemStatements, setProblemStatements] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const confettiRef = useRef<ConfettiRef>(null);
 
   // Fetch from Sample Problems table in Supabase
   useEffect(() => {
@@ -82,6 +84,13 @@ export default function FeatureChat() {
 
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
+
+    // Trigger confetti
+    confettiRef.current?.fire({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+    });
 
     // Add user message
     const userMessage: Message = {
@@ -246,7 +255,7 @@ export default function FeatureChat() {
         <div className="w-full max-w-4xl">
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Suggested prompts</h3>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto scrollbar-hide">
               <div className="flex gap-2 pb-2" style={{ minWidth: 'max-content' }}>
                 {problemStatements.length > 0 ? (
                   problemStatements.map((statement, index) => (
@@ -267,18 +276,31 @@ export default function FeatureChat() {
             </div>
           </div>
           
-          {/* Browse feature documentation - moved below prompts */}
+          {/* Command K button - moved below prompts */}
           <div className="text-center mt-6">
-            <Link
-              to="#"
-              className="text-muted-foreground hover:text-primary inline-flex items-center gap-1 text-sm"
+            <Button
+              variant="outline"
+              size="sm"
+              className="inline-flex items-center gap-2"
+              onClick={() => {
+                const event = new KeyboardEvent('keydown', {
+                  key: 'k',
+                  metaKey: true,
+                  ctrlKey: true,
+                  bubbles: true
+                });
+                document.dispatchEvent(event);
+              }}
             >
-              <Search className="h-4 w-4" />
-              Browse feature documentation
-            </Link>
+              <Command className="h-3 w-3" />
+              <span>Command K</span>
+            </Button>
           </div>
         </div>
       </div>
+      
+      {/* Confetti component */}
+      <Confetti ref={confettiRef} />
     </section>
   );
 }
