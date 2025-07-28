@@ -57,19 +57,28 @@ const ProblemPage: React.FC = () => {
   };
 
   return (
-    <div className="page-container min-h-screen bg-background p-4 sm:p-6 lg:p-8">
-      <div className="content-wrapper max-w-7xl mx-auto">
+    <div className="page-container min-h-screen bg-background">
+      {/* Simple top navigation */}
+      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2 text-sm font-medium"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Home
+            </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Goodable.dev</span>
+            </div>
+          </div>
+        </div>
+      </nav>
+      
+      <div className="content-wrapper max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         <div className="space-y-6">
-          {/* Navigation Section */}
-          <Button 
-            variant="outline" 
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2 font-medium py-3 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Back to Problems</span>
-            <span className="sm:hidden">Back</span>
-          </Button>
 
           {/* Problem Info Card Section */}
           <Card className="card bg-card rounded-xl shadow-sm border border-border overflow-hidden">

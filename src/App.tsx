@@ -120,6 +120,7 @@ const App = () => {
                   <Route path="/alt" element={<Landing />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/auth-2" element={<Auth2 />} />
+                  <Route path="/problems/:problemSlug" element={<ProblemPage />} />
                   <Route path="*" element={<AppLayout />} />
                 </Routes>
               </PageTransition>

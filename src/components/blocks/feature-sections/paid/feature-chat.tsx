@@ -140,9 +140,9 @@ export default function FeatureChat() {
 
       <div className="flex flex-col items-center gap-8">
         {/* Centered Chat Section */}
-        <div className="flex h-[600px] w-full max-w-4xl flex-col rounded-xl border shadow-sm overflow-visible">
+        <div className="flex h-[600px] w-full max-w-4xl flex-col rounded-xl border shadow-sm">
           {/* Chat header */}
-          <div className="flex items-center gap-3 border-b p-4 relative z-10">
+          <div className="flex items-center gap-3 border-b p-4 relative">
             <Avatar className="h-10 w-10">
               <AvatarImage
                 src="/goodable-heart.avif"
@@ -169,8 +169,10 @@ export default function FeatureChat() {
               <DropdownMenuContent 
                 align="end" 
                 side="bottom" 
-                className="w-48 z-50"
+                className="w-48"
                 sideOffset={4}
+                avoidCollisions={true}
+                collisionPadding={8}
               >
                 {modelOptions.map((model) => (
                   <DropdownMenuItem
