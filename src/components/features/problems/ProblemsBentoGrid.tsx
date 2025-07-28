@@ -18,7 +18,7 @@ export function ProblemsBentoGrid() {
             Featured Problem Statements
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-            Join our community in tackling society's most pressing challenges through collaborative problem-solving
+            Vote on and tackle society's most pressing challenges through collaborative problem-solving.
           </p>
         </div>
         
