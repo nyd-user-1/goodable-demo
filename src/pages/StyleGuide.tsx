@@ -452,7 +452,7 @@ const StyleGuide = () => {
                     <Badge variant="secondary">Secondary</Badge>
                     <Badge variant="outline">Outline</Badge>
                     <Badge variant="destructive">Destructive</Badge>
-                    <Badge className="bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20">Warning</Badge>
+                    <Badge variant="warning">Warning</Badge>
                   </div>
                 </CardContent>
               </Card>

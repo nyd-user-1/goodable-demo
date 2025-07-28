@@ -20,7 +20,7 @@ export const ProblemCard = ({ problem, onClick }: ProblemCardProps) => {
 
   const priorityConfig = {
     urgent: { text: 'Destructive', variant: 'destructive' as const },
-    high: { text: 'Warning', className: 'bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20' },
+    high: { text: 'Warning', variant: 'warning' as const },
     normal: { text: 'Normal', variant: 'secondary' as const },
     low: { text: 'Default', variant: 'default' as const }
   };
@@ -57,15 +57,9 @@ export const ProblemCard = ({ problem, onClick }: ProblemCardProps) => {
 
         {/* Priority badge - moved below content */}
         <div className="mb-6">
-          {priorityConfig[problem.priority].variant ? (
-            <Badge variant={priorityConfig[problem.priority].variant}>
-              {priorityConfig[problem.priority].text}
-            </Badge>
-          ) : (
-            <Badge className={priorityConfig[problem.priority].className}>
-              {priorityConfig[problem.priority].text}
-            </Badge>
-          )}
+          <Badge variant={priorityConfig[problem.priority].variant}>
+            {priorityConfig[problem.priority].text}
+          </Badge>
         </div>
 
         {/* Voting and Comments - always at bottom */}
