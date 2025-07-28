@@ -117,6 +117,16 @@ const Home = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Listen for command palette event
+  useEffect(() => {
+    const handleOpenProblemChat = () => {
+      setShowAIChatSheet(true);
+    };
+
+    window.addEventListener('open-problem-chat', handleOpenProblemChat);
+    return () => window.removeEventListener('open-problem-chat', handleOpenProblemChat);
+  }, []);
+
   
   const handleSubmit = () => {
     if (hasContent) {
