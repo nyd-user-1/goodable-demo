@@ -566,10 +566,10 @@ const Landing2 = () => {
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-              Platform Analytics
+              A Way Forward
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-              Real-time insights into legislative activity, citizen engagement, and policy impact
+              Policy, proposal, and idea analytics; empowering you to get it done.
             </p>
           </div>
           
