@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,7 @@ import {
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { problems } from "@/data/problems";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,15 +60,39 @@ const initialMessages: Message[] = [
   },
 ];
 
-// Use problem statements from our data
-const problemStatements = problems.slice(0, 10).map(problem => problem.title);
-
 export default function FeatureChat() {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [inputValue, setInputValue] = useState("");
   const [isAssistantTyping, setIsAssistantTyping] = useState(false);
   const [selectedModel, setSelectedModel] = useState(modelOptions[0]);
+  const [problemStatements, setProblemStatements] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Fetch problem statements from Supabase
+  useEffect(() => {
+    const fetchProblemStatements = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('problem_statements')
+          .select('title')
+          .eq('status', 'published')
+          .limit(10);
+        
+        if (error) {
+          console.error('Error fetching problem statements:', error);
+          // Fallback to local data
+          setProblemStatements(problems.slice(0, 10).map(problem => problem.title));
+        } else {
+          setProblemStatements(data?.map(item => item.title) || []);
+        }
+      } catch {
+        // Fallback to local data if Supabase fails
+        setProblemStatements(problems.slice(0, 10).map(problem => problem.title));
+      }
+    };
+
+    fetchProblemStatements();
+  }, []);
 
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
@@ -114,43 +139,10 @@ export default function FeatureChat() {
       </div>
 
       <div className="flex flex-col items-center gap-8">
-        {/* Suggested Questions with horizontal scrolling - left aligned with chat */}
-        <div className="w-full max-w-4xl">
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Suggested prompts</h3>
-            <div className="overflow-x-auto">
-              <div className="flex gap-2 pb-2" style={{ minWidth: 'max-content' }}>
-                {problemStatements.map((statement, index) => (
-                  <Badge
-                    key={index}
-                    variant="outline"
-                    className="hover:bg-primary/10 cursor-pointer py-1.5 whitespace-nowrap"
-                    onClick={() => handleSuggestedPrompt(statement)}
-                  >
-                    <MessageSquare className="mr-1 h-3.5 w-3.5" />
-                    {statement}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </div>
-          
-          {/* Browse feature documentation - centered */}
-          <div className="text-center mt-6">
-            <Link
-              to="#"
-              className="text-muted-foreground hover:text-primary inline-flex items-center gap-1 text-sm"
-            >
-              <Search className="h-4 w-4" />
-              Browse feature documentation
-            </Link>
-          </div>
-        </div>
-
         {/* Centered Chat Section */}
-        <div className="flex h-[600px] w-full max-w-4xl flex-col rounded-xl border shadow-sm">
+        <div className="flex h-[600px] w-full max-w-4xl flex-col rounded-xl border shadow-sm overflow-visible">
           {/* Chat header */}
-          <div className="flex items-center gap-3 border-b p-4">
+          <div className="flex items-center gap-3 border-b p-4 relative z-10">
             <Avatar className="h-10 w-10">
               <AvatarImage
                 src="/goodable-heart.avif"
@@ -168,19 +160,25 @@ export default function FeatureChat() {
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Badge variant="outline" className="ml-auto cursor-pointer hover:bg-muted">
+                <Badge variant="outline" className="ml-auto cursor-pointer hover:bg-muted transition-colors">
                   <span className="mr-2 h-2 w-2 rounded-full bg-green-500"></span>
                   {selectedModel.name}
                   <ChevronDown className="ml-1 h-3 w-3" />
                 </Badge>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" side="bottom" className="w-48">
+              <DropdownMenuContent 
+                align="end" 
+                side="bottom" 
+                className="w-48 z-50"
+                sideOffset={4}
+              >
                 {modelOptions.map((model) => (
                   <DropdownMenuItem
                     key={model.id}
                     onClick={() => setSelectedModel(model)}
-                    className="cursor-pointer text-sm py-1.5"
+                    className="cursor-pointer text-sm py-1.5 hover:bg-muted focus:bg-muted"
                   >
+                    <span className="mr-2 h-2 w-2 rounded-full bg-green-500"></span>
                     {model.name}
                   </DropdownMenuItem>
                 ))}
@@ -277,6 +275,43 @@ export default function FeatureChat() {
                 <Send className="h-5 w-5" />
               </Button>
             </form>
+          </div>
+        </div>
+
+        {/* Suggested Questions with horizontal scrolling - moved below chat */}
+        <div className="w-full max-w-4xl">
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Suggested prompts</h3>
+            <div className="overflow-x-auto">
+              <div className="flex gap-2 pb-2" style={{ minWidth: 'max-content' }}>
+                {problemStatements.length > 0 ? (
+                  problemStatements.map((statement, index) => (
+                    <Badge
+                      key={index}
+                      variant="outline"
+                      className="hover:bg-primary/10 cursor-pointer py-1.5 whitespace-nowrap transition-colors"
+                      onClick={() => handleSuggestedPrompt(statement)}
+                    >
+                      <MessageSquare className="mr-1 h-3.5 w-3.5" />
+                      {statement}
+                    </Badge>
+                  ))
+                ) : (
+                  <div className="text-muted-foreground text-sm">Loading suggested prompts...</div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {/* Browse feature documentation - moved below prompts */}
+          <div className="text-center mt-6">
+            <Link
+              to="#"
+              className="text-muted-foreground hover:text-primary inline-flex items-center gap-1 text-sm"
+            >
+              <Search className="h-4 w-4" />
+              Browse feature documentation
+            </Link>
           </div>
         </div>
       </div>
