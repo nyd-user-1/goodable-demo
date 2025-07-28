@@ -59,10 +59,22 @@ export default function FeatureChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const confettiRef = useRef<ConfettiRef>(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom only within the chat container, and only for new messages
+  const [messageCount, setMessageCount] = useState(messages.length);
+  
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    // Only scroll when a new message is added (not during streaming)
+    if (messages.length > messageCount) {
+      setMessageCount(messages.length);
+      
+      if (messagesEndRef.current) {
+        const chatContainer = messagesEndRef.current.closest('.overflow-y-auto');
+        if (chatContainer) {
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+      }
+    }
+  }, [messages, messageCount]);
   
   // Problem-solving wizard state
   const [conversationStage, setConversationStage] = useState<ConversationStage>('initial');
