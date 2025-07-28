@@ -1,6 +1,4 @@
 "use client";
-
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,12 +25,10 @@ export default function HeroFormContactWithBackground() {
       <div className="relative flex min-h-[800px] items-center overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
-          <Image
+          <img
             src="/goodable-night.avif"
             alt="Goodable night background"
-            fill
-            priority
-            className="object-cover brightness-[0.6]"
+            className="w-full h-full object-cover brightness-[0.6]"
           />
         </div>
 

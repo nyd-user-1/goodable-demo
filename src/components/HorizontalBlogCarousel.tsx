@@ -78,8 +78,8 @@ export default function HorizontalBlogCarousel() {
     fetchBlogPosts();
   }, []);
 
-  const title = "Good Trouble?";
-  const description = "Browse original policy proposals from Goodable and others.";
+  const title = "Good Trouble";
+  const description = "Browse Goodable's original policy proposals";
 
   return (
     <section className="w-full py-12">
