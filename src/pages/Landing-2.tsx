@@ -43,7 +43,7 @@ import { ProblemsBentoGrid } from '@/components/features/problems';
 import FAQ from '@/components/FAQ';
 import HorizontalBlogCarousel from '@/components/HorizontalBlogCarousel';
 import FeatureChat from '@/components/blocks/feature-sections/paid/feature-chat';
-import ContactFormWithBackground from '@/components/blocks/hero-forms/contact-form-with-background';
+import HeroFormContactWithBackground from '@/components/blocks/hero-forms/paid/contact-form-with-background';
 import '@/components/magicui/animated-background.css';
 
 interface Member {
@@ -713,7 +713,7 @@ const Landing2 = () => {
       <FeatureChat />
 
       {/* Hero Contact Form */}
-      <ContactFormWithBackground />
+      <HeroFormContactWithBackground />
 
       {/* Blog Carousel Section with light gray background */}
       <div className="bg-muted/30">
