@@ -9,33 +9,43 @@ export const Auth2: React.FC = () => {
   // Carousel data with images and quotes (first two must be as specified)
   const carouselData = [
     {
-      image: 'https://kwyjohornlgujoqypyvu.supabase.co/storage/v1/object/public/goodable-assets/IMG-012.avif',
+      image: '/goodable-night.avif', // Using known working local image
       quote: "It has meaning if you give it meaning."
     },
     {
-      image: 'https://kwyjohornlgujoqypyvu.supabase.co/storage/v1/object/public/goodable-assets/IMG-015.avif', 
+      image: '/goodable-path.avif', // Using known working local image
       quote: "Both, it's always both."
     },
     {
-      image: 'https://kwyjohornlgujoqypyvu.supabase.co/storage/v1/object/public/goodable-assets/IMG-017.avif',
+      image: '/goodable-botanical.avif', // Using known working local image
       quote: "Retweets are easy. Real change is not."
     },
     {
-      image: 'https://kwyjohornlgujoqypyvu.supabase.co/storage/v1/object/public/goodable-assets/IMG-019.avif',
+      image: '/goodable-dandelion.avif', // Using known working local image
       quote: "Not left. Not right. Just forward."
     },
     {
-      image: 'https://kwyjohornlgujoqypyvu.supabase.co/storage/v1/object/public/goodable-assets/IMG-020.avif',
+      image: '/goodable-dream-state.avif', // Using known working local image
       quote: "Big voice? Big following? Big deal. Be big."
     },
     {
-      image: 'https://kwyjohornlgujoqypyvu.supabase.co/storage/v1/object/public/goodable-assets/IMG-023.avif',
+      image: '/goodable-heart.avif', // Using known working local image
       quote: "It's not about sides—it's about systems."
     }
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+
+  // Debug: Test if images are loading
+  useEffect(() => {
+    carouselData.forEach((item, index) => {
+      const img = new Image();
+      img.onload = () => console.log(`Image ${index} loaded successfully:`, item.image);
+      img.onerror = () => console.error(`Image ${index} failed to load:`, item.image);
+      img.src = item.image;
+    });
+  }, []);
 
   // Auto-advance carousel
   useEffect(() => {
