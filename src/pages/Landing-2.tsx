@@ -519,8 +519,7 @@ const Landing2 = () => {
               variant="outline"
               size="lg" 
               onClick={() => {
-                // Look for the FeatureChat component which contains the Playground
-                const playgroundSection = document.querySelector('section:has(h2:contains("Playground"))');
+                const playgroundSection = document.getElementById('playground');
                 if (playgroundSection) {
                   playgroundSection.scrollIntoView({ behavior: 'smooth' });
                 }

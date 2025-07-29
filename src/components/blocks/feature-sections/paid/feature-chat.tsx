@@ -301,7 +301,7 @@ ${fiveWhysAnalysis}
   };
 
   return (
-    <section className="container mx-auto space-y-12 px-4 py-24 md:px-6 2xl:max-w-[1400px]">
+    <section id="playground" className="container mx-auto space-y-12 px-4 py-24 md:px-6 2xl:max-w-[1400px]">
       <div className="space-y-4 text-center">
         <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
           Playground
