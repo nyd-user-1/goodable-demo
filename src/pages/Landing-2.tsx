@@ -72,9 +72,41 @@ const Landing2 = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [featuredPosts, setFeaturedPosts] = useState<any[]>([]);
+  const [userVotes, setUserVotes] = useState<Record<string, 'up' | 'down' | null>>({});
 
   const handleDoSomethingClick = () => {
     // Scroll to search or do something
+  };
+
+  const handleVote = (e: React.MouseEvent, postId: string, voteType: 'up' | 'down') => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const currentVote = userVotes[postId];
+    const newVote = currentVote === voteType ? null : voteType;
+    
+    setUserVotes(prev => ({
+      ...prev,
+      [postId]: newVote
+    }));
+    
+    // Update post vote counts
+    setFeaturedPosts(prev => prev.map(post => {
+      if (post.id !== postId) return post;
+      
+      let vote_up = post.vote_up || 0;
+      let vote_down = post.vote_down || 0;
+      
+      // Remove previous vote if exists
+      if (currentVote === 'up') vote_up--;
+      if (currentVote === 'down') vote_down--;
+      
+      // Add new vote if not null
+      if (newVote === 'up') vote_up++;
+      if (newVote === 'down') vote_down++;
+      
+      return { ...post, vote_up, vote_down };
+    }));
   };
 
   const handleWaitlistSignup = async (e: React.FormEvent) => {
@@ -663,25 +695,35 @@ const Landing2 = () => {
                   {/* Voting and Comments - always at bottom */}
                   <div className="flex items-center justify-between pt-6 border-t">
                     <div className="flex items-center gap-4">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-muted-foreground hover:text-green-600"
+                      <button
+                        onClick={(e) => handleVote(e, post.id, 'up')}
+                        className={cn(
+                          "flex items-center gap-1 px-2 py-1 rounded transition-colors",
+                          userVotes[post.id] === 'up'
+                            ? "text-green-600 bg-green-50 hover:text-green-600 hover:bg-green-50"
+                            : "text-muted-foreground hover:text-green-600 hover:bg-green-50/50"
+                        )}
                       >
-                        <ArrowUp className="w-4 h-4 mr-1" />
-                        {post.vote_up || 0}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-muted-foreground hover:text-red-600"
+                        <ArrowUp className="w-4 h-4" />
+                        <span className="text-sm font-medium">{post.vote_up || 0}</span>
+                      </button>
+                      
+                      <button
+                        onClick={(e) => handleVote(e, post.id, 'down')}
+                        className={cn(
+                          "flex items-center gap-1 px-2 py-1 rounded transition-colors",
+                          userVotes[post.id] === 'down'
+                            ? "text-red-600 bg-red-50 hover:text-red-600 hover:bg-red-50"
+                            : "text-muted-foreground hover:text-red-600 hover:bg-red-50/50"
+                        )}
                       >
-                        <ArrowDown className="w-4 h-4 mr-1" />
-                        {post.vote_down || 0}
-                      </Button>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <ArrowDown className="w-4 h-4" />
+                        <span className="text-sm font-medium">{post.vote_down || 0}</span>
+                      </button>
+                      
+                      <div className="flex items-center gap-1 px-2 py-1 text-muted-foreground">
                         <MessageSquare className="w-4 h-4" />
-                        {post.comment_count || 0}
+                        <span className="text-sm font-medium">{post.comment_count || 0}</span>
                       </div>
                     </div>
                   </div>
