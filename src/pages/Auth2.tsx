@@ -95,25 +95,29 @@ export const Auth2: React.FC = () => {
       {/* Right side - Image carousel */}
       <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
         {/* Image container with slide animation */}
-        <div className="relative h-full">
-          {carouselData.map((item, index) => (
-            <div
-              key={index}
-              className={cn(
-                "absolute inset-0 transition-transform duration-[600ms] ease-in-out",
-                index === currentIndex && !isAnimating && "translate-x-0",
-                index === currentIndex && isAnimating && "-translate-x-full",
-                index === (currentIndex + 1) % carouselData.length && !isAnimating && "translate-x-full",
-                index === (currentIndex + 1) % carouselData.length && isAnimating && "translate-x-0",
-                index !== currentIndex && index !== (currentIndex + 1) % carouselData.length && "translate-x-full"
-              )}
-              style={{
-                backgroundImage: `url(${item.image})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat'
-              }}
-            >
+        <div className="relative h-full bg-gray-100 dark:bg-gray-900">
+          {carouselData.map((item, index) => {
+            const isActive = index === currentIndex;
+            const isNext = index === (currentIndex + 1) % carouselData.length;
+            
+            return (
+              <div
+                key={index}
+                className={cn(
+                  "absolute inset-0 transition-transform duration-[600ms] ease-in-out",
+                  isActive && !isAnimating && "translate-x-0",
+                  isActive && isAnimating && "translate-x-full",
+                  isNext && !isAnimating && "-translate-x-full",
+                  isNext && isAnimating && "translate-x-0",
+                  !isActive && !isNext && "-translate-x-full"
+                )}
+              >
+                <img 
+                  src={item.image}
+                  alt={`Slide ${index + 1}`}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              
               {/* Overlay for better text visibility */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
               
@@ -128,7 +132,8 @@ export const Auth2: React.FC = () => {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Navigation arrow button */}
