@@ -514,13 +514,26 @@ const Landing2 = () => {
             and crowd sourced policy solutions. Powered by advanced AI and driven by collaboration.
           </p>
               
-          <div className="flex justify-center mb-8 sm:mb-12 px-4">
+          <div className="flex justify-center gap-4 mb-8 sm:mb-12 px-4">
+            <Button 
+              variant="outline"
+              size="lg" 
+              onClick={() => {
+                const playgroundSection = document.querySelector('section:has(h2:contains("Playground"))');
+                if (playgroundSection) {
+                  playgroundSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className="w-full sm:w-auto"
+            >
+              Play
+            </Button>
             <Button 
               size="lg" 
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/bills')}
               className="bg-[#3D63DD] text-white hover:bg-[#2D53CD] w-full sm:w-auto"
             >
-              Try for Free
+              Explore
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
