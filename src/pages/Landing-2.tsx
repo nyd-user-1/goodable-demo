@@ -441,7 +441,7 @@ const Landing2 = () => {
             <Button
               variant="outline"
               size="sm"
-              className="hidden md:inline-flex items-center gap-2 bg-card/80 hover:bg-card"
+              className="hidden md:inline-flex items-center justify-center"
               onClick={() => {
                 const event = new KeyboardEvent('keydown', {
                   key: 'k',
@@ -452,13 +452,11 @@ const Landing2 = () => {
                 document.dispatchEvent(event);
               }}
             >
-              <Command className="h-3 w-3" />
-              <span>Command K</span>
+              <Command className="h-4 w-4" />
             </Button>
             <Button 
               variant="outline" 
               onClick={() => navigate('/auth')}
-              className="bg-card/80 hover:bg-card"
             >
               Sign In
             </Button>
