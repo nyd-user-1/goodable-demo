@@ -519,6 +519,7 @@ const Landing2 = () => {
               variant="outline"
               size="lg" 
               onClick={() => {
+                // Look for the FeatureChat component which contains the Playground
                 const playgroundSection = document.querySelector('section:has(h2:contains("Playground"))');
                 if (playgroundSection) {
                   playgroundSection.scrollIntoView({ behavior: 'smooth' });
@@ -530,11 +531,13 @@ const Landing2 = () => {
             </Button>
             <Button 
               size="lg" 
-              onClick={() => navigate('/bills')}
+              onClick={() => {
+                navigate('/members');
+                setTimeout(() => window.scrollTo(0, 0), 100);
+              }}
               className="bg-[#3D63DD] text-white hover:bg-[#2D53CD] w-full sm:w-auto"
             >
-              Explore
-              <ArrowRight className="w-4 h-4 ml-2" />
+              Learn
             </Button>
           </div>
               
