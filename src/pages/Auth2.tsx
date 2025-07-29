@@ -115,16 +115,20 @@ export const Auth2: React.FC = () => {
                 <img 
                   src={item.image}
                   alt={`Slide ${index + 1}`}
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-cover z-0"
+                  onError={(e) => {
+                    console.error(`Failed to load image: ${item.image}`);
+                    e.currentTarget.style.display = 'none';
+                  }}
                 />
               
               {/* Overlay for better text visibility */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10" />
               
               {/* Quote content */}
-              <div className="relative z-10 flex flex-col justify-end p-12 text-white h-full">
+              <div className="absolute inset-0 z-20 flex flex-col justify-end p-12 text-white">
                 <blockquote className="text-xl font-medium mb-2 drop-shadow-lg">
-                  "{item.quote}"
+                  {item.quote}
                 </blockquote>
                 <div className="flex items-center gap-1 text-sm opacity-90">
                   <span className="text-red-500">❤️</span>
