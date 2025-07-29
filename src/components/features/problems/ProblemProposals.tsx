@@ -29,8 +29,11 @@ import {
   Quote,
   Link2,
   Image,
-  Save
+  Save,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Problem } from '@/data/problems';
 
 interface Proposal {
@@ -47,6 +50,8 @@ interface Proposal {
   collaborators: number;
   comments: number;
   version: string;
+  upvotes: number;
+  downvotes: number;
 }
 
 interface ProblemProposalsProps {
@@ -90,7 +95,9 @@ This proposal outlines a comprehensive approach to addressing housing affordabil
       lastModified: '2 hours ago',
       collaborators: 8,
       comments: 23,
-      version: '2.1'
+      version: '2.1',
+      upvotes: 34,
+      downvotes: 5
     },
     {
       id: '2',
@@ -122,7 +129,9 @@ $50M over 3 years for:
       lastModified: '1 day ago',
       collaborators: 4,
       comments: 12,
-      version: '1.3'
+      version: '1.3',
+      upvotes: 16,
+      downvotes: 2
     }
   ]);
 
@@ -131,6 +140,7 @@ $50M over 3 years for:
   const [editContent, setEditContent] = useState('');
   const [newProposalTitle, setNewProposalTitle] = useState('');
   const [showNewProposal, setShowNewProposal] = useState(false);
+  const [userVotes, setUserVotes] = useState<Record<string, 'up' | 'down' | null>>({});
 
   const statusColors = {
     draft: 'bg-gray-100 text-gray-800',
@@ -257,7 +267,9 @@ $50M over 3 years for:
       lastModified: 'Just now',
       collaborators: 1,
       comments: 0,
-      version: '1.0'
+      version: '1.0',
+      upvotes: 0,
+      downvotes: 0
     };
     
     setProposals([newProposal, ...proposals]);
@@ -331,6 +343,37 @@ $50M over 3 years for:
         variant: "destructive"
       });
     }
+  };
+
+  const handleVote = (e: React.MouseEvent, proposalId: string, voteType: 'up' | 'down') => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const currentVote = userVotes[proposalId];
+    const newVote = currentVote === voteType ? null : voteType;
+    
+    setUserVotes(prev => ({
+      ...prev,
+      [proposalId]: newVote
+    }));
+    
+    // Update proposal vote counts
+    setProposals(prev => prev.map(proposal => {
+      if (proposal.id !== proposalId) return proposal;
+      
+      let upvotes = proposal.upvotes;
+      let downvotes = proposal.downvotes;
+      
+      // Remove previous vote if exists
+      if (currentVote === 'up') upvotes--;
+      if (currentVote === 'down') downvotes--;
+      
+      // Add new vote if not null
+      if (newVote === 'up') upvotes++;
+      if (newVote === 'down') downvotes++;
+      
+      return { ...proposal, upvotes, downvotes };
+    }));
   };
 
   if (isEditing && selectedProposal) {
@@ -576,7 +619,39 @@ $50M over 3 years for:
               </div>
               
               <div className="flex items-center justify-between pt-4 border-t">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-4">
+                  {/* Voting buttons */}
+                  <button
+                    onClick={(e) => handleVote(e, proposal.id, 'up')}
+                    className={cn(
+                      "flex items-center gap-1 px-2 py-1 rounded transition-colors",
+                      userVotes[proposal.id] === 'up'
+                        ? "text-green-600 bg-green-50"
+                        : "text-muted-foreground hover:text-green-600 hover:bg-green-50/50"
+                    )}
+                  >
+                    <ArrowUp className="w-4 h-4" />
+                    <span className="text-sm font-medium">{proposal.upvotes}</span>
+                  </button>
+                  
+                  <button
+                    onClick={(e) => handleVote(e, proposal.id, 'down')}
+                    className={cn(
+                      "flex items-center gap-1 px-2 py-1 rounded transition-colors",
+                      userVotes[proposal.id] === 'down'
+                        ? "text-red-600 bg-red-50"
+                        : "text-muted-foreground hover:text-red-600 hover:bg-red-50/50"
+                    )}
+                  >
+                    <ArrowDown className="w-4 h-4" />
+                    <span className="text-sm font-medium">{proposal.downvotes}</span>
+                  </button>
+                  
+                  <div className="flex items-center gap-1 px-2 py-1 text-muted-foreground">
+                    <MessageSquare className="w-4 h-4" />
+                    <span className="text-sm font-medium">{proposal.comments}</span>
+                  </div>
+                  
                   <Badge variant="outline" className="text-xs">
                     v{proposal.version}
                   </Badge>
