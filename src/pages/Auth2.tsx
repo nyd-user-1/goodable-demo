@@ -61,8 +61,8 @@ export const Auth2: React.FC = () => {
       setIsAnimating(true);
       setTimeout(() => {
         setCurrentIndex((prev) => (prev + 1) % carouselData.length);
-        setIsAnimating(false);
-      }, 600); // Match animation duration
+        setTimeout(() => setIsAnimating(false), 500); // Allow fade in to complete
+      }, 300); // Fade out duration
     }
   };
 
@@ -108,18 +108,13 @@ export const Auth2: React.FC = () => {
         <div className="relative h-full">
           {carouselData.map((item, index) => {
             const isActive = index === currentIndex;
-            const isNext = index === (currentIndex + 1) % carouselData.length;
             
             return (
               <div
                 key={index}
                 className={cn(
-                  "absolute inset-0 transition-transform duration-[600ms] ease-in-out",
-                  isActive && !isAnimating && "translate-x-0",
-                  isActive && isAnimating && "translate-x-full",
-                  isNext && !isAnimating && "-translate-x-full",
-                  isNext && isAnimating && "translate-x-0",
-                  !isActive && !isNext && "-translate-x-full"
+                  "absolute inset-0 transition-opacity duration-500 ease-in-out",
+                  isActive ? "opacity-100" : "opacity-0"
                 )}
               >
                 <img 
