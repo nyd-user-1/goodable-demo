@@ -302,13 +302,44 @@ ${fiveWhysAnalysis}
 
   return (
     <section id="playground" className="container mx-auto space-y-12 px-4 py-24 md:px-6 2xl:max-w-[1400px]">
-      <div className="space-y-4 text-center">
+      <div className="space-y-6 text-center">
         <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
           Playground
         </h2>
-        <p className="text-muted-foreground mx-auto max-w-[700px] md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-          Learn. Explore. Make it real.
-        </p>
+        
+        {/* Sample problems - moved above chat */}
+        <div className="w-full max-w-4xl mx-auto">
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Sample problems</h3>
+            <div className="relative">
+              {/* Left fade mask */}
+              <div className="absolute left-0 top-0 w-8 h-full bg-gradient-to-r from-background to-transparent z-10 pointer-events-none"></div>
+              
+              {/* Right fade mask */}
+              <div className="absolute right-0 top-0 w-8 h-full bg-gradient-to-l from-background to-transparent z-10 pointer-events-none"></div>
+              
+              <div className="overflow-x-auto scrollbar-hide">
+                <div className="flex gap-2 pb-2" style={{ minWidth: 'max-content' }}>
+                  {problemStatements.length > 0 ? (
+                    problemStatements.map((statement, index) => (
+                      <Badge
+                        key={index}
+                        variant="outline"
+                        className="hover:bg-primary/10 cursor-pointer py-1.5 whitespace-nowrap transition-colors"
+                        onClick={() => handleSuggestedPrompt(statement)}
+                      >
+                        <MessageSquare className="mr-1 h-3.5 w-3.5" />
+                        {statement}
+                      </Badge>
+                    ))
+                  ) : (
+                    <div className="text-muted-foreground text-sm">Loading suggested prompts...</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="flex flex-col items-center gap-8">
@@ -440,40 +471,6 @@ ${fiveWhysAnalysis}
           </div>
         </div>
 
-        {/* Suggested Questions with horizontal scrolling - moved below chat */}
-        <div className="w-full max-w-4xl">
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Sample problems</h3>
-            <div className="relative">
-              {/* Left fade mask */}
-              <div className="absolute left-0 top-0 w-8 h-full bg-gradient-to-r from-background to-transparent z-10 pointer-events-none"></div>
-              
-              {/* Right fade mask */}
-              <div className="absolute right-0 top-0 w-8 h-full bg-gradient-to-l from-background to-transparent z-10 pointer-events-none"></div>
-              
-              <div className="overflow-x-auto scrollbar-hide">
-                <div className="flex gap-2 pb-2" style={{ minWidth: 'max-content' }}>
-                  {problemStatements.length > 0 ? (
-                    problemStatements.map((statement, index) => (
-                      <Badge
-                        key={index}
-                        variant="outline"
-                        className="hover:bg-primary/10 cursor-pointer py-1.5 whitespace-nowrap transition-colors"
-                        onClick={() => handleSuggestedPrompt(statement)}
-                      >
-                        <MessageSquare className="mr-1 h-3.5 w-3.5" />
-                        {statement}
-                      </Badge>
-                    ))
-                  ) : (
-                    <div className="text-muted-foreground text-sm">Loading suggested prompts...</div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-          
-        </div>
       </div>
       
       {/* Confetti component */}
