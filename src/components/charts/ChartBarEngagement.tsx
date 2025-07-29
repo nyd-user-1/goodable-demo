@@ -17,18 +17,18 @@ import {
 } from "@/components/ui/chart"
 
 const chartData = [
-  { category: "Healthcare", engagement: 2847, feedback: 1253 },
-  { category: "Education", engagement: 2156, feedback: 987 },
-  { category: "Environment", engagement: 1834, feedback: 742 },
+  { category: "Health", engagement: 2847, feedback: 1253 },
+  { category: "Wages", engagement: 2156, feedback: 987 },
+  { category: "Labor", engagement: 1834, feedback: 742 },
   { category: "Housing", engagement: 3241, feedback: 1567 },
-  { category: "Transportation", engagement: 1456, feedback: 623 },
+  { category: "Childcare", engagement: 1456, feedback: 623 },
   { category: "Budget", engagement: 2789, feedback: 1342 },
-  { category: "Healthcare", engagement: 1923, feedback: 834 },
+  { category: "Health", engagement: 1923, feedback: 834 },
 ]
 
 const chartConfig = {
   engagement: {
-    label: "Citizen Engagement",
+    label: "Engagement",
     color: "#3D63DD",
   },
   feedback: {
@@ -41,9 +41,9 @@ export function ChartBarEngagement() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Policy Engagement by Category</CardTitle>
+        <CardTitle>Policy Engagement</CardTitle>
         <CardDescription>
-          Citizen engagement and expert feedback across policy areas
+          Citizen engagement across policy areas
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-4">

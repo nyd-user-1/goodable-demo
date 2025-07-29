@@ -46,9 +46,9 @@ export function ChartLinePolicyImpact() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Policy Impact Trends</CardTitle>
+        <CardTitle>Policy Impact</CardTitle>
         <CardDescription>
-          Tracking policy effectiveness and citizen satisfaction over time
+          Tracking effectiveness and satisfaction
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-4">

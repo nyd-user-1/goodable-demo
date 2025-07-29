@@ -502,7 +502,7 @@ const Landing2 = () => {
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-              Public Policy Looks Different Now
+              Public Policy But Different
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground px-4">
               We think that's a good thing.
@@ -531,10 +531,10 @@ const Landing2 = () => {
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-              Everything You Need
+              Everything You Need To
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-              To do something.
+              Start something; do something.
             </p>
           </div>
               
@@ -567,10 +567,10 @@ const Landing2 = () => {
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-              A Way Forward
+              A Common Picture
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-              Policy, proposal, and idea analytics; empowering you to get it done.
+              For a common way forward.
             </p>
           </div>
           

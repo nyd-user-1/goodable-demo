@@ -59,8 +59,8 @@ export function ChartPieBillStatus() {
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Bill Status Distribution</CardTitle>
-        <CardDescription>Current legislative session overview</CardDescription>
+        <CardTitle>Bills by Committee</CardTitle>
+        <CardDescription>Current legislative session</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
