@@ -9,27 +9,27 @@ export const Auth2: React.FC = () => {
   // Carousel data with images and quotes (first two must be as specified)
   const carouselData = [
     {
-      image: '/IMG-012.avif',
+      image: 'https://kwyjohornlgujoqypyvu.supabase.co/storage/v1/object/public/goodable-assets/IMG-012.avif',
       quote: "It has meaning if you give it meaning."
     },
     {
-      image: '/IMG-015.avif', 
+      image: 'https://kwyjohornlgujoqypyvu.supabase.co/storage/v1/object/public/goodable-assets/IMG-015.avif', 
       quote: "Both, it's always both."
     },
     {
-      image: '/IMG-017.avif',
+      image: 'https://kwyjohornlgujoqypyvu.supabase.co/storage/v1/object/public/goodable-assets/IMG-017.avif',
       quote: "Retweets are easy. Real change is not."
     },
     {
-      image: '/IMG-019.avif',
+      image: 'https://kwyjohornlgujoqypyvu.supabase.co/storage/v1/object/public/goodable-assets/IMG-019.avif',
       quote: "Not left. Not right. Just forward."
     },
     {
-      image: '/IMG-020.avif',
+      image: 'https://kwyjohornlgujoqypyvu.supabase.co/storage/v1/object/public/goodable-assets/IMG-020.avif',
       quote: "Big voice? Big following? Big deal. Be big."
     },
     {
-      image: '/IMG-023.avif',
+      image: 'https://kwyjohornlgujoqypyvu.supabase.co/storage/v1/object/public/goodable-assets/IMG-023.avif',
       quote: "It's not about sides—it's about systems."
     }
   ];
