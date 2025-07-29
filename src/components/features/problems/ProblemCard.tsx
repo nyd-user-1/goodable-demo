@@ -69,7 +69,7 @@ export const ProblemCard = ({ problem, onClick }: ProblemCardProps) => {
               variant="ghost"
               size="sm"
               onClick={(e) => handleVote(e, 'up')}
-              className={getVoteColor('up')}
+              className={`${getVoteColor('up')} hover:bg-transparent p-1`}
             >
               <ArrowUp className="w-4 h-4 mr-1" />
               {votes.up}
@@ -78,7 +78,7 @@ export const ProblemCard = ({ problem, onClick }: ProblemCardProps) => {
               variant="ghost"
               size="sm"
               onClick={(e) => handleVote(e, 'down')}
-              className={getVoteColor('down')}
+              className={`${getVoteColor('down')} hover:bg-transparent p-1`}
             >
               <ArrowDown className="w-4 h-4 mr-1" />
               {votes.down}

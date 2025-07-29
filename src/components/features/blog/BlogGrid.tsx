@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, Eye, MessageSquare, ThumbsUp } from 'lucide-react';
+import { CalendarIcon, ArrowUp, ArrowDown, MessageSquare } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
 // Blog image assets from our asset library
@@ -46,12 +47,30 @@ interface BlogGridProps {
 }
 
 export const BlogGrid = ({ posts }: BlogGridProps) => {
+  const [userVotes, setUserVotes] = useState<Record<string, 'up' | 'down' | null>>({});
+
+  const handleVote = (e: React.MouseEvent, postId: string, voteType: 'up' | 'down') => {
+    e.preventDefault();
+    e.stopPropagation();
+    setUserVotes(prev => ({
+      ...prev,
+      [postId]: prev[postId] === voteType ? null : voteType
+    }));
+  };
+
+  const getVoteColor = (postId: string, voteType: 'up' | 'down') => {
+    if (userVotes[postId] === voteType) {
+      return voteType === 'up' ? 'text-green-600 hover:text-green-700' : 'text-red-600 hover:text-red-700';
+    }
+    return 'text-muted-foreground hover:text-foreground';
+  };
+
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       {posts.map((post, index) => (
-        <Card key={post.id} className="flex h-full flex-col gap-0 pt-0 group hover:shadow-md transition-shadow">
+        <Card key={post.id} className="flex h-full flex-col gap-0 pt-0 group hover:shadow-md transition-shadow relative">
           <CardHeader className="overflow-hidden p-0">
-            <div className="relative aspect-video">
+            <div className="relative aspect-[4/3]">
               <img
                 src={getPostImage(post.id, index)}
                 alt={post.title}
@@ -65,82 +84,84 @@ export const BlogGrid = ({ posts }: BlogGridProps) => {
             </div>
           </CardHeader>
           
-          <CardContent className="flex-grow pt-6 pb-0">
-            {post.category && (
-              <Badge variant="outline" className="mb-2">
-                {post.category}
-              </Badge>
-            )}
-            <h3 className="mb-2 text-xl font-semibold group-hover:text-primary transition-colors line-clamp-2">
-              {post.title}
-            </h3>
-            {post.summary && (
-              <p className="text-muted-foreground text-sm line-clamp-3">
-                {post.summary}
-              </p>
-            )}
-          </CardContent>
-          
-          <CardFooter className="flex flex-col gap-4 pt-6">
-            {/* Author and date */}
-            <div className="flex items-center justify-between w-full text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                {post.author_avatar && (
-                  <img
-                    src={post.author_avatar}
-                    alt={post.author_name}
-                    className="w-6 h-6 rounded-full"
-                  />
-                )}
-                <span>{post.author_name}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <CalendarIcon className="h-3 w-3" />
-                <span>{formatDate(post.published_at)}</span>
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="flex items-center justify-between w-full text-xs text-muted-foreground">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1">
-                  <Eye className="h-3 w-3" />
-                  <span>{post.view_count}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <ThumbsUp className="h-3 w-3" />
-                  <span>{post.up_votes}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <MessageSquare className="h-3 w-3" />
-                  <span>{post.comment_count}</span>
-                </div>
-              </div>
-              
-              <Button variant="ghost" size="sm" asChild>
-                <Link to={`/blog/${post.id}`}>Read more</Link>
-              </Button>
-            </div>
-
-            {/* Tags */}
+          <CardContent className="flex-grow pt-6 pb-0 flex flex-col">
+            {/* Tags moved to top, replacing category */}
             {post.tags && post.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 w-full">
+              <div className="flex flex-wrap gap-1 mb-3">
                 {post.tags.slice(0, 3).map((tag) => (
                   <Badge
                     key={tag}
-                    variant="secondary"
+                    variant="outline"
                     className="text-xs"
                   >
                     {tag}
                   </Badge>
                 ))}
-                {post.tags.length > 3 && (
-                  <span className="text-xs text-muted-foreground">
-                    +{post.tags.length - 3} more
-                  </span>
-                )}
               </div>
             )}
+            
+            <h3 className="mb-2 text-xl font-semibold group-hover:text-primary transition-colors line-clamp-2">
+              {post.title}
+            </h3>
+            
+            {/* Date moved after title */}
+            <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+              <CalendarIcon className="h-3 w-3" />
+              <span>{formatDate(post.published_at)}</span>
+            </div>
+            
+            {post.summary && (
+              <p className="text-muted-foreground text-sm line-clamp-3 flex-grow">
+                {post.summary}
+              </p>
+            )}
+          </CardContent>
+          
+          <CardFooter className="pt-6 pb-6">
+            {/* Author */}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+              {post.author_avatar && (
+                <img
+                  src={post.author_avatar}
+                  alt={post.author_name}
+                  className="w-6 h-6 rounded-full"
+                />
+              )}
+              <span>{post.author_name}</span>
+            </div>
+
+            {/* Voting and Comments */}
+            <div className="flex items-center justify-between pt-4 border-t w-full">
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => handleVote(e, post.id, 'up')}
+                  className={`${getVoteColor(post.id, 'up')} hover:bg-transparent p-1`}
+                >
+                  <ArrowUp className="w-4 h-4 mr-1" />
+                  {post.up_votes}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => handleVote(e, post.id, 'down')}
+                  className={`${getVoteColor(post.id, 'down')} hover:bg-transparent p-1`}
+                >
+                  <ArrowDown className="w-4 h-4 mr-1" />
+                  {post.down_votes}
+                </Button>
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <MessageSquare className="w-4 h-4" />
+                  {post.comment_count}
+                </div>
+              </div>
+            </div>
+            
+            {/* Read more button - positioned absolute bottom right */}
+            <Button variant="outline" size="sm" asChild className="absolute bottom-4 right-4">
+              <Link to={`/blog/${post.id}`}>Read more</Link>
+            </Button>
           </CardFooter>
         </Card>
       ))}
