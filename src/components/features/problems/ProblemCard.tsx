@@ -32,10 +32,10 @@ export const ProblemCard = ({ problem, onClick }: ProblemCardProps) => {
 
   const getVoteStyles = (voteType: 'up' | 'down') => {
     if (userVote === voteType) {
-      // Clicked state - stays colored even on hover
+      // Clicked state - stays colored with background even on hover
       return voteType === 'up' 
-        ? 'text-green-600 hover:text-green-600 hover:bg-green-50' 
-        : 'text-red-600 hover:text-red-600 hover:bg-red-50';
+        ? 'text-green-600 bg-green-50 hover:text-green-600 hover:bg-green-50' 
+        : 'text-red-600 bg-red-50 hover:text-red-600 hover:bg-red-50';
     }
     // Default state - muted color that shows muted colored hover
     return voteType === 'up'

@@ -626,7 +626,7 @@ $50M over 3 years for:
                     className={cn(
                       "flex items-center gap-1 px-2 py-1 rounded transition-colors",
                       userVotes[proposal.id] === 'up'
-                        ? "text-green-600 bg-green-50"
+                        ? "text-green-600 bg-green-50 hover:text-green-600 hover:bg-green-50"
                         : "text-muted-foreground hover:text-green-600 hover:bg-green-50/50"
                     )}
                   >
@@ -639,7 +639,7 @@ $50M over 3 years for:
                     className={cn(
                       "flex items-center gap-1 px-2 py-1 rounded transition-colors",
                       userVotes[proposal.id] === 'down'
-                        ? "text-red-600 bg-red-50"
+                        ? "text-red-600 bg-red-50 hover:text-red-600 hover:bg-red-50"
                         : "text-muted-foreground hover:text-red-600 hover:bg-red-50/50"
                     )}
                   >
