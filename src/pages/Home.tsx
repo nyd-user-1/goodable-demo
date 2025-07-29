@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Heart, BriefcaseIcon, FlowerIcon, HeartIcon, LightbulbIcon, MountainSnow, SettingsIcon } from "lucide-react";
+import { Heart, BriefcaseIcon, TreePine, HeartIcon, Lightbulb, ChevronDown } from "lucide-react";
 import { useVisitorCount } from '@/hooks/useVisitorCount';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProblemChatSheet } from '@/components/ProblemChatSheet';
@@ -9,6 +9,7 @@ import { ShineBorder } from '@/components/magicui/shine-border';
 import { Confetti, type ConfettiRef } from '@/components/magicui/confetti';
 import { WelcomeMessage } from '@/components/features/home/WelcomeMessage';
 import CompactMetricList from '@/components/CompactMetricList';
+import { supabase } from '@/integrations/supabase/client';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +26,8 @@ const Home = () => {
   const confettiRef = useRef<ConfettiRef>(null);
   const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [_sampleProblems, setSampleProblems] = useState<Array<{id: number, text: string}>>([]);
+  const [categorizedProblems, setCategorizedProblems] = useState<{[key: string]: Array<{id: number, text: string}>}>({});
   const { count, loading } = useVisitorCount();
   const { user } = useAuth();
   
@@ -34,79 +37,27 @@ const Home = () => {
   // Check if input has meaningful content (not just whitespace)
   const hasContent = userProblem.trim().length > 0;
   
-  // Categories with dropdown items tied to problem statements
+  // Categories with real problems from database
   const categories = [
     {
       id: 'business',
-      label: 'Business',
+      label: 'Business & Work',
       icon: BriefcaseIcon,
-      items: [
-        { label: 'Small Business Support', value: 'small-business' },
-        { label: 'Corporate Responsibility', value: 'corporate-responsibility' },
-        { label: 'Economic Development', value: 'economic-development' },
-        { label: 'Entrepreneurship Programs', value: 'entrepreneurship' },
-        { label: 'Workforce Development', value: 'workforce' }
-      ]
-    },
-    {
-      id: 'strategy',
-      label: 'Strategy',
-      icon: SettingsIcon,
-      items: [
-        { label: 'Policy Planning', value: 'policy-planning' },
-        { label: 'Strategic Initiatives', value: 'strategic-initiatives' },
-        { label: 'Long-term Vision', value: 'long-term-vision' },
-        { label: 'Implementation Roadmaps', value: 'implementation' },
-        { label: 'Performance Metrics', value: 'performance-metrics' }
-      ]
     },
     {
       id: 'health',
-      label: 'Health',
+      label: 'Health & Wellbeing',
       icon: HeartIcon,
-      items: [
-        { label: 'Public Health', value: 'public-health' },
-        { label: 'Healthcare Access', value: 'healthcare-access' },
-        { label: 'Mental Health Services', value: 'mental-health' },
-        { label: 'Preventive Care', value: 'preventive-care' },
-        { label: 'Health Equity', value: 'health-equity' }
-      ]
     },
     {
-      id: 'creative',
-      label: 'Creative',
-      icon: LightbulbIcon,
-      items: [
-        { label: 'Arts & Culture', value: 'arts-culture' },
-        { label: 'Innovation Labs', value: 'innovation-labs' },
-        { label: 'Creative Economy', value: 'creative-economy' },
-        { label: 'Design Thinking', value: 'design-thinking' },
-        { label: 'Community Art Programs', value: 'community-art' }
-      ]
+      id: 'community',
+      label: 'Community & Environment',
+      icon: TreePine,
     },
     {
-      id: 'environment',
-      label: 'Environment',
-      icon: FlowerIcon,
-      items: [
-        { label: 'Climate Action', value: 'climate-action' },
-        { label: 'Sustainability', value: 'sustainability' },
-        { label: 'Conservation', value: 'conservation' },
-        { label: 'Green Infrastructure', value: 'green-infrastructure' },
-        { label: 'Environmental Justice', value: 'environmental-justice' }
-      ]
-    },
-    {
-      id: 'adventure',
-      label: 'Adventure',
-      icon: MountainSnow,
-      items: [
-        { label: 'Outdoor Recreation', value: 'outdoor-recreation' },
-        { label: 'Tourism Development', value: 'tourism' },
-        { label: 'Parks & Trails', value: 'parks-trails' },
-        { label: 'Adventure Sports', value: 'adventure-sports' },
-        { label: 'Ecotourism', value: 'ecotourism' }
-      ]
+      id: 'innovation',
+      label: 'Innovation & Growth',
+      icon: Lightbulb,
     }
   ];
   
@@ -115,7 +66,81 @@ const Home = () => {
       setCurrentPlaceholder(prev => (prev + 1) % placeholderTexts.length);
     }, 3000);
     return () => clearInterval(interval);
+  }, [placeholderTexts.length]);
+
+  // Fetch sample problems from Supabase
+  useEffect(() => {
+    const fetchSampleProblems = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('Sample Problems')
+          .select('id, "Sample Problems"')
+          .order('id');
+        
+        if (error) {
+          console.error('Error fetching sample problems:', error);
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          const problems = data.map(item => ({
+            id: item.id,
+            text: item['Sample Problems']
+          }));
+          setSampleProblems(problems);
+          
+          // Categorize problems intelligently
+          const categorized = categorizeSampleProblems(problems);
+          setCategorizedProblems(categorized);
+        }
+      } catch (err) {
+        console.error('Failed to fetch sample problems:', err);
+      }
+    };
+
+    fetchSampleProblems();
   }, []);
+
+  // Intelligent categorization function
+  const categorizeSampleProblems = (problems: Array<{id: number, text: string}>) => {
+    const categorized = {
+      business: [] as Array<{id: number, text: string}>,
+      health: [] as Array<{id: number, text: string}>,
+      community: [] as Array<{id: number, text: string}>,
+      innovation: [] as Array<{id: number, text: string}>
+    };
+
+    problems.forEach(problem => {
+      const text = problem.text.toLowerCase();
+      
+      // Business & Work keywords
+      if (text.includes('business') || text.includes('work') || text.includes('job') || 
+          text.includes('economic') || text.includes('income') || text.includes('financial') ||
+          text.includes('professional') || text.includes('entrepreneur') || text.includes('workforce')) {
+        categorized.business.push(problem);
+      }
+      // Health & Wellbeing keywords
+      else if (text.includes('health') || text.includes('medical') || text.includes('care') ||
+               text.includes('housing') || text.includes('education') || text.includes('food') ||
+               text.includes('mental') || text.includes('child') || text.includes('family') ||
+               text.includes('parent') || text.includes('student') || text.includes('elder')) {
+        categorized.health.push(problem);
+      }
+      // Innovation & Growth keywords
+      else if (text.includes('tech') || text.includes('digital') || text.includes('data') ||
+               text.includes('app') || text.includes('innovation') || text.includes('creative') ||
+               text.includes('artificial') || text.includes('privacy') || text.includes('social media') ||
+               text.includes('algorithm') || text.includes('platform')) {
+        categorized.innovation.push(problem);
+      }
+      // Community & Environment (default for everything else)
+      else {
+        categorized.community.push(problem);
+      }
+    });
+
+    return categorized;
+  };
 
   // Listen for command palette event
   useEffect(() => {
@@ -254,49 +279,62 @@ const Home = () => {
             </div>
 
             {/* Dropdown Buttons */}
-            <div className="mt-10 flex flex-wrap justify-center gap-2 sm:mt-20 mb-16">
-              {categories.map((category) => (
-                <div 
-                  key={category.id}
-                  className="relative"
-                  onMouseEnter={() => setOpenDropdown(category.id)}
-                  onMouseLeave={() => setOpenDropdown(null)}
-                >
-                  <DropdownMenu 
-                    open={openDropdown === category.id}
-                    onOpenChange={(open) => setOpenDropdown(open ? category.id : null)}
-                  >
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="hover:bg-muted">
-                        <category.icon className="mr-2 h-auto w-3 flex-shrink-0" />
-                        {category.label}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent 
-                      align="start" 
-                      side="bottom"
-                      className="w-56"
-                      onMouseEnter={() => setOpenDropdown(category.id)}
-                      onMouseLeave={() => setOpenDropdown(null)}
+            <div className="mt-10 flex flex-wrap justify-center gap-3 sm:mt-20 mb-16">
+              {categories.map((category) => {
+                const categoryProblems = categorizedProblems[category.id] || [];
+                return (
+                  <div key={category.id} className="relative">
+                    <DropdownMenu 
+                      open={openDropdown === category.id}
+                      onOpenChange={(open) => setOpenDropdown(open ? category.id : null)}
                     >
-                      <DropdownMenuLabel>{category.label} Topics</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      {category.items.map((item) => (
-                        <DropdownMenuItem 
-                          key={item.value}
-                          onClick={() => {
-                            setUserProblem(`It's a problem that ${item.label.toLowerCase()}`);
-                            setOpenDropdown(null);
-                          }}
-                          className="cursor-pointer"
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          className="flex items-center gap-2 hover:bg-muted transition-colors"
                         >
-                          {item.label}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              ))}
+                          <category.icon className="h-4 w-4 flex-shrink-0" />
+                          {category.label}
+                          <ChevronDown className="h-3 w-3 opacity-50" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent 
+                        align="center" 
+                        side="bottom"
+                        className="w-80 max-h-96 overflow-y-auto"
+                        sideOffset={5}
+                      >
+                        <DropdownMenuLabel className="text-sm font-semibold px-3 py-2">
+                          {category.label} Problems
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {categoryProblems.length > 0 ? (
+                          categoryProblems.map((problem) => (
+                            <DropdownMenuItem 
+                              key={problem.id}
+                              onClick={() => {
+                                setUserProblem(problem.text);
+                                setOpenDropdown(null);
+                              }}
+                              className="cursor-pointer px-3 py-2 text-sm whitespace-normal text-left"
+                            >
+                              <div className="w-full">
+                                <div className="font-medium text-sm leading-tight">
+                                  {problem.text.length > 60 ? problem.text.substring(0, 60) + '...' : problem.text}
+                                </div>
+                              </div>
+                            </DropdownMenuItem>
+                          ))
+                        ) : (
+                          <DropdownMenuItem disabled className="text-muted-foreground text-sm">
+                            Loading problems...
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                );
+              })}
             </div>
 
             <div className="flex flex-col items-center justify-center gap-4 mb-16">
