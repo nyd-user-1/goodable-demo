@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, loading } = useAuth();
+  const { user, loading, isAllowedUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -24,6 +24,20 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       navigate('/home');
     }
   }, [user, loading, location.pathname, navigate]);
+
+  // Redirect unauthorized users to waitlist section on homepage
+  useEffect(() => {
+    if (!loading && user && !isAllowedUser) {
+      // Scroll to waitlist section and sign out the user
+      navigate('/', { replace: true });
+      setTimeout(() => {
+        const waitlistSection = document.getElementById('waitlist');
+        if (waitlistSection) {
+          waitlistSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  }, [user, loading, isAllowedUser, navigate]);
 
   if (loading) {
     return (
@@ -43,6 +57,11 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   if (!user) {
+    return null;
+  }
+
+  // Don't render protected content if user is not allowed
+  if (user && !isAllowedUser) {
     return null;
   }
 

@@ -1,8 +1,6 @@
 import * as React from "react";
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import {
   Card,
   CardDescription,
@@ -19,64 +17,49 @@ import {
 } from "@/components/ui/carousel";
 
 export default function HorizontalBlogCarousel() {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchBlogPosts = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('blog_proposals')
-          .select(`
-            id,
-            title,
-            summary,
-            category,
-            published_at,
-            author_id,
-            profiles!blog_proposals_author_id_fkey(username, display_name)
-          `)
-          .eq('status', 'published')
-          .order('published_at', { ascending: false })
-          .limit(6);
-
-        if (error) {
-          console.error('Error fetching blog posts:', error);
-          return;
-        }
-
-        const formattedPosts = data?.map((post, index) => ({
-          id: post.id,
-          title: post.title,
-          excerpt: post.summary || 'No summary available',
-          date: new Date(post.published_at).toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric' 
-          }),
-          category: post.category || 'Policy',
-          imageUrl: [
-            "/goodable-botanical.avif",
-            "/goodable-heart.avif", 
-            "/goodable-night.avif",
-            "/goodable-path.avif",
-            "/goodable-dandelion.avif",
-            "/goodable-dream-state.avif"
-          ][index % 6],
-          slug: post.id,
-          author: post.profiles?.display_name || post.profiles?.username || 'Anonymous'
-        })) || [];
-
-        setPosts(formattedPosts);
-      } catch (err) {
-        console.error('Failed to fetch blog posts:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBlogPosts();
-  }, []);
+  // Policy proposal blog posts
+  const posts = [
+    {
+      id: "1",
+      title: "Creating Accessible Web Applications with React and ARIA",
+      excerpt:
+        "Learn how to build web applications that are accessible to everyone using React best practices and ARIA.",
+      date: "Apr 15, 2023",
+      category: "Development",
+      imageUrl: "/goodable-botanical.avif",
+      slug: "creating-accessible-web-applications",
+    },
+    {
+      id: "2",
+      title: "The Future of Design Systems in 2023",
+      excerpt:
+        "Explore the trends and innovations shaping design systems and component libraries in modern design.",
+      date: "Mar 28, 2023",
+      category: "Design",
+      imageUrl: "/goodable-heart.avif",
+      slug: "future-of-design-systems",
+    },
+    {
+      id: "3",
+      title: "Optimizing Performance in Next.js Applications",
+      excerpt:
+        "Practical strategies to improve loading times and overall performance in your web applications.",
+      date: "Mar 12, 2023",
+      category: "Performance",
+      imageUrl: "/goodable-night.avif",
+      slug: "optimizing-nextjs-performance",
+    },
+    {
+      id: "4",
+      title: "Crafting Effective User Onboarding Experiences",
+      excerpt:
+        "How to design user onboarding experiences that reduce friction and increase conversions.",
+      date: "Feb 24, 2023",
+      category: "UX Design",
+      imageUrl: "/goodable-path.avif",
+      slug: "effective-user-onboarding",
+    },
+  ];
 
   const title = "Good Trouble";
   const description = "Browse Goodable's original policy proposals";
@@ -102,29 +85,7 @@ export default function HorizontalBlogCarousel() {
             className="w-full"
           >
             <CarouselContent className="-ml-4">
-              {loading ? (
-                // Loading skeleton
-                Array.from({ length: 4 }).map((_, index) => (
-                  <CarouselItem
-                    key={`skeleton-${index}`}
-                    className="pl-4 sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
-                  >
-                    <Card className="flex h-full flex-col overflow-hidden pt-0">
-                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted animate-pulse">
-                      </div>
-                      <CardHeader className="grow grid-rows-none">
-                        <div className="h-4 bg-muted animate-pulse rounded mb-2"></div>
-                        <div className="h-6 bg-muted animate-pulse rounded mb-2"></div>
-                        <div className="h-4 bg-muted animate-pulse rounded"></div>
-                      </CardHeader>
-                      <CardFooter>
-                        <div className="h-10 bg-muted animate-pulse rounded w-full"></div>
-                      </CardFooter>
-                    </Card>
-                  </CarouselItem>
-                ))
-              ) : posts.length > 0 ? (
-                posts.map((post) => (
+              {posts.map((post) => (
                 <CarouselItem
                   key={post.id}
                   className="pl-4 sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
@@ -153,7 +114,7 @@ export default function HorizontalBlogCarousel() {
 
                     <CardFooter>
                       <Button asChild>
-                        <Link to={`/blog/${post.id}`}>
+                        <Link to={`/blog/${post.slug}`}>
                           Read more
                           <span className="sr-only">
                             Read more about {post.title}
@@ -163,17 +124,7 @@ export default function HorizontalBlogCarousel() {
                     </CardFooter>
                   </Card>
                 </CarouselItem>
-              ))
-              ) : (
-                // No posts message
-                <CarouselItem className="pl-4 w-full">
-                  <Card className="flex h-full flex-col items-center justify-center p-8">
-                    <p className="text-muted-foreground text-center">
-                      No policy proposals available at the moment.
-                    </p>
-                  </Card>
-                </CarouselItem>
-              )}
+              ))}
             </CarouselContent>
             <div className="mt-4 flex justify-end gap-2">
               <CarouselPrevious className="static -translate-x-0 translate-y-0" />
