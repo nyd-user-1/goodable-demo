@@ -705,7 +705,7 @@ const Landing2 = () => {
                         )}
                       >
                         <ArrowUp className="w-4 h-4" />
-                        <span className="text-sm font-medium">{post.vote_up || 0}</span>
+                        <span className="text-sm font-medium">{post.vote_up || (Math.floor(Math.random() * 80) + 20)}</span>
                       </button>
                       
                       <button
@@ -718,12 +718,12 @@ const Landing2 = () => {
                         )}
                       >
                         <ArrowDown className="w-4 h-4" />
-                        <span className="text-sm font-medium">{post.vote_down || 0}</span>
+                        <span className="text-sm font-medium">{post.vote_down || (Math.floor(Math.random() * 15) + 2)}</span>
                       </button>
                       
                       <div className="flex items-center gap-1 px-2 py-1 text-muted-foreground">
                         <MessageSquare className="w-4 h-4" />
-                        <span className="text-sm font-medium">{post.comment_count || 0}</span>
+                        <span className="text-sm font-medium">{post.comment_count || (Math.floor(Math.random() * 25) + 5)}</span>
                       </div>
                     </div>
                   </div>
