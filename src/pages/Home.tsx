@@ -289,6 +289,7 @@ const Home = () => {
                         side="bottom"
                         className="w-80 max-h-96 overflow-y-auto"
                         sideOffset={5}
+                        alignOffset={0}
                       >
                         <DropdownMenuLabel className="text-sm font-semibold px-3 py-2">
                           {category.label} Problems
