@@ -55,6 +55,7 @@ const initialMessages: Message[] = [
 export default function FeatureChat() {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [inputValue, setInputValue] = useState("");
+  const [isSampleProblemActive, setIsSampleProblemActive] = useState(false);
   const [isAssistantTyping, setIsAssistantTyping] = useState(false);
   const [problemStatements, setProblemStatements] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -298,6 +299,7 @@ ${fiveWhysAnalysis}
     setConversationStage('initial');
     setUserProblem('');
     setInputValue(`It's a problem that ${prompt.toLowerCase()}`);
+    setIsSampleProblemActive(true);
   };
 
   return (
@@ -464,9 +466,15 @@ ${fiveWhysAnalysis}
               </Button>
               <Input
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Tell me what's bothering you..."
-                className="flex-grow"
+                onChange={(e) => {
+                  setInputValue(e.target.value);
+                  // Reset sample problem state if user manually edits
+                  if (isSampleProblemActive && e.target.value !== inputValue) {
+                    setIsSampleProblemActive(false);
+                  }
+                }}
+                placeholder="Choose a sample problem."
+                className={`flex-grow ${isSampleProblemActive ? 'border-blue-500 bg-blue-50' : ''}`}
               />
               <Button
                 type="submit"
