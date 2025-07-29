@@ -50,14 +50,9 @@ const Home = () => {
       icon: HeartIcon,
     },
     {
-      id: 'community',
-      label: 'Community & Environment',
+      id: 'family',
+      label: 'Family & Community',
       icon: TreePine,
-    },
-    {
-      id: 'innovation',
-      label: 'Innovation & Growth',
-      icon: Lightbulb,
     }
   ];
   
@@ -106,8 +101,7 @@ const Home = () => {
     const categorized = {
       business: [] as Array<{id: number, text: string}>,
       health: [] as Array<{id: number, text: string}>,
-      community: [] as Array<{id: number, text: string}>,
-      innovation: [] as Array<{id: number, text: string}>
+      family: [] as Array<{id: number, text: string}>
     };
 
     problems.forEach(problem => {
@@ -122,20 +116,12 @@ const Home = () => {
       // Health & Wellbeing keywords
       else if (text.includes('health') || text.includes('medical') || text.includes('care') ||
                text.includes('housing') || text.includes('education') || text.includes('food') ||
-               text.includes('mental') || text.includes('child') || text.includes('family') ||
-               text.includes('parent') || text.includes('student') || text.includes('elder')) {
+               text.includes('mental')) {
         categorized.health.push(problem);
       }
-      // Innovation & Growth keywords
-      else if (text.includes('tech') || text.includes('digital') || text.includes('data') ||
-               text.includes('app') || text.includes('innovation') || text.includes('creative') ||
-               text.includes('artificial') || text.includes('privacy') || text.includes('social media') ||
-               text.includes('algorithm') || text.includes('platform')) {
-        categorized.innovation.push(problem);
-      }
-      // Community & Environment (default for everything else)
+      // Family & Community (everything else including innovation, tech, community, environment)
       else {
-        categorized.community.push(problem);
+        categorized.family.push(problem);
       }
     });
 
@@ -291,7 +277,7 @@ const Home = () => {
                       <DropdownMenuTrigger asChild>
                         <Button 
                           variant="outline" 
-                          className="flex items-center gap-2 hover:bg-muted transition-colors"
+                          className="flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
                         >
                           <category.icon className="h-4 w-4 flex-shrink-0" />
                           {category.label}
@@ -299,7 +285,7 @@ const Home = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent 
-                        align="center" 
+                        align="start" 
                         side="bottom"
                         className="w-80 max-h-96 overflow-y-auto"
                         sideOffset={5}

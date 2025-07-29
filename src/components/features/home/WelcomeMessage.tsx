@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentUserProfile } from '@/hooks/useUserProfile';
 import { Skeleton } from '@/components/ui/skeleton';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
@@ -351,8 +351,8 @@ export const WelcomeMessage = () => {
       </div>
       
       <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
-        <HoverCard>
-          <HoverCardTrigger asChild>
+        <Popover>
+          <PopoverTrigger asChild>
             <span 
               className="cursor-pointer underline decoration-dotted transition-colors relative text-[#5A7FDB] hover:text-[#3D63DD]"
             >
@@ -361,8 +361,8 @@ export const WelcomeMessage = () => {
                 <span className="animate-pulse">|</span>
               )}
             </span>
-          </HoverCardTrigger>
-          <HoverCardContent className="w-80 max-w-[90vw] p-0" side="bottom" align="start">
+          </PopoverTrigger>
+          <PopoverContent className="w-80 max-w-[90vw] p-0" side="bottom" align="start">
             <div className={`p-4 ${progressPercentage === 100 ? 'border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-800' : ''}`}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -435,8 +435,8 @@ export const WelcomeMessage = () => {
                 ))}
               </div>
             </div>
-          </HoverCardContent>
-        </HoverCard>
+          </PopoverContent>
+        </Popover>
       </div>
     </div>
   );
