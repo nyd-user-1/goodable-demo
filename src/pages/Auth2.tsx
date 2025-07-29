@@ -61,8 +61,8 @@ export const Auth2: React.FC = () => {
       setIsAnimating(true);
       setTimeout(() => {
         setCurrentIndex((prev) => (prev + 1) % carouselData.length);
-        setTimeout(() => setIsAnimating(false), 500); // Allow fade in to complete
-      }, 300); // Fade out duration
+        setTimeout(() => setIsAnimating(false), 1000); // Allow fade in to complete
+      }, 500); // Fade out duration
     }
   };
 
@@ -113,7 +113,7 @@ export const Auth2: React.FC = () => {
               <div
                 key={index}
                 className={cn(
-                  "absolute inset-0 transition-opacity duration-500 ease-in-out",
+                  "absolute inset-0 transition-opacity duration-1000 ease-in-out",
                   isActive ? "opacity-100" : "opacity-0"
                 )}
               >
