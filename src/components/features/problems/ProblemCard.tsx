@@ -30,11 +30,17 @@ export const ProblemCard = ({ problem, onClick }: ProblemCardProps) => {
     setUserVote(userVote === voteType ? null : voteType);
   };
 
-  const getVoteColor = (voteType: 'up' | 'down') => {
+  const getVoteStyles = (voteType: 'up' | 'down') => {
     if (userVote === voteType) {
-      return voteType === 'up' ? 'text-green-600' : 'text-red-600';
+      // Clicked state - stays colored even on hover
+      return voteType === 'up' 
+        ? 'text-green-600 hover:text-green-600 hover:bg-green-50' 
+        : 'text-red-600 hover:text-red-600 hover:bg-red-50';
     }
-    return 'text-muted-foreground';
+    // Default state - muted color that shows muted colored hover
+    return voteType === 'up'
+      ? 'text-muted-foreground hover:text-green-600 hover:bg-green-50/50'
+      : 'text-muted-foreground hover:text-red-600 hover:bg-red-50/50';
   };
 
   return (
@@ -65,24 +71,20 @@ export const ProblemCard = ({ problem, onClick }: ProblemCardProps) => {
         {/* Voting and Comments - always at bottom */}
         <div className="flex items-center justify-between pt-6 border-t">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
+            <button
               onClick={(e) => handleVote(e, 'up')}
-              className={`${getVoteColor('up')} hover:bg-transparent p-1`}
+              className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${getVoteStyles('up')}`}
             >
-              <ArrowUp className="w-4 h-4 mr-1" />
-              {votes.up}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
+              <ArrowUp className="w-4 h-4" />
+              <span className="text-sm font-medium">{votes.up}</span>
+            </button>
+            <button
               onClick={(e) => handleVote(e, 'down')}
-              className={`${getVoteColor('down')} hover:bg-transparent p-1`}
+              className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${getVoteStyles('down')}`}
             >
-              <ArrowDown className="w-4 h-4 mr-1" />
-              {votes.down}
-            </Button>
+              <ArrowDown className="w-4 h-4" />
+              <span className="text-sm font-medium">{votes.down}</span>
+            </button>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <MessageSquare className="w-4 h-4" />
               {commentCount}
