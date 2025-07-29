@@ -21,7 +21,8 @@ import {
   Play,
   ArrowUp,
   ArrowDown,
-  MessageSquare
+  MessageSquare,
+  Command
 } from "lucide-react";
 import { useNavigate, Link } from 'react-router-dom';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -437,6 +438,23 @@ const Landing2 = () => {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden md:inline-flex items-center gap-2 bg-card/80 hover:bg-card"
+              onClick={() => {
+                const event = new KeyboardEvent('keydown', {
+                  key: 'k',
+                  metaKey: true,
+                  ctrlKey: true,
+                  bubbles: true
+                });
+                document.dispatchEvent(event);
+              }}
+            >
+              <Command className="h-3 w-3" />
+              <span>Command K</span>
+            </Button>
             <Button 
               variant="outline" 
               onClick={() => navigate('/auth')}
@@ -502,7 +520,7 @@ const Landing2 = () => {
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-              Public Policy But Different
+              Public Policy, But Different
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground px-4">
               We think that's a good thing.
@@ -598,7 +616,7 @@ const Landing2 = () => {
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-              Featured Policy Proposals
+              Policy Proposals
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
               See each other. Support each other. Agree on an approach forward and vote for it.

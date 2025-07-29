@@ -15,7 +15,7 @@ export function ProblemsBentoGrid() {
       <div className="mx-auto max-w-7xl">
         <div className="text-center mb-8 sm:mb-12">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-            Featured Problem Statements
+            Problem Statements
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
             Vote on and tackle society's most pressing challenges through collaborative problem-solving.

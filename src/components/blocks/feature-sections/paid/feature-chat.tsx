@@ -465,26 +465,6 @@ ${fiveWhysAnalysis}
             </div>
           </div>
           
-          {/* Command K button - moved below prompts */}
-          <div className="text-center mt-6">
-            <Button
-              variant="outline"
-              size="sm"
-              className="inline-flex items-center gap-2"
-              onClick={() => {
-                const event = new KeyboardEvent('keydown', {
-                  key: 'k',
-                  metaKey: true,
-                  ctrlKey: true,
-                  bubbles: true
-                });
-                document.dispatchEvent(event);
-              }}
-            >
-              <Command className="h-3 w-3" />
-              <span>Command K</span>
-            </Button>
-          </div>
         </div>
       </div>
       
