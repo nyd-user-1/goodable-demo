@@ -56,21 +56,18 @@ export default function FAQ() {
   return (
     <>
       <div className="max-w-[85rem] container mx-auto px-4 md:px-6 2xl:max-w-[1400px] py-24 lg:py-32">
-        {/* Title - aligned left like blog section */}
-        <div className="flex flex-col gap-4 mb-10 lg:mb-14">
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold md:text-4xl md:leading-tight">
-              Questions? Answers.
-            </h2>
-            <p className="text-muted-foreground max-w-[700px]">
-              Answers to the most frequently asked questions about Goodable.
-            </p>
-          </div>
+        {/* Title - center aligned like other sections */}
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+            Questions? Answers.
+          </h2>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
+            Answers to the most frequently asked questions about Goodable.
+          </p>
         </div>
-        {/* End Title */}
 
-        {/* Two-column layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl">
+        {/* Two-column layout - center aligned and equal width */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {/* First Column */}
           <div>
             <Accordion type="single" collapsible className="w-full">

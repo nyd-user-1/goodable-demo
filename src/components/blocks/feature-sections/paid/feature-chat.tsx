@@ -304,10 +304,10 @@ ${fiveWhysAnalysis}
     <section className="container mx-auto space-y-12 px-4 py-24 md:px-6 2xl:max-w-[1400px]">
       <div className="space-y-4 text-center">
         <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-          Play Don't Work
+          Playground
         </h2>
         <p className="text-muted-foreground mx-auto max-w-[700px] md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-          Space to make a mess, to learn, to explore and the support to make change possible.
+          Learn. Explore. Make it real.
         </p>
       </div>
 
@@ -443,7 +443,7 @@ ${fiveWhysAnalysis}
         {/* Suggested Questions with horizontal scrolling - moved below chat */}
         <div className="w-full max-w-4xl">
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Sample problem prompts</h3>
+            <h3 className="text-lg font-medium">Sample problems</h3>
             <div className="overflow-x-auto scrollbar-hide">
               <div className="flex gap-2 pb-2" style={{ minWidth: 'max-content' }}>
                 {problemStatements.length > 0 ? (

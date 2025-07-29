@@ -521,7 +521,7 @@ const Landing2 = () => {
               Public Policy, But Different
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground px-4">
-              We think that's a good thing.
+              We think that's good.
             </p>
           </div>
               
@@ -550,7 +550,7 @@ const Landing2 = () => {
               Everything You Need To
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-              Start something; do something.
+              Do something.
             </p>
           </div>
               
@@ -583,10 +583,10 @@ const Landing2 = () => {
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-              A Common Picture
+              A Common View
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-              For a common way forward.
+              For the road ahead.
             </p>
           </div>
           
@@ -617,7 +617,7 @@ const Landing2 = () => {
               Policy Proposals
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-              See each other. Support each other. Agree on an approach forward and vote for it.
+              You decide what works.
             </p>
           </div>
           

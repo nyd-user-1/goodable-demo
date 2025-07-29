@@ -61,7 +61,7 @@ export default function HorizontalBlogCarousel() {
     },
   ];
 
-  const title = "Good Trouble";
+  const title = "Good Trouble?";
   const description = "Browse Goodable's original policy proposals";
 
   return (
