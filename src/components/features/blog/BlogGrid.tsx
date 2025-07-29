@@ -20,9 +20,28 @@ const blogImages = [
   '/goodable%204.avif'
 ];
 
-// Function to get a consistent image for each post
-const getPostImage = (postId: string, index: number) => {
-  return blogImages[index % blogImages.length];
+// Function to get image for each post - prioritize uploaded images, then use consistent placeholder
+const getPostImage = (post: BlogPost, index: number) => {
+  // First, check if post has uploaded featured image
+  if (post.assets && post.assets.length > 0) {
+    const featuredImage = post.assets.find(asset => asset.role === 'featured_image');
+    if (featuredImage) {
+      return featuredImage.url;
+    }
+    // If no featured image, use first image asset
+    const firstImage = post.assets.find(asset => asset.type === 'image');
+    if (firstImage) {
+      return firstImage.url;
+    }
+  }
+  
+  // Fallback to consistent placeholder based on post ID (not index to avoid shifting)
+  const postIdHash = post.id.split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  const imageIndex = Math.abs(postIdHash) % blogImages.length;
+  return blogImages[imageIndex];
 };
 
 interface BlogPost {
@@ -40,6 +59,14 @@ interface BlogPost {
   down_votes: number;
   comment_count: number;
   is_featured: boolean;
+  assets?: Array<{
+    id: string;
+    type: string;
+    url: string;
+    name: string;
+    alt_text?: string;
+    role?: string;
+  }>;
 }
 
 interface BlogGridProps {
@@ -72,7 +99,7 @@ export const BlogGrid = ({ posts }: BlogGridProps) => {
           <CardHeader className="overflow-hidden p-0">
             <div className="relative aspect-[4/3]">
               <img
-                src={getPostImage(post.id, index)}
+                src={getPostImage(post, index)}
                 alt={post.title}
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />

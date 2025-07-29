@@ -70,11 +70,45 @@ export default function BlogPage() {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase
+      // Try the stats view first, if it fails, use the main table with assets
+      let { data, error } = await supabase
         .from('blog_proposal_stats')
         .select('*')
         .eq('status', 'published')
         .order('published_at', { ascending: false });
+
+      // If the view doesn't exist or doesn't have assets, fall back to main table
+      if (error || (data && data.length > 0 && !data[0].hasOwnProperty('assets'))) {
+        console.log('Using blog_proposals table for assets support');
+        const result = await supabase
+          .from('blog_proposals')
+          .select(`
+            *,
+            profiles!blog_proposals_author_id_fkey (
+              display_name,
+              username,
+              avatar_url
+            )
+          `)
+          .eq('status', 'published')
+          .order('published_at', { ascending: false });
+        
+        data = result.data;
+        error = result.error;
+        
+        // Transform the data to match expected format
+        if (data) {
+          data = data.map((post: any) => ({
+            ...post,
+            author_name: post.profiles?.display_name || post.profiles?.username || 'Goodable',
+            author_avatar: post.profiles?.avatar_url,
+            up_votes: 0,
+            down_votes: 0,
+            comment_count: 0,
+            total_score: 0
+          }));
+        }
+      }
 
       if (error) throw error;
 
