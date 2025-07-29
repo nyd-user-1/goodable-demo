@@ -35,10 +35,10 @@ export const ProblemDetail = ({ problem, onBack }: ProblemDetailProps) => {
           <Button 
             variant="outline" 
             onClick={onBack}
-            className="btn-secondary border border-gray-300 hover:border-gray-400 active:border-gray-500 bg-white hover:bg-gray-50 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            className=""
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Problems
+            Back to Home
           </Button>
 
           {/* Problem Summary Section - Full Width */}
