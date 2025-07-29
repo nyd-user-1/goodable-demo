@@ -69,7 +69,7 @@ export const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden" hideCloseButton>
         <DialogHeader className="sr-only">
           <DialogTitle>Image Preview - {image.name}</DialogTitle>
         </DialogHeader>

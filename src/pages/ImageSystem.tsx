@@ -188,6 +188,31 @@ const ImageSystem = () => {
     fetchAssets(); // Refresh the assets list
   };
 
+  const handleDeleteAsset = async (assetId: string) => {
+    try {
+      const { error } = await supabase
+        .from('assets')
+        .delete()
+        .eq('id', assetId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Asset deleted",
+        description: "The asset has been successfully deleted.",
+      });
+
+      fetchAssets(); // Refresh the assets list
+    } catch (error) {
+      console.error('Error deleting asset:', error);
+      toast({
+        title: "Error deleting asset",
+        description: "Failed to delete the asset. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const toggleAnimation = (animationType: keyof typeof animationStates) => {
     setAnimationStates(prev => ({
       ...prev,
@@ -227,15 +252,15 @@ const ImageSystem = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="display" className="space-y-6">
+        <Tabs defaultValue="assets" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="display" className="flex items-center gap-2">
-              <Image className="w-4 h-4" />
-              Display
-            </TabsTrigger>
             <TabsTrigger value="assets" className="flex items-center gap-2">
               <Heart className="w-4 h-4" />
               Assets
+            </TabsTrigger>
+            <TabsTrigger value="display" className="flex items-center gap-2">
+              <Image className="w-4 h-4" />
+              Display
             </TabsTrigger>
             <TabsTrigger value="animation" className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
@@ -403,13 +428,15 @@ const ImageSystem = () => {
                 {!loading && (
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {sortedAndFilteredAssets.map((asset) => (
-                      <ImageCard
-                        key={asset.id}
-                        asset={asset}
-                        onClick={() => handleImageClick(asset)}
-                        onCopyUrl={copyToClipboard}
-                        copiedItem={copiedItem}
-                      />
+                      <div key={asset.id} className="flex">
+                        <ImageCard
+                          asset={asset}
+                          onClick={() => handleImageClick(asset)}
+                          onCopyUrl={copyToClipboard}
+                          onDelete={handleDeleteAsset}
+                          copiedItem={copiedItem}
+                        />
+                      </div>
                     ))}
                   </div>
                 )}
