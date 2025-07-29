@@ -1,8 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { ImageUploadArea } from '@/components/features/image-system/ImageUploadArea';
+import { ImagePreviewDialog } from '@/components/features/image-system/ImagePreviewDialog';
+import { ImageCard } from '@/components/features/image-system/ImageCard';
+import { ImageFilters, type SortOption } from '@/components/features/image-system/ImageFilters';
 import { 
   Image,
   Heart,
@@ -14,7 +21,9 @@ import {
   Pause,
   RotateCcw,
   Filter,
-  X
+  X,
+  Upload,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 // Site-wide Placeholder Image Component (moved from StyleGuide)
@@ -53,41 +62,35 @@ const PlaceholderImage: React.FC<{
   );
 };
 
-// All images from public directory with tags
-interface Asset {
-  filename: string;
+interface ImageAsset {
+  id: string;
+  unique_id: string;
+  name: string;
+  original_name: string;
+  url: string;
+  type: string;
+  mime_type?: string;
+  size_bytes?: number;
+  width?: number;
+  height?: number;
   tags: string[];
+  uploaded_by?: string;
+  uploaded_at: string;
+  updated_at: string;
+  metadata?: any;
 }
 
-const publicAssets: Asset[] = [
-  { filename: 'OAI LOGO.png', tags: ['logo'] },
-  { filename: 'PPLX LOGO.png', tags: ['logo'] },
-  { filename: 'alt-ai-small-button.png', tags: ['logo'] },
-  { filename: 'claude-ai-icon-65aa.png', tags: ['logo'] },
-  { filename: 'goodable pwa.jpg', tags: ['logo'] },
-  { filename: 'goodable-text.jpg', tags: ['logo'] },
-  { filename: 'gdble-beach.jpg', tags: ['blog-image'] },
-  { filename: 'gdble-mtn-2.avif', tags: ['blog-image'] },
-  { filename: 'gdble-mtn-3.jpg', tags: ['blog-image'] },
-  { filename: 'goodable 15.avif', tags: ['blog-image'] },
-  { filename: 'goodable 15.png', tags: ['blog-image'] },
-  { filename: 'goodable 4.avif', tags: ['blog-image'] },
-  { filename: 'goodable-botanical.avif', tags: ['blog-image'] },
-  { filename: 'goodable-dandelion.avif', tags: ['blog-image'] },
-  { filename: 'goodable-dream-state.avif', tags: ['blog-image'] },
-  { filename: 'goodable-heart-pwa.png', tags: ['blog-image'] },
-  { filename: 'goodable-heart.avif', tags: ['blog-image'] },
-  { filename: 'goodable-mtn-1.avif', tags: ['blog-image'] },
-  { filename: 'goodable-night.avif', tags: ['blog-image'] },
-  { filename: 'goodable-path-2.avif', tags: ['blog-image'] },
-  { filename: 'goodable-path.avif', tags: ['blog-image'] }
-];
-
-const allTags = ['logo', 'blog-image'];
-
 const ImageSystem = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [copiedItem, setCopiedItem] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [assets, setAssets] = useState<ImageAsset[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [previewImage, setPreviewImage] = useState<ImageAsset | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [animationStates, setAnimationStates] = useState({
     fadeIn: false,
     slideIn: false,
@@ -97,11 +100,66 @@ const ImageSystem = () => {
     scale: false
   });
 
-  const filteredAssets = selectedTags.length === 0 
-    ? publicAssets 
-    : publicAssets.filter(asset => 
-        selectedTags.some(tag => asset.tags.includes(tag))
-      );
+  // Fetch assets from database
+  const fetchAssets = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('assets')
+        .select('*')
+        .eq('type', 'image')
+        .order('uploaded_at', { ascending: false });
+
+      if (error) throw error;
+
+      setAssets(data || []);
+      
+      // Extract unique tags
+      const tags = new Set<string>();
+      data?.forEach(asset => {
+        asset.tags?.forEach(tag => tags.add(tag));
+      });
+      setAvailableTags(Array.from(tags));
+    } catch (error) {
+      console.error('Error fetching assets:', error);
+      toast({
+        title: "Error loading assets",
+        description: "Failed to load images from database.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAssets();
+  }, []);
+
+  // Sort and filter assets
+  const sortedAndFilteredAssets = React.useMemo(() => {
+    let filtered = selectedTags.length === 0 
+      ? assets 
+      : assets.filter(asset => 
+          selectedTags.some(tag => asset.tags?.includes(tag))
+        );
+
+    // Apply sorting
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.uploaded_at).getTime() - new Date(a.uploaded_at).getTime();
+        case 'oldest':
+          return new Date(a.uploaded_at).getTime() - new Date(b.uploaded_at).getTime();
+        case 'name-asc':
+          return a.original_name.localeCompare(b.original_name);
+        case 'name-desc':
+          return b.original_name.localeCompare(a.original_name);
+        default:
+          return 0;
+      }
+    });
+  }, [assets, selectedTags, sortBy]);
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev => 
@@ -119,6 +177,15 @@ const ImageSystem = () => {
     navigator.clipboard.writeText(text);
     setCopiedItem(id);
     setTimeout(() => setCopiedItem(null), 2000);
+  };
+
+  const handleImageClick = (asset: ImageAsset) => {
+    setPreviewImage(asset);
+    setShowPreview(true);
+  };
+
+  const handleUploadComplete = () => {
+    fetchAssets(); // Refresh the assets list
   };
 
   const toggleAnimation = (animationType: keyof typeof animationStates) => {
@@ -141,7 +208,7 @@ const ImageSystem = () => {
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="flex items-center gap-1">
                 <Image className="w-3 h-3" />
-                v1.0
+                v2.0
               </Badge>
               <Button variant="outline" size="sm">
                 <Download className="w-4 h-4 mr-2" />
@@ -153,10 +220,10 @@ const ImageSystem = () => {
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 bg-green-500 rounded-full" />
-              Assets: {publicAssets.length}
+              Assets: {loading ? 'Loading...' : assets.length}
             </div>
             <div>Last Updated: Today</div>
-            <div>Components: 2</div>
+            <div>Components: 4</div>
           </div>
         </div>
 
@@ -295,102 +362,71 @@ const ImageSystem = () => {
               <CardHeader>
                 <CardTitle>Goodable Asset Library</CardTitle>
                 <CardDescription>
-                  All visual assets for the Goodable platform ({publicAssets.length} items)
+                  All visual assets for the Goodable platform ({loading ? 'Loading...' : assets.length} items)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Upload Area */}
+                {user && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Upload className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Upload Images</span>
+                    </div>
+                    <ImageUploadArea onUploadComplete={handleUploadComplete} />
+                  </div>
+                )}
+
                 {/* Filter Controls */}
-                <div className="flex flex-wrap items-center gap-3 p-4 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Filter className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Filter by tag:</span>
+                {!loading && (
+                  <ImageFilters
+                    selectedTags={selectedTags}
+                    onTagToggle={toggleTag}
+                    onClearFilters={clearFilters}
+                    sortBy={sortBy}
+                    onSortChange={setSortBy}
+                    availableTags={availableTags}
+                    totalAssets={assets.length}
+                    filteredCount={sortedAndFilteredAssets.length}
+                  />
+                )}
+
+                {/* Loading State */}
+                {loading && (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                    <span className="ml-2 text-muted-foreground">Loading assets...</span>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {allTags.map((tag) => (
-                      <Button
-                        key={tag}
-                        variant={selectedTags.includes(tag) ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => toggleTag(tag)}
-                        className="text-xs"
-                      >
-                        {tag}
-                      </Button>
-                    ))}
-                  </div>
-                  {selectedTags.length > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearFilters}
-                      className="text-xs text-muted-foreground"
-                    >
-                      <X className="w-3 h-3 mr-1" />
-                      Clear filters
-                    </Button>
-                  )}
-                </div>
+                )}
 
                 {/* Assets Grid */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {filteredAssets.map((asset) => (
-                    <Card key={asset.filename} className="p-4">
-                      <div className="aspect-square w-full mb-4 rounded-lg border overflow-hidden bg-muted flex items-center justify-center">
-                        <img 
-                          src={`/${encodeURIComponent(asset.filename)}`} 
-                          alt={asset.filename}
-                          className="w-full h-full object-contain"
-                          onError={(e) => {
-                            const target = e.currentTarget;
-                            target.style.display = 'none';
-                            const fallback = target.nextElementSibling as HTMLElement;
-                            if (fallback) {
-                              fallback.classList.remove('hidden');
-                              fallback.classList.add('flex');
-                            }
-                          }}
-                        />
-                        <div className="hidden flex-col items-center justify-center text-muted-foreground">
-                          <Image className="w-8 h-8 mb-2" />
-                          <span className="text-xs">{asset.filename.split('.')[0]}</span>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <h5 className="font-medium text-sm truncate">{asset.filename}</h5>
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          {asset.tags.map((tag) => (
-                            <Badge key={tag} variant="secondary" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <code className="text-xs bg-muted px-2 py-1 rounded">
-                            /{encodeURIComponent(asset.filename)}
-                          </code>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => copyToClipboard(`/${encodeURIComponent(asset.filename)}`, asset.filename)}
-                            className="p-1"
-                          >
-                            {copiedItem === asset.filename ? (
-                              <Check className="w-3 h-3 text-green-500" />
-                            ) : (
-                              <Copy className="w-3 h-3" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
+                {!loading && (
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {sortedAndFilteredAssets.map((asset) => (
+                      <ImageCard
+                        key={asset.id}
+                        asset={asset}
+                        onClick={() => handleImageClick(asset)}
+                        onCopyUrl={copyToClipboard}
+                        copiedItem={copiedItem}
+                      />
+                    ))}
+                  </div>
+                )}
                 
-                {filteredAssets.length === 0 && selectedTags.length > 0 && (
+                {!loading && sortedAndFilteredAssets.length === 0 && selectedTags.length > 0 && (
                   <div className="text-center py-12 text-muted-foreground">
                     <Filter className="w-12 h-12 mx-auto mb-4 opacity-50" />
                     <h3 className="text-lg font-semibold mb-2">No assets found</h3>
                     <p>No assets match the selected filters. Try clearing filters or selecting different tags.</p>
+                  </div>
+                )}
+
+                {!loading && assets.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Image className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <h3 className="text-lg font-semibold mb-2">No assets uploaded</h3>
+                    <p>Upload your first image to get started with the asset library.</p>
                   </div>
                 )}
               </CardContent>
@@ -645,6 +681,13 @@ const ImageSystem = () => {
             </Card>
           </TabsContent>
         </Tabs>
+        
+        {/* Image Preview Dialog */}
+        <ImagePreviewDialog
+          image={previewImage}
+          open={showPreview}
+          onOpenChange={setShowPreview}
+        />
       </div>
     </div>
   );
