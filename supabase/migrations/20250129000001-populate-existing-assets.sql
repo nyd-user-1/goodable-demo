@@ -1,3 +1,4 @@
+-- ***** RUN THIS SCRIPT SECOND (FIXED VERSION) *****
 -- Populate the assets table with existing images from the public directory
 -- This migration adds the existing static assets to the database
 
@@ -34,20 +35,7 @@ INSERT INTO public.assets (
 ('goodable-mtn-1', 'goodable-mtn-1.avif', '/goodable-mtn-1.avif', 'image', 'image/avif', ARRAY['blog-image'], '2024-01-01 11:11:00+00', '{"source": "migration", "legacy": true}'),
 ('goodable-night', 'goodable-night.avif', '/goodable-night.avif', 'image', 'image/avif', ARRAY['blog-image'], '2024-01-01 11:12:00+00', '{"source": "migration", "legacy": true}'),
 ('goodable-path-2', 'goodable-path-2.avif', '/goodable-path-2.avif', 'image', 'image/avif', ARRAY['blog-image'], '2024-01-01 11:13:00+00', '{"source": "migration", "legacy": true}'),
-('goodable-path', 'goodable-path.avif', '/goodable-path.avif', 'image', 'image/avif', ARRAY['blog-image'], '2024-01-01 11:14:00+00', '{"source": "migration", "legacy": true}')
-
-ON CONFLICT (name) DO NOTHING;
-
--- Update the unique_id sequence to start after migrated assets
--- This ensures new uploads get proper sequential IDs
-SELECT setval(
-  pg_get_serial_sequence('assets', 'id'), 
-  (SELECT COALESCE(MAX(CAST(SUBSTRING(unique_id FROM 5) AS INTEGER)), 0) FROM assets WHERE unique_id ~ '^IMG-[0-9]+$') + 1,
-  false
-);
-
--- Add comment explaining the migration
-COMMENT ON TABLE public.assets IS 'Asset management table for Goodable images, videos, and documents. Populated with legacy assets via migration 20250129000001.';
+('goodable-path', 'goodable-path.avif', '/goodable-path.avif', 'image', 'image/avif', ARRAY['blog-image'], '2024-01-01 11:14:00+00', '{"source": "migration", "legacy": true}');
 
 -- Verify the migration worked
 DO $$ 
