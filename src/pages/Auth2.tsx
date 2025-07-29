@@ -95,7 +95,7 @@ export const Auth2: React.FC = () => {
       {/* Right side - Image carousel */}
       <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
         {/* Image container with slide animation */}
-        <div className="relative h-full bg-gray-100 dark:bg-gray-900">
+        <div className="relative h-full">
           {carouselData.map((item, index) => {
             const isActive = index === currentIndex;
             const isNext = index === (currentIndex + 1) % carouselData.length;
@@ -122,15 +122,16 @@ export const Auth2: React.FC = () => {
                   }}
                 />
               
-              {/* Overlay for better text visibility */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10" />
+              
+              {/* Subtle overlay just at bottom for text readability */}
+              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/50 to-transparent z-10" />
               
               {/* Quote content */}
               <div className="absolute inset-0 z-20 flex flex-col justify-end p-12 text-white">
-                <blockquote className="text-xl font-medium mb-2 drop-shadow-lg">
+                <blockquote className="text-xl font-bold mb-2 drop-shadow-2xl">
                   {item.quote}
                 </blockquote>
-                <div className="flex items-center gap-1 text-sm opacity-90">
+                <div className="flex items-center gap-1 text-sm font-medium drop-shadow-lg">
                   <span className="text-red-500">❤️</span>
                   <span>Goodable</span>
                 </div>
