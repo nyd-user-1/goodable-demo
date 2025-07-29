@@ -61,7 +61,7 @@ export const ImageUploadArea: React.FC<ImageUploadAreaProps> = ({ onUploadComple
 
       // Upload to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('blog-images')
+        .from('goodable-assets')
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false
@@ -71,7 +71,7 @@ export const ImageUploadArea: React.FC<ImageUploadAreaProps> = ({ onUploadComple
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('blog-images')
+        .from('goodable-assets')
         .getPublicUrl(fileName);
 
       // Create database record
