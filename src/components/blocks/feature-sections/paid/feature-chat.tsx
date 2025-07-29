@@ -353,11 +353,11 @@ ${fiveWhysAnalysis}
         </div>
       </div>
 
-      <div className="flex flex-col gap-12">
-        {/* Swiss Design Chat Section - Left Aligned */}
-        <div className="flex h-[600px] w-full max-w-4xl flex-col mx-auto" style={{ fontFamily: 'Lora, "Times New Roman", Times, serif' }}>
-          {/* Chat header - Swiss Typography */}
-          <div className="flex items-center gap-5 pb-8 mb-8" style={{ borderBottom: '1px solid #E5E5E5' }}>
+      <div className="flex flex-col items-center gap-8">
+        {/* Centered Chat Section */}
+        <div className="flex h-[600px] w-full max-w-4xl flex-col rounded-xl border shadow-sm">
+          {/* Chat header */}
+          <div className="flex items-center gap-3 border-b p-4 relative">
             <Avatar className="h-10 w-10">
               <AvatarImage
                 src="/goodable%20pwa.jpg"
@@ -368,8 +368,8 @@ ${fiveWhysAnalysis}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <h3 className="text-2xl font-medium mb-1" style={{ fontSize: '24px', fontWeight: 500, letterSpacing: '0.02em', lineHeight: 1.5 }}>Goodable.dev</h3>
-              <p className="text-gray-600" style={{ fontSize: '16px', lineHeight: 1.6 }}>
+              <h3 className="font-semibold">Goodable.dev</h3>
+              <p className="text-muted-foreground text-xs">
                 A policy playground for problems and proposals.
               </p>
             </div>
@@ -379,127 +379,65 @@ ${fiveWhysAnalysis}
             </Badge>
           </div>
 
-          {/* Chat messages - Swiss Design Layout */}
-          <div className="flex-grow overflow-y-auto" style={{ padding: '0 20px 20px 20px' }}>
-            {messages.map((message, index) => (
+          {/* Chat messages */}
+          <div className="flex-grow space-y-4 overflow-y-auto p-4">
+            {messages.map((message) => (
               <div
                 key={message.id}
-                className="flex justify-start"
-                style={{ 
-                  marginBottom: index < messages.length - 1 ? '48px' : '32px'
-                }}
+                className={cn(
+                  "flex",
+                  message.sender === "user" ? "justify-end" : "justify-start",
+                )}
               >
-                <div className="flex gap-4 w-full max-w-none">
-                  {/* Avatar column - unified left alignment */}
-                  <Avatar className="h-10 w-10 flex-shrink-0 mt-1">
-                    {message.sender === "user" ? (
-                      <AvatarFallback className="bg-blue-100 text-blue-600">
-                        U
-                      </AvatarFallback>
-                    ) : (
-                      <>
-                        <AvatarImage
-                          src="/goodable%20pwa.jpg"
-                          alt="Goodable Assistant"
-                        />
-                        <AvatarFallback className="bg-red-100">
-                          <Heart className="w-5 h-5 text-red-500" />
-                        </AvatarFallback>
-                      </>
-                    )}
-                  </Avatar>
-                  
-                  {/* Content column */}
-                  <div className="flex-1 min-w-0">
-                    {/* Sender name */}
-                    <div className="mb-2">
-                      <span className="font-medium" style={{ fontSize: '16px', fontWeight: 500 }}>
-                        {message.sender === "user" ? "You" : "Assistant"}
-                      </span>
-                      <span className="text-gray-500 ml-2" style={{ fontSize: '14px' }}>
-                        {message.timestamp.toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                    </div>
-                    
-                    {/* Message content */}
-                    <div style={{ 
-                      fontSize: message.sender === "assistant" ? '18px' : '16px',
-                      lineHeight: '1.7',
-                      maxWidth: '70ch',
-                      color: '#1f2937'
-                    }}>
-                      {message.sender === "assistant" ? (
-                        <div className="prose-style">
-                          <ReactMarkdown 
-                            components={{
-                              p: ({ children }) => (
-                                <p style={{ marginBottom: '20px', lineHeight: '1.7' }}>
-                                  {children}
-                                </p>
-                              ),
-                              h3: ({ children }) => (
-                                <h3 style={{ 
-                                  fontSize: '20px', 
-                                  fontWeight: 500, 
-                                  marginBottom: '16px',
-                                  marginTop: '24px'
-                                }}>
-                                  {children}
-                                </h3>
-                              ),
-                              ul: ({ children }) => (
-                                <ul style={{ marginBottom: '20px', paddingLeft: '20px' }}>
-                                  {children}
-                                </ul>
-                              ),
-                              li: ({ children }) => (
-                                <li style={{ marginBottom: '8px', lineHeight: '1.7' }}>
-                                  {children}
-                                </li>
-                              )
-                            }}
-                          >
-                            {message.isStreaming ? message.streamedContent || '' : message.content}
-                          </ReactMarkdown>
-                          {message.isStreaming && (
-                            <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1">|</span>
-                          )}
-                        </div>
-                      ) : (
-                        <p style={{ marginBottom: '0' }}>{message.content}</p>
+                <div
+                  className={cn(
+                    "max-w-[80%] rounded-lg p-3",
+                    message.sender === "user"
+                      ? "bg-primary text-primary-foreground rounded-br-none"
+                      : "rounded-bl-none",
+                  )}
+                >
+                  {message.sender === "assistant" ? (
+                    <div className="prose prose-sm max-w-none dark:prose-invert">
+                      <ReactMarkdown>
+                        {message.isStreaming ? message.streamedContent || '' : message.content}
+                      </ReactMarkdown>
+                      {message.isStreaming && (
+                        <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1">|</span>
                       )}
                     </div>
+                  ) : (
+                    <p>{message.content}</p>
+                  )}
+                  <div
+                    className={cn(
+                      "mt-1 flex items-center gap-2 text-xs",
+                      message.sender === "user"
+                        ? "text-primary-foreground/80"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    {message.timestamp.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                    {message.sender === "user" && (
+                      <ThumbsUp className="h-3 w-3" />
+                    )}
                   </div>
                 </div>
               </div>
             ))}
 
             {isAssistantTyping && (
-              <div className="flex justify-start" style={{ marginBottom: '32px' }}>
-                <div className="flex gap-4 w-full max-w-none">
-                  <Avatar className="h-10 w-10 flex-shrink-0 mt-1">
-                    <AvatarImage
-                      src="/goodable%20pwa.jpg"
-                      alt="Goodable Assistant"
-                    />
-                    <AvatarFallback className="bg-red-100">
-                      <Heart className="w-5 h-5 text-red-500" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="mb-2">
-                      <span className="font-medium" style={{ fontSize: '16px', fontWeight: 500 }}>Assistant</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Heart className="h-4 w-4 text-red-500 animate-pulse" />
-                      <div className="flex space-x-1">
-                        <div className="bg-gray-400 h-2 w-2 animate-bounce rounded-full"></div>
-                        <div className="bg-gray-400 h-2 w-2 animate-bounce rounded-full delay-75"></div>
-                        <div className="bg-gray-400 h-2 w-2 animate-bounce rounded-full delay-150"></div>
-                      </div>
+              <div className="flex justify-start">
+                <div className="bg-muted rounded-lg rounded-bl-none p-3">
+                  <div className="flex items-center space-x-2">
+                    <Heart className="h-4 w-4 text-red-500 animate-pulse" />
+                    <div className="flex space-x-1">
+                      <div className="bg-muted-foreground/50 h-2 w-2 animate-bounce rounded-full"></div>
+                      <div className="bg-muted-foreground/50 h-2 w-2 animate-bounce rounded-full delay-75"></div>
+                      <div className="bg-muted-foreground/50 h-2 w-2 animate-bounce rounded-full delay-150"></div>
                     </div>
                   </div>
                 </div>
@@ -509,68 +447,43 @@ ${fiveWhysAnalysis}
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Chat input - Left aligned Swiss design */}
-          <div style={{ 
-            borderTop: '1px solid #E5E5E5', 
-            paddingTop: '32px',
-            marginTop: '32px',
-            paddingLeft: '20px',
-            paddingRight: '20px'
-          }}>
+          {/* Chat input */}
+          <div className="border-t p-4">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSendMessage();
               }}
-              className="flex items-start gap-4"
+              className="flex items-center gap-2"
             >
-              {/* User avatar for input consistency */}
-              <Avatar className="h-10 w-10 flex-shrink-0 mt-2">
-                <AvatarFallback className="bg-blue-100 text-blue-600">
-                  U
-                </AvatarFallback>
-              </Avatar>
-              
-              {/* Input section */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-end gap-3">
-                  <Input
-                    value={inputValue}
-                    onChange={(e) => {
-                      setInputValue(e.target.value);
-                      if (isSampleProblemActive && e.target.value !== inputValue) {
-                        setIsSampleProblemActive(false);
-                      }
-                    }}
-                    placeholder="Choose a sample problem."
-                    className={`flex-grow ${isSampleProblemActive ? 'border-blue-500 bg-blue-50' : ''}`}
-                    style={{ 
-                      fontSize: '16px',
-                      lineHeight: '1.6',
-                      minHeight: '44px',
-                      fontFamily: 'Lora, "Times New Roman", Times, serif'
-                    }}
-                  />
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    className="flex-shrink-0"
-                    style={{ minHeight: '44px', minWidth: '44px' }}
-                  >
-                    <Paperclip className="text-gray-500 h-5 w-5" />
-                  </Button>
-                  <Button
-                    type="submit"
-                    size="icon"
-                    disabled={!inputValue.trim()}
-                    className="flex-shrink-0"
-                    style={{ minHeight: '44px', minWidth: '44px' }}
-                  >
-                    <Send className="h-5 w-5" />
-                  </Button>
-                </div>
-              </div>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="rounded-full"
+              >
+                <Paperclip className="text-muted-foreground h-5 w-5" />
+              </Button>
+              <Input
+                value={inputValue}
+                onChange={(e) => {
+                  setInputValue(e.target.value);
+                  // Reset sample problem state if user manually edits
+                  if (isSampleProblemActive && e.target.value !== inputValue) {
+                    setIsSampleProblemActive(false);
+                  }
+                }}
+                placeholder="Choose a sample problem."
+                className={`flex-grow ${isSampleProblemActive ? 'border-blue-500 bg-blue-50' : ''}`}
+              />
+              <Button
+                type="submit"
+                size="icon"
+                disabled={!inputValue.trim()}
+                className="rounded-full"
+              >
+                <Send className="h-5 w-5" />
+              </Button>
             </form>
           </div>
         </div>
