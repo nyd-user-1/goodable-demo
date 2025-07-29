@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LoginForm } from "@/components/login-form";
+import { SignupOnlyForm } from "@/components/signup-only-form";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -88,16 +88,7 @@ export const Auth2: React.FC = () => {
         {/* Form Container */}
         <div className="flex-1 flex items-center justify-center p-6 lg:p-8">
           <div className="w-full max-w-sm space-y-6">
-            <div className="text-center space-y-2">
-              <h1 className="text-2xl font-semibold tracking-tight">
-                Create an account
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Enter your email below to create your account
-              </p>
-            </div>
-            
-            <LoginForm />
+            <SignupOnlyForm />
           </div>
         </div>
       </div>

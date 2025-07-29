@@ -1,6 +1,6 @@
 import React from 'react';
 import { GalleryVerticalEnd } from "lucide-react";
-import { LoginForm } from "@/components/login-form";
+import { LoginOnlyForm } from "@/components/login-only-form";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import { useAsset } from '@/hooks/useAssets';
 
@@ -40,7 +40,7 @@ export const Auth: React.FC = () => {
             ? 'bg-white/95 backdrop-blur-sm border border-white/20' 
             : 'bg-white dark:bg-card border border-border'
         }`}>
-          <LoginForm />
+          <LoginOnlyForm />
         </div>
       </div>
     </div>
