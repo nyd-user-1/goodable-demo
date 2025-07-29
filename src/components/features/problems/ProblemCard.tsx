@@ -8,13 +8,20 @@ import { useState } from "react";
 interface ProblemCardProps {
   problem: Problem;
   onClick: () => void;
+  rank?: number;
 }
 
-export const ProblemCard = ({ problem, onClick }: ProblemCardProps) => {
+export const ProblemCard = ({ problem, onClick, rank }: ProblemCardProps) => {
   const [userVote, setUserVote] = useState<'up' | 'down' | null>(null);
-  const [votes] = useState({
-    up: Math.floor(Math.random() * 100) + 20,
-    down: Math.floor(Math.random() * 20) + 5
+  // Generate consistent votes based on problem ID
+  const [votes] = useState(() => {
+    const seed = problem.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const random1 = (seed * 9301 + 49297) % 233280;
+    const random2 = (random1 * 9301 + 49297) % 233280;
+    return {
+      up: Math.floor(random1 / 233280 * 80) + 20,
+      down: Math.floor(random2 / 233280 * 15) + 2
+    };
   });
   const [commentCount] = useState(Math.floor(Math.random() * 30) + 5);
 
@@ -48,9 +55,16 @@ export const ProblemCard = ({ problem, onClick }: ProblemCardProps) => {
       className="cursor-pointer hover:bg-muted/50 transition-colors hover:shadow-md h-full"
       onClick={onClick}
     >
-      <CardContent className="p-6 h-full flex flex-col">
+      <CardContent className="p-6 h-full flex flex-col relative">
+        {/* Rank number in top-right */}
+        {rank && (
+          <div className="absolute top-4 right-4 text-xs font-medium text-muted-foreground/60">
+            No. {rank.toString().padStart(3, '0')}
+          </div>
+        )}
+        
         {/* Header with title */}
-        <div className="mb-4">
+        <div className="mb-4 pr-12">
           <h3 className="font-semibold text-lg leading-tight">
             {problem.title}
           </h3>

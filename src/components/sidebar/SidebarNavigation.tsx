@@ -23,7 +23,7 @@ const navigateNavItems = [
 ];
 
 const workflowNavItems = [
-  { title: "Challenges", url: "/problems", icon: Target },
+  { title: "Problems", url: "/problems", icon: Target },
   { title: "Solutions", url: "/public-policy", icon: ScrollText },
   { title: "Chats", url: "/chats", icon: MessageSquare },
   { title: "Favorites", url: "/favorites", icon: Heart },

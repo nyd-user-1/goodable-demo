@@ -11,10 +11,21 @@ import {
   ProblemsEmptyState 
 } from "@/components/features/problems";
 
+// Function to get consistent upvote count for a problem (matches ProblemCard logic)
+const getUpvoteCount = (problem: Problem): number => {
+  const seed = problem.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const random1 = (seed * 9301 + 49297) % 233280;
+  return Math.floor(random1 / 233280 * 80) + 20;
+};
+
 const Problems = () => {
   const [searchParams] = useSearchParams();
   const [selectedProblem, setSelectedProblem] = useState<Problem | null>(null);
-  const [filteredProblems, setFilteredProblems] = useState<Problem[]>(problems);
+  // Sort problems by upvote count (highest first) before filtering
+  const [sortedProblems] = useState(() => 
+    [...problems].sort((a, b) => getUpvoteCount(b) - getUpvoteCount(a))
+  );
+  const [filteredProblems, setFilteredProblems] = useState<Problem[]>(sortedProblems);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -26,17 +37,17 @@ const Problems = () => {
   // Handle URL parameter for selected problem
   useEffect(() => {
     const selectedSlug = searchParams.get('selected');
-    if (selectedSlug && problems.length > 0) {
-      const problem = problems.find(p => p.slug === selectedSlug);
+    if (selectedSlug && sortedProblems.length > 0) {
+      const problem = sortedProblems.find(p => p.slug === selectedSlug);
       if (problem) {
         setSelectedProblem(problem);
       }
     }
-  }, [searchParams]);
+  }, [searchParams, sortedProblems]);
 
   // Filter problems based on search criteria
   useEffect(() => {
-    let filtered = problems;
+    let filtered = sortedProblems;
 
     if (searchTerm) {
       filtered = filtered.filter(problem =>
@@ -92,8 +103,8 @@ const Problems = () => {
   const hasFilters = searchTerm !== "" || categoryFilter !== "" || priorityFilter !== "";
 
   // Get unique categories and priorities for filters
-  const categories = [...new Set(problems.map(p => p.category))];
-  const priorities = [...new Set(problems.map(p => p.priority))];
+  const categories = [...new Set(sortedProblems.map(p => p.category))];
+  const priorities = [...new Set(sortedProblems.map(p => p.priority))];
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6">
@@ -120,7 +131,7 @@ const Problems = () => {
             {/* Results Summary */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t">
               <div className="text-sm text-muted-foreground">
-                Showing {filteredProblems.length} of {problems.length} problems
+                Showing {filteredProblems.length} of {sortedProblems.length} problems
               </div>
             </div>
           </div>

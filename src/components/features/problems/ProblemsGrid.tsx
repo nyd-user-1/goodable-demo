@@ -9,11 +9,12 @@ interface ProblemsGridProps {
 export const ProblemsGrid = ({ problems, onProblemSelect }: ProblemsGridProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {problems.map((problem) => (
+      {problems.map((problem, index) => (
         <ProblemCard
           key={problem.id}
           problem={problem}
           onClick={() => onProblemSelect(problem)}
+          rank={index + 1}
         />
       ))}
     </div>
