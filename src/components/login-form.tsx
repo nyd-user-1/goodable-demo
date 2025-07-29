@@ -43,12 +43,12 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">
-            {isSignUp ? 'Create an account' : 'Where ideas meet action'}
+            {isSignUp ? 'Create an account' : 'It has meaning'}
           </CardTitle>
           <CardDescription>
             {isSignUp 
               ? 'Enter your email below to create your account' 
-              : 'A space for problem solving.'}
+              : 'If you give it meaning.'}
           </CardDescription>
         </CardHeader>
         <CardContent>
