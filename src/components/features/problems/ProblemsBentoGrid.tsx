@@ -35,13 +35,19 @@ export function ProblemsBentoGrid() {
         <div className="flex justify-center gap-4 mt-8">
           <Button
             variant="outline"
-            onClick={() => navigate('/problems')}
+            onClick={() => {
+              navigate('/problems');
+              setTimeout(() => window.scrollTo(0, 0), 100);
+            }}
             className="hover:bg-muted"
           >
             Load More
           </Button>
           <Button
-            onClick={() => navigate('/problems')}
+            onClick={() => {
+              navigate('/problems');
+              setTimeout(() => window.scrollTo(0, 0), 100);
+            }}
             className="bg-[#3D63DD] text-white hover:bg-[#2D53CD]"
           >
             View All
