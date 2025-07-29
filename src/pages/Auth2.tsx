@@ -1,38 +1,65 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { LoginForm } from "@/components/login-form";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
+import { ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export const Auth2: React.FC = () => {
-  // Background image for the left column
-  const backgroundUrl = '/goodable-night.avif';
+  // Carousel data with images and quotes (first two must be as specified)
+  const carouselData = [
+    {
+      image: '/IMG-012.avif',
+      quote: "It has meaning if you give it meaning."
+    },
+    {
+      image: '/IMG-015.avif', 
+      quote: "Both, it's always both."
+    },
+    {
+      image: '/IMG-017.avif',
+      quote: "Retweets are easy. Real change is not."
+    },
+    {
+      image: '/IMG-019.avif',
+      quote: "Not left. Not right. Just forward."
+    },
+    {
+      image: '/IMG-020.avif',
+      quote: "Big voice? Big following? Big deal. Be big."
+    },
+    {
+      image: '/IMG-023.avif',
+      quote: "It's not about sides—it's about systems."
+    }
+  ];
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  // Auto-advance carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      handleNext();
+    }, 5000); // Change every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [currentIndex]);
+
+  const handleNext = () => {
+    if (!isAnimating) {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % carouselData.length);
+        setIsAnimating(false);
+      }, 600); // Match animation duration
+    }
+  };
 
   return (
     <div className="flex min-h-screen">
-      {/* Left side - Image */}
-      <div 
-        className="hidden lg:flex lg:w-1/2 relative"
-        style={{
-          backgroundImage: `url(${backgroundUrl})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
-      >
-        {/* Optional overlay for better text visibility if needed */}
-        <div className="absolute inset-0 bg-black/10" />
-        
-        {/* Optional content on the image side */}
-        <div className="relative z-10 flex flex-col justify-end p-12 text-white">
-          <blockquote className="text-lg font-medium mb-2">
-            "This library has saved me countless hours of work and helped me deliver 
-            stunning designs to my clients faster than ever before."
-          </blockquote>
-          <cite className="text-sm opacity-90">- Sofia Davis</cite>
-        </div>
-      </div>
-      
-      {/* Right side - Auth form */}
-      <div className="w-full lg:w-1/2 flex flex-col">
+      {/* Left side - Auth form */}
+      <div className="w-full lg:w-1/2 flex flex-col bg-background relative z-20">
         <ScrollProgress className="top-0" />
         
         {/* Header */}
@@ -62,6 +89,74 @@ export const Auth2: React.FC = () => {
             
             <LoginForm />
           </div>
+        </div>
+      </div>
+      
+      {/* Right side - Image carousel */}
+      <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
+        {/* Image container with slide animation */}
+        <div className="relative h-full">
+          {carouselData.map((item, index) => (
+            <div
+              key={index}
+              className={cn(
+                "absolute inset-0 transition-transform duration-[600ms] ease-in-out",
+                index === currentIndex && !isAnimating && "translate-x-0",
+                index === currentIndex && isAnimating && "-translate-x-full",
+                index === (currentIndex + 1) % carouselData.length && !isAnimating && "translate-x-full",
+                index === (currentIndex + 1) % carouselData.length && isAnimating && "translate-x-0",
+                index !== currentIndex && index !== (currentIndex + 1) % carouselData.length && "translate-x-full"
+              )}
+              style={{
+                backgroundImage: `url(${item.image})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
+            >
+              {/* Overlay for better text visibility */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+              
+              {/* Quote content */}
+              <div className="relative z-10 flex flex-col justify-end p-12 text-white h-full">
+                <blockquote className="text-xl font-medium mb-2 drop-shadow-lg">
+                  "{item.quote}"
+                </blockquote>
+                <div className="flex items-center gap-1 text-sm opacity-90">
+                  <span className="text-red-500">❤️</span>
+                  <span>Goodable</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Navigation arrow button */}
+        <Button
+          onClick={handleNext}
+          variant="ghost"
+          size="icon"
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-30 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/20"
+          disabled={isAnimating}
+        >
+          <ChevronRight className="h-6 w-6" />
+        </Button>
+
+        {/* Carousel indicators */}
+        <div className="absolute bottom-8 left-12 flex gap-2 z-30">
+          {carouselData.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => !isAnimating && setCurrentIndex(index)}
+              className={cn(
+                "w-2 h-2 rounded-full transition-all duration-300",
+                index === currentIndex 
+                  ? "bg-white w-8" 
+                  : "bg-white/50 hover:bg-white/75"
+              )}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
         </div>
       </div>
     </div>
