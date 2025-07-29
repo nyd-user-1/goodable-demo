@@ -2,8 +2,65 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { MessageSquare } from "lucide-react";
 
 export default function HeroFormCenterAlignedWithAForm() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleExampleClick = () => {
+    setName("Families never get time together anymore");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !email.trim()) return;
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Add email to waitlist table
+      const { error: waitlistError } = await supabase
+        .from('waitlist')
+        .insert([{ email: email.trim() }]);
+      
+      if (waitlistError) {
+        console.error('Error adding to waitlist:', waitlistError);
+      }
+      
+      // Scroll to playground and inject problem
+      const playgroundSection = document.querySelector('section:has(h2:contains("Playground"))');
+      if (playgroundSection) {
+        playgroundSection.scrollIntoView({ behavior: 'smooth' });
+        
+        // Wait for scroll to complete, then inject problem into chat input
+        setTimeout(() => {
+          const chatInput = document.querySelector('input[placeholder="Tell me what\'s bothering you..."]') as HTMLInputElement;
+          if (chatInput) {
+            chatInput.value = name.trim();
+            chatInput.focus();
+            
+            // Trigger the input event to update React state
+            const event = new Event('input', { bubbles: true });
+            chatInput.dispatchEvent(event);
+          }
+        }, 1000);
+      }
+      
+      // Reset form
+      setName("");
+      setEmail("");
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <>
       {/* Hero */}
@@ -13,10 +70,10 @@ export default function HeroFormCenterAlignedWithAForm() {
             {/* Title */}
             <div className="text-center">
               <p className="text-muted-foreground mb-3 text-xs font-semibold tracking-wide uppercase">
-                Small business solutions
+                No complaints?
               </p>
               <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-                Turn online shoppers into lifetime customers
+                That's a problem.
               </h1>
             </div>
             {/* End Title */}
@@ -26,32 +83,16 @@ export default function HeroFormCenterAlignedWithAForm() {
                 {/* Avatar Group */}
                 <div className="flex justify-center -space-x-3">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src="https://github.com/shadcn.png"
-                      alt="@shadcn"
-                    />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarFallback>JD</AvatarFallback>
                   </Avatar>
                   <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src="https://github.com/shadcn.png"
-                      alt="@shadcn"
-                    />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarFallback>SM</AvatarFallback>
                   </Avatar>
                   <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src="https://github.com/shadcn.png"
-                      alt="@shadcn"
-                    />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarFallback>TR</AvatarFallback>
                   </Avatar>
                   <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src="https://github.com/shadcn.png"
-                      alt="@shadcn"
-                    />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarFallback>MK</AvatarFallback>
                   </Avatar>
                   <span className="ring-muted-foreground bg-background z-10 inline-flex h-8 w-8 items-center justify-center rounded-full ring-2">
                     <span className="text-xs leading-none font-medium uppercase">
@@ -63,21 +104,27 @@ export default function HeroFormCenterAlignedWithAForm() {
               </div>
               <div className="mx-auto h-px w-32 border-t sm:mx-0 sm:h-full sm:w-auto sm:border-s sm:border-t-0" />
               <div className="pt-5 sm:ps-5 sm:pt-0">
-                <div className="text-lg font-semibold">Trust pilot</div>
+                <div className="text-lg font-semibold">You lived it.</div>
                 <div className="text-muted-foreground text-sm">
-                  Rated best over 37k reviews
+                  Now we fix it.
                 </div>
               </div>
             </div>
             {/* End Avatar Group */}
             {/* Form */}
-            <form>
+            <form onSubmit={handleSubmit}>
               <div className="shadow-primary-foreground mx-auto max-w-2xl rounded-lg border p-3 shadow-lg sm:flex sm:space-x-3">
                 <div className="pb-2 sm:flex-[1_0_0%] sm:pb-0">
                   <Label htmlFor="name">
                     <span className="sr-only">Your name</span>
                   </Label>
-                  <Input type="text" id="name" placeholder="Your name" />
+                  <Input 
+                    type="text" 
+                    id="name" 
+                    placeholder="Submit a problem" 
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
                 </div>
                 <div className="border-t pt-2 sm:flex-[1_0_0%] sm:border-s sm:border-t-0 sm:ps-3 sm:pt-0">
                   <Label
@@ -86,14 +133,35 @@ export default function HeroFormCenterAlignedWithAForm() {
                   >
                     <span className="sr-only">Your email address</span>
                   </Label>
-                  <Input type="email" id="email" placeholder="Your email" />
+                  <Input 
+                    type="email" 
+                    id="email" 
+                    placeholder="Your email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
                 <div className="grid pt-2 sm:block sm:flex-[0_0_auto] sm:pt-0">
-                  <Button>Get started</Button>
+                  <Button type="submit" disabled={isSubmitting || !name.trim() || !email.trim()}>
+                    {isSubmitting ? "Submitting..." : "Submit"}
+                  </Button>
                 </div>
               </div>
             </form>
             {/* End Form */}
+            
+            {/* Example section */}
+            <div className="text-left max-w-2xl mx-auto mt-4">
+              <p className="text-sm text-muted-foreground mb-2">Example</p>
+              <Badge
+                variant="outline"
+                className="hover:bg-primary/10 cursor-pointer py-1.5 transition-colors"
+                onClick={handleExampleClick}
+              >
+                <MessageSquare className="mr-1 h-3.5 w-3.5" />
+                Families never get time together anymore
+              </Badge>
+            </div>
             {/* SVG Element */}
             <div
               className="absolute start-0 top-2/4 hidden -translate-x-40 -translate-y-2/4 transform md:block lg:-translate-x-80"
