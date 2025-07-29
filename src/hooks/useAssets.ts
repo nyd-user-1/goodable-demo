@@ -65,19 +65,63 @@ export const useAssets = (filters?: {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // For now, we'll use the public directory approach
-      // In a full implementation, you'd upload to Supabase Storage
+      // Extract image dimensions for images
+      let dimensions = {};
+      if (file.type.startsWith('image/')) {
+        try {
+          dimensions = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+              resolve({ width: img.width, height: img.height });
+            };
+            img.onerror = reject;
+            img.src = URL.createObjectURL(file);
+          });
+        } catch (err) {
+          console.warn('Could not extract image dimensions:', err);
+        }
+      }
+
+      // Generate a unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+      // Upload to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('goodable-assets')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('goodable-assets')
+        .getPublicUrl(fileName);
+
+      // Create database record
       const assetData = {
         name: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
         original_name: file.name,
-        url: `/uploads/${file.name}`, // This would come from Supabase Storage
-        type: file.type.startsWith('image/') ? 'image' as const : 'document' as const,
+        url: publicUrl,
+        type: file.type.startsWith('image/') ? 'image' as const : 
+              file.type.startsWith('video/') ? 'video' as const : 
+              file.type.startsWith('audio/') ? 'audio' as const : 'document' as const,
         mime_type: file.type,
         size_bytes: file.size,
-        alt_text: metadata?.alt_text || '',
-        caption: metadata?.caption || '',
+        ...(dimensions as any), // Add width/height if available
+        tags: ['blog-image'],
         uploaded_by: user.id,
-        metadata: metadata || {}
+        metadata: {
+          storage_path: fileName,
+          alt_text: metadata?.alt_text || '',
+          caption: metadata?.caption || '',
+          usage: metadata?.usage || ['blog'],
+          tags: metadata?.tags || ['blog'],
+          ...metadata
+        }
       };
 
       const { data, error } = await supabase
