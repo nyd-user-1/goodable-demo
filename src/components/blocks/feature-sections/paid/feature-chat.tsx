@@ -352,7 +352,7 @@ ${fiveWhysAnalysis}
                     "max-w-[80%] rounded-lg p-3",
                     message.sender === "user"
                       ? "bg-primary text-primary-foreground rounded-br-none"
-                      : "bg-muted rounded-bl-none",
+                      : "rounded-bl-none",
                   )}
                 >
                   {message.sender === "assistant" ? (
