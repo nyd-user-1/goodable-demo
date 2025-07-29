@@ -5,8 +5,8 @@ import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import { useAsset } from '@/hooks/useAssets';
 
 export const Auth: React.FC = () => {
-  // Directly use the AVIF image without the asset system for now
-  const backgroundUrl = '/goodable%2015.avif';
+  // Use the uploaded Supabase asset
+  const backgroundUrl = 'https://kwyjohornlgujoqypyvu.supabase.co/storage/v1/object/public/goodable-assets/6ba84657-f124-44a1-9e4d-bbe76860e13f/1753770311293_xys3n5.png';
   const loading = false;
 
   return (
