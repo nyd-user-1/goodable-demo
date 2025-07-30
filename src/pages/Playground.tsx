@@ -13,7 +13,7 @@ import { RotateCcw, Code, Share, Info, Copy, MoreHorizontal } from "lucide-react
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import FeatureChat from '@/components/blocks/feature-sections/paid/feature-chat';
+import PlaygroundChat from '@/components/PlaygroundChat';
 import ReactMarkdown from 'react-markdown';
 
 
@@ -623,9 +623,9 @@ const Playground = () => {
                 </AlertDialog>
               )}
               
-              {/* Content Area - Using EXACT FeatureChat component */}
+              {/* Content Area - Using PlaygroundChat component */}
               <div className="flex justify-center w-full">
-                <FeatureChat />
+                <PlaygroundChat />
               </div>
             </div>
           </div>
