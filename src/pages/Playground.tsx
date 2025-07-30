@@ -516,9 +516,8 @@ const Playground = () => {
   );
 
   return (
-    <div className="flex h-full bg-white">
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
+    <div className="flex h-full bg-white p-8">
+      <div className="flex-1 border rounded-lg bg-white overflow-hidden">
         {/* Header */}
         <div className="bg-background border-b border-border px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
@@ -548,8 +547,7 @@ const Playground = () => {
         </div>
 
         {/* Content */}
-        <div className="flex-1 flex p-8">
-          <div className="flex-1 flex border rounded-lg bg-white">
+        <div className="flex-1 flex">
             {/* Left Panel - Prompt Area */}
             <div className={`flex-1 p-4 sm:p-6 ${isMobile ? 'w-full' : ''}`}>
             <div className="h-full flex flex-col">
@@ -691,7 +689,6 @@ const Playground = () => {
                 <SettingsContent />
               </div>
             )}
-          </div>
         </div>
       </div>
     </div>
