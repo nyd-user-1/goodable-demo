@@ -80,6 +80,11 @@ const Members = () => {
     }
   }, [searchParams, members]);
 
+  // Scroll to top when member is selected or deselected
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [selectedMember]);
+
   // Fetch members that have AI chat sessions
   useEffect(() => {
     const fetchMembersWithAIChat = async () => {
