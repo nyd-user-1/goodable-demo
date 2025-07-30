@@ -112,10 +112,40 @@ export default function BlogPage() {
 
       if (error) throw error;
 
-      setPosts(data || []);
+      // If no data, show demo content
+      if (!data || data.length === 0) {
+        const demoData: BlogPost[] = [
+          {
+            id: '1',
+            title: 'Welcome to the Goodable Blog',
+            content: 'This is where we share insights about policy, legislation, and civic engagement.',
+            summary: 'Get started with the Goodable blog - your source for legislative insights and policy analysis.',
+            category: 'Announcements',
+            tags: ['welcome', 'getting-started'],
+            published_at: new Date().toISOString(),
+            author_name: 'Goodable Team',
+            author_avatar: '/goodable%20pwa.jpg',
+            view_count: 0,
+            up_votes: 0,
+            down_votes: 0,
+            comment_count: 0,
+            is_featured: true
+          }
+        ];
+        setPosts(demoData);
+      } else {
+        setPosts(data);
+      }
     } catch (err) {
       console.error('Error fetching blog posts:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch blog posts');
+      // Provide more helpful error message
+      if (err instanceof Error && err.message.includes('permission')) {
+        setError('Unable to access blog posts. Please check your permissions.');
+      } else if (err instanceof Error && err.message.includes('relation')) {
+        setError('Blog system is being set up. Please check back later.');
+      } else {
+        setError('Failed to fetch blog posts. If you have blog posts in the CMS, make sure they are published.');
+      }
     } finally {
       setLoading(false);
     }
