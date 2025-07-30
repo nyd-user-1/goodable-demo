@@ -132,18 +132,18 @@ export default function FeatureChat() {
 
         // Add the validation response before the problem statement
         const problemStatement = data?.generatedText || '';
-        return `I hear you, and what you're experiencing sounds genuinely challenging. 
+        return `I hear you, and what you're experiencing sounds genuinely challenging.
 
 You know what? A well-crafted problem statement could be incredibly valuable here. It's like having a GPS for solutions - it helps you:
 
-• **Clarify exactly what needs fixing** (no more spinning wheels)
-• **Identify who's affected** (so you know your stakeholders)  
-• **Understand the real impact** (why this matters)
-• **Focus your energy** (instead of shooting in the dark)
+- Clarify exactly what needs fixing (no more spinning wheels)
+- Identify who's affected (so you know your stakeholders)  
+- Understand the real impact (why this matters)
+- Focus your energy (instead of shooting in the dark)
 
 Think of it as turning frustration into a roadmap.
 
-**Shall I draw up that problem statement for you right now?** 📝`;
+Shall I draw up that problem statement for you right now?`;
       } else if (stage === 'statement_sent') {
         // Generate the actual problem statement
         const { data, error } = await supabase.functions.invoke('generate-with-openai', {
@@ -165,11 +165,11 @@ Think of it as turning frustration into a roadmap.
 
 ${problemStatement}
 
-**Why this matters:** This statement gives you clarity, helps communicate the issue to others, and becomes your north star for finding solutions. It transforms a messy situation into something you can actually tackle.
+Why this matters: This statement gives you clarity, helps communicate the issue to others, and becomes your north star for finding solutions. It transforms a messy situation into something you can actually tackle.
 
 Now, want to go deeper? I can walk you through a "5 Whys" analysis - it's like detective work that uncovers the root cause hiding beneath the surface symptoms.
 
-**Ready to dig into the real source of this problem?** 🔍`;
+Ready to dig into the real source of this problem?`;
       } else if (stage === 'five_whys') {
         // Generate 5 Whys analysis using the same API
         const { data, error } = await supabase.functions.invoke('generate-with-openai', {
@@ -188,15 +188,15 @@ Now, want to go deeper? I can walk you through a "5 Whys" analysis - it's like d
         const fiveWhysAnalysis = data?.generatedText || '';
         return `Perfect! The "5 Whys" technique peels back the layers to find what's really causing your problem. Think of it like:
 
-• **Why #1:** Gets past the obvious
-• **Why #2:** Reveals the deeper issue  
-• **Why #3:** Uncovers systemic problems
-• **Why #4:** Finds the real culprit
-• **Why #5:** Hits the root cause
+- Why #1: Gets past the obvious
+- Why #2: Reveals the deeper issue  
+- Why #3: Uncovers systemic problems
+- Why #4: Finds the real culprit
+- Why #5: Hits the root cause
 
 ${fiveWhysAnalysis}
 
-🎯 **What's Next?** Now that you've identified the root cause, you can focus your energy on solutions that actually address the core issue rather than just symptoms. Want to explore some policy approaches or next steps?`;
+What's Next? Now that you've identified the root cause, you can focus your energy on solutions that actually address the core issue rather than just symptoms. Want to explore some policy approaches or next steps?`;
       }
 
       // Default response
