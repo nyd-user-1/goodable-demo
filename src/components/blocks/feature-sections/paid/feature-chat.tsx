@@ -363,8 +363,8 @@ ${fiveWhysAnalysis}
                 src="/goodable%20pwa.jpg"
                 alt="Goodable Assistant"
               />
-              <AvatarFallback className="bg-primary/10 text-primary">
-                <Heart className="w-5 h-5 text-red-500" />
+              <AvatarFallback className="bg-red-50 text-red-500">
+                ❤️
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
@@ -433,7 +433,7 @@ ${fiveWhysAnalysis}
               <div className="flex justify-start">
                 <div className="bg-muted rounded-lg rounded-bl-none p-3">
                   <div className="flex items-center space-x-2">
-                    <Heart className="h-4 w-4 text-red-500 animate-pulse" />
+                    <span className="animate-pulse">❤️</span>
                     <div className="flex space-x-1">
                       <div className="bg-muted-foreground/50 h-2 w-2 animate-bounce rounded-full"></div>
                       <div className="bg-muted-foreground/50 h-2 w-2 animate-bounce rounded-full delay-75"></div>
