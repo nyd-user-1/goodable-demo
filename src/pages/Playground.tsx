@@ -54,6 +54,9 @@ const Playground = () => {
   const [temperature, setTemperature] = useState([0.56]);
   const [maxLength, setMaxLength] = useState([256]);
   const [topP, setTopP] = useState([0.9]);
+  const [sampleProblems, setSampleProblems] = useState<{id: number, "Sample Problems": string}[]>([]);
+  const [problemsLoading, setProblemsLoading] = useState(false);
+  const [selectedProblemStatement, setSelectedProblemStatement] = useState("");
   const [chatOptions, setChatOptions] = useState<ChatOption[]>([]);
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [loading, setLoading] = useState(false);
@@ -186,10 +189,34 @@ const Playground = () => {
     }
   };
 
+  const fetchSampleProblems = async () => {
+    try {
+      setProblemsLoading(true);
+      const { data: problemsData, error } = await supabase
+        .from("SampleProblems")
+        .select("*")
+        .order("id", { ascending: true });
+
+      if (error) {
+        throw error;
+      }
+
+      setSampleProblems(problemsData || []);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load sample problems",
+        variant: "destructive",
+      });
+    } finally {
+      setProblemsLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchUserChats();
     fetchPersonas();
+    fetchSampleProblems();
   }, []);
 
   const handleChatSelection = (chatId: string) => {
@@ -287,6 +314,8 @@ const Playground = () => {
     setSelectedPersona('');
     setSelectedPersonaAct('');
     setSystemPrompt('');
+    setSelectedProblemStatement('');
+    setSelectedChat('');
     setMode('textEditor');
     toast({
       title: "Playground Cleared",
@@ -296,11 +325,11 @@ const Playground = () => {
 
   const SettingsContent = () => (
     <div className="space-y-6">
-      {/* Load Chat */}
+      {/* Chat */}
       <div>
-        <Label className="text-sm font-medium text-gray-700 mb-3 block">Load</Label>
+        <Label className="text-sm font-medium text-gray-700 mb-3 block">Chat</Label>
         <Select value={selectedChat} onValueChange={handleChatSelection}>
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Select a chat..." />
           </SelectTrigger>
           <SelectContent>
@@ -319,22 +348,22 @@ const Playground = () => {
         </Select>
       </div>
 
-      {/* Persona */}
+      {/* Problem */}
       <div>
-        <Label className="text-sm font-medium text-gray-700 mb-3 block">Persona</Label>
-        <Select value={selectedPersona} onValueChange={handlePersonaSelection}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a persona..." />
+        <Label className="text-sm font-medium text-gray-700 mb-3 block">Problem</Label>
+        <Select value={selectedProblemStatement} onValueChange={setSelectedProblemStatement}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select a problem..." />
           </SelectTrigger>
           <SelectContent className="max-h-60 overflow-y-auto">
-            {personasLoading ? (
-              <SelectItem value="loading" disabled>Loading personas...</SelectItem>
-            ) : personas.length === 0 ? (
-              <SelectItem value="empty" disabled>No personas found</SelectItem>
+            {problemsLoading ? (
+              <SelectItem value="loading" disabled>Loading problems...</SelectItem>
+            ) : sampleProblems.length === 0 ? (
+              <SelectItem value="empty" disabled>No problems found</SelectItem>
             ) : (
-              personas.map((persona) => (
-                <SelectItem key={persona.act} value={persona.act}>
-                  {persona.act}
+              sampleProblems.map((problem) => (
+                <SelectItem key={problem.id} value={problem["Sample Problems"]}>
+                  {problem["Sample Problems"]}
                 </SelectItem>
               ))
             )}
