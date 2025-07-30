@@ -5,12 +5,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { RotateCcw, Code, Share, Settings, Eye, Edit, Info, Copy, MoreHorizontal } from "lucide-react";
+import { RotateCcw, Code, Share, Eye, Edit, Info, Copy, MoreHorizontal } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -54,7 +53,6 @@ const Playground = () => {
   const [temperature, setTemperature] = useState([0.56]);
   const [maxLength, setMaxLength] = useState([256]);
   const [topP, setTopP] = useState([0.9]);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [chatOptions, setChatOptions] = useState<ChatOption[]>([]);
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [loading, setLoading] = useState(false);
@@ -526,31 +524,17 @@ const Playground = () => {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold text-foreground">Playground</h1>
             <div className="flex items-center gap-3">
-              {/* Mobile Settings Button */}
-              {isMobile && (
-                <Sheet open={settingsOpen} onOpenChange={setSettingsOpen}>
-                  <SheetTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="right" className="w-80">
-                    <SheetHeader>
-                      <SheetTitle>Settings</SheetTitle>
-                    </SheetHeader>
-                    <div className="mt-6">
-                      <SettingsContent />
-                    </div>
-                  </SheetContent>
-                </Sheet>
-              )}
-
-              {/* Desktop Settings Button */}
-              {!isMobile && (
-                <Button variant="outline" size="sm">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              )}
+              {/* Load Preset Dropdown */}
+              <Select>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Load a preset..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">Default</SelectItem>
+                  <SelectItem value="creative">Creative Writing</SelectItem>
+                  <SelectItem value="code">Code Generation</SelectItem>
+                </SelectContent>
+              </Select>
 
               <SaveDialog />
               <ViewCodeDialog />
