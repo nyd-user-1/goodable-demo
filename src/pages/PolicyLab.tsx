@@ -81,9 +81,9 @@ const PolicyLab = () => {
   );
 
   return (
-    <div className="flex h-full bg-background">
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
+    <div className="flex h-full bg-background p-6">
+      {/* Main Content Container with Border and Rounded Corners */}
+      <div className="flex-1 flex flex-col border border-border rounded-lg overflow-hidden">
         {/* Header */}
         <div className="bg-background border-b border-border px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
