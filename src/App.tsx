@@ -15,6 +15,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import { PageTransition } from "@/components/PageTransition";
 import { CommandPalette } from "@/components/CommandPalette";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import Landing from "./pages/Landing";
 import Landing2 from "./pages/Landing-2";
 import Home from "./pages/Home";
@@ -117,6 +118,7 @@ const App = () => {
             <Sonner />
             <SpeedInsights />
             <BrowserRouter>
+              <ScrollToTop />
               <CommandPalette />
               <PageTransition>
                 <Routes>
