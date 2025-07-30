@@ -524,15 +524,18 @@ const Playground = () => {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold text-foreground">Playground</h1>
             <div className="flex items-center gap-3">
-              {/* Load Preset Dropdown */}
-              <Select>
+              {/* Load Persona Dropdown */}
+              <Select value={selectedPersona} onValueChange={handlePersonaSelection}>
                 <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Load a preset..." />
+                  <SelectValue placeholder="Load a persona..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="default">Default</SelectItem>
-                  <SelectItem value="creative">Creative Writing</SelectItem>
-                  <SelectItem value="code">Code Generation</SelectItem>
+                  <SelectItem value="Democratic Lawmaker">Democratic Lawmaker</SelectItem>
+                  <SelectItem value="Conservative Lawmaker">Conservative Lawmaker</SelectItem>
+                  <SelectItem value="Republican Lawmaker">Republican Lawmaker</SelectItem>
+                  <SelectItem value="Progressive Lawmaker">Progressive Lawmaker</SelectItem>
+                  <SelectItem value="Rookie Lawmaker">Rookie Lawmaker</SelectItem>
+                  <SelectItem value="Veteran Lawmaker">Veteran Lawmaker</SelectItem>
                 </SelectContent>
               </Select>
 
