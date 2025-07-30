@@ -176,8 +176,11 @@ Ready to dig into the real source of this problem?`;
           body: {
             prompt: `Perform a clean "5 Whys" root cause analysis for: ${userProblem}. 
             
-            Format each Why as: "Why #: [Question] --> [Direct Answer]" 
-            No legislative context. No extra explanations. Just clean Why statements.
+            Format each Why as: 
+            "**Why #:** [Question]
+            [Direct Answer]"
+            
+            No legislative context. No extra explanations. Just clean Why statements with questions and answers on separate lines.
             End with a tight, concise summary of the root causes in 2-3 sentences.`,
             type: 'default',
             model: 'gpt-4o-mini'
@@ -394,7 +397,20 @@ Ready to explore actionable steps for addressing these root causes in the Policy
                 >
                   {message.sender === "assistant" ? (
                     <div className="prose prose-sm max-w-none dark:prose-invert">
-                      <ReactMarkdown>
+                      <ReactMarkdown
+                        components={{
+                          strong: ({ children }) => (
+                            <span className="font-bold text-black">
+                              {children}
+                            </span>
+                          ),
+                          p: ({ children }) => (
+                            <p className="mb-3 leading-relaxed">
+                              {children}
+                            </p>
+                          )
+                        }}
+                      >
                         {message.isStreaming ? message.streamedContent || '' : message.content}
                       </ReactMarkdown>
                       {message.isStreaming && (
