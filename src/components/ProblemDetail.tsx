@@ -5,7 +5,7 @@ import { Problem } from "@/data/problems";
 import { ProblemSummary } from "./features/problems/ProblemSummary";
 import { ProblemOverview } from "./features/problems/ProblemOverview";
 import { ProblemStatisticsEnhanced } from "./features/problems/ProblemStatisticsEnhanced";
-import { ProblemSolutionsWhiteboard } from "./features/problems/ProblemSolutionsWhiteboard";
+import { ProblemCollabStream } from "./features/problems/ProblemCollabStream";
 import { ProblemProposals } from "./features/problems/ProblemProposals";
 
 interface ProblemDetailProps {
@@ -57,8 +57,8 @@ export const ProblemDetail = ({ problem, onBack }: ProblemDetailProps) => {
                 <TabsTrigger value="overview" className="h-10 rounded-md text-sm font-medium">
                   Overview
                 </TabsTrigger>
-                <TabsTrigger value="solutions" className="h-10 rounded-md text-sm font-medium">
-                  Solutions
+                <TabsTrigger value="discuss" className="h-10 rounded-md text-sm font-medium">
+                  Discuss
                 </TabsTrigger>
                 <TabsTrigger value="statistics" className="h-10 rounded-md text-sm font-medium">
                   Statistics
@@ -72,8 +72,8 @@ export const ProblemDetail = ({ problem, onBack }: ProblemDetailProps) => {
                 <ProblemOverview problem={problem} />
               </TabsContent>
 
-              <TabsContent value="solutions" className="mt-6">
-                <ProblemSolutionsWhiteboard problem={problem} />
+              <TabsContent value="discuss" className="mt-6">
+                <ProblemCollabStream problem={problem} />
               </TabsContent>
 
               <TabsContent value="statistics" className="mt-6">
