@@ -376,7 +376,7 @@ Ready to explore actionable steps for addressing these root causes in the Policy
   return (
     <div className="flex flex-col items-left gap-4 w-full p-4">
       {/* Chat Section */}
-      <div className="flex h-[600px] w-full max-w-4xl flex-col rounded-xl border shadow-med ai-style-change-1">
+      <div className="flex h-[600px] w-full flex-col rounded-xl border shadow-med ai-style-change-1">
         {/* Chat header */}
         <div className="flex items-center gap-3 border-b p-4 relative">
           <Avatar className="h-10 w-10">
