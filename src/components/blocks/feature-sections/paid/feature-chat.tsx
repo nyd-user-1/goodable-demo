@@ -384,60 +384,126 @@ ${fiveWhysAnalysis}
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={cn(
-                  "flex",
-                  message.sender === "user" ? "justify-end" : "justify-start",
-                )}
+                className="flex justify-start"
+                style={{ marginBottom: '24px' }}
               >
-                <div
-                  className={cn(
-                    "max-w-[80%] rounded-lg p-3",
-                    message.sender === "user"
-                      ? "bg-primary text-primary-foreground rounded-br-none"
-                      : "rounded-bl-none",
-                  )}
-                >
-                  {message.sender === "assistant" ? (
-                    <div className="prose prose-sm max-w-none dark:prose-invert">
-                      <ReactMarkdown>
-                        {message.isStreaming ? message.streamedContent || '' : message.content}
-                      </ReactMarkdown>
-                      {message.isStreaming && (
-                        <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1">|</span>
+                <div className="flex gap-3 w-full">
+                  {/* Avatar */}
+                  <div className="flex-shrink-0">
+                    {message.sender === "user" ? (
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                        <span className="text-sm font-medium text-gray-600">U</span>
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center">
+                        <span>❤️</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Message content */}
+                  <div className="flex-1 min-w-0" style={{ maxWidth: '70ch' }}>
+                    <div className="mb-2">
+                      <span className="text-sm font-medium" style={{ color: '#000' }}>
+                        {message.sender === "user" ? "You" : ""}
+                      </span>
+                      <span className="text-xs text-gray-500 ml-2">
+                        {message.timestamp.toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                    
+                    <div style={{ 
+                      color: '#000',
+                      lineHeight: '1.7',
+                      fontFamily: 'system-ui, -apple-system, sans-serif'
+                    }}>
+                      {message.sender === "assistant" ? (
+                        <div>
+                          <ReactMarkdown 
+                            components={{
+                              p: ({ children }) => (
+                                <p style={{ 
+                                  marginBottom: '18px', 
+                                  lineHeight: '1.7',
+                                  color: '#000'
+                                }}>
+                                  {children}
+                                </p>
+                              ),
+                              h3: ({ children }) => (
+                                <h3 style={{ 
+                                  fontWeight: 500, 
+                                  marginBottom: '12px',
+                                  marginTop: '20px',
+                                  color: '#000'
+                                }}>
+                                  {children}
+                                </h3>
+                              ),
+                              strong: ({ children }) => (
+                                <div style={{ 
+                                  fontWeight: 700, 
+                                  display: 'block',
+                                  marginBottom: '8px',
+                                  color: '#000'
+                                }}>
+                                  {children}
+                                </div>
+                              ),
+                              ul: ({ children }) => (
+                                <ul style={{ 
+                                  marginBottom: '18px', 
+                                  paddingLeft: '20px',
+                                  color: '#000'
+                                }}>
+                                  {children}
+                                </ul>
+                              ),
+                              li: ({ children }) => (
+                                <li style={{ 
+                                  marginBottom: '6px', 
+                                  lineHeight: '1.7',
+                                  color: '#000'
+                                }}>
+                                  {children}
+                                </li>
+                              )
+                            }}
+                          >
+                            {message.isStreaming ? message.streamedContent || '' : message.content}
+                          </ReactMarkdown>
+                          {message.isStreaming && (
+                            <span style={{ color: '#000' }}>❤️</span>
+                          )}
+                        </div>
+                      ) : (
+                        <p style={{ margin: 0, color: '#000' }}>{message.content}</p>
                       )}
                     </div>
-                  ) : (
-                    <p>{message.content}</p>
-                  )}
-                  <div
-                    className={cn(
-                      "mt-1 flex items-center gap-2 text-xs",
-                      message.sender === "user"
-                        ? "text-primary-foreground/80"
-                        : "text-muted-foreground",
-                    )}
-                  >
-                    {message.timestamp.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                    {message.sender === "user" && (
-                      <ThumbsUp className="h-3 w-3" />
-                    )}
                   </div>
                 </div>
               </div>
             ))}
 
             {isAssistantTyping && (
-              <div className="flex justify-start">
-                <div className="bg-muted rounded-lg rounded-bl-none p-3">
-                  <div className="flex items-center space-x-2">
-                    <Heart className="h-4 w-4 text-red-500 animate-pulse" />
-                    <div className="flex space-x-1">
-                      <div className="bg-muted-foreground/50 h-2 w-2 animate-bounce rounded-full"></div>
-                      <div className="bg-muted-foreground/50 h-2 w-2 animate-bounce rounded-full delay-75"></div>
-                      <div className="bg-muted-foreground/50 h-2 w-2 animate-bounce rounded-full delay-150"></div>
+              <div className="flex justify-start" style={{ marginBottom: '24px' }}>
+                <div className="flex gap-3 w-full">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center">
+                      <span>❤️</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="mb-2">
+                      <span className="text-xs text-gray-500">thinking...</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <div className="bg-gray-400 h-2 w-2 animate-bounce rounded-full"></div>
+                      <div className="bg-gray-400 h-2 w-2 animate-bounce rounded-full delay-75"></div>
+                      <div className="bg-gray-400 h-2 w-2 animate-bounce rounded-full delay-150"></div>
                     </div>
                   </div>
                 </div>
