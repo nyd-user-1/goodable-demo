@@ -174,7 +174,11 @@ Ready to dig into the real source of this problem?`;
         // Generate 5 Whys analysis using the same API
         const { data, error } = await supabase.functions.invoke('generate-with-openai', {
           body: {
-            prompt: `Perform a comprehensive "5 Whys" root cause analysis for this problem: ${userProblem}`,
+            prompt: `Perform a clean "5 Whys" root cause analysis for: ${userProblem}. 
+            
+            Format each Why as: "Why #: [Question] --> [Direct Answer]" 
+            No legislative context. No extra explanations. Just clean Why statements.
+            End with a tight, concise summary of the root causes in 2-3 sentences.`,
             type: 'default',
             model: 'gpt-4o-mini'
           }
@@ -186,17 +190,11 @@ Ready to dig into the real source of this problem?`;
         }
 
         const fiveWhysAnalysis = data?.generatedText || '';
-        return `Perfect! The "5 Whys" technique peels back the layers to find what's really causing your problem. Think of it like:
-
-- Why #1: Gets past the obvious
-- Why #2: Reveals the deeper issue  
-- Why #3: Uncovers systemic problems
-- Why #4: Finds the real culprit
-- Why #5: Hits the root cause
+        return `Perfect! The "5 Whys" technique peels back the layers to find what's really causing your problem:
 
 ${fiveWhysAnalysis}
 
-What's Next? Now that you've identified the root cause, you can focus your energy on solutions that actually address the core issue rather than just symptoms. Want to explore some policy approaches or next steps?`;
+Ready to explore actionable steps for addressing these root causes in the Policy Lab?`;
       }
 
       // Default response
@@ -384,10 +382,7 @@ What's Next? Now that you've identified the root cause, you can focus your energ
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={cn(
-                  "flex",
-                  message.sender === "user" ? "justify-end" : "justify-start",
-                )}
+                className="flex justify-start"
               >
                 <div
                   className={cn(
