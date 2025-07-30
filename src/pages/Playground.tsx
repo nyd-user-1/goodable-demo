@@ -4,24 +4,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { RotateCcw, Download, Code, Share, List, SlidersHorizontal, Settings, Eye, Edit, Info } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { RotateCcw, Code, Share, Settings, Eye, Edit, Info, Copy, MoreHorizontal } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from 'react-markdown';
 
-interface ChatSession {
-  id: string;
-  title: string;
-  messages: any[];
-  bill_id?: number;
-  member_id?: number;
-  committee_id?: number;
-  created_at: string;
-}
 
 interface ChatOption {
   id: string;
@@ -69,6 +63,9 @@ const Playground = () => {
   const [mode, setMode] = useState<'textEditor' | 'chat'>('textEditor');
   const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
   const [isChatting, setIsChatting] = useState(false);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [viewCodeDialogOpen, setViewCodeDialogOpen] = useState(false);
+  const [sharePopoverOpen, setSharePopoverOpen] = useState(false);
   const isMobile = useIsMobile();
   const { toast } = useToast();
 
@@ -394,6 +391,132 @@ const Playground = () => {
     </div>
   );
 
+  // Dialog Components
+  const SharePopover = () => (
+    <Popover open={sharePopoverOpen} onOpenChange={setSharePopoverOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="hidden sm:flex">
+          <Share className="h-4 w-4 mr-2" />
+          Share
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-[400px]">
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-semibold">Share preset</h3>
+            <p className="text-sm text-muted-foreground">
+              Anyone who has this link and an OpenAI account will be able to view this.
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Input
+              readOnly
+              value="https://platform.openai.com/playground/p/7bbKYQvsht40J6mtQErn6z6R"
+              className="text-sm"
+            />
+            <Button size="sm" variant="outline">
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+
+  const ViewCodeDialog = () => (
+    <Dialog open={viewCodeDialogOpen} onOpenChange={setViewCodeDialogOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="hidden sm:flex">
+          <Code className="h-4 w-4 mr-2" />
+          View code
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>View code</DialogTitle>
+          <DialogDescription>
+            You can use the following code to start integrating your current prompt and settings into your application.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="bg-black rounded-lg p-4 text-sm font-mono">
+          <div className="text-green-400">import</div>{" "}
+          <div className="text-white inline">os</div>
+          <br />
+          <div className="text-green-400">import</div>{" "}
+          <div className="text-white inline">openai</div>
+          <br /><br />
+          <div className="text-white">openai.api_key = os.getenv("OPENAI_API_KEY")</div>
+          <br /><br />
+          <div className="text-white">response = openai.Completion.create(</div>
+          <br />
+          <div className="text-blue-400 ml-4">model="text-davinci-003",</div>
+          <br />
+          <div className="text-blue-400 ml-4">prompt="{prompt}",</div>
+          <br />
+          <div className="text-blue-400 ml-4">temperature={temperature[0]},</div>
+          <br />
+          <div className="text-blue-400 ml-4">max_tokens={maxLength[0]},</div>
+          <br />
+          <div className="text-blue-400 ml-4">top_p={topP[0]},</div>
+          <br />
+          <div className="text-blue-400 ml-4">frequency_penalty=0,</div>
+          <br />
+          <div className="text-blue-400 ml-4">presence_penalty=0,</div>
+          <br />
+          <div className="text-white">)</div>
+        </div>
+        <div className="text-sm text-muted-foreground">
+          Your API Key can be found here. You should use environment variables or a secret management tool to expose your key to your applications.
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
+  const SaveDialog = () => (
+    <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="hidden sm:flex">
+          Save
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Save preset</DialogTitle>
+          <DialogDescription>
+            This will save the current playground state as a preset which you can access later or share with others.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="name">Name</Label>
+            <Input id="name" className="mt-2" />
+          </div>
+          <div>
+            <Label htmlFor="description">Description</Label>
+            <Textarea id="description" className="mt-2" />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button className="bg-black text-white hover:bg-gray-800">Save</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
+  const PreferencesMenu = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem>Content filter preferences</DropdownMenuItem>
+        <DropdownMenuItem>Delete preset</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   return (
     <div className="flex h-full bg-white">
       {/* Main Content Area */}
@@ -429,17 +552,10 @@ const Playground = () => {
                 </Button>
               )}
 
-              <Button variant="outline" size="sm" className="hidden sm:flex">
-                Save
-              </Button>
-              <Button variant="outline" size="sm" className="hidden sm:flex">
-                <Code className="h-4 w-4 mr-2" />
-                View code
-              </Button>
-              <Button variant="outline" size="sm" className="hidden sm:flex">
-                <Share className="h-4 w-4 mr-2" />
-                Share
-              </Button>
+              <SaveDialog />
+              <ViewCodeDialog />
+              <SharePopover />
+              <PreferencesMenu />
             </div>
           </div>
         </div>
