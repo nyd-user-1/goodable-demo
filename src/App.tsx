@@ -59,7 +59,7 @@ const AppLayout = () => {
           <AppSidebar />
           <SidebarInset className="flex-1">
             <ScrollProgress className="top-0" />
-            <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background/80 backdrop-blur-md backdrop-saturate-150 supports-[backdrop-filter]:bg-background/60">
+            <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 px-4 bg-background/80 backdrop-blur-md backdrop-saturate-150 supports-[backdrop-filter]:bg-background/60">
               <HeartSidebarTrigger />
               <div className="ml-auto flex items-center gap-2">
                 <ThemeToggle />
