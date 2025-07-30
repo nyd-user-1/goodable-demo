@@ -37,6 +37,7 @@ interface Message {
   isTyping?: boolean;
   isStreaming?: boolean;
   streamedContent?: string;
+  hasYesNoButtons?: boolean;
 }
 
 type ConversationStage = 'initial' | 'problem_received' | 'statement_sent' | 'five_whys' | 'complete';
@@ -112,7 +113,7 @@ export default function FeatureChat() {
   };
 
   // Generate AI response using the exact working pattern from ProblemChatSheet
-  const generateAIResponse = async (prompt: string, stage: ConversationStage): Promise<string> => {
+  const generateAIResponse = async (prompt: string, stage: ConversationStage): Promise<string | { content: string; hasYesNoButtons: boolean }> => {
     try {
       if (stage === 'problem_received') {
         // Use the exact working API call from ProblemChatSheet
@@ -132,7 +133,8 @@ export default function FeatureChat() {
 
         // Add the validation response before the problem statement
         const problemStatement = data?.generatedText || '';
-        return `I hear you, and what you're experiencing sounds genuinely challenging.
+        return {
+          content: `I hear you, and what you're experiencing sounds genuinely challenging.
 
 You know what? A well-crafted problem statement could be incredibly valuable here. It's like having a GPS for solutions - it helps you:
 
@@ -143,7 +145,9 @@ You know what? A well-crafted problem statement could be incredibly valuable her
 
 Think of it as turning frustration into a roadmap.
 
-Shall I draw up that problem statement for you right now?`;
+Shall I draw up that problem statement for you right now?`,
+          hasYesNoButtons: true
+        };
       } else if (stage === 'statement_sent') {
         // Generate the actual problem statement
         const { data, error } = await supabase.functions.invoke('generate-with-openai', {
@@ -170,13 +174,16 @@ Shall I draw up that problem statement for you right now?`;
         }
 
         const problemStatement = data?.generatedText || '';
-        return `${problemStatement}
+        return {
+          content: `${problemStatement}
 
 Why this matters: This statement gives you clarity, helps communicate the issue to others, and becomes your north star for finding solutions. It transforms a messy situation into something you can actually tackle.
 
 Now, want to go deeper? I can walk you through a "5 Whys" analysis - it's like detective work that uncovers the root cause hiding beneath the surface symptoms.
 
-Ready to dig into the real source of this problem?`;
+Ready to dig into the real source of this problem?`,
+          hasYesNoButtons: true
+        };
       } else if (stage === 'five_whys') {
         // Generate 5 Whys analysis using the same API
         const { data, error } = await supabase.functions.invoke('generate-with-openai', {
@@ -200,11 +207,14 @@ Ready to dig into the real source of this problem?`;
         }
 
         const fiveWhysAnalysis = data?.generatedText || '';
-        return `Perfect! The "5 Whys" technique peels back the layers to find what's really causing your problem:
+        return {
+          content: `Perfect! The "5 Whys" technique peels back the layers to find what's really causing your problem:
 
 ${fiveWhysAnalysis}
 
-Ready to explore actionable steps for addressing these root causes in the Policy Lab?`;
+Ready to explore actionable steps for addressing these root causes in the Policy Lab?`,
+          hasYesNoButtons: true
+        };
       }
 
       // Default response
@@ -262,25 +272,29 @@ Ready to explore actionable steps for addressing these root causes in the Policy
     // Handle conversation flow based on current stage
     const handleResponse = async () => {
       const messageId = `assistant-${Date.now()}`;
-      let responseContent: string;
+      let aiResponse: string | { content: string; hasYesNoButtons: boolean };
 
       if (conversationStage === 'initial') {
         // User described their problem
         setUserProblem(currentInput);
         setConversationStage('problem_received');
-        responseContent = await generateAIResponse(currentInput, 'problem_received');
+        aiResponse = await generateAIResponse(currentInput, 'problem_received');
       } else if (conversationStage === 'problem_received' && currentInput.toLowerCase().includes('yes')) {
         // User agreed to problem statement
         setConversationStage('statement_sent');
-        responseContent = await generateAIResponse(userProblem, 'statement_sent');
+        aiResponse = await generateAIResponse(userProblem, 'statement_sent');
       } else if (conversationStage === 'statement_sent' && currentInput.toLowerCase().includes('yes')) {
         // User agreed to 5 whys
         setConversationStage('five_whys');
-        responseContent = await generateAIResponse(userProblem, 'five_whys');
+        aiResponse = await generateAIResponse(userProblem, 'five_whys');
       } else {
         // Default response for other cases
-        responseContent = `I'm here to help you work through problems step by step. If you'd like to start over with a new problem, just tell me what's bothering you, or if you want to continue with your current issue, let me know how I can help!`;
+        aiResponse = `I'm here to help you work through problems step by step. If you'd like to start over with a new problem, just tell me what's bothering you, or if you want to continue with your current issue, let me know how I can help!`;
       }
+
+      // Handle both string and object responses
+      const responseContent = typeof aiResponse === 'string' ? aiResponse : aiResponse.content;
+      const hasYesNoButtons = typeof aiResponse === 'object' ? aiResponse.hasYesNoButtons : false;
 
       // Create message with streaming support
       const assistantResponse: Message = {
@@ -290,6 +304,7 @@ Ready to explore actionable steps for addressing these root causes in the Policy
         timestamp: new Date(),
         isStreaming: true,
         streamedContent: '',
+        hasYesNoButtons: hasYesNoButtons,
       };
 
       setMessages((prev) => [...prev, assistantResponse]);
@@ -308,6 +323,54 @@ Ready to explore actionable steps for addressing these root causes in the Policy
     setUserProblem('');
     setInputValue(`It's a problem that ${prompt.toLowerCase()}`);
     setIsSampleProblemActive(true);
+  };
+
+  const handleYesNoClick = (response: 'yes' | 'no') => {
+    // Add user message
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      content: response,
+      sender: "user",
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setIsAssistantTyping(true);
+
+    // Handle response just like typing "yes" or "no"
+    const handleResponse = async () => {
+      const messageId = `assistant-${Date.now()}`;
+      let aiResponse: string | { content: string; hasYesNoButtons: boolean };
+
+      if (conversationStage === 'problem_received' && response === 'yes') {
+        setConversationStage('statement_sent');
+        aiResponse = await generateAIResponse(userProblem, 'statement_sent');
+      } else if (conversationStage === 'statement_sent' && response === 'yes') {
+        setConversationStage('five_whys');
+        aiResponse = await generateAIResponse(userProblem, 'five_whys');
+      } else {
+        aiResponse = `I'm here to help you work through problems step by step. If you'd like to start over with a new problem, just tell me what's bothering you, or if you want to continue with your current issue, let me know how I can help!`;
+      }
+
+      const responseContent = typeof aiResponse === 'string' ? aiResponse : aiResponse.content;
+      const hasYesNoButtons = typeof aiResponse === 'object' ? aiResponse.hasYesNoButtons : false;
+
+      const assistantResponse: Message = {
+        id: messageId,
+        content: responseContent,
+        sender: "assistant",
+        timestamp: new Date(),
+        isStreaming: true,
+        streamedContent: '',
+        hasYesNoButtons: hasYesNoButtons,
+      };
+
+      setMessages((prev) => [...prev, assistantResponse]);
+      setIsAssistantTyping(false);
+      streamText(responseContent, messageId);
+    };
+
+    handleResponse();
   };
 
   return (
@@ -441,6 +504,22 @@ Ready to explore actionable steps for addressing these root causes in the Policy
                     })}
                     {message.sender === "user" && (
                       <ThumbsUp className="h-3 w-3" />
+                    )}
+                    {message.sender === "assistant" && message.hasYesNoButtons && !message.isStreaming && (
+                      <div className="flex gap-1 ml-2">
+                        <button 
+                          onClick={() => handleYesNoClick('yes')}
+                          className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+                        >
+                          Yes
+                        </button>
+                        <button 
+                          onClick={() => handleYesNoClick('no')}
+                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                        >
+                          No
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
