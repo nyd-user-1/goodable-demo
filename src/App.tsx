@@ -54,7 +54,7 @@ const AppLayout = () => {
   
   return (
     <ProtectedRoute>
-      <SidebarProvider>
+      <SidebarProvider defaultOpen={false}>
         <div className="min-h-screen flex w-full">
           <AppSidebar />
           <SidebarInset className="flex-1">
