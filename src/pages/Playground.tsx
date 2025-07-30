@@ -9,13 +9,19 @@ import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescript
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { RotateCcw, Code, Share, Info, Copy, MoreHorizontal, HelpCircle } from "lucide-react";
+import { RotateCcw, Code, Share, Info, Copy, MoreHorizontal } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { usePolicyDrafts, PolicyDraft } from "@/hooks/usePolicyDrafts";
 import ReactMarkdown from 'react-markdown';
 
+
+interface ChatOption {
+  id: string;
+  label: string;
+  content: string;
+  type: 'bill' | 'member' | 'committee' | 'problem' | 'solution' | 'mediaKit';
+}
 
 interface Persona {
   id: string;
@@ -24,21 +30,35 @@ interface Persona {
   Label: string | null;
 }
 
+const formatChatConversation = (messages: any[]): string => {
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return "";
+  }
+
+  return messages
+    .map((msg: any, index: number) => {
+      const role = msg.role === 'user' ? 'User' : 'Assistant';
+      const content = msg.content || '';
+      return `${role}: ${content}`;
+    })
+    .join('\n\n');
+};
+
 
 const Playground = () => {
   const [prompt, setPrompt] = useState("No complaints.");
+  const [selectedChat, setSelectedChat] = useState("");
   const [selectedPersona, setSelectedPersona] = useState("");
   const [selectedPersonaAct, setSelectedPersonaAct] = useState("");
-  const [selectedProblemStatement, setSelectedProblemStatement] = useState("");
   const [systemPrompt, setSystemPrompt] = useState("");
   const [temperature, setTemperature] = useState([0.56]);
-  const [maxLength] = useState([256]);
-  const [maxWords, setMaxWords] = useState(250);
+  const [maxLength, setMaxLength] = useState([256]);
   const [topP, setTopP] = useState([0.9]);
-  const [sampleProblems, setSampleProblems] = useState<{id: number, "Sample Problems": string}[]>([]);
-  const [problemsLoading, setProblemsLoading] = useState(false);
+  const [chatOptions, setChatOptions] = useState<ChatOption[]>([]);
   const [personas, setPersonas] = useState<Persona[]>([]);
-  const [isPreviewMode] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [personasLoading, setPersonasLoading] = useState(false);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [mode, setMode] = useState<'textEditor' | 'chat'>('textEditor');
   const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
   const [isChatting, setIsChatting] = useState(false);
@@ -47,11 +67,104 @@ const Playground = () => {
   const [sharePopoverOpen, setSharePopoverOpen] = useState(false);
   const isMobile = useIsMobile();
   const { toast } = useToast();
-  const { drafts, loading: draftsLoading, fetchDrafts } = usePolicyDrafts();
 
+  const fetchUserChats = async () => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // First, get all chat sessions for the user
+      const { data: chatSessions, error } = await supabase
+        .from("chat_sessions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      const options: ChatOption[] = [];
+
+      // Process chat sessions and create options
+      chatSessions?.forEach((session: any) => {
+        const messages = Array.isArray(session.messages) ? session.messages : JSON.parse(session.messages || '[]');
+        const formattedConversation = formatChatConversation(messages);
+        const firstUserMessage = messages.find((msg: any) => msg.role === 'user')?.content || '';
+
+        if (session.title.toLowerCase().includes('problem:')) {
+          const problemNumber = session.title.split(':')[1]?.trim() || 'Unknown';
+          options.push({
+            id: session.id,
+            label: `Problem ${problemNumber}: ${firstUserMessage.substring(0, 50)}...`,
+            content: formattedConversation,
+            type: 'problem'
+          });
+        } else if (session.title.toLowerCase().includes('solution:')) {
+          const solutionNumber = session.title.split(':')[1]?.trim() || 'Unknown';
+          options.push({
+            id: session.id,
+            label: `Solution ${solutionNumber}: ${firstUserMessage.substring(0, 50)}...`,
+            content: formattedConversation,
+            type: 'solution'
+          });
+        } else if (session.title.toLowerCase().includes('media kit:')) {
+          const mediaKitNumber = session.title.split(':')[1]?.trim() || 'Unknown';
+          options.push({
+            id: session.id,
+            label: `Media Kit ${mediaKitNumber}: ${firstUserMessage.substring(0, 50)}...`,
+            content: formattedConversation,
+            type: 'mediaKit'
+          });
+        } else if (session.bill_id) {
+          // For bill-related chats, use the session title which contains the bill number
+          options.push({
+            id: session.id,
+            label: session.title.startsWith('Bill:') ? `Bill Chat: ${session.title.replace('Bill: ', '')}` : session.title,
+            content: formattedConversation,
+            type: 'bill'
+          });
+        } else if (session.member_id) {
+          // For member-related chats - need to fetch member name for better labeling
+          options.push({
+            id: session.id,
+            label: `Member Chat: ${firstUserMessage.substring(0, 30)}...`,
+            content: formattedConversation,
+            type: 'member'
+          });
+        } else if (session.committee_id) {
+          // For committee-related chats - need to fetch committee name for better labeling
+          options.push({
+            id: session.id,
+            label: `Committee Chat: ${firstUserMessage.substring(0, 30)}...`,
+            content: formattedConversation,
+            type: 'committee'
+          });
+        } else {
+          // Generic chat session
+          options.push({
+            id: session.id,
+            label: `Chat: ${firstUserMessage.substring(0, 50)}...`,
+            content: formattedConversation,
+            type: 'problem' // Default type
+          });
+        }
+      });
+
+      setChatOptions(options);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load chat sessions",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchPersonas = async () => {
     try {
+      setPersonasLoading(true);
       const { data: personasData, error } = await supabase
         .from("Persona")
         .select("*")
@@ -62,44 +175,30 @@ const Playground = () => {
       }
 
       setPersonas(personasData || []);
-    } catch {
+    } catch (error) {
       toast({
         title: "Error",
         description: "Failed to load personas",
         variant: "destructive",
       });
-    }
-  };
-
-  const fetchSampleProblems = async () => {
-    try {
-      setProblemsLoading(true);
-      const { data: problemsData, error } = await supabase
-        .from("SampleProblems")
-        .select("*")
-        .order("id", { ascending: true });
-
-      if (error) {
-        throw error;
-      }
-
-      setSampleProblems(problemsData || []);
-    } catch {
-      toast({
-        title: "Error",
-        description: "Failed to load sample problems",
-        variant: "destructive",
-      });
     } finally {
-      setProblemsLoading(false);
+      setPersonasLoading(false);
     }
   };
+
 
   useEffect(() => {
+    fetchUserChats();
     fetchPersonas();
-    fetchSampleProblems();
-    fetchDrafts();
   }, []);
+
+  const handleChatSelection = (chatId: string) => {
+    const selectedOption = chatOptions.find(option => option.id === chatId);
+    if (selectedOption) {
+      setPrompt(selectedOption.content);
+      setSelectedChat(chatId);
+    }
+  };
 
 
   const handlePersonaSelection = (personaAct: string) => {
@@ -159,7 +258,7 @@ const Playground = () => {
         description: `Chat with ${selectedPersona} initiated successfully`,
       });
       
-    } catch {
+    } catch (error) {
       toast({
         title: "Error",
         description: "Failed to start chat session",
@@ -188,7 +287,6 @@ const Playground = () => {
     setSelectedPersona('');
     setSelectedPersonaAct('');
     setSystemPrompt('');
-    setSelectedProblemStatement('');
     setMode('textEditor');
     toast({
       title: "Playground Cleared",
@@ -198,22 +296,22 @@ const Playground = () => {
 
   const SettingsContent = () => (
     <div className="space-y-6">
-      {/* Problem */}
+      {/* Load Chat */}
       <div>
-        <Label className="text-base font-medium text-gray-900 mb-3 block">Problem</Label>
-        <Select value={selectedProblemStatement} onValueChange={setSelectedProblemStatement}>
+        <Label className="text-sm font-medium text-gray-700 mb-3 block">Load</Label>
+        <Select value={selectedChat} onValueChange={handleChatSelection}>
           <SelectTrigger>
-            <SelectValue placeholder="Select problem" />
+            <SelectValue placeholder="Select a chat..." />
           </SelectTrigger>
           <SelectContent>
-            {problemsLoading ? (
-              <SelectItem value="loading" disabled>Loading problems...</SelectItem>
-            ) : sampleProblems.length === 0 ? (
-              <SelectItem value="empty" disabled>No problems found</SelectItem>
+            {loading ? (
+              <SelectItem value="loading" disabled>Loading chats...</SelectItem>
+            ) : chatOptions.length === 0 ? (
+              <SelectItem value="empty" disabled>No chats found</SelectItem>
             ) : (
-              sampleProblems.map((problem) => (
-                <SelectItem key={problem.id} value={problem["Sample Problems"]}>
-                  {problem["Sample Problems"]}
+              chatOptions.map((option) => (
+                <SelectItem key={option.id} value={option.id}>
+                  {option.label}
                 </SelectItem>
               ))
             )}
@@ -221,29 +319,35 @@ const Playground = () => {
         </Select>
       </div>
 
-      {/* Maximum Length */}
+      {/* Persona */}
       <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Label className="text-base font-medium text-gray-900">Maximum Length</Label>
-          <HelpCircle className="h-4 w-4 text-gray-400" />
-          <span className="text-sm text-gray-500 ml-auto">{maxWords} words</span>
-        </div>
-        <Slider
-          value={[maxWords]}
-          onValueChange={(value) => setMaxWords(value[0])}
-          max={1000}
-          min={50}
-          step={25}
-          className="w-full"
-        />
+        <Label className="text-sm font-medium text-gray-700 mb-3 block">Persona</Label>
+        <Select value={selectedPersona} onValueChange={handlePersonaSelection}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a persona..." />
+          </SelectTrigger>
+          <SelectContent className="max-h-60 overflow-y-auto">
+            {personasLoading ? (
+              <SelectItem value="loading" disabled>Loading personas...</SelectItem>
+            ) : personas.length === 0 ? (
+              <SelectItem value="empty" disabled>No personas found</SelectItem>
+            ) : (
+              personas.map((persona) => (
+                <SelectItem key={persona.act} value={persona.act}>
+                  {persona.act}
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
       </div>
+
 
       {/* Temperature */}
       <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Label className="text-base font-medium text-gray-900">Temperature</Label>
-          <HelpCircle className="h-4 w-4 text-gray-400" />
-          <span className="text-sm text-gray-500 ml-auto">{temperature[0]}</span>
+        <div className="flex justify-between items-center mb-3">
+          <Label className="text-sm font-medium text-gray-700">Temperature</Label>
+          <span className="text-sm text-gray-500">{temperature[0]}</span>
         </div>
         <Slider
           value={temperature}
@@ -255,12 +359,27 @@ const Playground = () => {
         />
       </div>
 
+      {/* Maximum Length */}
+      <div>
+        <div className="flex justify-between items-center mb-3">
+          <Label className="text-sm font-medium text-gray-700">Maximum Length</Label>
+          <span className="text-sm text-gray-500">{maxLength[0]}</span>
+        </div>
+        <Slider
+          value={maxLength}
+          onValueChange={setMaxLength}
+          max={4000}
+          min={1}
+          step={1}
+          className="w-full"
+        />
+      </div>
+
       {/* Top P */}
       <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Label className="text-base font-medium text-gray-900">Top P</Label>
-          <HelpCircle className="h-4 w-4 text-gray-400" />
-          <span className="text-sm text-gray-500 ml-auto">{topP[0]}</span>
+        <div className="flex justify-between items-center mb-3">
+          <Label className="text-sm font-medium text-gray-700">Top P</Label>
+          <span className="text-sm text-gray-500">{topP[0]}</span>
         </div>
         <Slider
           value={topP}
@@ -272,34 +391,6 @@ const Playground = () => {
         />
       </div>
 
-      {/* My Policy Drafts */}
-      <div>
-        <Label className="text-base font-medium text-gray-900 mb-3 block">My Policy Drafts</Label>
-        <div className="border rounded-lg p-6 text-center bg-gray-50">
-          {draftsLoading ? (
-            <div className="text-gray-500">Loading drafts...</div>
-          ) : drafts.length === 0 ? (
-            <div>
-              <div className="text-gray-500 font-medium mb-2">No policy drafts yet</div>
-              <div className="text-sm text-gray-400">Generate your first draft to see it here</div>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {drafts.slice(0, 3).map((draft: PolicyDraft) => (
-                <div key={draft.id} className="p-3 bg-white rounded border text-left">
-                  <div className="font-medium text-sm">{draft.title}</div>
-                  <div className="text-xs text-gray-500">
-                    {new Date(draft.created_at).toLocaleDateString()}
-                  </div>
-                </div>
-              ))}
-              {drafts.length > 3 && (
-                <div className="text-xs text-gray-500">+{drafts.length - 3} more</div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 
