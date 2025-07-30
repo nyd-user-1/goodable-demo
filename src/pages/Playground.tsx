@@ -525,16 +525,16 @@ const Playground = () => {
             <div className="flex items-center gap-3">
               {/* Load Persona Dropdown */}
               <Select value={selectedPersona} onValueChange={handlePersonaSelection}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="flex-1 max-w-[250px]">
                   <SelectValue placeholder="Load a persona..." />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Democratic Lawmaker">Democratic Lawmaker</SelectItem>
-                  <SelectItem value="Conservative Lawmaker">Conservative Lawmaker</SelectItem>
-                  <SelectItem value="Republican Lawmaker">Republican Lawmaker</SelectItem>
-                  <SelectItem value="Progressive Lawmaker">Progressive Lawmaker</SelectItem>
-                  <SelectItem value="Rookie Lawmaker">Rookie Lawmaker</SelectItem>
-                  <SelectItem value="Veteran Lawmaker">Veteran Lawmaker</SelectItem>
+                <SelectContent align="end">
+                  <SelectItem value="Democratic Lawmaker" className="truncate">Democratic Lawmaker</SelectItem>
+                  <SelectItem value="Conservative Lawmaker" className="truncate">Conservative Lawmaker</SelectItem>
+                  <SelectItem value="Republican Lawmaker" className="truncate">Republican Lawmaker</SelectItem>
+                  <SelectItem value="Progressive Lawmaker" className="truncate">Progressive Lawmaker</SelectItem>
+                  <SelectItem value="Rookie Lawmaker" className="truncate">Rookie Lawmaker</SelectItem>
+                  <SelectItem value="Veteran Lawmaker" className="truncate">Veteran Lawmaker</SelectItem>
                 </SelectContent>
               </Select>
 
