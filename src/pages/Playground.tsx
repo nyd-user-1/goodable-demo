@@ -589,28 +589,6 @@ const Playground = () => {
                 </AlertDialog>
               )}
               
-              {/* Preview/Edit Toggle */}
-              <div className="flex items-center gap-2 mb-4">
-                <Button
-                  variant={!isPreviewMode ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setIsPreviewMode(false)}
-                  className="flex items-center gap-2"
-                >
-                  <Edit className="h-4 w-4" />
-                  Edit
-                </Button>
-                <Button
-                  variant={isPreviewMode ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setIsPreviewMode(true)}
-                  className="flex items-center gap-2"
-                >
-                  <Eye className="h-4 w-4" />
-                  Preview
-                </Button>
-              </div>
-              
               {/* Content Area */}
               {mode === 'chat' && chatMessages.length > 0 ? (
                 <div className="flex-1 min-h-[300px] sm:min-h-[500px] border border-gray-300 rounded-lg p-4 overflow-y-auto bg-white">
