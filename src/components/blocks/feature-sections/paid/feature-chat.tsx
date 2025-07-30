@@ -148,9 +148,18 @@ Shall I draw up that problem statement for you right now?`;
         // Generate the actual problem statement
         const { data, error } = await supabase.functions.invoke('generate-with-openai', {
           body: {
-            prompt: userProblem,
+            prompt: `Create a direct, authoritative problem statement for: ${userProblem}. 
+            
+            Structure:
+            1. Title only (no "Problem Statement:" prefix)
+            2. **Definition** (not "Problem Definition") 
+            3. **Scope** 
+            4. **Impact** - be direct about consequences, use "leads to" not "can lead to"
+            5. **Key stakeholders include:** (bullet format with bold labels)
+            
+            Tone: Direct, authoritative, empowering for low-income and middle-income families. No sugar-coating. Use "caused by" instead of "attributed to". Use "leads to" instead of "may contribute to". Frame for action, not discouragement.`,
             type: 'problem',
-            context: 'landing_page',
+            context: 'landing_page', 
             stream: false
           }
         });
@@ -161,9 +170,7 @@ Shall I draw up that problem statement for you right now?`;
         }
 
         const problemStatement = data?.generatedText || '';
-        return `Here's your problem statement:
-
-${problemStatement}
+        return `${problemStatement}
 
 Why this matters: This statement gives you clarity, helps communicate the issue to others, and becomes your north star for finding solutions. It transforms a messy situation into something you can actually tackle.
 
@@ -392,7 +399,7 @@ Ready to explore actionable steps for addressing these root causes in the Policy
                     "max-w-[80%] rounded-lg p-3",
                     message.sender === "user"
                       ? "bg-primary text-primary-foreground rounded-br-none"
-                      : "rounded-bl-none",
+                      : "rounded-bl-none rounded-br-lg",
                   )}
                 >
                   {message.sender === "assistant" ? (
