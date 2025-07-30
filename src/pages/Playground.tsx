@@ -627,37 +627,6 @@ const Playground = () => {
               <div className="flex justify-center w-full">
                 <FeatureChat />
               </div>
-              
-              <div className="flex items-center justify-between mt-4">
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant={mode === 'textEditor' ? "default" : "outline"}
-                    onClick={() => setMode('textEditor')}
-                    className="px-6"
-                  >
-                    Text Editor
-                  </Button>
-                  <Button
-                    variant={mode === 'chat' ? "default" : "outline"}
-                    onClick={() => setMode('chat')}
-                    className="px-6"
-                    disabled={!selectedPersona}
-                  >
-                    Chat
-                  </Button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button 
-                    className="bg-black text-white hover:bg-gray-800 px-6"
-                    onClick={handleSubmit}
-                  >
-                    {mode === 'chat' ? 'Start Chat' : 'Submit'}
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={handleRefresh}>
-                    <RotateCcw className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
             </div>
           </div>
 
