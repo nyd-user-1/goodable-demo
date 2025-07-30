@@ -622,67 +622,139 @@ const Playground = () => {
                 </AlertDialog>
               )}
               
-              {/* Content Area */}
-              {mode === 'chat' && chatMessages.length > 0 ? (
-                <div className="flex-1 min-h-[300px] sm:min-h-[500px] border border-gray-300 rounded-lg p-4 overflow-y-auto bg-white">
-                  <div className="space-y-4">
-                    {chatMessages.map((message, index) => (
-                      <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[80%] p-3 rounded-lg ${
-                          message.role === 'user' 
-                            ? 'bg-gray-900 text-white' 
-                            : 'bg-gray-100 text-gray-900'
-                        }`}>
-                          <div className="text-xs font-medium mb-1 opacity-70">
-                            {message.role === 'user' ? 'You' : selectedPersona}
-                          </div>
-                          <ReactMarkdown>{message.content}</ReactMarkdown>
-                        </div>
-                      </div>
-                    ))}
-                    {isChatting && (
-                      <div className="flex justify-start">
-                        <div className="bg-gray-100 text-gray-900 p-3 rounded-lg">
-                          <div className="text-xs font-medium mb-1 opacity-70">{selectedPersona}</div>
-                          <div className="flex items-center space-x-1">
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+              {/* Content Area - Chat Interface */}
+              <div className="flex-1 min-h-[300px] sm:min-h-[500px] border rounded-xl bg-white overflow-hidden">
+                {/* Chat Header */}
+                <div className="flex items-center justify-between p-4 border-b bg-white">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
+                      <span className="text-white text-lg">❤️</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">Goodable.dev</h3>
+                      <p className="text-sm text-gray-500">A policy playground for problems and proposals.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-sm text-gray-600">Live</span>
                   </div>
                 </div>
-              ) : isPreviewMode ? (
-                <div className="flex-1 min-h-[300px] sm:min-h-[500px] border border-gray-300 rounded-lg p-4 overflow-y-auto bg-white prose prose-sm max-w-none">
-                  <ReactMarkdown
-                    components={{
-                      h1: ({ children }) => <h1 className="text-xl font-bold mb-4 text-gray-900">{children}</h1>,
-                      h2: ({ children }) => <h2 className="text-lg font-semibold mb-3 text-gray-900">{children}</h2>,
-                      h3: ({ children }) => <h3 className="text-md font-medium mb-2 text-gray-900">{children}</h3>,
-                      p: ({ children }) => <p className="mb-3 text-gray-700 leading-relaxed">{children}</p>,
-                      strong: ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
-                      em: ({ children }) => <em className="italic text-gray-700">{children}</em>,
-                      ul: ({ children }) => <ul className="list-disc pl-6 mb-3 space-y-1">{children}</ul>,
-                      ol: ({ children }) => <ol className="list-decimal pl-6 mb-3 space-y-1">{children}</ol>,
-                      li: ({ children }) => <li className="text-gray-700">{children}</li>,
-                      code: ({ children }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{children}</code>,
-                      pre: ({ children }) => <pre className="bg-gray-100 p-3 rounded mb-3 overflow-x-auto">{children}</pre>,
-                      blockquote: ({ children }) => <blockquote className="border-l-4 border-gray-300 pl-4 italic text-gray-600 mb-3">{children}</blockquote>,
-                    }}
-                  >
-                    {prompt || "Enter content in Edit mode to see preview..."}
-                  </ReactMarkdown>
+
+                {/* Chat Messages */}
+                <div className="flex-1 p-4 space-y-4 overflow-y-auto" style={{ minHeight: '300px' }}>
+                  {mode === 'chat' && chatMessages.length > 0 ? (
+                    <>
+                      {chatMessages.map((message, index) => (
+                        <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-[80%] p-3 rounded-lg ${
+                            message.role === 'user' 
+                              ? 'bg-gray-900 text-white' 
+                              : 'bg-gray-100 text-gray-900'
+                          }`}>
+                            <div className="text-xs font-medium mb-1 opacity-70">
+                              {message.role === 'user' ? 'You' : selectedPersona}
+                            </div>
+                            <ReactMarkdown>{message.content}</ReactMarkdown>
+                          </div>
+                        </div>
+                      ))}
+                      {isChatting && (
+                        <div className="flex justify-start">
+                          <div className="bg-gray-100 text-gray-900 p-3 rounded-lg">
+                            <div className="text-xs font-medium mb-1 opacity-70">{selectedPersona}</div>
+                            <div className="flex items-center space-x-1">
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Initial Assistant Message */}
+                      <div className="flex justify-start">
+                        <div className="max-w-[80%] bg-gray-100 text-gray-900 p-4 rounded-lg">
+                          <div className="text-gray-900 mb-2">
+                            Hey! What's your problem? 🤔 Tell me what's bothering you, what challenge you're facing, or what issue needs solving. I'm here to help you think through it!
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* User's Current Input Preview */}
+                      {prompt.trim() && (
+                        <div className="flex justify-end">
+                          <div className="max-w-[80%] bg-gray-900 text-white p-3 rounded-lg">
+                            <div className="text-xs font-medium mb-1 opacity-70">You</div>
+                            <div>{prompt}</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <Textarea
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="Enter your prompt here..."
-                  className="flex-1 min-h-[300px] sm:min-h-[500px] resize-none border border-gray-300 rounded-lg p-4 text-sm"
-                />
-              )}
+
+                {/* Chat Input */}
+                <div className="border-t p-4">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 relative">
+                      <Input
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        placeholder="Choose a sample problem..."
+                        className="pr-12 border-gray-300 rounded-lg"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSubmit();
+                          }
+                        }}
+                      />
+                      <Button
+                        size="sm"
+                        onClick={handleSubmit}
+                        className="absolute right-1 top-1 h-8 w-8 p-0 bg-blue-500 hover:bg-blue-600 rounded-full"
+                        disabled={!prompt.trim()}
+                      >
+                        <div className="w-4 h-4 flex items-center justify-center">
+                          <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3">
+                            <path d="M7 11L12 6L17 11M12 18V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sample Problems Section */}
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold mb-4 text-gray-900">Sample problems</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {sampleProblems.slice(0, 6).map((problem) => (
+                    <button
+                      key={problem.id}
+                      onClick={() => setPrompt(problem["Sample Problems"])}
+                      className="text-left p-3 text-sm bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+                    >
+                      <div className="flex items-start gap-2">
+                        <div className="w-4 h-4 mt-0.5 flex-shrink-0">
+                          <svg viewBox="0 0 24 24" fill="none" className="w-full h-full text-gray-400">
+                            <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="2"/>
+                            <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2"/>
+                          </svg>
+                        </div>
+                        <span className="text-gray-700 leading-tight">{problem["Sample Problems"]}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
               
               <div className="flex items-center justify-between mt-4">
                 <div className="flex items-center gap-2">
