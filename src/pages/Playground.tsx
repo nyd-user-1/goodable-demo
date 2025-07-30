@@ -548,9 +548,10 @@ const Playground = () => {
         </div>
 
         {/* Content */}
-        <div className="flex-1 flex">
-          {/* Left Panel - Prompt Area */}
-          <div className={`flex-1 p-4 sm:p-6 ${isMobile ? 'w-full' : ''}`}>
+        <div className="flex-1 flex p-8">
+          <div className="flex-1 flex border rounded-lg bg-white">
+            {/* Left Panel - Prompt Area */}
+            <div className={`flex-1 p-4 sm:p-6 ${isMobile ? 'w-full' : ''}`}>
             <div className="h-full flex flex-col">
               {/* System Prompt Indicator */}
               {systemPrompt && (
@@ -684,12 +685,13 @@ const Playground = () => {
             </div>
           </div>
 
-          {/* Right Panel - Settings (Desktop Only) */}
-          {!isMobile && (
-            <div className="w-80 bg-white border-l border-gray-200 p-6">
-              <SettingsContent />
-            </div>
-          )}
+            {/* Right Panel - Settings (Desktop Only) */}
+            {!isMobile && (
+              <div className="w-80 bg-white p-6">
+                <SettingsContent />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
