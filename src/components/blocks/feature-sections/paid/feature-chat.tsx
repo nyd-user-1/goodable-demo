@@ -374,11 +374,10 @@ Ready to explore actionable steps for addressing these root causes in the Policy
   };
 
   return (
-    <section id="playground" className="container mx-auto space-y-12 px-4 py-24 md:px-6 2xl:max-w-[1400px]">
-
-      <div className="flex flex-col items-center gap-8">
+    <section id="playground" className="container mx-auto space-y-12 px-4 py-0 md:px-2 2xl:max-w-[1400px]">
+      <div className="flex flex-col items-left gap-4">
         {/* Centered Chat Section */}
-        <div className="flex h-[600px] w-full max-w-4xl flex-col rounded-xl border shadow-sm">
+        <div className="flex h-[600px] w-full max-w-4xl flex-col rounded-xl border shadow-med ai-style-change-1">
           {/* Chat header */}
           <div className="flex items-center gap-3 border-b p-4 relative">
             <Avatar className="h-10 w-10">
