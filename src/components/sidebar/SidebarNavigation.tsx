@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Settings, User, FileText, Lightbulb, BarChart3, Users, Building2, TrendingUp, MessageSquare, Heart, CreditCard, History, Gamepad2, Factory, Target, Star, ScrollText, Palette, Shield, Lock, Rss, Home, Image, BookOpen, ChevronDown, ChevronRight } from "lucide-react";
+import { Search, Settings, User, FileText, Lightbulb, BarChart3, Users, Building2, TrendingUp, MessageSquare, Heart, CreditCard, History, Gamepad2, Factory, Target, Star, ScrollText, Palette, Shield, Lock, Rss, Home, Image, BookOpen, ChevronDown, ChevronRight, FlaskConical } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -29,6 +29,7 @@ const workflowNavItems = [
   { title: "Favorites", url: "/favorites", icon: Heart },
   { title: "Playground", url: "/playground", icon: Gamepad2, adminOnly: true },
   { title: "Bills and Resolutions", url: "/policy-portal", icon: Factory, adminOnly: true },
+  { title: "Policy Lab", url: "/policy-lab", icon: FlaskConical, adminOnly: true },
 ];
 
 const bottomNavItems = [

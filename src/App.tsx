@@ -31,6 +31,7 @@ import Chats from "./pages/Chats";
 import Favorites from "./pages/Favorites";
 import Playground from "./pages/Playground";
 import PolicyPortal from "./pages/PolicyPortal";
+import PolicyLab from "./pages/PolicyLab";
 import Plans from "./pages/Plans";
 import ChangeLog from "./pages/ChangeLog";
 import ProblemPage from "./pages/ProblemPage";
@@ -76,6 +77,7 @@ const AppLayout = () => {
                   <Route path="/favorites" element={<Favorites />} />
                   <Route path="/playground" element={<Playground />} />
                   <Route path="/policy-portal" element={<PolicyPortal />} />
+                  <Route path="/policy-lab" element={<PolicyLab />} />
                   <Route path="/bills" element={<Bills />} />
                   <Route path="/members" element={<Members />} />
                   <Route path="/problems" element={<Problems />} />

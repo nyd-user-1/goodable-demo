@@ -27,7 +27,7 @@ const faqs = [
       "Goodable integrates with multiple AI models including GPT-4o, GPT-4o Mini, Claude 3.5 Sonnet, Claude 3.5 Haiku, and Perplexity Sonar models. You can select your preferred model for different tasks like bill analysis, legislative drafting, and policy research. Different subscription tiers may have varying access levels to these models.",
   },
   {
-    question: "Can I collaborate with others on legislative drafts?",
+    question: "Can I collaborate with others?",
     answer:
       "Yes! Goodable includes powerful collaboration features. You can invite co-authors to work on legislative drafts, share problem statements, and collaborate on policy solutions. Higher-tier plans include advanced collaboration tools like real-time editing, comment systems, and workflow management.",
   },
