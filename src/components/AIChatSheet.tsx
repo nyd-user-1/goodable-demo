@@ -360,7 +360,7 @@ After your analysis, would you like me to dive deeper into any specific aspect o
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="chat-sheet-content w-full sm:max-w-2xl flex flex-col h-full">
+      <SheetContent className="chat-sheet-content w-full sm:max-w-2xl flex flex-col h-full overflow-hidden">
         <SheetHeader className="flex-shrink-0">
           <SheetTitle>{getTitle()}</SheetTitle>
         </SheetHeader>
