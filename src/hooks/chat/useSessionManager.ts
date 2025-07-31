@@ -60,7 +60,8 @@ export const useSessionManager = (entity: any, entityType: EntityType) => {
       }
 
     } catch (error) {
-      // Error saving chat session - handled silently
+      console.error('Error saving chat session:', error);
+      // Still handle silently for UX, but log for debugging
     }
   }, [entity, entityType]);
 

@@ -113,10 +113,10 @@ export const MessageBubble = ({
         }`}
       >
         <div
-          className={`w-full rounded-lg p-3 relative overflow-hidden ${
+          className={`rounded-lg p-3 relative overflow-hidden ${
             message.role === "user"
-              ? "bg-slate-800 text-white"
-              : "bg-muted"
+              ? "bg-slate-800 text-white max-w-[85%] ml-auto"
+              : "bg-muted max-w-[85%] mr-4"
           }`}
         >
           {/* Copy button in top right for assistant messages */}

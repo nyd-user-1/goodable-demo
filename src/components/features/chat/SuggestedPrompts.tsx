@@ -23,8 +23,8 @@ export const SuggestedPrompts = ({
   showPrompts,
   hasMessages
 }: SuggestedPromptsProps) => {
-  // Don't show prompts if there are already messages or if showPrompts is false
-  if (!showPrompts || hasMessages) return null;
+  // Only show prompts if there are messages (after AI initialization) and not loading
+  if (!hasMessages || isLoading) return null;
 
   const prompts = ContextBuilder.generateDynamicPrompts(entity, entityType);
 

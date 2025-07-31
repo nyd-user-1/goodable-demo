@@ -21,8 +21,18 @@ export const useSessionInitializer = (entity: any, entityType: EntityType) => {
         const memberName = entity.name || 'this member';
         initialPrompt = `I'm here to help you analyze ${memberName}'s legislative activities and provide insights about their work in the New York State Legislature. What would you like to know about ${memberName}?`;
       } else if (entityType === 'bill') {
-        const billTitle = entity.title || entity.bill_number || 'this bill';
-        initialPrompt = `I'm ready to analyze ${billTitle} and provide detailed insights about this legislation. What specific aspects would you like to explore?`;
+        const billNumber = entity.bill_number || 'Unknown';
+        const billTitle = entity.title || 'No title available';
+        initialPrompt = `Please provide a comprehensive analysis of New York State Bill ${billNumber}. The bill title is: "${billTitle}". 
+
+I need you to analyze this specific legislation and provide detailed information about:
+1. Bill provisions and what it does
+2. Legislative status and process
+3. Sponsorship and committee assignments  
+4. Potential impact and implications
+5. Key stakeholders affected
+
+Please focus specifically on Bill ${billNumber} and provide factual legislative analysis based on the actual bill content.`;
       } else if (entityType === 'committee') {
         const committeeName = entity.committee_name || 'this committee';
         initialPrompt = `I can help you understand ${committeeName}'s activities, jurisdiction, and current legislative work. What would you like to know?`;
