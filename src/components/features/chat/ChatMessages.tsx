@@ -11,6 +11,9 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  isStreaming?: boolean;
+  streamedContent?: string;
+  hasYesNoButtons?: boolean;
 }
 
 interface ChatMessagesProps {
@@ -47,10 +50,15 @@ export const ChatMessages = ({
     <ScrollArea ref={scrollAreaRef} className="flex-1 pr-4">
       <div className="space-y-4 max-w-full overflow-hidden">
         {messages.map((message, index) => {
-          // Convert Date to string for MessageBubble compatibility
-          const chatMessage: ChatMessage = {
+          // Convert Date to string for MessageBubble compatibility and handle streaming
+          const chatMessage: ChatMessage & { isStreaming?: boolean } = {
             ...message,
-            timestamp: message.timestamp.toISOString()
+            timestamp: message.timestamp.toISOString(),
+            // Use streamedContent if streaming, otherwise use content
+            content: message.isStreaming && message.streamedContent !== undefined 
+              ? message.streamedContent 
+              : message.content,
+            isStreaming: message.isStreaming
           };
           
           // Check if this is the first assistant message
@@ -68,7 +76,7 @@ export const ChatMessages = ({
               entity={entity}
               entityType={entityType as 'bill' | 'member' | 'committee'}
               isFirstAssistantMessage={isFirstAssistantMessage}
-              hasYesNoButtons={isFirstAssistantMessage} // Show yes/no buttons on first assistant message
+              hasYesNoButtons={message.hasYesNoButtons || isFirstAssistantMessage} // Show yes/no buttons when specified or on first assistant message
             />
           );
         })}

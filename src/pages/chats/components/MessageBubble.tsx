@@ -7,7 +7,7 @@ import { ContextBuilder } from "@/utils/contextBuilder";
 import { useNavigate } from "react-router-dom";
 
 interface MessageBubbleProps {
-  message: Message;
+  message: Message & { isStreaming?: boolean };
   onCopy: (text: string) => void;
   onFeedback: (type: "thumbs-up" | "thumbs-down" | "citations") => void;
   onShare?: () => void;
@@ -150,6 +150,10 @@ export const MessageBubble = ({
               >
                 {message.content}
               </ReactMarkdown>
+              {/* Add streaming cursor like FeatureChat */}
+              {message.isStreaming && (
+                <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1">|</span>
+              )}
             </div>
           ) : (
             <p className="chat-text-content text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere word-break-break-all max-w-full">{message.content}</p>
