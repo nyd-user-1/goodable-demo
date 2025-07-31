@@ -754,7 +754,7 @@ const Landing2 = () => {
                   <p className="text-muted-foreground mb-4">
                     Featured policy proposals will appear here once published by administrators.
                   </p>
-                  <Button onClick={() => navigate('/problems')} className="bg-[#3D63DD] hover:bg-[#2D53CD]">
+                  <Button onClick={() => navigate('/auth-2')} className="bg-[#3D63DD] hover:bg-[#2D53CD]">
                     Explore Problems
                   </Button>
                 </Card>
@@ -765,13 +765,13 @@ const Landing2 = () => {
           <div className="flex justify-center gap-4 mt-8">
             <Button
               variant="outline"
-              onClick={() => navigate('/public-policy')}
+              onClick={() => navigate('/auth-2')}
               className="hover:bg-muted"
             >
               Load More
             </Button>
             <Button
-              onClick={() => navigate('/public-policy')}
+              onClick={() => navigate('/auth-2')}
               className="bg-[#3D63DD] text-white hover:bg-[#2D53CD]"
             >
               View All
@@ -857,7 +857,7 @@ const Landing2 = () => {
             <Button 
               variant="outline" 
               size="lg"
-              onClick={() => navigate('/plans')}
+              onClick={() => navigate('/auth-2')}
               className="bg-card/80 hover:bg-card border-[#3D63DD]/20 hover:border-[#3D63DD]/40 text-[#3D63DD] hover:text-[#2D53CD] transition-all duration-300"
             >
               View All Plans
@@ -947,7 +947,7 @@ const Landing2 = () => {
             <div>
               <h3 className="font-semibold mb-4 text-sm sm:text-base">Product</h3>
               <ul className="space-y-2 text-xs sm:text-sm text-muted-foreground">
-                <li><Link to="/features" className="hover:text-foreground">Features</Link></li>
+                <li><Link to="/auth-2" className="hover:text-foreground">Features</Link></li>
                 <li><a href="#examples" className="hover:text-foreground">Examples</a></li>
                 <li><a href="#pricing" className="hover:text-foreground">Pricing</a></li>
                 <li><a href="#docs" className="hover:text-foreground">Documentation</a></li>
@@ -957,7 +957,7 @@ const Landing2 = () => {
             <div>
               <h3 className="font-semibold mb-4 text-sm sm:text-base">Company</h3>
               <ul className="space-y-2 text-xs sm:text-sm text-muted-foreground">
-                <li><Link to="/about" className="hover:text-foreground">About</Link></li>
+                <li><Link to="/auth-2" className="hover:text-foreground">About</Link></li>
                 <li><a href="#blog" className="hover:text-foreground">Blog</a></li>
                 <li><a href="#careers" className="hover:text-foreground">Careers</a></li>
                 <li><a href="#contact" className="hover:text-foreground">Contact</a></li>
