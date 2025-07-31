@@ -32,7 +32,9 @@ I need you to analyze this specific legislation and provide detailed information
 4. Potential impact and implications
 5. Key stakeholders affected
 
-Please focus specifically on Bill ${billNumber} and provide factual legislative analysis based on the actual bill content.`;
+Please focus specifically on Bill ${billNumber} and provide factual legislative analysis based on the actual bill content.
+
+After your analysis, would you like me to dive deeper into any specific aspect of this legislation?`;
       } else if (entityType === 'committee') {
         const committeeName = entity.committee_name || 'this committee';
         initialPrompt = `I can help you understand ${committeeName}'s activities, jurisdiction, and current legislative work. What would you like to know?`;

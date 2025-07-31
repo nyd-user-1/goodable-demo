@@ -68,6 +68,7 @@ export const ChatMessages = ({
               entity={entity}
               entityType={entityType as 'bill' | 'member' | 'committee'}
               isFirstAssistantMessage={isFirstAssistantMessage}
+              hasYesNoButtons={isFirstAssistantMessage} // Show yes/no buttons on first assistant message
             />
           );
         })}

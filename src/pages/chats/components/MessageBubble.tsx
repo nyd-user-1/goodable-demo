@@ -15,6 +15,7 @@ interface MessageBubbleProps {
   entity?: any;
   entityType?: 'bill' | 'member' | 'committee' | 'problem' | null;
   isFirstAssistantMessage?: boolean;
+  hasYesNoButtons?: boolean;
 }
 
 export const MessageBubble = ({ 
@@ -25,7 +26,8 @@ export const MessageBubble = ({
   onSendPrompt,
   entity,
   entityType,
-  isFirstAssistantMessage = false
+  isFirstAssistantMessage = false,
+  hasYesNoButtons = false
 }: MessageBubbleProps) => {
   const navigate = useNavigate();
   
@@ -49,6 +51,12 @@ export const MessageBubble = ({
   const handleMoveToPortal = () => {
     // Navigate to policy portal - in the future this could also transfer the chat context
     navigate("/policy-portal");
+  };
+  
+  const handleYesNoClick = (response: 'yes' | 'no') => {
+    if (onSendPrompt) {
+      onSendPrompt(response);
+    }
   };
   
   // Generate dynamic prompts based on AI content for subsequent messages
@@ -147,9 +155,27 @@ export const MessageBubble = ({
             <p className="chat-text-content text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere word-break-break-all max-w-full">{message.content}</p>
           )}
           {message.timestamp && (
-            <p className="text-xs opacity-70 mt-1">
-              {format(new Date(message.timestamp), "h:mm a")}
-            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-xs opacity-70">
+                {format(new Date(message.timestamp), "h:mm a")}
+              </p>
+              {message.role === "assistant" && hasYesNoButtons && (
+                <div className="flex gap-1">
+                  <button 
+                    onClick={() => handleYesNoClick('yes')}
+                    className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+                  >
+                    Yes
+                  </button>
+                  <button 
+                    onClick={() => handleYesNoClick('no')}
+                    className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                  >
+                    No
+                  </button>
+                </div>
+              )}
+            </div>
           )}
           
           {/* Bottom right action buttons for assistant messages */}

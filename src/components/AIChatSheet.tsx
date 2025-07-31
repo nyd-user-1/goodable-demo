@@ -44,6 +44,9 @@ export const AIChatSheet = ({ open, onOpenChange, bill, member, committee }: AIC
   // Use ref to track if we've already initialized this session
   const hasInitialized = useRef(false);
   
+  // Add streaming state
+  const [streamingMessages, setStreamingMessages] = useState<{[key: string]: {content: string, isStreaming: boolean}}>({});
+  
   // Determine the entity and type for the chat session
   const entity = bill || member || committee || null;
   const entityType = bill ? 'bill' : member ? 'member' : committee ? 'committee' : null;
