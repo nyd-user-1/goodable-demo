@@ -311,7 +311,7 @@ const Landing2 = () => {
       title: "Member Profiles",
       description: "Comprehensive legislator data including voting history, sponsorships, and committee memberships",
       gradient: "from-[#3D63DD] to-[#6B8CE8]",
-      path: "/auth-2"
+      path: "/members"
     },
     {
       icon: <Brain className="w-5 h-5" />,
@@ -634,7 +634,10 @@ const Landing2 = () => {
             {features.map((feature, index) => (
               <Card 
                 key={index}
-                className="group relative overflow-hidden border-muted/50 bg-gradient-to-br from-background to-muted/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+                className={cn(
+                  "group relative overflow-hidden border-muted/50 bg-gradient-to-br from-background to-muted/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer",
+                  feature.title === "Member Profiles" && "hover:border-[#3D63DD] hover:border-1"
+                )}
                 onClick={() => navigate(feature.path)}
               >
                 <div className="p-4 sm:p-6">

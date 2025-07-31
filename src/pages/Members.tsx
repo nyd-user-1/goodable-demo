@@ -13,10 +13,12 @@ import { AIChatSheet } from "@/components/AIChatSheet";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Members = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [selectedMemberForChat, setSelectedMemberForChat] = useState<any>(null);
@@ -109,11 +111,19 @@ const Members = () => {
 
   const handleFavorite = async (member: any, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!user) {
+      navigate('/auth-2');
+      return;
+    }
     await toggleFavorite(member.people_id);
   };
 
   const handleAIAnalysis = (member: any, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!user) {
+      navigate('/auth-2');
+      return;
+    }
     setSelectedMemberForChat(member);
     setChatOpen(true);
     
@@ -127,6 +137,10 @@ const Members = () => {
     district: string;
     chamber: string;
   }) => {
+    if (!user) {
+      navigate('/auth-2');
+      return;
+    }
     setSearchTerm(newFilters.search);
     setPartyFilter(newFilters.party === "" ? "all" : newFilters.party);
     setDistrictFilter(newFilters.district === "" ? "all" : newFilters.district);
@@ -165,18 +179,26 @@ const Members = () => {
             chambersCount={chambers.length} 
           />
 
-          <MembersSearchFilters
-            filters={{
-              search: searchTerm,
-              party: partyFilter === "all" ? "" : partyFilter,
-              district: districtFilter === "all" ? "" : districtFilter,
-              chamber: chamberFilter === "all" ? "" : chamberFilter,
-            }}
-            onFiltersChange={handleFiltersChange}
-            chambers={chambers}
-            parties={parties}
-            districts={districts}
-          />
+          {user ? (
+            <MembersSearchFilters
+              filters={{
+                search: searchTerm,
+                party: partyFilter === "all" ? "" : partyFilter,
+                district: districtFilter === "all" ? "" : districtFilter,
+                chamber: chamberFilter === "all" ? "" : chamberFilter,
+              }}
+              onFiltersChange={handleFiltersChange}
+              chambers={chambers}
+              parties={parties}
+              districts={districts}
+            />
+          ) : (
+            <div className="text-center py-8">
+              <Button onClick={() => navigate('/auth-2')}>
+                Sign in to search and filter members
+              </Button>
+            </div>
+          )}
 
           {members.length === 0 ? (
             <MembersEmptyState hasFilters={hasFilters} />
@@ -184,7 +206,7 @@ const Members = () => {
             <>
               <MembersGrid 
                 members={members} 
-                onMemberSelect={setSelectedMember}
+                onMemberSelect={user ? setSelectedMember : () => navigate('/auth-2')}
                 onFavorite={handleFavorite}
                 onAIAnalysis={handleAIAnalysis}
                 favoriteMembers={favoriteMemberIds}
@@ -192,7 +214,7 @@ const Members = () => {
               />
               
               {/* Pagination Controls */}
-              {totalPages > 1 && (
+              {totalPages > 1 && user && (
                 <div className="flex justify-center items-center gap-4 mt-8">
                   <Button
                     variant="outline"
@@ -224,11 +246,13 @@ const Members = () => {
         </div>
       </div>
 
-      <AIChatSheet
-        open={chatOpen}
-        onOpenChange={setChatOpen}
-        member={selectedMemberForChat}
-      />
+      {user && (
+        <AIChatSheet
+          open={chatOpen}
+          onOpenChange={setChatOpen}
+          member={selectedMemberForChat}
+        />
+      )}
     </>
   );
 }
