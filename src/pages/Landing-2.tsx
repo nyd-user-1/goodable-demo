@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ShineBorder } from "@/components/magicui/shine-border";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -563,23 +564,31 @@ const Landing2 = () => {
         <div className="mx-auto max-w-7xl">
           {/* Alpha Announcement Banner */}
           <div className="flex justify-center mb-8">
-            <div className="inline-flex items-center gap-3 px-4 py-2 sm:px-6 sm:py-3 bg-background/80 backdrop-blur-sm border border-border/40 rounded-full shadow-sm">
-              <Badge 
-                variant="secondary" 
-                className="bg-[#3D63DD] text-white hover:bg-[#2D53CD] text-xs font-medium"
-              >
-                New
-              </Badge>
-              <span className="text-sm sm:text-base font-medium text-foreground">
-                Goodable is now in alpha.
-              </span>
-              <button 
-                onClick={() => navigate('/auth-2')}
-                className="text-sm text-[#3D63DD] hover:text-[#2D53CD] font-medium transition-colors flex items-center gap-1"
-              >
-                Learn More
-                <ArrowRight className="w-3 h-3" />
-              </button>
+            <div className="relative">
+              <ShineBorder
+                className="rounded-full"
+                shineColor={["#ff0000", "#ff8000", "#ffff00", "#80ff00", "#00ff80", "#0080ff", "#8000ff", "#ff0080"]}
+                borderWidth={2}
+                duration={8}
+              />
+              <div className="inline-flex items-center gap-3 px-4 py-2 sm:px-6 sm:py-3 bg-background/80 backdrop-blur-sm rounded-full shadow-sm">
+                <Badge 
+                  variant="secondary" 
+                  className="bg-[#3D63DD] text-white hover:bg-[#2D53CD] text-xs font-medium"
+                >
+                  New
+                </Badge>
+                <span className="text-sm sm:text-base font-medium text-foreground">
+                  Goodable is now in alpha.
+                </span>
+                <button 
+                  onClick={() => navigate('/auth-2')}
+                  className="text-sm text-[#3D63DD] hover:text-[#2D53CD] font-medium transition-colors flex items-center gap-1"
+                >
+                  Learn More
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
             </div>
           </div>
           

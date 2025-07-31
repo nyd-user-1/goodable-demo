@@ -1,68 +1,63 @@
+"use client";
+
+import * as React from "react";
+
 import { cn } from "@/lib/utils";
 
-interface ShineBorderProps {
-  className?: string;
-  shineColor?: string | string[];
-  borderRadius?: number;
+interface ShineBorderProps extends React.HTMLAttributes<HTMLDivElement> {
+  /**
+   * Width of the border in pixels
+   * @default 1
+   */
   borderWidth?: number;
+  /**
+   * Duration of the animation in seconds
+   * @default 14
+   */
   duration?: number;
-  children?: React.ReactNode;
+  /**
+   * Color of the border, can be a single color or an array of colors
+   * @default "#000000"
+   */
+  shineColor?: string | string[];
 }
 
+/**
+ * Shine Border
+ *
+ * An animated background border effect component with configurable properties.
+ */
 export function ShineBorder({
-  className,
-  shineColor = "#FE8FB5",
-  borderRadius = 8,
   borderWidth = 1,
   duration = 14,
-  children,
+  shineColor = "#000000",
+  className,
+  style,
+  ...props
 }: ShineBorderProps) {
   return (
     <div
+      style={
+        {
+          "--border-width": `${borderWidth}px`,
+          "--duration": `${duration}s`,
+          backgroundImage: `radial-gradient(transparent,transparent, ${
+            Array.isArray(shineColor) ? shineColor.join(",") : shineColor
+          },transparent,transparent)`,
+          backgroundSize: "300% 300%",
+          mask: `linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)`,
+          WebkitMask: `linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)`,
+          WebkitMaskComposite: "xor",
+          maskComposite: "exclude",
+          padding: "var(--border-width)",
+          ...style,
+        } as React.CSSProperties
+      }
       className={cn(
-        "relative w-full",
-        className
+        "pointer-events-none absolute inset-0 size-full rounded-[inherit] will-change-[background-position] motion-safe:animate-shine",
+        className,
       )}
-    >
-      {/* Animated border */}
-      <div
-        className="absolute inset-0 rounded-2xl"
-        style={{
-          padding: borderWidth,
-          background: `linear-gradient(90deg, ${
-            Array.isArray(shineColor) ? shineColor.join(", ") : shineColor
-          })`,
-          backgroundSize: "200% 100%",
-          animation: `shine ${duration}s linear infinite`,
-          borderRadius: borderRadius,
-        }}
-      />
-      
-      {/* Background mask to create border effect */}
-      <div 
-        className="absolute inset-0 bg-background"
-        style={{
-          margin: borderWidth,
-          borderRadius: borderRadius - borderWidth,
-        }}
-      />
-      
-      {/* Content */}
-      <div className="relative">{children}</div>
-
-      <style jsx>{`
-        @keyframes shine {
-          0% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-          100% {
-            background-position: 0% 50%;
-          }
-        }
-      `}</style>
-    </div>
+      {...props}
+    />
   );
 }

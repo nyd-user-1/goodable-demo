@@ -132,6 +132,9 @@
       background-color: hsl(var(--background));
     }
   }
+  .theme {
+    --animate-shine: shine var(--duration) infinite linear;
+  }
 }
 
 @layer components {
@@ -140,7 +143,7 @@
     width: auto;
     min-width: 200px;
   }
-  
+
   /* Shimmer animation for dark mode text */
   @keyframes shimmer {
     0% {
@@ -150,7 +153,7 @@
       background-position: 200% 0;
     }
   }
-  
+
   .shimmer-text {
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
     background-size: 200% 100%;
@@ -158,7 +161,7 @@
     -webkit-background-clip: text;
     background-clip: text;
   }
-  
+
   .shimmer-text-delayed {
     background: linear-gradient(90deg, transparent, rgba(147, 197, 253, 0.8), transparent);
     background-size: 200% 100%;
@@ -166,28 +169,28 @@
     -webkit-background-clip: text;
     background-clip: text;
   }
-  
+
   .output-container {
     position: relative;
   }
-  
+
   .form-input:focus {
     @apply ring-2 ring-primary ring-offset-2;
   }
-  
+
   .workflow-container {
     @apply space-y-6;
   }
-  
+
   .textarea-auto {
     resize: vertical;
     min-height: 120px;
   }
-  
+
   .smooth-scroll {
     scroll-behavior: smooth;
   }
-  
+
   .touch-manipulation {
     touch-action: manipulation;
   }
@@ -214,3 +217,27 @@
   }
 }
 
+@theme inline {
+  @keyframes shine {
+  0% {
+    background-position: 0% 0%;
+    }
+  50% {
+    background-position: 100% 100%;
+    }
+  to {
+    background-position: 0% 0%;
+    }
+  }
+  @keyframes shine {
+  0% {
+    background-position: 0% 0%;
+    }
+  50% {
+    background-position: 100% 100%;
+    }
+  to {
+    background-position: 0% 0%;
+    }
+  }
+}
