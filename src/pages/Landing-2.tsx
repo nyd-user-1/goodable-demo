@@ -566,7 +566,7 @@ const Landing2 = () => {
             <div className="inline-flex items-center gap-3 px-4 py-2 sm:px-6 sm:py-3 bg-background/80 backdrop-blur-sm border border-border/40 rounded-full shadow-sm">
               <Badge 
                 variant="secondary" 
-                className="bg-[#3D63DD] text-white hover:bg-[#2D53CD] text-xs font-medium animate-pulse"
+                className="bg-[#3D63DD] text-white hover:bg-[#2D53CD] text-xs font-medium"
               >
                 New
               </Badge>
