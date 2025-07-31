@@ -6,11 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MessageSquare } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function HeroFormCenterAlignedWithAForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const handleExampleClick = () => {
     setName("Families never get time together anymore");
@@ -32,28 +34,8 @@ export default function HeroFormCenterAlignedWithAForm() {
         console.error('Error adding to waitlist:', waitlistError);
       }
       
-      // Scroll to playground and inject problem
-      const playgroundSection = document.querySelector('section:has(h2:contains("Playground"))');
-      if (playgroundSection) {
-        playgroundSection.scrollIntoView({ behavior: 'smooth' });
-        
-        // Wait for scroll to complete, then inject problem into chat input
-        setTimeout(() => {
-          const chatInput = document.querySelector('input[placeholder="Tell me what\'s bothering you..."]') as HTMLInputElement;
-          if (chatInput) {
-            chatInput.value = name.trim();
-            chatInput.focus();
-            
-            // Trigger the input event to update React state
-            const event = new Event('input', { bubbles: true });
-            chatInput.dispatchEvent(event);
-          }
-        }, 1000);
-      }
-      
-      // Reset form
-      setName("");
-      setEmail("");
+      // Route to auth instead of playground
+      navigate('/auth-2');
     } catch (error) {
       console.error('Error submitting form:', error);
     } finally {
