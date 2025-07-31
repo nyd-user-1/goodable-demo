@@ -27,7 +27,7 @@ export function ProblemsBentoGrid() {
             <ProblemCard
               key={problem.id}
               problem={problem}
-              onClick={() => navigate(`/problems/${problem.slug}`)}
+              onClick={() => navigate('/auth-2')}
             />
           ))}
         </div>
@@ -35,19 +35,13 @@ export function ProblemsBentoGrid() {
         <div className="flex justify-center gap-4 mt-8">
           <Button
             variant="outline"
-            onClick={() => {
-              navigate('/problems');
-              setTimeout(() => window.scrollTo(0, 0), 100);
-            }}
+            onClick={() => navigate('/auth-2')}
             className="hover:bg-muted"
           >
             Load More
           </Button>
           <Button
-            onClick={() => {
-              navigate('/problems');
-              setTimeout(() => window.scrollTo(0, 0), 100);
-            }}
+            onClick={() => navigate('/auth-2')}
             className="bg-[#3D63DD] text-white hover:bg-[#2D53CD]"
           >
             View All

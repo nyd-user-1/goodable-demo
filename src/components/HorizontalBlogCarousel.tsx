@@ -114,7 +114,7 @@ export default function HorizontalBlogCarousel() {
 
                     <CardFooter>
                       <Button asChild>
-                        <Link to={`/blog/${post.slug}`}>
+                        <Link to="/auth-2">
                           Read more
                           <span className="sr-only">
                             Read more about {post.title}
