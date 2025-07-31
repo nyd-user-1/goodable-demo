@@ -23,17 +23,21 @@ export const useSessionManager = (entity: any, entityType: EntityType) => {
 
       const title = getTitle(entity, entityType);
 
-      const sessionData = {
+      const sessionData: any = {
         user_id: user.id,
-        bill_id: entityType === 'bill' ? entity?.bill_id : null,
-        member_id: entityType === 'member' ? entity?.people_id : null,
-        committee_id: entityType === 'committee' ? entity?.committee_id : null,
         title: title,
-        messages: JSON.stringify(messages.map(msg => ({
-          ...msg,
-          timestamp: msg.timestamp.toISOString()
-        })))
+        messages: messages,
+        chat_type: entityType || 'general'
       };
+
+      // Set the appropriate related ID based on entity type
+      if (entityType === 'bill' && entity) {
+        sessionData.bill_id = entity.bill_id;
+      } else if (entityType === 'member' && entity) {
+        sessionData.member_id = entity.people_id;
+      } else if (entityType === 'committee' && entity) {
+        sessionData.committee_id = entity.committee_id;
+      }
 
       if (sessionId) {
         // Update existing session

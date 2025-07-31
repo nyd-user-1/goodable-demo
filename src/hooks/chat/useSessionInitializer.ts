@@ -32,9 +32,17 @@ export const useSessionInitializer = (entity: any, entityType: EntityType) => {
         const { data, error } = await supabase.functions.invoke('generate-with-openai', {
           body: { 
             prompt: initialPrompt,
-            type: 'chat',
-            entityContext: { type: entityType, [entityType]: entity },
-            enhanceWithNYSData: true
+            type: entityType,
+            context: {
+              chatType: entityType,
+              relatedId: entityType === 'bill' ? entity.bill_id : 
+                        entityType === 'member' ? entity.people_id : 
+                        entityType === 'committee' ? entity.committee_id : null,
+              title: entityType === 'bill' ? entity.title || entity.bill_number :
+                     entityType === 'member' ? entity.name :
+                     entityType === 'committee' ? entity.committee_name : '',
+              entity: entity
+            }
           }
         });
 

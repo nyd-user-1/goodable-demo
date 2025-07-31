@@ -101,13 +101,16 @@ export const useMessageHandler = (entity: any, entityType: EntityType) => {
       const { data, error } = await supabase.functions.invoke('generate-with-openai', {
         body: { 
           prompt: contextualPrompt,
-          type: contextType,
-          entityContext: { type: entityType, [entityType]: entity },
-          enhanceWithNYSData: true,
-          domainFiltering: {
-            enabled: true,
-            requireMultiSource: true,
-            allowedCategories: ['Legislative', 'Research', 'Government']
+          type: entityType,
+          context: {
+            chatType: entityType,
+            relatedId: entityType === 'bill' ? entity?.bill_id : 
+                      entityType === 'member' ? entity?.people_id : 
+                      entityType === 'committee' ? entity?.committee_id : null,
+            title: entityType === 'bill' ? entity?.title || entity?.bill_number :
+                   entityType === 'member' ? entity?.name :
+                   entityType === 'committee' ? entity?.committee_name : '',
+            previousMessages: messages.slice(-5) // Last 5 messages for context
           }
         }
       });
