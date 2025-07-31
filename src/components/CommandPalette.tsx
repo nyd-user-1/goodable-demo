@@ -68,37 +68,37 @@ export function CommandPalette() {
           {user && (
             <>
               <CommandItem
-                onSelect={() => runCommand(() => navigate('/dashboard'))}
+                onSelect={() => runCommand(() => navigate('/auth-2'))}
               >
                 <LayoutDashboard className="mr-2 h-4 w-4" />
                 <span>Dashboard</span>
               </CommandItem>
               <CommandItem
-                onSelect={() => runCommand(() => navigate('/bills'))}
+                onSelect={() => runCommand(() => navigate('/auth-2'))}
               >
                 <FileText className="mr-2 h-4 w-4" />
                 <span>Bills</span>
               </CommandItem>
               <CommandItem
-                onSelect={() => runCommand(() => navigate('/members'))}
+                onSelect={() => runCommand(() => navigate('/auth-2'))}
               >
                 <Users className="mr-2 h-4 w-4" />
                 <span>Members</span>
               </CommandItem>
               <CommandItem
-                onSelect={() => runCommand(() => navigate('/committees'))}
+                onSelect={() => runCommand(() => navigate('/auth-2'))}
               >
                 <Building className="mr-2 h-4 w-4" />
                 <span>Committees</span>
               </CommandItem>
               <CommandItem
-                onSelect={() => runCommand(() => navigate('/chats'))}
+                onSelect={() => runCommand(() => navigate('/auth-2'))}
               >
                 <MessageSquare className="mr-2 h-4 w-4" />
                 <span>Chat History</span>
               </CommandItem>
               <CommandItem
-                onSelect={() => runCommand(() => navigate('/favorites'))}
+                onSelect={() => runCommand(() => navigate('/auth-2'))}
               >
                 <Heart className="mr-2 h-4 w-4" />
                 <span>Favorites</span>
@@ -121,14 +121,14 @@ export function CommandPalette() {
             <span>New Problem Statement</span>
           </CommandItem>
           <CommandItem
-            onSelect={() => runCommand(() => navigate('/playground'))}
+            onSelect={() => runCommand(() => navigate('/auth-2'))}
           >
             <Lightbulb className="mr-2 h-4 w-4" />
             <span>AI Playground</span>
           </CommandItem>
           {user && (
             <CommandItem
-              onSelect={() => runCommand(() => navigate('/policy-portal'))}
+              onSelect={() => runCommand(() => navigate('/auth-2'))}
             >
               <FileText className="mr-2 h-4 w-4" />
               <span>Policy Portal</span>
@@ -143,13 +143,13 @@ export function CommandPalette() {
           {user ? (
             <>
               <CommandItem
-                onSelect={() => runCommand(() => navigate('/profile'))}
+                onSelect={() => runCommand(() => navigate('/auth-2'))}
               >
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </CommandItem>
               <CommandItem
-                onSelect={() => runCommand(() => navigate('/plans'))}
+                onSelect={() => runCommand(() => navigate('/auth-2'))}
               >
                 <CreditCard className="mr-2 h-4 w-4" />
                 <span>Subscription Plans</span>
@@ -163,7 +163,7 @@ export function CommandPalette() {
             </>
           ) : (
             <CommandItem
-              onSelect={() => runCommand(() => navigate('/auth'))}
+              onSelect={() => runCommand(() => navigate('/auth-2'))}
             >
               <User className="mr-2 h-4 w-4" />
               <span>Sign In</span>
@@ -176,7 +176,7 @@ export function CommandPalette() {
         <CommandGroup heading="Quick Search">
           <CommandItem
             onSelect={() => runCommand(() => {
-              navigate('/bills');
+              navigate('/auth-2');
               setTimeout(() => {
                 const searchInput = document.querySelector('input[placeholder*="Search bills"]') as HTMLInputElement;
                 searchInput?.focus();
@@ -188,7 +188,7 @@ export function CommandPalette() {
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => {
-              navigate('/members');
+              navigate('/auth-2');
               setTimeout(() => {
                 const searchInput = document.querySelector('input[placeholder*="Search members"]') as HTMLInputElement;
                 searchInput?.focus();
@@ -200,7 +200,7 @@ export function CommandPalette() {
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => {
-              navigate('/committees');
+              navigate('/auth-2');
               setTimeout(() => {
                 const searchInput = document.querySelector('input[placeholder*="Search committees"]') as HTMLInputElement;
                 searchInput?.focus();
