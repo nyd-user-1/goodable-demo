@@ -104,8 +104,12 @@ export default function UnifiedChatSheet({
 
   const createNewChatSession = async () => {
     try {
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
       const sessionData: any = {
-        user_id: user?.id,
+        user_id: user.id,
         title: `Chat about ${title}`,
         messages: [],
         chat_type: chatType,
@@ -122,13 +126,20 @@ export default function UnifiedChatSheet({
         sessionData.problem_id = String(relatedId);
       }
 
+      console.log('Creating chat session with data:', sessionData);
+
       const { data, error } = await supabase
         .from('chat_sessions')
         .insert(sessionData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+      
+      console.log('Chat session created:', data);
       setChatSessionId(data.id);
       
       // Add welcome message
@@ -143,7 +154,7 @@ export default function UnifiedChatSheet({
       console.error('Error creating chat session:', err);
       toast({
         title: 'Error',
-        description: 'Failed to start chat session',
+        description: `Failed to start chat session: ${err instanceof Error ? err.message : 'Unknown error'}`,
         variant: 'destructive',
       });
     }
@@ -228,15 +239,17 @@ export default function UnifiedChatSheet({
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        {children || (
-          <Button size="sm" className="gap-2">
-            <Sparkles className="h-4 w-4" />
-            Chat
-          </Button>
-        )}
-      </SheetTrigger>
-      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col">
+      {controlledOpen === undefined && (
+        <SheetTrigger asChild>
+          {children || (
+            <Button size="sm" className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              Chat
+            </Button>
+          )}
+        </SheetTrigger>
+      )}
+      <SheetContent side="right" className="w-full sm:max-w-2xl flex flex-col">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Avatar className="h-8 w-8">
