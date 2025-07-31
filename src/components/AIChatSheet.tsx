@@ -13,7 +13,7 @@ import { ChatMessages } from "./features/chat/ChatMessages";
 import { ChatInput } from "./features/chat/ChatInput";
 import { ChatContainer } from "./features/chat/ChatContainer";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Bill = Tables<"Bills">;
 type Member = {
