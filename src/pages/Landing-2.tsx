@@ -44,7 +44,6 @@ import { ProblemsBentoGrid } from '@/components/features/problems';
 import FAQ from '@/components/FAQ';
 import HorizontalBlogCarousel from '@/components/HorizontalBlogCarousel';
 import FeatureChat from '@/components/blocks/feature-sections/paid/feature-chat';
-import HeroFormCenterAlignedWithAForm from '@/components/hero-form-center-aligned';
 import '@/components/magicui/animated-background.css';
 
 interface Member {
@@ -784,8 +783,6 @@ const Landing2 = () => {
       {/* Feature Chat - Policy Playground */}
       <FeatureChat />
 
-      {/* Hero Contact Form */}
-      <HeroFormCenterAlignedWithAForm />
 
       {/* Blog Carousel Section with light gray background */}
       <div className="bg-muted/30">
