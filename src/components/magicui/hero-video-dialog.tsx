@@ -9,6 +9,7 @@ interface HeroVideoDialogProps {
   videoSrc: string;
   thumbnailSrc: string;
   thumbnailAlt: string;
+  onPlayClick?: () => void;
 }
 
 export default function HeroVideoDialog({
@@ -17,13 +18,23 @@ export default function HeroVideoDialog({
   videoSrc,
   thumbnailSrc,
   thumbnailAlt,
+  onPlayClick,
 }: HeroVideoDialogProps) {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
+
+  const handleClick = () => {
+    if (onPlayClick) {
+      onPlayClick();
+    } else {
+      setIsVideoOpen(true);
+    }
+  };
 
   return (
     <Dialog open={isVideoOpen} onOpenChange={setIsVideoOpen}>
       <DialogTrigger asChild>
         <div
+          onClick={handleClick}
           className={cn(
             "relative cursor-pointer group overflow-hidden rounded-2xl border shadow-xl",
             "transition-all duration-300 hover:scale-[1.02]",

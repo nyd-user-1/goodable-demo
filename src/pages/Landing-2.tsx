@@ -548,6 +548,7 @@ const Landing2 = () => {
               videoSrc="https://www.loom.com/embed/ae7a56105d3e44529caee8593c1a3ffe"
               thumbnailSrc="/goodable-analytics-demo.png"
               thumbnailAlt="Goodable Analytics Dashboard Demo"
+              onPlayClick={() => navigate('/auth-2')}
             />
             <HeroVideoDialog
               className="hidden dark:block"
@@ -555,6 +556,7 @@ const Landing2 = () => {
               videoSrc="https://www.loom.com/embed/ae7a56105d3e44529caee8593c1a3ffe"
               thumbnailSrc="/goodable-analytics-demo.png"
               thumbnailAlt="Goodable Analytics Dashboard Demo"
+              onPlayClick={() => navigate('/auth-2')}
             />
           </div>
         </div>
