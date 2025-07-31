@@ -60,13 +60,25 @@ export default function UnifiedChatSheet({
 
   const loadExistingChat = async () => {
     try {
-      const { data, error } = await supabase
+      // Build the query based on chat type
+      let query = supabase
         .from('chat_sessions')
         .select('*')
         .eq('user_id', user?.id)
-        .eq('chat_type', chatType)
-        .eq(getRelatedIdColumn(), relatedId)
-        .single();
+        .eq('chat_type', chatType);
+
+      // Add specific filtering based on chat type
+      if (chatType === 'bill') {
+        query = query.eq('bill_id', relatedId);
+      } else if (chatType === 'member') {
+        query = query.eq('member_id', relatedId);
+      } else if (chatType === 'committee') {
+        query = query.eq('committee_id', relatedId);
+      } else if (chatType === 'problem') {
+        query = query.eq('problem_id', relatedId);
+      }
+
+      const { data, error } = await query.single();
 
       if (data && !error) {
         setChatSessionId(data.id);
@@ -81,15 +93,6 @@ export default function UnifiedChatSheet({
     }
   };
 
-  const getRelatedIdColumn = () => {
-    switch (chatType) {
-      case 'bill': return 'bill_id';
-      case 'member': return 'member_id';
-      case 'committee': return 'committee_id';
-      case 'problem': return 'problem_id';
-      default: return 'bill_id';
-    }
-  };
 
   const createNewChatSession = async () => {
     try {
@@ -100,8 +103,16 @@ export default function UnifiedChatSheet({
         chat_type: chatType,
       };
 
-      // Set the appropriate related ID
-      sessionData[getRelatedIdColumn()] = relatedId;
+      // Set the appropriate related ID based on chat type
+      if (chatType === 'bill') {
+        sessionData.bill_id = Number(relatedId);
+      } else if (chatType === 'member') {
+        sessionData.member_id = Number(relatedId);
+      } else if (chatType === 'committee') {
+        sessionData.committee_id = Number(relatedId);
+      } else if (chatType === 'problem') {
+        sessionData.problem_id = String(relatedId);
+      }
 
       const { data, error } = await supabase
         .from('chat_sessions')
