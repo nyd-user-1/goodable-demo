@@ -945,9 +945,9 @@ const Landing2 = () => {
               <h3 className="font-semibold mb-4 text-sm sm:text-base">Product</h3>
               <ul className="space-y-2 text-xs sm:text-sm text-muted-foreground">
                 <li><Link to="/auth-2" className="hover:text-foreground">Features</Link></li>
-                <li><a href="/auth-2" className="hover:text-foreground">Examples</a></li>
-                <li><a href="/auth-2" className="hover:text-foreground">Pricing</a></li>
-                <li><a href="/auth-2" className="hover:text-foreground">Documentation</a></li>
+                <li><a href="https://www.goodable.dev/#" className="hover:text-foreground">Examples</a></li>
+                <li><a href="https://www.goodable.dev/#" className="hover:text-foreground">Pricing</a></li>
+                <li><a href="https://www.goodable.dev/#" className="hover:text-foreground">Documentation</a></li>
               </ul>
             </div>
             
@@ -955,9 +955,9 @@ const Landing2 = () => {
               <h3 className="font-semibold mb-4 text-sm sm:text-base">Company</h3>
               <ul className="space-y-2 text-xs sm:text-sm text-muted-foreground">
                 <li><Link to="/auth-2" className="hover:text-foreground">About</Link></li>
-                <li><a href="/auth-2" className="hover:text-foreground">Blog</a></li>
-                <li><a href="/auth-2" className="hover:text-foreground">Careers</a></li>
-                <li><a href="/auth-2" className="hover:text-foreground">Contact</a></li>
+                <li><a href="https://www.goodable.dev/#" className="hover:text-foreground">Blog</a></li>
+                <li><a href="https://www.goodable.dev/#" className="hover:text-foreground">Careers</a></li>
+                <li><a href="https://www.goodable.dev/#" className="hover:text-foreground">Contact</a></li>
               </ul>
             </div>
             
