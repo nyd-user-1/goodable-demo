@@ -1,8 +1,18 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Tables } from "@/integrations/supabase/types";
-import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
-import UnifiedChatSheet from "./features/chat/UnifiedChatSheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { useToast } from "@/hooks/use-toast";
+import { CitationsDrawer } from "./CitationsDrawer";
+import { SuggestedPrompts } from "./features/chat/SuggestedPrompts";
+import { ChatMessages } from "./features/chat/ChatMessages";
+import { ChatInput } from "./features/chat/ChatInput";
+import { ChatContainer } from "./features/chat/ChatContainer";
+import { useChatLogic } from "@/hooks/useChatLogic";
 
 type Bill = Tables<"Bills">;
 type Member = {
@@ -20,68 +30,123 @@ type Committee = {
 };
 
 interface AIChatSheetProps {
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   bill?: Bill | null;
   member?: Member | null;
   committee?: Committee | null;
 }
 
-export const AIChatSheet = ({ bill, member, committee, open, onOpenChange }: AIChatSheetProps) => {
+export const AIChatSheet = ({ open, onOpenChange, bill, member, committee }: AIChatSheetProps) => {
+  const [citationsOpen, setCitationsOpen] = useState(false);
+  const { toast } = useToast();
+  
+  // Use ref to track if we've already initialized this session
+  const hasInitialized = useRef(false);
+  
   // Determine the entity and type for the chat session
-  if (bill) {
-    return (
-      <UnifiedChatSheet
-        chatType="bill"
-        relatedId={bill.bill_id.toString()}
-        title={bill.title || `Bill ${bill.bill_number}`}
-        subtitle="AI Bill Analysis"
-        open={open}
-        onOpenChange={onOpenChange}
-      >
-        <Button size="sm" className="gap-2">
-          <Sparkles className="h-4 w-4" />
-          Chat
-        </Button>
-      </UnifiedChatSheet>
-    );
-  }
+  const entity = bill || member || committee || null;
+  const entityType = bill ? 'bill' : member ? 'member' : committee ? 'committee' : null;
+  
+  const {
+    inputValue,
+    setInputValue,
+    isLoading,
+    messages,
+    citations,
+    sendMessage,
+    handleShareChat,
+    getTitle,
+    initializeSession
+  } = useChatLogic(entity, entityType);
 
-  if (member) {
-    return (
-      <UnifiedChatSheet
-        chatType="member"
-        relatedId={member.people_id.toString()}
-        title={member.name}
-        subtitle="Legislator Chat"
-        open={open}
-        onOpenChange={onOpenChange}
-      >
-        <Button size="sm" className="gap-2">
-          <Sparkles className="h-4 w-4" />
-          Chat
-        </Button>
-      </UnifiedChatSheet>
-    );
-  }
+  // Initialize session when sheet opens (only once per entity)
+  useEffect(() => {
+    if (open && entity && !hasInitialized.current) {
+      hasInitialized.current = true;
+      initializeSession(true);
+    }
+    
+    // Reset when sheet closes
+    if (!open) {
+      hasInitialized.current = false;
+    }
+  }, [open, entity, initializeSession]);
 
-  if (committee) {
-    return (
-      <UnifiedChatSheet
-        chatType="committee"
-        relatedId={committee.committee_id.toString()}
-        title={committee.name}
-        subtitle="Committee Chat"
-        open={open}
-        onOpenChange={onOpenChange}
-      >
-        <Button size="sm" className="gap-2">
-          <Sparkles className="h-4 w-4" />
-          Chat
-        </Button>
-      </UnifiedChatSheet>
-    );
-  }
+  const handleSendMessage = () => {
+    if (inputValue.trim()) {
+      sendMessage(inputValue);
+    }
+  };
 
-  return null;
+  const handlePromptClick = (prompt: string) => {
+    sendMessage(prompt);
+  };
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied to clipboard",
+      description: "Message content copied to clipboard.",
+    });
+  };
+
+  const handleFeedback = (type: "thumbs-up" | "thumbs-down" | "citations") => {
+    if (type === "citations") {
+      setCitationsOpen(true);
+    } else {
+      toast({
+        title: "Feedback received",
+        description: `Thank you for your ${type} feedback!`,
+      });
+    }
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="chat-sheet-content w-full sm:max-w-2xl flex flex-col h-full">
+        <SheetHeader className="flex-shrink-0">
+          <SheetTitle>{getTitle()}</SheetTitle>
+        </SheetHeader>
+
+        <ChatContainer>
+          {/* Dynamic Suggested Prompts */}
+          <SuggestedPrompts
+            entity={entity}
+            entityType={entityType}
+            onPromptClick={handlePromptClick}
+            isLoading={isLoading}
+            showPrompts={messages.length === 0}
+            hasMessages={messages.length > 0}
+          />
+
+          {/* Chat Messages */}
+          <ChatMessages
+            messages={messages}
+            isLoading={isLoading}
+            onCopy={handleCopy}
+            onShare={handleShareChat}
+            onSendPrompt={sendMessage}
+            entity={entity}
+            entityType={entityType}
+            onFeedback={handleFeedback}
+          />
+
+          {/* Input Area */}
+          <ChatInput
+            inputValue={inputValue}
+            onInputChange={setInputValue}
+            onSendMessage={handleSendMessage}
+            isLoading={isLoading}
+          />
+        </ChatContainer>
+      </SheetContent>
+      
+      <CitationsDrawer 
+        open={citationsOpen}
+        onOpenChange={setCitationsOpen}
+        citations={citations}
+      />
+    </Sheet>
+  );
 };
