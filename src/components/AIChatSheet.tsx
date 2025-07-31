@@ -27,7 +27,7 @@ interface AIChatSheetProps {
   committee?: Committee | null;
 }
 
-export const AIChatSheet = ({ bill, member, committee }: AIChatSheetProps) => {
+export const AIChatSheet = ({ bill, member, committee, open, onOpenChange }: AIChatSheetProps) => {
   // Determine the entity and type for the chat session
   if (bill) {
     return (
@@ -36,6 +36,8 @@ export const AIChatSheet = ({ bill, member, committee }: AIChatSheetProps) => {
         relatedId={bill.bill_id.toString()}
         title={bill.title || `Bill ${bill.bill_number}`}
         subtitle="AI Bill Analysis"
+        open={open}
+        onOpenChange={onOpenChange}
       >
         <Button size="sm" className="gap-2">
           <Sparkles className="h-4 w-4" />
@@ -52,6 +54,8 @@ export const AIChatSheet = ({ bill, member, committee }: AIChatSheetProps) => {
         relatedId={member.people_id.toString()}
         title={member.name}
         subtitle="Legislator Chat"
+        open={open}
+        onOpenChange={onOpenChange}
       >
         <Button size="sm" className="gap-2">
           <Sparkles className="h-4 w-4" />
@@ -68,6 +72,8 @@ export const AIChatSheet = ({ bill, member, committee }: AIChatSheetProps) => {
         relatedId={committee.committee_id.toString()}
         title={committee.name}
         subtitle="Committee Chat"
+        open={open}
+        onOpenChange={onOpenChange}
       >
         <Button size="sm" className="gap-2">
           <Sparkles className="h-4 w-4" />

@@ -26,6 +26,8 @@ interface UnifiedChatSheetProps {
   title: string;
   subtitle?: string;
   children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export default function UnifiedChatSheet({ 
@@ -33,9 +35,15 @@ export default function UnifiedChatSheet({
   relatedId, 
   title, 
   subtitle,
-  children 
+  children,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange
 }: UnifiedChatSheetProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  // Use controlled state if provided, otherwise use internal state
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = controlledOnOpenChange || setInternalOpen;
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(false);
