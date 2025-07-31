@@ -304,42 +304,42 @@ const Landing2 = () => {
       title: "Legislative Intelligence",
       description: "Track and analyze bills with AI-powered insights across all committees and chambers",
       gradient: "from-[#3D63DD] to-[#5A7FDB]",
-      path: "/dashboard"
+      path: "/auth-2"
     },
     {
       icon: <Users className="w-5 h-5" />,
       title: "Member Profiles",
       description: "Comprehensive legislator data including voting history, sponsorships, and committee memberships",
       gradient: "from-[#3D63DD] to-[#6B8CE8]",
-      path: "/members"
+      path: "/auth-2"
     },
     {
       icon: <Brain className="w-5 h-5" />,
       title: "AI Policy Assistant",
       description: "Draft legislation, analyze impacts, and get expert guidance with advanced AI models",
       gradient: "from-[#3D63DD] to-[#4A70E0]",
-      path: "/playground"
+      path: "/auth-2"
     },
     {
       icon: <Building2 className="w-5 h-5" />,
       title: "Committee Tracking",
       description: "Monitor committee activities, agendas, and member compositions in real-time",
       gradient: "from-[#3D63DD] to-[#5577E5]",
-      path: "/committees"
+      path: "/auth-2"
     },
     {
       icon: <Scale className="w-5 h-5" />,
       title: "Bills and Resolutions",
       description: "Collaborative workspace for drafting, reviewing, and refining policy proposals",
       gradient: "from-[#3D63DD] to-[#4D73E2]",
-      path: "/bills"
+      path: "/auth-2"
     },
     {
       icon: <Vote className="w-5 h-5" />,
       title: "Community Solutions",
       description: "Crowdsource ideas and vote on solutions to pressing societal challenges",
       gradient: "from-[#3D63DD] to-[#5A7FDB]",
-      path: "/public-policy"
+      path: "/auth-2"
     }
   ];
 
@@ -399,7 +399,7 @@ const Landing2 = () => {
         "border-gray-950/[.1] bg-gray-950/[.01] hover:bg-gray-950/[.05]",
         "dark:border-gray-50/[.1] dark:bg-gray-50/[.10] dark:hover:bg-gray-50/[.15]",
       )}
-      onClick={() => navigate('/members')}
+      onClick={() => navigate('/auth-2')}
     >
       <div className="flex flex-row items-center gap-2">
         <img 
@@ -428,7 +428,7 @@ const Landing2 = () => {
         "border-gray-950/[.1] bg-gray-950/[.01] hover:bg-gray-950/[.05]",
         "dark:border-gray-50/[.1] dark:bg-gray-50/[.10] dark:hover:bg-gray-50/[.15]",
       )}
-      onClick={() => navigate(`/problems/${problem.slug}`)}
+      onClick={() => navigate('/auth-2')}
     >
       <div className="flex flex-col">
         <figcaption className="text-xs sm:text-sm font-medium dark:text-white mb-1">
@@ -530,10 +530,7 @@ const Landing2 = () => {
             </Button>
             <Button 
               size="lg" 
-              onClick={() => {
-                navigate('/members');
-                setTimeout(() => window.scrollTo(0, 0), 100);
-              }}
+              onClick={() => navigate('/auth-2')}
               className="bg-[#3D63DD] text-white hover:bg-[#2D53CD] w-full sm:w-auto"
             >
               Learn
