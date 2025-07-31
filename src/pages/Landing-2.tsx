@@ -561,6 +561,28 @@ const Landing2 = () => {
       {/* Marquee Section */}
       <section className="py-12 sm:py-20 px-4 sm:px-6 bg-muted/30">
         <div className="mx-auto max-w-7xl">
+          {/* Alpha Announcement Banner */}
+          <div className="flex justify-center mb-8">
+            <div className="inline-flex items-center gap-3 px-4 py-2 sm:px-6 sm:py-3 bg-background/80 backdrop-blur-sm border border-border/40 rounded-full shadow-sm">
+              <Badge 
+                variant="secondary" 
+                className="bg-[#3D63DD] text-white hover:bg-[#2D53CD] text-xs font-medium"
+              >
+                New
+              </Badge>
+              <span className="text-sm sm:text-base font-medium text-foreground">
+                Goodable is now in alpha.
+              </span>
+              <button 
+                onClick={() => navigate('/auth-2')}
+                className="text-sm text-[#3D63DD] hover:text-[#2D53CD] font-medium transition-colors flex items-center gap-1"
+              >
+                Learn More
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+          
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
               Public Policy, But Different
