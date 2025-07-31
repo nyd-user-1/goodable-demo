@@ -113,7 +113,7 @@ export const MessageBubble = ({
         }`}
       >
         <div
-          className={`rounded-lg p-3 relative overflow-hidden ${
+          className={`rounded-lg p-3 relative overflow-hidden break-words ${
             message.role === "user"
               ? "bg-slate-800 text-white max-w-[85%] ml-auto"
               : "bg-muted max-w-[85%] mr-4"
@@ -132,11 +132,19 @@ export const MessageBubble = ({
           )}
           
           {message.role === "assistant" ? (
-            <div className="chat-markdown-content text-sm prose prose-sm max-w-none dark:prose-invert pr-8 pb-8 break-words overflow-wrap-anywhere">
-              <ReactMarkdown>{message.content}</ReactMarkdown>
+            <div className="chat-markdown-content text-sm prose prose-sm max-w-none dark:prose-invert pr-8 pb-8 break-words overflow-wrap-anywhere word-break-break-all">
+              <ReactMarkdown 
+                components={{
+                  p: ({ children }) => <p className="break-words overflow-wrap-anywhere word-break-break-all max-w-full">{children}</p>,
+                  li: ({ children }) => <li className="break-words overflow-wrap-anywhere word-break-break-all max-w-full">{children}</li>,
+                  div: ({ children }) => <div className="break-words overflow-wrap-anywhere word-break-break-all max-w-full">{children}</div>
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
             </div>
           ) : (
-            <p className="chat-text-content text-sm whitespace-pre-wrap break-words overflow-wrap-break-word word-break-break-word">{message.content}</p>
+            <p className="chat-text-content text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere word-break-break-all max-w-full">{message.content}</p>
           )}
           {message.timestamp && (
             <p className="text-xs opacity-70 mt-1">
