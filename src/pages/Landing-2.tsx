@@ -564,26 +564,26 @@ const Landing2 = () => {
         <div className="mx-auto max-w-7xl">
           {/* Alpha Announcement Banner */}
           <div className="flex justify-center mb-8">
-            <div className="relative">
+            <div className="relative inline-block">
               <ShineBorder
                 className="rounded-full"
                 shineColor={["#ff0000", "#ff8000", "#ffff00", "#80ff00", "#00ff80", "#0080ff", "#8000ff", "#ff0080"]}
-                borderWidth={2}
-                duration={8}
+                borderWidth={3}
+                duration={6}
               />
-              <div className="inline-flex items-center gap-3 px-4 py-2 sm:px-6 sm:py-3 bg-background/80 backdrop-blur-sm rounded-full shadow-sm">
+              <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 px-3 py-2 sm:px-6 sm:py-3 bg-background/95 backdrop-blur-sm rounded-full shadow-sm">
                 <Badge 
                   variant="secondary" 
-                  className="bg-[#3D63DD] text-white hover:bg-[#2D53CD] text-xs font-medium"
+                  className="bg-[#3D63DD] text-white hover:bg-[#2D53CD] text-xs font-medium whitespace-nowrap"
                 >
                   New
                 </Badge>
-                <span className="text-sm sm:text-base font-medium text-foreground">
+                <span className="text-xs sm:text-base font-medium text-foreground whitespace-nowrap">
                   Goodable is now in alpha.
                 </span>
                 <button 
                   onClick={() => navigate('/auth-2')}
-                  className="text-sm text-[#3D63DD] hover:text-[#2D53CD] font-medium transition-colors flex items-center gap-1"
+                  className="text-xs sm:text-sm text-[#3D63DD] hover:text-[#2D53CD] font-medium transition-colors flex items-center gap-1 whitespace-nowrap"
                 >
                   Learn More
                   <ArrowRight className="w-3 h-3" />
