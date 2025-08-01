@@ -41,10 +41,10 @@ export function ShineBorder({
         {
           "--border-width": `${borderWidth}px`,
           "--duration": `${duration}s`,
-          backgroundImage: `conic-gradient(from 0deg at 50% 50%, ${
+          backgroundImage: `radial-gradient(transparent,transparent, ${
             Array.isArray(shineColor) ? shineColor.join(",") : shineColor
-          })`,
-          backgroundSize: "200% 200%",
+          },transparent,transparent)`,
+          backgroundSize: "300% 300%",
           mask: `linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)`,
           WebkitMask: `linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)`,
           WebkitMaskComposite: "xor",
