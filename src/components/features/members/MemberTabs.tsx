@@ -50,12 +50,16 @@ export const MemberTabs = ({ member }: MemberTabsProps) => {
           <CardContent>
             <div className="space-y-4">
               {member.bio_long ? (
-                <div className="prose max-w-none">
-                  <p className="text-sm leading-relaxed">{member.bio_long}</p>
+                <div className="prose prose-sm max-w-none">
+                  {member.bio_long.split('\n\n').map((paragraph, index) => (
+                    <p key={index} className="mb-4 text-foreground leading-relaxed">
+                      {paragraph}
+                    </p>
+                  ))}
                 </div>
               ) : member.bio_short ? (
-                <div className="prose max-w-none">
-                  <p className="text-sm leading-relaxed">{member.bio_short}</p>
+                <div className="prose prose-sm max-w-none">
+                  <p className="text-foreground leading-relaxed">{member.bio_short}</p>
                 </div>
               ) : (
                 <div className="text-center py-8">

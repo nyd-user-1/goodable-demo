@@ -571,7 +571,10 @@ const Landing2 = () => {
                 borderWidth={2}
                 duration={8}
               />
-              <div className="inline-flex items-center gap-3 px-4 py-2 sm:px-6 sm:py-3 bg-background/80 backdrop-blur-sm rounded-full shadow-sm">
+              <button 
+                onClick={() => navigate('/auth-2')}
+                className="inline-flex items-center gap-3 px-4 py-2 sm:px-6 sm:py-3 bg-background/80 backdrop-blur-sm rounded-full shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+              >
                 <Badge 
                   variant="secondary" 
                   className="bg-[#3D63DD] text-white hover:bg-[#2D53CD] text-xs font-medium"
@@ -581,14 +584,11 @@ const Landing2 = () => {
                 <span className="text-sm sm:text-base font-medium text-foreground">
                   Goodable is now in alpha.
                 </span>
-                <button 
-                  onClick={() => navigate('/auth-2')}
-                  className="text-sm text-[#3D63DD] hover:text-[#2D53CD] font-medium transition-colors flex items-center gap-1"
-                >
+                <span className="hidden sm:flex text-sm text-[#3D63DD] hover:text-[#2D53CD] font-medium transition-colors items-center gap-1">
                   Learn More
                   <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
+                </span>
+              </button>
             </div>
           </div>
           
