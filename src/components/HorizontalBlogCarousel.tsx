@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/carousel";
 
 export default function HorizontalBlogCarousel() {
+  const navigate = useNavigate();
+  
   // Policy proposal blog posts
   const posts = [
     {
@@ -90,7 +92,10 @@ export default function HorizontalBlogCarousel() {
                   key={post.id}
                   className="pl-4 sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
                 >
-                  <Card className="flex h-full flex-col overflow-hidden pt-0">
+                  <Card 
+                    className="flex h-full flex-col overflow-hidden pt-0 cursor-pointer hover:shadow-lg transition-shadow"
+                    onClick={() => navigate('/auth-2')}
+                  >
                     <div className="relative aspect-[4/3] w-full overflow-hidden">
                       <img
                         src={post.imageUrl}
