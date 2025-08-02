@@ -702,7 +702,11 @@ const Landing2 = () => {
           
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {featuredPosts.slice(0, 6).map((post, index) => (
-              <Card key={post.id} className="cursor-pointer hover:bg-muted/50 transition-colors hover:shadow-md h-full">
+              <Card 
+                key={post.id} 
+                className="cursor-pointer hover:bg-muted/50 transition-colors hover:shadow-md h-full"
+                onClick={() => navigate('/auth-2')}
+              >
                 <CardContent className="p-6 h-full flex flex-col">
                   {/* Header with title */}
                   <div className="mb-4">
