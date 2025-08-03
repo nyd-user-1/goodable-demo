@@ -903,8 +903,9 @@ const LandingPageWaitlist = () => {
 
       {/* CTA Section */}
       <section id="waitlist" className="py-12 sm:py-20 bg-background relative">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <ShineBorder 
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <ShineBorder 
             className="rounded-xl sm:rounded-2xl"
             shineColor={["#3D63DD", "#5A7FDB", "#2D53CD"]}
             borderRadius={16}
@@ -952,6 +953,7 @@ const LandingPageWaitlist = () => {
               </form>
             </div>
           </ShineBorder>
+          </div>
         </div>
       </section>
       
