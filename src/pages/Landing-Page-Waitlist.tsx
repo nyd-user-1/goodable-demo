@@ -529,7 +529,12 @@ const LandingPageWaitlist = () => {
             </Button>
             <Button 
               size="lg" 
-              onClick={() => navigate('/auth-2')}
+              onClick={() => {
+                const goodTroubleSection = document.getElementById('good-trouble');
+                if (goodTroubleSection) {
+                  goodTroubleSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
               className="bg-[#3D63DD] text-white hover:bg-[#2D53CD] w-full sm:w-auto"
             >
               Learn
@@ -822,7 +827,7 @@ const LandingPageWaitlist = () => {
 
 
       {/* Blog Carousel Section with light gray background */}
-      <div className="bg-muted/30">
+      <div id="good-trouble" className="bg-muted/30">
         <HorizontalBlogCarousel />
       </div>
 
