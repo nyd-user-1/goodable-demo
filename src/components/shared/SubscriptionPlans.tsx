@@ -24,17 +24,17 @@ export const subscriptionTiers = [
   },
   {
     tier: 'student',
-    name: 'Student',
-    monthlyPrice: '$19',
-    annualPrice: '$15.83',
-    description: 'Designed for students and academics',
+    name: 'Citizen',
+    monthlyPrice: '$5',
+    annualPrice: '$4.17',
+    description: 'Designed for engaged citizens',
     features: [
       'All Free features',
       'Unlimited chat sessions',
       'Legislative draft creation (up to 5)',
       'Basic analysis tools',
       'Email support',
-      'Student verification required'
+      'Civic engagement tools'
     ]
   },
   {

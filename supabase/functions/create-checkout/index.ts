@@ -9,7 +9,7 @@ const corsHeaders = {
 
 // Subscription tier pricing (in cents)
 const tierPricing = {
-  student: { monthly: 1900, annually: 1583 },      // $19.00/month, $15.83/month billed annually (10-month pricing)
+  student: { monthly: 500, annually: 417 },        // $5.00/month, $4.17/month billed annually (20% discount)
   staffer: { monthly: 9900, annually: 8250 },      // $99.00/month, $82.50/month billed annually (10-month pricing)
   researcher: { monthly: 14900, annually: 12417 }, // $149.00/month, $124.17/month billed annually (10-month pricing)
   professional: { monthly: 29900, annually: 24917 }, // $299.00/month, $249.17/month billed annually (10-month pricing)
@@ -18,7 +18,7 @@ const tierPricing = {
 };
 
 const tierNames = {
-  student: "Student Plan",
+  student: "Citizen Plan",
   staffer: "Staffer Plan", 
   researcher: "Researcher Plan",
   professional: "Professional Plan",
