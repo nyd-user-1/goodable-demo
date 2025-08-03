@@ -17,6 +17,7 @@ interface Member {
   phone_district: string;
   address: string;
   bio_short: string;
+  bio_long: string;
   ballotpedia: string;
 }
 
@@ -86,6 +87,7 @@ export const useMembersData = () => {
           phone_district,
           address,
           bio_short,
+          bio_long,
           ballotpedia
         `)
         .not("chamber", "is", null)
