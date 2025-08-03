@@ -510,7 +510,7 @@ const LandingPageWaitlist = () => {
           </h1>
               
           <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto mb-8 px-4">
-            Welcome to the only AI for public policy.
+            The only AI for public policy.
           </p>
               
           <div className="flex justify-center gap-4 mb-8 sm:mb-12 px-4">
