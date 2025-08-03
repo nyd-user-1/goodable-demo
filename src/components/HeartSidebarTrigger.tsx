@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
+import { Menu } from "lucide-react";
 
 export const HeartSidebarTrigger = () => {
   const { toggleSidebar } = useSidebar();
@@ -9,14 +10,10 @@ export const HeartSidebarTrigger = () => {
       variant="ghost"
       size="sm"
       onClick={toggleSidebar}
-      className="p-0 h-auto hover:bg-transparent"
+      className="h-9 w-9 p-0"
       aria-label="Toggle Sidebar"
     >
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 bg-card border rounded-lg flex items-center justify-center hover:shadow-md transition-shadow duration-200">
-          <span className="text-lg">❤️</span>
-        </div>
-      </div>
+      <Menu className="h-4 w-4" />
     </Button>
   );
 };
