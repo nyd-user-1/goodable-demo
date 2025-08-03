@@ -61,6 +61,46 @@ export default function HorizontalBlogCarousel() {
       imageUrl: "/goodable-path.avif",
       slug: "effective-user-onboarding",
     },
+    {
+      id: "5",
+      title: "Building Sustainable Communities Through Policy",
+      excerpt:
+        "Exploring how local policy initiatives can create lasting positive change in communities.",
+      date: "Feb 15, 2023",
+      category: "Policy",
+      imageUrl: "/goodable-botanical.avif",
+      slug: "sustainable-communities-policy",
+    },
+    {
+      id: "6",
+      title: "Education Reform: A Path Forward",
+      excerpt:
+        "Innovative approaches to education policy that prioritize student success and teacher support.",
+      date: "Feb 8, 2023",
+      category: "Education",
+      imageUrl: "/goodable-heart.avif",
+      slug: "education-reform-path-forward",
+    },
+    {
+      id: "7",
+      title: "Healthcare Access in Rural Communities",
+      excerpt:
+        "Addressing the unique challenges of healthcare delivery in underserved rural areas.",
+      date: "Jan 28, 2023",
+      category: "Healthcare",
+      imageUrl: "/goodable-night.avif",
+      slug: "rural-healthcare-access",
+    },
+    {
+      id: "8",
+      title: "Climate Action Through Local Legislation",
+      excerpt:
+        "How cities and states are leading the way in climate policy innovation.",
+      date: "Jan 15, 2023",
+      category: "Environment",
+      imageUrl: "/goodable-path.avif",
+      slug: "climate-action-local-legislation",
+    },
   ];
 
   const title = "Good Trouble?";
@@ -82,7 +122,7 @@ export default function HorizontalBlogCarousel() {
           <Carousel
             opts={{
               align: "start",
-              loop: false,
+              loop: true,
             }}
             className="w-full"
           >
