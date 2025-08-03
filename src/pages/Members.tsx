@@ -155,6 +155,33 @@ const Members = () => {
     return <MembersErrorState error={error} onRetry={fetchMembers} />;
   }
 
+  // Member navigation logic
+  const getAllMembers = () => {
+    // Get all members sorted alphabetically by last name (same as main list)
+    return [...members].sort((a, b) => a.last_name.localeCompare(b.last_name));
+  };
+
+  const getMemberNavigation = () => {
+    if (!selectedMember) return { hasPrevious: false, hasNext: false };
+    
+    const allMembers = getAllMembers();
+    const currentIndex = allMembers.findIndex(m => m.people_id === selectedMember.people_id);
+    
+    return {
+      hasPrevious: currentIndex > 0,
+      hasNext: currentIndex < allMembers.length - 1,
+      previousMember: currentIndex > 0 ? allMembers[currentIndex - 1] : null,
+      nextMember: currentIndex < allMembers.length - 1 ? allMembers[currentIndex + 1] : null
+    };
+  };
+
+  const navigateToMember = (member: any) => {
+    setSelectedMember(member);
+    navigate(`/members?selected=${member.people_id}`);
+  };
+
+  const navigation = getMemberNavigation();
+
   // Show member detail if one is selected
   if (selectedMember) {
     return (
@@ -163,7 +190,11 @@ const Members = () => {
         onBack={() => {
           setSelectedMember(null);
           navigate('/members');
-        }} 
+        }}
+        onPrevious={navigation.previousMember ? () => navigateToMember(navigation.previousMember) : undefined}
+        onNext={navigation.nextMember ? () => navigateToMember(navigation.nextMember) : undefined}
+        hasPrevious={navigation.hasPrevious}
+        hasNext={navigation.hasNext}
       />
     );
   }
