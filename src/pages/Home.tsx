@@ -381,45 +381,37 @@ const Home = () => {
 
         <section className="py-20 bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <ShineBorder 
-              className="rounded-2xl"
-              shineColor={["#3D63DD", "#5A7FDB", "#2D53CD"]}
-              borderRadius={16}
-              borderWidth={2}
-              duration={10}
+            <div 
+              className="p-12 text-center"
+              onMouseEnter={() => {
+                if (!hasTriggeredConfetti) {
+                  confettiRef.current?.fire({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                  });
+                  setHasTriggeredConfetti(true);
+                }
+              }}
             >
-              <div 
-                className="p-12 text-center"
-                onMouseEnter={() => {
-                  if (!hasTriggeredConfetti) {
-                    confettiRef.current?.fire({
-                      particleCount: 100,
-                      spread: 70,
-                      origin: { y: 0.6 }
-                    });
-                    setHasTriggeredConfetti(true);
-                  }
-                }}
-              >
-                <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                  Ready to do something good?
-                </h2>
-                <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                  Join thousands of people who are collaborating on a future that's Goodable.
-                </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Button 
-                    variant="outline" 
-                    size="lg" 
-                    onClick={handleDoSomethingClick}
-                    className="dark:shadow-[0_0_20px_rgba(59,130,246,0.3)] dark:border-blue-500/50 dark:hover:shadow-[0_0_25px_rgba(59,130,246,0.4)] transition-all duration-300"
-                  >
-                    <Heart className="w-4 h-4 mr-2 text-destructive" />
-                    Do Something
-                  </Button>
-                </div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Ready to do something good?
+              </h2>
+              <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+                Join thousands of people who are collaborating on a future that's Goodable.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  onClick={handleDoSomethingClick}
+                  className="dark:shadow-[0_0_20px_rgba(59,130,246,0.3)] dark:border-blue-500/50 dark:hover:shadow-[0_0_25px_rgba(59,130,246,0.4)] transition-all duration-300"
+                >
+                  <Heart className="w-4 h-4 mr-2 text-destructive" />
+                  Do Something
+                </Button>
               </div>
-            </ShineBorder>
+            </div>
           </div>
         </section>
       </main>
