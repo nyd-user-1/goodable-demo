@@ -47,6 +47,7 @@ import BlogPost from "./pages/BlogPost";
 import Admin from "./pages/Admin";
 import FeedPage from "./pages/FeedPage";
 import ImageUploadTest from "./pages/ImageUploadTest";
+import Customerstory from "./pages/Customerstory";
 
 const queryClient = new QueryClient();
 
@@ -99,6 +100,7 @@ const AppLayout = () => {
                   <Route path="/feed" element={<FeedPage />} />
                   <Route path="/shadcn-showcase" element={<ShadcnShowcase />} />
                   <Route path="/image-upload-test" element={<ImageUploadTest />} />
+                  <Route path="/customerstory" element={<Customerstory />} />
                 </Routes>
               </PageTransition>
             </main>
