@@ -60,7 +60,7 @@ interface Member {
   bills?: number;
 }
 
-const Landing2 = () => {
+const LandingPageWaitlist = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const featuresRef = useRef<HTMLDivElement>(null);
@@ -510,8 +510,7 @@ const Landing2 = () => {
           </h1>
               
           <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto mb-8 px-4">
-            The only comprehensive platform for tracking legislation, analyzing policy impacts, 
-            and crowd sourced policy solutions. Powered by advanced AI and driven by collaboration.
+            Welcome to the only AI for public policy.
           </p>
               
           <div className="flex justify-center gap-4 mb-8 sm:mb-12 px-4">
@@ -1021,4 +1020,4 @@ const Landing2 = () => {
   );
 };
 
-export default Landing2;
+export default LandingPageWaitlist;

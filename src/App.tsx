@@ -18,7 +18,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import Landing from "./pages/Landing";
-import Landing2 from "./pages/Landing-2";
+import LandingPageWaitlist from "./pages/Landing-Page-Waitlist";
 import Home from "./pages/Home";
 import Home2 from "./pages/Home-2";
 import Index from "./pages/Index";
@@ -124,7 +124,7 @@ const App = () => {
               <CommandPalette />
               <PageTransition>
                 <Routes>
-                  <Route path="/" element={<Landing2 />} />
+                  <Route path="/" element={<LandingPageWaitlist />} />
                   <Route path="/alt" element={<Landing />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/auth-2" element={<Auth2 />} />

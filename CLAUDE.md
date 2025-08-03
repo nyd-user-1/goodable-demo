@@ -389,3 +389,63 @@ Aggregates blog proposal data with vote counts and author information for perfor
 - Join with `profiles` table for user display information
 - The `update_updated_at_column()` trigger function already exists in the database
 - Blog system is complete and production-ready as confirmed by Lovable
+
+# Site Architecture Communication Protocol
+
+## CRITICAL: Architecture Reference System
+
+When discussing ANY changes to the UI, pages, or components, ALWAYS reference the Site Architecture Dictionary located at `/SITE_ARCHITECTURE.md`. This dictionary is the single source of truth for:
+
+- Page numbering and naming
+- Section identification
+- Component locations
+- File paths
+
+## Required Communication Format
+
+### When Receiving Instructions
+If a user says something ambiguous like:
+- "Update the landing page"
+- "Change the cards"
+- "Fix the button"
+- "Modify the hero"
+
+**IMMEDIATELY ASK FOR CLARIFICATION using this format:**
+"Which specific page and section are you referring to? Please specify:
+- Page number (e.g., Page 1)
+- Section number (e.g., Section 3)
+- Specific component if applicable"
+
+### Preferred Instruction Format
+Users should specify changes as:
+- "In Page 1, Section 3, update the header text"
+- "On Page 1, Section 2 (Problem Statements), change card routing"
+- "In the Landing-2.tsx file, Hero component, update the H1"
+
+### Teaching Users the Format
+When users give vague instructions, guide them to use the architecture:
+- "I see you want to update something. Looking at our Site Architecture Dictionary, which page and section do you mean?"
+- "To ensure accuracy, please reference the page and section numbers from our dictionary"
+- Provide examples: "For instance: 'In Page 1, Section 3, update...'"
+
+## Architecture Structure
+
+Every page follows this hierarchy:
+```
+Page X: [Page Name]
+├── URL: /path
+├── File: src/pages/FileName.tsx
+├── Component: ComponentName
+└── Sections:
+    ├── Section 1 (Hero/Main)
+    ├── Section 2 (Descriptive Name)
+    └── Section N (Footer)
+```
+
+## Before ANY Execution
+1. Check if the instruction references specific Page/Section numbers
+2. If not, request clarification
+3. Confirm understanding before making changes
+4. Reference the Site Architecture Dictionary for accurate component names
+
+This protocol prevents rollbacks, rework, and confusion. Always enforce it.
