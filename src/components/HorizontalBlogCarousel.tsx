@@ -53,7 +53,7 @@ export default function HorizontalBlogCarousel() {
     },
     {
       id: "4",
-      title: "Trust Framework & Badge Proposal",
+      title: "Trust Framework",
       excerpt:
         "A trust layer for civic tech establishing transparency metrics, verification badges, audit mechanisms, and public feedback systems.",
       date: "Feb 24, 2023",
