@@ -903,17 +903,17 @@ const LandingPageWaitlist = () => {
 
       {/* CTA Section */}
       <section id="waitlist" className="py-12 sm:py-20 bg-background relative">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="relative inline-block rounded-xl sm:rounded-2xl">
             <ShineBorder 
-            className="rounded-xl sm:rounded-2xl"
-            shineColor={["#3D63DD", "#5A7FDB", "#2D53CD"]}
-            borderRadius={16}
-            borderWidth={2}
-            duration={10}
-          >
+              className="rounded-xl sm:rounded-2xl"
+              shineColor={["#3D63DD", "#5A7FDB", "#2D53CD"]}
+              borderRadius={16}
+              borderWidth={2}
+              duration={10}
+            />
             <div 
-              className="p-8 sm:p-12 text-center"
+              className="relative p-8 sm:p-12 text-center"
               onMouseEnter={() => {
                 if (!hasTriggeredConfetti) {
                   confettiRef.current?.fire({
@@ -952,7 +952,6 @@ const LandingPageWaitlist = () => {
                 </Button>
               </form>
             </div>
-          </ShineBorder>
           </div>
         </div>
       </section>
