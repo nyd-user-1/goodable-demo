@@ -43,13 +43,13 @@ export default function HorizontalBlogCarousel() {
     },
     {
       id: "3",
-      title: "North American Numbering Plan 2.0",
+      title: "Area Codes 2.0",
       excerpt:
         "Area codes tell you where a call is coming from. A uniform digital equivalent is long overdue.",
       date: "Mar 12, 2023",
       category: "Privacy",
       imageUrl: "/goodable-night.avif",
-      slug: "north-american-numbering-plan-2-0",
+      slug: "area-codes-2-0",
     },
     {
       id: "4",
