@@ -29,7 +29,7 @@ export default function HorizontalBlogCarousel() {
       date: "Apr 15, 2023",
       category: "Digital Rights",
       imageUrl: "/goodable-botanical.avif",
-      slug: "digital-bill-of-rights",
+      slug: "a-digital-bill-of-rights",
     },
     {
       id: "2",
@@ -39,33 +39,33 @@ export default function HorizontalBlogCarousel() {
       date: "Mar 28, 2023",
       category: "Digital Governance",
       imageUrl: "/goodable-heart.avif",
-      slug: "public-design-code",
+      slug: "national-design-code",
     },
     {
       id: "3",
-      title: "PrivateSite™ Certification",
+      title: "North American Numbering Plan 2.0",
       excerpt:
-        "Badge and compliance framework for websites meeting high standards for user dignity, minimal data collection, dark mode defaults, and scheduled offline hours.",
+        "Area codes tell you where a call is coming from. A uniform digital equivalent is long overdue.",
       date: "Mar 12, 2023",
       category: "Privacy",
       imageUrl: "/goodable-night.avif",
-      slug: "privatesite-certification",
+      slug: "north-american-numbering-plan-2-0",
     },
     {
       id: "4",
-      title: "Trust Framework",
+      title: "Civic-First AI Sandbox",
       excerpt:
-        "A trust layer for civic tech establishing transparency metrics, verification badges, audit mechanisms, and public feedback systems.",
+        "AI is governed by tokens. This inherently separates the haves from the have nots. This fact accelerates inequality at lightspeed.",
       date: "Feb 24, 2023",
       category: "Trust & Safety",
       imageUrl: "/goodable-path.avif",
-      slug: "trust-framework-badge",
+      slug: "civic-firrst-ai-sandbox",
     },
     {
       id: "5",
-      title: "Public Stack Incentives",
+      title: "The Public Stack Incentive",
       excerpt:
-        "Incentivizing open-source civic infrastructure through grants, tax credits, and procurement preferences for public good technology.",
+        "Stop giving money to IDAs. Start giving money to coders and designers to accelerate the buildout of a public digital infrastructure.",
       date: "Feb 15, 2023",
       category: "Open Source",
       imageUrl: "/goodable-botanical.avif",
@@ -75,7 +75,7 @@ export default function HorizontalBlogCarousel() {
       id: "6",
       title: "Digital Licensing Framework",
       excerpt:
-        "Professional licensing for high-impact civic tech developers, requiring ethical standards, technical competence, and continuing education.",
+        "Electricians are licensned for a reason. Nowadays, code can do far more harm than electricity. Start a licensing process for requiring public first ethical standards, technical competency, and continuing education.",
       date: "Feb 8, 2023",
       category: "Professional Standards",
       imageUrl: "/goodable-heart.avif",
@@ -83,13 +83,13 @@ export default function HorizontalBlogCarousel() {
     },
     {
       id: "7",
-      title: "Public AI Sandbox",
+      title: "Mandate Cigarette Warnings for Digital Products ",
       excerpt:
-        "Safe experimentation zone for AI tools aligned with public values, enabling cross-agency collaboration, R&D funding, and controlled pilots.",
+        "Certain digital products leverage dark patterns to consume your time and attention. Mandate clear warnings and disclosures.",
       date: "Jan 28, 2023",
       category: "AI Policy",
       imageUrl: "/goodable-night.avif",
-      slug: "public-ai-sandbox",
+      slug: "mandate-cigarette-warnings-for-digital-products",
     },
   ];
 
