@@ -525,7 +525,7 @@ const LandingPageWaitlist = () => {
               }}
               className="w-full sm:w-auto"
             >
-              Play
+              Demo
             </Button>
             <Button 
               size="lg" 
