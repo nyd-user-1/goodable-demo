@@ -23,7 +23,7 @@ export default function HorizontalBlogCarousel() {
   const posts = [
     {
       id: "1",
-      title: "Digital Bill of Rights",
+      title: "A Digital Bill of Rights",
       excerpt:
         "Five Digital Rights: Privacy, Access, Identity, Explanation, Participation. Five Freedoms from Manipulation, Surveillance, Algorithmic Discrimination, Digital Addiction, and Forced Engagement.",
       date: "Apr 15, 2023",
@@ -33,9 +33,9 @@ export default function HorizontalBlogCarousel() {
     },
     {
       id: "2",
-      title: "Public Design Code",
+      title: "National Design Code",
       excerpt:
-        "A legal framework for regulating digital services, standardizing accessibility, usability, interoperability, and non-exploitative defaults.",
+        "Prioritizes intentional design over manipulative engagement and design practices.",
       date: "Mar 28, 2023",
       category: "Digital Governance",
       imageUrl: "/goodable-heart.avif",
