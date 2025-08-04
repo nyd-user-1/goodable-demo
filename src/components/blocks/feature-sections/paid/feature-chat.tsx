@@ -379,9 +379,6 @@ Ready to explore actionable steps for addressing these root causes in the Policy
         <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
           Policy Lab
         </h2>
-        <p className="text-muted-foreground mx-auto max-w-[700px] md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-          Learn. Explore. Make it real.
-        </p>
       </div>
 
       <div className="flex flex-col items-center gap-8">
