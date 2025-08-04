@@ -47,7 +47,7 @@ const initialMessages: Message[] = [
   {
     id: "1",
     content:
-      "Hey! What's your problem? 🤔 Tell me what's bothering you, what challenge you're facing, or what issue needs solving. I'm here to help you think through it!",
+      "No complaints?🤔 Yeah right! If you have no complaints, scroll on. But, if you have even one...let's hear it.",
     sender: "assistant",
     timestamp: new Date(),
   },
