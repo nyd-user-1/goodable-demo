@@ -3,14 +3,46 @@ import { useState } from "react";
 import { AnalysisGenerator } from "./analysis/AnalysisGenerator";
 import { AnalysisResults } from "./analysis/AnalysisResults";
 
+interface AnalysisData {
+  fiscalImpact: {
+    estimatedCost: string;
+    confidence: number;
+    breakdown: string[];
+  };
+  implementationTimeline: {
+    phases: Array<{
+      name: string;
+      duration: string;
+      status: string;
+    }>;
+  };
+  similarLegislation: Array<{
+    state: string;
+    bill: string;
+    similarity: number;
+    status: string;
+  }>;
+  stakeholders: Array<{
+    group: string;
+    impact: string;
+    position: string;
+  }>;
+  riskFactors: Array<{
+    risk: string;
+    probability: string;
+    impact: string;
+  }>;
+  fullAnalysis: string;
+}
+
 interface AnalysisPanelProps {
   draft: LegislativeDraft | null;
 }
 
 export const AnalysisPanel = ({ draft }: AnalysisPanelProps) => {
-  const [analysisData, setAnalysisData] = useState<any>(null);
+  const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
 
-  const handleAnalysisGenerated = (data: any) => {
+  const handleAnalysisGenerated = (data: AnalysisData) => {
     setAnalysisData(data);
   };
 

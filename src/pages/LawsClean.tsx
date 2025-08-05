@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 const LawsClean = () => {
+  const navigate = useNavigate();
   const [laws, setLaws] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,8 +49,22 @@ const LawsClean = () => {
         NY State Laws
       </h1>
       
-      <div style={{ marginBottom: "1rem" }}>
+      <div style={{ marginBottom: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <p>Found {laws.length} laws in database:</p>
+        <button
+          onClick={() => navigate("/laws/admin")}
+          style={{
+            backgroundColor: "#3B82F6",
+            color: "white",
+            padding: "0.5rem 1rem",
+            borderRadius: "6px",
+            border: "none",
+            cursor: "pointer",
+            fontSize: "0.875rem"
+          }}
+        >
+          Admin Panel
+        </button>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
