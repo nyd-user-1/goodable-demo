@@ -55,7 +55,7 @@ export const CoAuthorManager = ({ draftId, isOwner, onCoAuthorChange }: CoAuthor
       );
       
       setCoAuthors(coAuthorsWithProfiles);
-    } catch (error) {
+    } catch {
     }
   };
 
@@ -134,7 +134,7 @@ export const CoAuthorManager = ({ draftId, isOwner, onCoAuthorChange }: CoAuthor
         title: `Invitation ${status}`,
         description: `Co-author invitation has been ${status}.`,
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Error updating invitation",
         description: "Failed to update co-author invitation.",
@@ -159,7 +159,7 @@ export const CoAuthorManager = ({ draftId, isOwner, onCoAuthorChange }: CoAuthor
         title: "Co-author removed",
         description: "Co-author has been removed from the draft.",
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Error removing co-author",
         description: "Failed to remove co-author.",
