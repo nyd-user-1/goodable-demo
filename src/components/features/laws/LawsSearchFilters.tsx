@@ -1,17 +1,24 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, X } from "lucide-react";
 
 interface LawsSearchFiltersProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
+  chapterFilter?: string;
+  onChapterChange?: (value: string) => void;
+  availableChapters?: string[];
   onClearFilters: () => void;
 }
 
 export const LawsSearchFilters = ({
   searchTerm,
   onSearchChange,
+  chapterFilter,
+  onChapterChange,
+  availableChapters = [],
   onClearFilters,
 }: LawsSearchFiltersProps) => {
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
@@ -27,7 +34,7 @@ export const LawsSearchFilters = ({
     onClearFilters();
   };
 
-  const hasFilters = searchTerm !== "";
+  const hasFilters = searchTerm !== "" || chapterFilter !== "";
 
   return (
     <div className="space-y-4 p-6 bg-card rounded-lg border">
@@ -41,6 +48,24 @@ export const LawsSearchFilters = ({
             className="pl-10"
           />
         </div>
+        
+        {/* Chapter Filter */}
+        {onChapterChange && availableChapters.length > 0 && (
+          <Select value={chapterFilter} onValueChange={onChapterChange}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filter by chapter" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Chapters</SelectItem>
+              {availableChapters.map((chapter) => (
+                <SelectItem key={chapter} value={chapter}>
+                  Chapter {chapter}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        
         <Button type="submit" variant="default">
           Search
         </Button>

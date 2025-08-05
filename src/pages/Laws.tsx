@@ -1,8 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Law, laws } from "@/data/laws";
 import { 
   LawsHeader, 
   LawsSearchFilters, 
@@ -11,65 +9,54 @@ import {
   LawsEmptyState 
 } from "@/components/features/laws";
 import { useAuth } from "@/contexts/AuthContext";
-
-const ITEMS_PER_PAGE = 50;
+import { useLawsData, Law } from "@/hooks/useLawsData";
 
 const Laws = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-
-  // Simulate loading for consistency with other pages
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Filter laws based on search term
-  const filteredLaws = useMemo(() => {
-    if (!searchTerm) return laws;
-    
-    const lowerSearchTerm = searchTerm.toLowerCase();
-    return laws.filter(law => 
-      law.name.toLowerCase().includes(lowerSearchTerm) ||
-      law.code.toLowerCase().includes(lowerSearchTerm) ||
-      law.fullName.toLowerCase().includes(lowerSearchTerm)
-    );
-  }, [searchTerm]);
-
-  // Paginate filtered laws
-  const paginatedLaws = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    return filteredLaws.slice(startIndex, endIndex);
-  }, [filteredLaws, currentPage]);
-
-  const totalPages = Math.ceil(filteredLaws.length / ITEMS_PER_PAGE);
-
-  // Reset to first page when search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
+  const {
+    filteredLaws,
+    totalFilteredCount,
+    loading,
+    searchTerm,
+    setSearchTerm,
+    chapterFilter,
+    setChapterFilter,
+    availableChapters,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    hasFilters,
+    clearFilters,
+    getLawDetails
+  } = useLawsData();
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
   };
 
-  const handleClearFilters = () => {
-    setSearchTerm("");
-    setCurrentPage(1);
+  const handleChapterChange = (value: string) => {
+    setChapterFilter(value);
   };
 
-  const handleLawSelect = (law: Law) => {
+  const handleClearFilters = () => {
+    clearFilters();
+  };
+
+  const handleLawSelect = async (law: Law) => {
     if (!user) {
       navigate('/auth-2');
       return;
     }
-    // For now, just show an alert - you can implement law detail view later
-    alert(`Selected: ${law.fullName} (${law.code})`);
+    
+    // Get full law details with sections
+    const lawDetails = await getLawDetails(law.law_id);
+    if (lawDetails) {
+      // For now, just show an alert with more details
+      alert(`Selected: ${lawDetails.name} (${lawDetails.law_id})\nChapter: ${lawDetails.chapter}\nSections: ${lawDetails.total_sections}`);
+    } else {
+      alert(`Selected: ${law.name} (${law.law_id})`);
+    }
   };
 
   const handlePageChange = (page: number) => {
@@ -81,17 +68,18 @@ const Laws = () => {
     return <LawsLoadingSkeleton />;
   }
 
-  const hasFilters = searchTerm !== "";
-
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6">
       <div className="space-y-6">
-        <LawsHeader lawsCount={filteredLaws.length} />
+        <LawsHeader lawsCount={totalFilteredCount} />
 
         {user ? (
           <LawsSearchFilters
             searchTerm={searchTerm}
             onSearchChange={handleSearchChange}
+            chapterFilter={chapterFilter}
+            onChapterChange={handleChapterChange}
+            availableChapters={availableChapters}
             onClearFilters={handleClearFilters}
           />
         ) : (
@@ -102,12 +90,12 @@ const Laws = () => {
           </div>
         )}
 
-        {paginatedLaws.length === 0 ? (
+        {filteredLaws.length === 0 ? (
           <LawsEmptyState hasFilters={hasFilters} onClearFilters={handleClearFilters} />
         ) : (
           <>
             <LawsGrid 
-              laws={paginatedLaws}
+              laws={filteredLaws}
               onLawSelect={handleLawSelect}
             />
             
@@ -143,7 +131,7 @@ const Laws = () => {
             {/* Results info */}
             {user && (
               <div className="text-center text-sm text-muted-foreground">
-                Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredLaws.length)} of {filteredLaws.length} laws
+                Showing {((currentPage - 1) * 50) + 1} to {Math.min(currentPage * 50, totalFilteredCount)} of {totalFilteredCount} laws
               </div>
             )}
           </>
