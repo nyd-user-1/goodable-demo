@@ -27,6 +27,7 @@ import Profile from "./pages/Profile";
 import Bills from "./pages/Bills";
 import Members from "./pages/Members";
 import Committees from "./pages/Committees";
+import Laws from "./pages/Laws";
 import Chats from "./pages/Chats";
 import Favorites from "./pages/Favorites";
 import Playground from "./pages/Playground";
@@ -75,6 +76,7 @@ const AppLayout = () => {
                   <Route path="/problems" element={<Problems />} />
                   <Route path="/problems/:problemSlug" element={<ProblemPage />} />
                   <Route path="/committees" element={<Committees />} />
+                  <Route path="/laws" element={<Laws />} />
                   <Route path="/plans" element={<Plans />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/changelog" element={<ChangeLog />} />
