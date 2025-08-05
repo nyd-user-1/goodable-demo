@@ -13,15 +13,18 @@ import { AIChatSheet } from "@/components/AIChatSheet";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
+
+type Member = Tables<"People">;
 
 const Members = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [selectedMember, setSelectedMember] = useState<any>(null);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
-  const [selectedMemberForChat, setSelectedMemberForChat] = useState<any>(null);
+  const [selectedMemberForChat, setSelectedMemberForChat] = useState<Member | null>(null);
   const [membersWithAIChat, setMembersWithAIChat] = useState<Set<number>>(new Set());
 
   const { favoriteMemberIds, toggleFavorite } = useMemberFavorites();

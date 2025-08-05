@@ -5,8 +5,40 @@ import { ProblemStatementCard } from "./ProblemStatementCard";
 import { useModel } from "@/contexts/ModelContext";
 import { useToast } from "@/hooks/use-toast";
 
+interface AnalysisData {
+  fiscalImpact: {
+    estimatedCost: string;
+    confidence: number;
+    breakdown: string[];
+  };
+  implementationTimeline: {
+    phases: Array<{
+      name: string;
+      duration: string;
+      status: string;
+    }>;
+  };
+  similarLegislation: Array<{
+    state: string;
+    bill: string;
+    similarity: number;
+    status: string;
+  }>;
+  stakeholders: Array<{
+    group: string;
+    impact: string;
+    position: string;
+  }>;
+  riskFactors: Array<{
+    risk: string;
+    probability: string;
+    impact: string;
+  }>;
+  fullAnalysis: string;
+}
+
 interface AnalysisGeneratorProps {
-  onAnalysisGenerated: (analysisData: any) => void;
+  onAnalysisGenerated: (analysisData: AnalysisData) => void;
 }
 
 export const AnalysisGenerator = ({ onAnalysisGenerated }: AnalysisGeneratorProps) => {

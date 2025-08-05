@@ -105,10 +105,10 @@ export const CoAuthorManager = ({ draftId, isOwner, onCoAuthorChange }: CoAuthor
         title: "Invitation sent",
         description: "Co-author invitation has been sent successfully.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error sending invitation",
-        description: error.message || "Failed to send co-author invitation.",
+        description: error instanceof Error ? error.message : "Failed to send co-author invitation.",
         variant: "destructive",
       });
     } finally {
