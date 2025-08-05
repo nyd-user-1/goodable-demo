@@ -34,6 +34,64 @@ Every person holding funds or other property, tangible or intangible, presumed a
 Every person who has filed a report under this law shall pay or deliver to the comptroller all abandoned property specified in the report.`
   },
   {
+    law_id: 'ABC',
+    name: 'Alcoholic Beverage Control Law',
+    chapter: '3-B',
+    full_text: `NEW YORK STATE ALCOHOLIC BEVERAGE CONTROL LAW
+
+ARTICLE 1 - GENERAL PROVISIONS
+
+§ 1. Short title
+This chapter shall be known as the "alcoholic beverage control law".
+
+§ 2. Definitions
+When used in this chapter:
+1. "Alcoholic beverages" means and includes alcohol, spirits, liquor, wine, beer, and every liquid or solid, patented or not, containing alcohol and capable of being consumed as a beverage by human beings.
+2. "Retail license" means a license issued pursuant to this chapter authorizing the holder to sell alcoholic beverages to consumers.
+3. "Wholesale license" means a license issued pursuant to this chapter authorizing the holder to sell alcoholic beverages to retailers.
+4. "Beer" means any alcoholic beverage obtained by the fermentation of an infusion or decoction of malted cereals in water.
+5. "Wine" means the product of the normal alcoholic fermentation of the juice of sound, ripe grapes.
+
+§ 3. State liquor authority
+There is hereby created in the executive department a state liquor authority which shall consist of three members appointed by the governor.
+
+§ 4. Powers and duties of authority
+The authority shall have power and it shall be its duty to:
+1. Execute and administer the provisions of this chapter.
+2. Investigate violations of this chapter and institute proceedings for the punishment of such violations.
+3. Issue, suspend, cancel and revoke licenses as provided in this chapter.
+
+ARTICLE 2 - LICENSES
+
+§ 50. License required
+No person shall manufacture, import into this state from outside thereof, or cause to be imported, or sell or cause to be sold any alcoholic beverages without being licensed so to do by the authority.
+
+§ 51. Application for license
+Applications for licenses shall be made to the authority in such form and manner as the authority may prescribe.
+
+§ 52. On-premises consumption licenses
+The authority may issue licenses for the sale of alcoholic beverages for consumption on the licensed premises.
+
+ARTICLE 3 - RETAIL LICENSES
+
+§ 100. On-premises liquor license
+An on-premises liquor license shall authorize the sale of any alcoholic beverages for consumption on the licensed premises.
+
+§ 101. Off-premises liquor license  
+An off-premises liquor license shall authorize the sale of spirits, wine and beer in sealed containers for consumption off the licensed premises.
+
+§ 102. Beer and wine license
+A beer and wine license shall authorize the sale of beer and wine for consumption on or off the licensed premises as specified in the license.
+
+ARTICLE 4 - ENFORCEMENT
+
+§ 200. Violations and penalties
+Any person who violates any provision of this chapter shall be guilty of a misdemeanor punishable by a fine not exceeding one thousand dollars or imprisonment not exceeding one year, or both.
+
+§ 201. Administrative penalties
+The authority may impose administrative penalties for violations of this chapter or the rules and regulations promulgated hereunder.`
+  },
+  {
     law_id: 'BNK',
     name: 'Banking Law',
     chapter: '2',
@@ -179,10 +237,8 @@ const DataPopulator = () => {
     const errors: string[] = [];
 
     try {
-      // Clear existing data
-      setProgress('Clearing existing data...');
-      await supabase.from('ny_law_sections').delete().gt('id', 0);
-      await supabase.from('ny_laws').delete().gt('id', 0);
+      // Don't clear existing data - we want to add ABC to existing laws
+      setProgress('Adding new laws to existing database...');
 
       // Insert each law
       for (const [index, law] of realNYLaws.entries()) {
@@ -192,10 +248,10 @@ const DataPopulator = () => {
           // Parse sections
           const sections = parseLawSections(law.full_text, law.law_id);
           
-          // Insert main law record
+          // Insert main law record (upsert to avoid duplicates)
           const { error: lawError } = await supabase
             .from('ny_laws')
-            .insert({
+            .upsert({
               law_id: law.law_id,
               name: law.name,
               chapter: law.chapter,
@@ -205,17 +261,17 @@ const DataPopulator = () => {
               total_sections: sections.length,
               last_updated: new Date().toISOString().split('T')[0],
               updated_at: new Date().toISOString()
-            });
+            }, { onConflict: 'law_id' });
 
           if (lawError) {
             throw new Error(`Law insert failed: ${lawError.message}`);
           }
 
-          // Insert sections
+          // Insert sections (upsert to avoid duplicates)  
           if (sections.length > 0) {
             const { error: sectionsError } = await supabase
               .from('ny_law_sections')
-              .insert(sections);
+              .upsert(sections, { onConflict: 'law_id,location_id' });
 
             if (sectionsError) {
               console.warn('Sections warning:', sectionsError.message);
@@ -320,9 +376,10 @@ const DataPopulator = () => {
       )}
 
       <div style={{ marginTop: '2rem', fontSize: '0.875rem', color: '#6B7280' }}>
-        <p>This will populate your database with 3 real NY consolidated laws:</p>
+        <p>This will populate your database with 4 real NY consolidated laws:</p>
         <ul style={{ marginLeft: '1rem', marginTop: '0.5rem' }}>
           <li>• Abandoned Property Law (ABP)</li>
+          <li>• Alcoholic Beverage Control Law (ABC)</li>
           <li>• Banking Law (BNK)</li>
           <li>• Education Law (EDN)</li>
         </ul>
