@@ -83,6 +83,35 @@ An off-premises liquor license shall authorize the sale of spirits, wine and bee
 § 102. Beer and wine license
 A beer and wine license shall authorize the sale of beer and wine for consumption on or off the licensed premises as specified in the license.
 
+ARTICLE 3 - RETAIL LICENSES
+
+§ 30. On-premises consumption license
+An on-premises consumption license shall authorize the sale of alcoholic beverages for consumption on the licensed premises only. Such license may be issued to hotels, restaurants, clubs, and other establishments approved by the authority.
+
+§ 31. Off-premises retail license
+An off-premises retail license shall authorize the sale of alcoholic beverages in sealed containers for consumption off the premises only. No consumption of alcoholic beverages shall be permitted on the licensed premises.
+
+§ 32. Beer and wine license
+A beer and wine license shall authorize the sale of beer and wine only, either for on-premises or off-premises consumption as specified in the license. The authority may issue separate licenses for beer only or wine only.
+
+§ 33. Catering license
+A catering license shall authorize the sale and service of alcoholic beverages at private functions held away from the licensee's primary place of business. Such license shall be subject to restrictions as the authority may impose.
+
+§ 34. Club license restrictions
+A club license may be issued only to bona fide clubs organized for social, recreational, patriotic, political, benevolent, or athletic purposes. No club license shall be issued to any club organized primarily for the consumption of alcoholic beverages.
+
+§ 35. Temporary licenses
+The authority may issue temporary licenses for special events, festivals, and charitable functions. Such licenses shall be valid for periods not exceeding thirty days and shall be subject to such conditions as the authority may prescribe.
+
+§ 36. License conditions and restrictions
+All retail licenses issued under this article shall be subject to the following conditions:
+(a) The licensee shall comply with all applicable laws and regulations;
+(b) No alcoholic beverages shall be sold to persons under twenty-one years of age;
+(c) No alcoholic beverages shall be sold to intoxicated persons;
+(d) The licensed premises shall be maintained in a clean and sanitary condition;
+(e) The licensee shall permit inspection by authorized representatives of the authority;
+(f) The license shall be prominently displayed on the licensed premises.
+
 ARTICLE 4 - ENFORCEMENT
 
 § 200. Violations and penalties
