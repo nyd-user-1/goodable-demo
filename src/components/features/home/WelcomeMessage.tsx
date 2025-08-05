@@ -20,19 +20,16 @@ interface GettingStartedTask {
 }
 
 interface WelcomeMessageProps {
-  mode?: 'header' | 'ready-only' | 'full';
+  mode?: 'header' | 'ready-only';
 }
 
-export const WelcomeMessage = ({ mode = 'full' }: WelcomeMessageProps) => {
+export const WelcomeMessage = ({ mode }: WelcomeMessageProps) => {
   const { user, loading: authLoading } = useAuth();
   const { profile } = useCurrentUserProfile();
   const [greeting, setGreeting] = useState('Good morning');
   const [isLoading, setIsLoading] = useState(true);
   const [userProgress, setUserProgress] = useState<{[key: string]: boolean}>({});
-  const [displayedUsername, setDisplayedUsername] = useState('');
-  const [displayedGettingStarted, setDisplayedGettingStarted] = useState('');
-  // Remove date/time related state as requested
-  const [showTypingCursor, setShowTypingCursor] = useState(true);
+  // Simplified - no complex animations needed for header/ready modes
 
   // Set dynamic greeting based on time of day (no date/time display)
   useEffect(() => {
@@ -161,64 +158,12 @@ export const WelcomeMessage = ({ mode = 'full' }: WelcomeMessageProps) => {
   };
 
 
-  // Typing animation for "Are you ready to get started?"
-  const startGettingStartedTyping = () => {
-    const text = 'Are you ready to get started?';
-    let index = 0;
-    setDisplayedGettingStarted('');
-    
-    const typingInterval = setInterval(() => {
-      if (index <= text.length) {
-        setDisplayedGettingStarted(text.slice(0, index));
-        index++;
-      } else {
-        clearInterval(typingInterval);
-        // Stop showing cursor after all animations complete
-        setTimeout(() => {
-          setShowTypingCursor(false);
-        }, 1000);
-      }
-    }, 60); // Slightly faster typing speed
-  };
+  // Removed complex typing animations
 
-  // Removed date/time typing animation
 
-  // Typing animation for username (simplified, no date/time)
-  useEffect(() => {
-    if (!isLoading && user) {
-      const username = getUserDisplayName();
-      let index = 0;
-      setDisplayedUsername('');
-      
-      // Start typing animation immediately
-      const typingInterval = setInterval(() => {
-        if (index <= username.length) {
-          setDisplayedUsername(username.slice(0, index));
-          index++;
-        } else {
-          clearInterval(typingInterval);
-          // Start "Are you ready to get started?" animation if needed
-          if (mode === 'ready-only' || mode === 'full') {
-            setTimeout(() => {
-              startGettingStartedTyping();
-            }, 500);
-          }
-        }
-      }, 80); // Typing speed for username
+  // Simplified - no typing animations for simple modes
 
-      return () => clearInterval(typingInterval);
-    }
-  }, [isLoading, user, mode]);
-
-  // Cursor blinking animation
-  useEffect(() => {
-    if (showTypingCursor) {
-      const cursorInterval = setInterval(() => {
-        // Cursor blinking is handled via CSS animation
-      }, 500);
-      return () => clearInterval(cursorInterval);
-    }
-  }, [showTypingCursor]);
+  // Removed cursor animation
 
   const gettingStartedTasks: GettingStartedTask[] = [
     { id: '1', text: 'Complete your profile information', completed: userProgress['profile'] || false, hasLink: true },
@@ -297,16 +242,9 @@ export const WelcomeMessage = ({ mode = 'full' }: WelcomeMessageProps) => {
   // Header mode: just show greeting
   if (mode === 'header') {
     return (
-      <div className="animate-in fade-in slide-in-from-left-4 duration-700 ease-out">
-        <span className="text-lg font-medium text-foreground">
-          {greeting}, <span className="relative">
-            {displayedUsername}
-            {showTypingCursor && displayedUsername.length < getUserDisplayName().length && (
-              <span className="animate-pulse">|</span>
-            )}
-          </span>!
-        </span>
-      </div>
+      <span className="text-lg font-medium text-foreground">
+        {greeting}, {getUserDisplayName()}!
+      </span>
     );
   }
 
@@ -316,13 +254,8 @@ export const WelcomeMessage = ({ mode = 'full' }: WelcomeMessageProps) => {
       <div className="text-sm text-muted-foreground">
         <Popover>
           <PopoverTrigger asChild>
-            <span 
-              className="cursor-pointer underline decoration-dotted transition-colors relative text-[#5A7FDB] hover:text-[#3D63DD]"
-            >
-              {displayedGettingStarted}
-              {showTypingCursor && displayedGettingStarted.length < 'Are you ready to get started?'.length && (
-                <span className="animate-pulse">|</span>
-              )}
+            <span className="cursor-pointer underline decoration-dotted transition-colors text-[#5A7FDB] hover:text-[#3D63DD]">
+              Are you ready to get started?
             </span>
           </PopoverTrigger>
           <PopoverContent className="w-80 max-w-[90vw] p-0" side="bottom" align="center">
@@ -404,106 +337,6 @@ export const WelcomeMessage = ({ mode = 'full' }: WelcomeMessageProps) => {
     );
   }
 
-  // Full mode: show greeting without date/time (legacy/full display)
-  return (
-    <div className="animate-in fade-in slide-in-from-left-4 duration-700 ease-out">
-      <h3 className="text-2xl font-bold text-foreground mb-2">
-        {greeting}, <span className="relative">
-          {displayedUsername}
-          {showTypingCursor && displayedUsername.length < getUserDisplayName().length && (
-            <span className="animate-pulse">|</span>
-          )}
-        </span>!
-      </h3>
-      
-      <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
-        <Popover>
-          <PopoverTrigger asChild>
-            <span 
-              className="cursor-pointer underline decoration-dotted transition-colors relative text-[#5A7FDB] hover:text-[#3D63DD]"
-            >
-              {displayedGettingStarted}
-              {showTypingCursor && displayedGettingStarted.length < 'Are you ready to get started?'.length && (
-                <span className="animate-pulse">|</span>
-              )}
-            </span>
-          </PopoverTrigger>
-          <PopoverContent className="w-80 max-w-[90vw] p-0" side="bottom" align="start">
-            <div className={`p-4 ${progressPercentage === 100 ? 'border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-800' : ''}`}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <h4 className="text-lg font-semibold">Getting Started</h4>
-                  {progressPercentage === 100 && (
-                    <Sparkles className="w-4 h-4 text-emerald-600" />
-                  )}
-                </div>
-                <Badge 
-                  variant={progressPercentage === 100 ? "default" : "secondary"} 
-                  className={`text-xs ${progressPercentage === 100 ? 'bg-emerald-600 text-white' : ''}`}
-                >
-                  {completedTasks} of {gettingStartedTasks.length}
-                </Badge>
-              </div>
-              
-              {progressPercentage === 100 ? (
-                <div className="mb-4 p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-emerald-600" />
-                    <span className="text-sm font-medium text-emerald-800 dark:text-emerald-200">
-                      Congratulations! You've completed the onboarding.
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <Progress value={progressPercentage} className="mb-4" />
-              )}
-
-              <div className="space-y-3 max-h-80 overflow-y-auto overflow-x-hidden">
-                {gettingStartedTasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className={`flex items-start gap-3 p-3 rounded-lg transition-all duration-200 ${
-                      task.hasLink && !task.completed 
-                        ? 'hover:bg-muted/50 cursor-pointer hover:scale-[1.02]' 
-                        : task.completed 
-                        ? 'bg-emerald-50/50 dark:bg-emerald-950/10' 
-                        : ''
-                    }`}
-                    onClick={() => handleTaskClick(task)}
-                  >
-                    {task.completed ? (
-                      <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0 animate-in zoom-in duration-300" />
-                    ) : (
-                      <Circle className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0 hover:text-primary transition-colors" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm transition-all duration-200 break-words ${
-                        task.completed 
-                          ? 'text-emerald-700 dark:text-emerald-300 line-through' 
-                          : 'text-foreground'
-                      }`}>
-                        {task.text}
-                      </p>
-                      {task.hasLink && !task.completed && (
-                        <div className="flex items-center gap-1 mt-1 animate-in fade-in duration-200">
-                          <ExternalLink className="w-3 h-3 text-primary" />
-                          <span className="text-xs text-primary font-medium">Start task</span>
-                        </div>
-                      )}
-                      {task.completed && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <CheckCircle className="w-3 h-3 text-emerald-600" />
-                          <span className="text-xs text-emerald-600 font-medium">Completed!</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
-    </div>
-  );
+  // No other modes needed
+  return null;
 };
