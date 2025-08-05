@@ -55,6 +55,7 @@ import FeedPage from "./pages/FeedPage";
 import ImageUploadTest from "./pages/ImageUploadTest";
 import Customerstory from "./pages/Customerstory";
 import DataPopulator from "./pages/DataPopulator";
+import RealABCPopulator from "./pages/RealABCPopulator";
 
 const queryClient = new QueryClient();
 
@@ -105,6 +106,7 @@ const AppLayout = () => {
                   <Route path="/image-upload-test" element={<ImageUploadTest />} />
                   <Route path="/customerstory" element={<Customerstory />} />
                   <Route path="/data-populator" element={<DataPopulator />} />
+                  <Route path="/real-abc-populator" element={<RealABCPopulator />} />
                 </Routes>
               </PageTransition>
             </main>
