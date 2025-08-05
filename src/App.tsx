@@ -6,7 +6,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { ModelProvider, useModel } from "@/contexts/ModelContext";
+import { ModelProvider } from "@/contexts/ModelContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -29,6 +29,7 @@ import Members from "./pages/Members";
 import Committees from "./pages/Committees";
 import Laws from "./pages/Laws";
 import LawsAdmin from "./pages/LawsAdmin";
+import LawsTest from "./pages/LawsTest";
 import Chats from "./pages/Chats";
 import Favorites from "./pages/Favorites";
 import Playground from "./pages/Playground";
@@ -79,6 +80,7 @@ const AppLayout = () => {
                   <Route path="/committees" element={<Committees />} />
                   <Route path="/laws" element={<Laws />} />
                   <Route path="/laws/admin" element={<LawsAdmin />} />
+                  <Route path="/laws/test" element={<LawsTest />} />
                   <Route path="/plans" element={<Plans />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/changelog" element={<ChangeLog />} />

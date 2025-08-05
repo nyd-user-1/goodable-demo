@@ -138,7 +138,7 @@ const ImageSystem = () => {
 
   // Sort and filter assets
   const sortedAndFilteredAssets = React.useMemo(() => {
-    let filtered = selectedTags.length === 0 
+    const filtered = selectedTags.length === 0 
       ? assets 
       : assets.filter(asset => 
           selectedTags.some(tag => asset.tags?.includes(tag))

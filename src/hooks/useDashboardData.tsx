@@ -116,7 +116,7 @@ export const useDashboardData = (selectedMonth: string = "01", selectedYear: str
         
         // Create date ranges for each week of the month
         const weeks = [];
-        let currentDate = new Date(year, month - 1, 1);
+        const currentDate = new Date(year, month - 1, 1);
         
         while (currentDate.getMonth() === month - 1) {
           const weekStart = new Date(currentDate);

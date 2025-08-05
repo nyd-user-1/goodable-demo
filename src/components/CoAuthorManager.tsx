@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, UserPlus, Mail, Check, X, Crown, Edit, Eye } from "lucide-react";
+import { Users, UserPlus, Check, X, Crown, Edit, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
@@ -23,7 +23,7 @@ export const CoAuthorManager = ({ draftId, isOwner, onCoAuthorChange }: CoAuthor
   const [coAuthors, setCoAuthors] = useState<(CoAuthor & { profile?: Profile })[]>([]);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"collaborator" | "viewer">("collaborator");
-  const [loading, setLoading] = useState(false);
+  const [_loading, _setLoading] = useState(false);
   const [isInviting, setIsInviting] = useState(false);
   const { toast } = useToast();
 

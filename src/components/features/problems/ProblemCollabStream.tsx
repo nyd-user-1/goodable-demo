@@ -90,7 +90,7 @@ export const ProblemCollabStream = ({ problem }: ProblemCollabStreamProps) => {
       setLoading(true);
       
       // Try to load from problem_chat_messages first
-      let { data, error } = await (supabase as any)
+      const { data, error } = await (supabase as any)
         .from('problem_chat_messages')
         .select(`
           id,

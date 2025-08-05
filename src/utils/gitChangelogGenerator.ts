@@ -187,7 +187,7 @@ export class GitChangelogGenerator {
     const groups: Array<{ version: string; date: string; commits: GitCommit[] }> = [];
     let currentGroup: GitCommit[] = [];
     let lastDate: Date | null = null;
-    let versionCounter = 1;
+    const versionCounter = 1;
 
     for (const commit of sortedCommits) {
       const commitDate = new Date(commit.date);
