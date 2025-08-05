@@ -59,7 +59,7 @@ export const CoAuthorAttribution = ({ draftId, ownerId, compact = false }: CoAut
 
       setCoAuthors(coAuthorsWithProfiles);
       setOwnerProfile(ownerData);
-    } catch (error) {
+    } catch {
     }
   };
 
@@ -99,7 +99,7 @@ export const CoAuthorAttribution = ({ draftId, ownerId, compact = false }: CoAut
       <TooltipProvider>
         <div className="flex items-center gap-2">
           <div className="flex -space-x-2">
-            {allContributors.slice(0, 3).map((contributor, index) => {
+            {allContributors.slice(0, 3).map((contributor, _index) => {
               const RoleIcon = getRoleIcon(contributor.role);
               return (
                 <Tooltip key={contributor.id}>

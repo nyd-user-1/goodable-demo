@@ -117,7 +117,7 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
       setSponsors(sponsorsWithPeople);
       setRollCalls(rollCallsWithVotes);
 
-    } catch (error) {
+    } catch {
       // Error handled silently
     } finally {
       setLoading(false);
@@ -218,7 +218,7 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
                       </p>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {sponsors.map((sponsor, index) => (
+                        {sponsors.map((sponsor, _index) => (
                           <div key={sponsor.id} className="p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors">
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex items-center gap-2">
@@ -299,7 +299,7 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
                           <div className="absolute left-6 top-6 bottom-6 w-px bg-border"></div>
                           
                           <div className="space-y-6">
-                            {history.map((entry, index) => (
+                            {history.map((entry, _index) => (
                               <div key={`${entry.date}-${entry.sequence}`} className="relative flex gap-6">
                                 {/* Timeline dot */}
                                 <div className="flex-shrink-0 w-3 h-3 bg-primary rounded-full mt-2 relative z-10"></div>
@@ -357,7 +357,7 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
                       </div>
                     ) : (
                       <div className="space-y-6">
-                        {rollCalls.map((rollCall, index) => (
+                        {rollCalls.map((rollCall, _index) => (
                           <div key={rollCall.roll_call_id} className="border border-border rounded-lg p-4">
                             <div className="flex items-start justify-between mb-4">
                               <div className="flex-1">
@@ -409,7 +409,7 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
                               <div className="border-t border-border pt-4">
                                 <h5 className="font-medium text-sm mb-3">Individual Votes</h5>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-40 overflow-y-auto">
-                                  {rollCall.votes.map((vote, voteIndex) => (
+                                  {rollCall.votes.map((vote, _voteIndex) => (
                                     <div key={`${vote.people_id}-${vote.roll_call_id}`} className="flex items-center justify-between text-xs p-2 bg-muted/30 rounded">
                                       <span className="font-medium">
                                         {vote.person?.name || `Person ${vote.people_id}`}

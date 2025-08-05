@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -9,27 +10,86 @@ import {
   LawsEmptyState 
 } from "@/components/features/laws";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLawsData, Law } from "@/hooks/useLawsData";
+import { supabase } from "@/integrations/supabase/client";
+
+export interface Law {
+  id: number;
+  law_id: string;
+  name: string;
+  chapter: string;
+  law_type: string;
+  full_text?: string;
+  structure?: any;
+  total_sections: number;
+  last_updated?: string;
+  api_last_modified?: string;
+  created_at: string;
+  updated_at: string;
+}
 
 const Laws = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const {
-    filteredLaws,
-    totalFilteredCount,
-    loading,
-    searchTerm,
-    setSearchTerm,
-    chapterFilter,
-    setChapterFilter,
-    availableChapters,
-    currentPage,
-    setCurrentPage,
-    totalPages,
-    hasFilters,
-    clearFilters,
-    getLawDetails
-  } = useLawsData();
+  const [allLaws, setAllLaws] = useState<Law[]>([]);
+  const [filteredLaws, setFilteredLaws] = useState<Law[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [chapterFilter, setChapterFilter] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  const LAWS_PER_PAGE = 50;
+
+  // Fetch laws from database
+  useEffect(() => {
+    const fetchLaws = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("ny_laws")
+          .select("*")
+          .order("name", { ascending: true });
+
+        if (error) throw error;
+        setAllLaws(data || []);
+        setFilteredLaws(data || []);
+      } catch (err) {
+        console.error("Error fetching laws:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLaws();
+  }, []);
+
+  // Simple filtering
+  useEffect(() => {
+    let filtered = [...allLaws];
+    
+    if (searchTerm) {
+      const lowerSearchTerm = searchTerm.toLowerCase();
+      filtered = filtered.filter(law =>
+        law.name.toLowerCase().includes(lowerSearchTerm) ||
+        law.law_id.toLowerCase().includes(lowerSearchTerm) ||
+        law.chapter.toLowerCase().includes(lowerSearchTerm)
+      );
+    }
+
+    if (chapterFilter) {
+      filtered = filtered.filter(law => law.chapter === chapterFilter);
+    }
+
+    setFilteredLaws(filtered);
+    setCurrentPage(1);
+  }, [allLaws, searchTerm, chapterFilter]);
+
+  // Get available chapters
+  const availableChapters = [...new Set(allLaws.map(law => law.chapter))].filter(Boolean).sort();
+  const totalPages = Math.ceil(filteredLaws.length / LAWS_PER_PAGE);
+  const hasFilters = searchTerm !== "" || chapterFilter !== "";
+
+  // Paginate
+  const startIndex = (currentPage - 1) * LAWS_PER_PAGE;
+  const paginatedLaws = filteredLaws.slice(startIndex, startIndex + LAWS_PER_PAGE);
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
@@ -40,23 +100,19 @@ const Laws = () => {
   };
 
   const handleClearFilters = () => {
-    clearFilters();
+    setSearchTerm("");
+    setChapterFilter("");
+    setCurrentPage(1);
   };
 
-  const handleLawSelect = async (law: Law) => {
+  const handleLawSelect = (law: Law) => {
     if (!user) {
       navigate('/auth-2');
       return;
     }
     
-    // Get full law details with sections
-    const lawDetails = await getLawDetails(law.law_id);
-    if (lawDetails) {
-      // For now, just show an alert with more details
-      alert(`Selected: ${lawDetails.name} (${lawDetails.law_id})\nChapter: ${lawDetails.chapter}\nSections: ${lawDetails.total_sections}`);
-    } else {
-      alert(`Selected: ${law.name} (${law.law_id})`);
-    }
+    // For now, just show basic law details
+    alert(`Selected: ${law.name} (${law.law_id})\nChapter: ${law.chapter}\nType: ${law.law_type}`);
   };
 
   const handlePageChange = (page: number) => {
@@ -71,7 +127,7 @@ const Laws = () => {
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6">
       <div className="space-y-6">
-        <LawsHeader lawsCount={totalFilteredCount} />
+        <LawsHeader lawsCount={filteredLaws.length} />
 
         {user ? (
           <LawsSearchFilters
@@ -90,12 +146,12 @@ const Laws = () => {
           </div>
         )}
 
-        {filteredLaws.length === 0 ? (
+        {paginatedLaws.length === 0 ? (
           <LawsEmptyState hasFilters={hasFilters} onClearFilters={handleClearFilters} />
         ) : (
           <>
             <LawsGrid 
-              laws={filteredLaws}
+              laws={paginatedLaws}
               onLawSelect={handleLawSelect}
             />
             
@@ -131,7 +187,7 @@ const Laws = () => {
             {/* Results info */}
             {user && (
               <div className="text-center text-sm text-muted-foreground">
-                Showing {((currentPage - 1) * 50) + 1} to {Math.min(currentPage * 50, totalFilteredCount)} of {totalFilteredCount} laws
+                Showing {((currentPage - 1) * LAWS_PER_PAGE) + 1} to {Math.min(currentPage * LAWS_PER_PAGE, filteredLaws.length)} of {filteredLaws.length} laws
               </div>
             )}
           </>

@@ -29,6 +29,7 @@ import Members from "./pages/Members";
 import Committees from "./pages/Committees";
 import Laws from "./pages/Laws";
 import LawsAdmin from "./pages/LawsAdmin";
+import LawsAdminSimple from "./pages/LawsAdminSimple";
 import LawsTest from "./pages/LawsTest";
 import Chats from "./pages/Chats";
 import Favorites from "./pages/Favorites";
@@ -79,7 +80,8 @@ const AppLayout = () => {
                   <Route path="/problems/:problemSlug" element={<ProblemPage />} />
                   <Route path="/committees" element={<Committees />} />
                   <Route path="/laws" element={<Laws />} />
-                  <Route path="/laws/admin" element={<LawsAdmin />} />
+                  <Route path="/laws/admin" element={<LawsAdminSimple />} />
+                  <Route path="/laws/admin-full" element={<LawsAdmin />} />
                   <Route path="/laws/test" element={<LawsTest />} />
                   <Route path="/plans" element={<Plans />} />
                   <Route path="/profile" element={<Profile />} />
