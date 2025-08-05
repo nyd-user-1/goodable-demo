@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Users, FileText, Calendar } from "lucide-react";
@@ -57,7 +57,8 @@ export const CommitteeDetail = ({ committee, onBack }: CommitteeDetailProps) => 
 
         setMembers(memberData || []);
         setBills(billData || []);
-      } catch (error) {
+      } catch {
+        // Failed to fetch committee details
       } finally {
         setLoading(false);
       }

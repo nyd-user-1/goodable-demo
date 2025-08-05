@@ -50,7 +50,7 @@ serve(async (req) => {
 });
 
 async function handleSearch(searchType: string, query: string, sessionYear?: number, limit = 20) {
-  console.log('NYS API search request:', { searchType, query, sessionYear, limit });
+  console.warn('NYS API search request:', { searchType, query, sessionYear, limit });
 
   let apiUrl = '';
   
@@ -77,7 +77,7 @@ async function handleSearch(searchType: string, query: string, sessionYear?: num
       throw new Error('Invalid search type');
   }
 
-  console.log('Calling NYS API:', apiUrl.replace(nysApiKey, 'REDACTED'));
+  console.warn('Calling NYS API:', apiUrl.replace(nysApiKey, 'REDACTED'));
 
   const response = await fetch(apiUrl);
   
@@ -87,7 +87,7 @@ async function handleSearch(searchType: string, query: string, sessionYear?: num
   }
 
   const data = await response.json();
-  console.log('NYS API response received, items:', data.result?.items?.length || 0);
+  console.warn('NYS API response received, items:', data.result?.items?.length || 0);
 
   return new Response(JSON.stringify(data), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },

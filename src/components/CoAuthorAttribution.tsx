@@ -60,6 +60,7 @@ export const CoAuthorAttribution = ({ draftId, ownerId, compact = false }: CoAut
       setCoAuthors(coAuthorsWithProfiles);
       setOwnerProfile(ownerData);
     } catch {
+      // Failed to fetch attribution data
     }
   };
 

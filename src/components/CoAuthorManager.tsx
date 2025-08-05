@@ -56,6 +56,7 @@ export const CoAuthorManager = ({ draftId, isOwner, onCoAuthorChange }: CoAuthor
       
       setCoAuthors(coAuthorsWithProfiles);
     } catch {
+      // Failed to fetch co-authors
     }
   };
 

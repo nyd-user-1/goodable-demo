@@ -10,7 +10,7 @@ const corsHeaders = {
 // Helper logging function for enhanced debugging
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
+  console.warn(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
 // Map price amounts to subscription tiers

@@ -73,7 +73,7 @@ export const CoAuthorNotifications = ({ userId }: CoAuthorNotificationsProps) =>
         )
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to mark notification as read",
@@ -87,7 +87,7 @@ export const CoAuthorNotifications = ({ userId }: CoAuthorNotificationsProps) =>
       // In a real implementation, update the database
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to mark all notifications as read",
