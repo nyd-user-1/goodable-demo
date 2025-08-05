@@ -1,18 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentUserProfile } from '@/hooks/useUserProfile';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   CheckCircle, 
   Circle, 
   ExternalLink, 
-  Sparkles,
-  X
+  Sparkles
 } from 'lucide-react';
 
 interface GettingStartedTask {
@@ -22,7 +19,11 @@ interface GettingStartedTask {
   hasLink?: boolean;
 }
 
-export const WelcomeMessage = () => {
+interface WelcomeMessageProps {
+  mode?: 'header' | 'ready-only' | 'full';
+}
+
+export const WelcomeMessage = ({ mode = 'full' }: WelcomeMessageProps) => {
   const { user, loading: authLoading } = useAuth();
   const { profile } = useCurrentUserProfile();
   const [greeting, setGreeting] = useState('Good morning');
@@ -30,13 +31,12 @@ export const WelcomeMessage = () => {
   const [userProgress, setUserProgress] = useState<{[key: string]: boolean}>({});
   const [displayedUsername, setDisplayedUsername] = useState('');
   const [displayedGettingStarted, setDisplayedGettingStarted] = useState('');
-  const [displayedDateTime, setDisplayedDateTime] = useState('');
-  const [currentDateTime, setCurrentDateTime] = useState('');
+  // Remove date/time related state as requested
   const [showTypingCursor, setShowTypingCursor] = useState(true);
 
-  // Set dynamic greeting based on time of day and update current time
+  // Set dynamic greeting based on time of day (no date/time display)
   useEffect(() => {
-    const updateTimeAndGreeting = () => {
+    const updateGreeting = () => {
       const now = new Date();
       const estTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
       const hour = estTime.getHours();
@@ -48,28 +48,9 @@ export const WelcomeMessage = () => {
       } else {
         setGreeting('Good evening');
       }
-      
-      // Update current date/time
-      const timeStr = estTime.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      }).toLowerCase();
-      const dateStr = estTime.toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric'
-      });
-      setCurrentDateTime(`It is now ${timeStr} on ${dateStr}.`);
     };
     
-    // Update immediately
-    updateTimeAndGreeting();
-    
-    // Update every minute
-    const interval = setInterval(updateTimeAndGreeting, 60000);
-    
-    return () => clearInterval(interval);
+    updateGreeting();
   }, []);
 
   // Load user progress from localStorage on mount
@@ -200,29 +181,11 @@ export const WelcomeMessage = () => {
     }, 60); // Slightly faster typing speed
   };
 
-  // Typing animation for date/time
-  const startDateTimeTyping = () => {
-    const text = currentDateTime;
-    let index = 0;
-    setDisplayedDateTime('');
-    
-    const typingInterval = setInterval(() => {
-      if (index <= text.length) {
-        setDisplayedDateTime(text.slice(0, index));
-        index++;
-      } else {
-        clearInterval(typingInterval);
-        // Start "Are you ready to get started?" animation after date/time is complete
-        setTimeout(() => {
-          startGettingStartedTyping();
-        }, 500);
-      }
-    }, 50); // Fast typing speed for date/time
-  };
+  // Removed date/time typing animation
 
-  // Typing animation for username
+  // Typing animation for username (simplified, no date/time)
   useEffect(() => {
-    if (!isLoading && user && currentDateTime) {
+    if (!isLoading && user) {
       const username = getUserDisplayName();
       let index = 0;
       setDisplayedUsername('');
@@ -234,16 +197,18 @@ export const WelcomeMessage = () => {
           index++;
         } else {
           clearInterval(typingInterval);
-          // Start date/time animation after username is complete
-          setTimeout(() => {
-            startDateTimeTyping();
-          }, 500);
+          // Start "Are you ready to get started?" animation if needed
+          if (mode === 'ready-only' || mode === 'full') {
+            setTimeout(() => {
+              startGettingStartedTyping();
+            }, 500);
+          }
         }
       }, 80); // Typing speed for username
 
       return () => clearInterval(typingInterval);
     }
-  }, [isLoading, user, currentDateTime]);
+  }, [isLoading, user, mode]);
 
   // Cursor blinking animation
   useEffect(() => {
@@ -329,6 +294,117 @@ export const WelcomeMessage = () => {
     );
   }
 
+  // Header mode: just show greeting
+  if (mode === 'header') {
+    return (
+      <div className="animate-in fade-in slide-in-from-left-4 duration-700 ease-out">
+        <span className="text-lg font-medium text-foreground">
+          {greeting}, <span className="relative">
+            {displayedUsername}
+            {showTypingCursor && displayedUsername.length < getUserDisplayName().length && (
+              <span className="animate-pulse">|</span>
+            )}
+          </span>!
+        </span>
+      </div>
+    );
+  }
+
+  // Ready-only mode: just show "Are you ready to get started?"
+  if (mode === 'ready-only') {
+    return (
+      <div className="text-sm text-muted-foreground">
+        <Popover>
+          <PopoverTrigger asChild>
+            <span 
+              className="cursor-pointer underline decoration-dotted transition-colors relative text-[#5A7FDB] hover:text-[#3D63DD]"
+            >
+              {displayedGettingStarted}
+              {showTypingCursor && displayedGettingStarted.length < 'Are you ready to get started?'.length && (
+                <span className="animate-pulse">|</span>
+              )}
+            </span>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 max-w-[90vw] p-0" side="bottom" align="center">
+            <div className={`p-4 ${progressPercentage === 100 ? 'border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-800' : ''}`}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-lg font-semibold">Getting Started</h4>
+                  {progressPercentage === 100 && (
+                    <Sparkles className="w-4 h-4 text-emerald-600" />
+                  )}
+                </div>
+                <Badge 
+                  variant={progressPercentage === 100 ? "default" : "secondary"} 
+                  className={`text-xs ${progressPercentage === 100 ? 'bg-emerald-600 text-white' : ''}`}
+                >
+                  {completedTasks} of {gettingStartedTasks.length}
+                </Badge>
+              </div>
+              
+              {progressPercentage === 100 ? (
+                <div className="mb-4 p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-emerald-600" />
+                    <span className="text-sm font-medium text-emerald-800 dark:text-emerald-200">
+                      Congratulations! You've completed the onboarding.
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <Progress value={progressPercentage} className="mb-4" />
+              )}
+
+              <div className="space-y-3 max-h-80 overflow-y-auto overflow-x-hidden">
+                {gettingStartedTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className={`flex items-start gap-3 p-3 rounded-lg transition-all duration-200 ${
+                      task.hasLink && !task.completed 
+                        ? 'hover:bg-muted/50 cursor-pointer hover:scale-[1.02]' 
+                        : task.completed 
+                        ? 'bg-emerald-50/50 dark:bg-emerald-950/10' 
+                        : ''
+                    }`}
+                    onClick={() => handleTaskClick(task)}
+                  >
+                    {task.completed ? (
+                      <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0 animate-in zoom-in duration-300" />
+                    ) : (
+                      <Circle className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0 hover:text-primary transition-colors" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm transition-all duration-200 break-words ${
+                        task.completed 
+                          ? 'text-emerald-700 dark:text-emerald-300 line-through' 
+                          : 'text-foreground'
+                      }`}>
+                        {task.text}
+                      </p>
+                      {task.hasLink && !task.completed && (
+                        <div className="flex items-center gap-1 mt-1 animate-in fade-in duration-200">
+                          <ExternalLink className="w-3 h-3 text-primary" />
+                          <span className="text-xs text-primary font-medium">Start task</span>
+                        </div>
+                      )}
+                      {task.completed && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <CheckCircle className="w-3 h-3 text-emerald-600" />
+                          <span className="text-xs text-emerald-600 font-medium">Completed!</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+    );
+  }
+
+  // Full mode: show greeting without date/time (legacy/full display)
   return (
     <div className="animate-in fade-in slide-in-from-left-4 duration-700 ease-out">
       <h3 className="text-2xl font-bold text-foreground mb-2">
@@ -340,16 +416,6 @@ export const WelcomeMessage = () => {
         </span>!
       </h3>
       
-      {/* Dynamic date/time display */}
-      <div className="mt-3 text-sm text-muted-foreground">
-        <span className="relative">
-          {displayedDateTime}
-          {showTypingCursor && displayedDateTime.length < currentDateTime.length && displayedUsername.length >= getUserDisplayName().length && (
-            <span className="animate-pulse">|</span>
-          )}
-        </span>
-      </div>
-      
       <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
         <Popover>
           <PopoverTrigger asChild>
@@ -357,7 +423,7 @@ export const WelcomeMessage = () => {
               className="cursor-pointer underline decoration-dotted transition-colors relative text-[#5A7FDB] hover:text-[#3D63DD]"
             >
               {displayedGettingStarted}
-              {showTypingCursor && displayedGettingStarted.length < 'Are you ready to get started?'.length && displayedDateTime.length >= currentDateTime.length && (
+              {showTypingCursor && displayedGettingStarted.length < 'Are you ready to get started?'.length && (
                 <span className="animate-pulse">|</span>
               )}
             </span>

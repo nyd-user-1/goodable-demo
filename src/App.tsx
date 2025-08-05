@@ -11,6 +11,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { HeartSidebarTrigger } from "@/components/HeartSidebarTrigger";
+import { WelcomeMessage } from "@/components/features/home/WelcomeMessage";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import { PageTransition } from "@/components/PageTransition";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -64,8 +65,9 @@ const AppLayout = () => {
           <AppSidebar />
           <SidebarInset className="flex-1">
             <ScrollProgress className="top-0" />
-            <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 px-4 bg-background/80 backdrop-blur-md backdrop-saturate-150 supports-[backdrop-filter]:bg-background/60">
+            <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-4 px-4 bg-background/80 backdrop-blur-md backdrop-saturate-150 supports-[backdrop-filter]:bg-background/60">
               <HeartSidebarTrigger />
+              <WelcomeMessage mode="header" />
             </header>
             <main className="flex-1 overflow-hidden">
               <PageTransition>

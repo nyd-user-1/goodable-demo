@@ -168,11 +168,6 @@ const Home2 = () => {
       </div>
 
       <main className="relative z-10 flex-1 pb-20">
-        {/* Welcome Message - positioned absolutely in top left */}
-        <div className="absolute top-6 left-6 z-20">
-          <WelcomeMessage />
-        </div>
-        
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-[calc(100vh-20px)]" style={{ paddingTop: '15px' }}>
           
           <div className="text-center max-w-4xl mx-auto">
@@ -316,6 +311,11 @@ const Home2 = () => {
                 ) : (
                   <span>183+ visited Goodable today</span>
                 )}
+              </div>
+              
+              {/* Move "Are you ready to get started?" here */}
+              <div className="mt-2 text-center">
+                <WelcomeMessage mode="ready-only" />
               </div>
             </div>
           </div>

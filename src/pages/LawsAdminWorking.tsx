@@ -38,12 +38,11 @@ const LawsAdminWorking = () => {
     let syncError: any = null;
     
     try {
-      console.log("Calling edge function to sync laws...");
+      console.log("Calling Puppeteer scraper to scrape all laws...");
       
-      const response = await supabase.functions.invoke('nys-legislation-search', {
+      const response = await supabase.functions.invoke('nys-legislation-scraper', {
         body: { 
-          action: 'sync-laws',
-          sessionYear: 2025
+          action: 'scrape_all_laws'
         }
       });
 
@@ -59,7 +58,7 @@ const LawsAdminWorking = () => {
       }
 
       console.log("Sync response:", data);
-      setProgress(`Sync completed! Processed ${data.processed}/${data.totalLaws} laws in ${data.duration}`);
+      setProgress(`Scraping completed! Processed ${data.results?.successful}/${data.results?.total_laws} laws`);
       
       // Refresh the page after a short delay to show updated data
       setTimeout(() => {
@@ -83,7 +82,7 @@ const LawsAdminWorking = () => {
       
       <div className="mb-8">
         <p className="text-gray-600 mb-4">
-          This will sync NY State Consolidated Laws metadata from the Senate API (~134 laws).
+          This will scrape NY State Consolidated Laws from leginfo.state.ny.us using Puppeteer (~134 laws).
         </p>
         
         <div className="space-x-4">
@@ -99,7 +98,7 @@ const LawsAdminWorking = () => {
             disabled={syncing}
             className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded"
           >
-            {syncing ? "Syncing..." : "Sync All Laws"}
+            {syncing ? "Scraping..." : "Scrape All Laws"}
           </button>
         </div>
       </div>
@@ -119,7 +118,7 @@ const LawsAdminWorking = () => {
       <div className="border rounded-lg p-4">
         <h2 className="text-xl font-semibold mb-2">Status</h2>
         <p className="text-gray-600">
-          {syncing ? "Syncing laws..." : "Ready to sync laws from NY Senate API"}
+          {syncing ? "Scraping laws..." : "Ready to scrape laws from leginfo.state.ny.us"}
         </p>
       </div>
     </div>
