@@ -97,6 +97,17 @@ async function handleSearch(searchType: string, query: string, sessionYear?: num
 async function syncAllLaws() {
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  
+  console.log("Starting sync with URLs:", { supabaseUrl: supabaseUrl ? "SET" : "MISSING", apiKey: nysApiKey ? "SET" : "MISSING" });
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error("Missing Supabase configuration");
+  }
+  
+  if (!nysApiKey) {
+    throw new Error("Missing NYS API key");
+  }
+
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   const startTime = Date.now();
@@ -105,33 +116,43 @@ async function syncAllLaws() {
   const errors: any[] = [];
 
   try {
-    // Get list of all laws
-    const lawsResponse = await fetchWithRetry(
-      `https://legislation.nysenate.gov/api/3/laws?key=${nysApiKey}`
-    );
+    console.log("Fetching laws list...");
     
-    if (!lawsResponse.success) {
-      throw new Error(`Failed to fetch laws: ${lawsResponse.message}`);
+    // Get list of all laws - SIMPLIFIED VERSION
+    const apiUrl = `https://legislation.nysenate.gov/api/3/laws?key=${nysApiKey}`;
+    console.log("Calling:", apiUrl.replace(nysApiKey, "REDACTED"));
+    
+    const response = await fetch(apiUrl);
+    
+    if (!response.ok) {
+      throw new Error(`NYS API error: ${response.status} ${response.statusText}`);
+    }
+    
+    const lawsData = await response.json();
+    
+    if (!lawsData.success) {
+      throw new Error(`API returned error: ${lawsData.message}`);
     }
 
-    const laws = lawsResponse.result?.items || [];
+    const laws = lawsData.result?.items || [];
     const consolidatedLaws = laws.filter((law: any) => law.lawType === "CONSOLIDATED");
     
     console.log(`Found ${consolidatedLaws.length} consolidated laws to process`);
 
-    // Process each law
+    // Process each law - BASIC VERSION ONLY
     for (const law of consolidatedLaws) {
       try {
-        await syncSingleLawData(supabase, law);
+        await syncBasicLawData(supabase, law);
         processedCount++;
-        
-        // Respectful delay between requests
-        await delay(REQUEST_DELAY_MS);
         
         // Log progress every 10 laws
         if (processedCount % 10 === 0) {
           console.log(`Progress: ${processedCount}/${consolidatedLaws.length} laws processed`);
         }
+        
+        // Very short delay
+        await delay(50);
+        
       } catch (error) {
         errorCount++;
         errors.push({ lawId: law.lawId, error: error.message });
@@ -155,6 +176,7 @@ async function syncAllLaws() {
       }
     );
   } catch (error) {
+    console.error("Sync error:", error);
     throw error;
   }
 }
@@ -188,6 +210,31 @@ async function syncSingleLaw(lawId: string) {
   } catch (error) {
     throw error;
   }
+}
+
+async function syncBasicLawData(supabase: any, law: any) {
+  // Just insert basic law metadata - NO full text fetching
+  const lawRecord = {
+    law_id: law.lawId,
+    name: law.name,
+    chapter: law.chapter,
+    law_type: law.lawType,
+    full_text: null, // We'll populate this later
+    structure: null,
+    total_sections: 0, // We'll count these later
+    last_updated: new Date().toISOString().split('T')[0],
+    api_last_modified: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  // Upsert law record
+  const { error: lawError } = await supabase
+    .from("ny_laws")
+    .upsert(lawRecord, { onConflict: "law_id" });
+
+  if (lawError) throw new Error(`Failed to upsert law: ${lawError.message}`);
+
+  console.log(`✓ Synced basic data for ${law.lawId}: ${law.name}`);
 }
 
 async function syncSingleLawData(supabase: any, law: any) {
