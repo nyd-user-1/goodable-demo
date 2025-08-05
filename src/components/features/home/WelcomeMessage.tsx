@@ -258,7 +258,7 @@ export const WelcomeMessage = ({ mode }: WelcomeMessageProps) => {
               Are you ready to get started?
             </span>
           </PopoverTrigger>
-          <PopoverContent className="w-80 max-w-[90vw] p-0" side="bottom" align="center">
+          <PopoverContent className="w-80 max-w-[90vw] p-0" side="bottom" align="start">
             <div className={`p-4 ${progressPercentage === 100 ? 'border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-800' : ''}`}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">

@@ -54,6 +54,7 @@ import Admin from "./pages/Admin";
 import FeedPage from "./pages/FeedPage";
 import ImageUploadTest from "./pages/ImageUploadTest";
 import Customerstory from "./pages/Customerstory";
+import DataPopulator from "./pages/DataPopulator";
 
 const queryClient = new QueryClient();
 
@@ -103,6 +104,7 @@ const AppLayout = () => {
                   <Route path="/shadcn-showcase" element={<ShadcnShowcase />} />
                   <Route path="/image-upload-test" element={<ImageUploadTest />} />
                   <Route path="/customerstory" element={<Customerstory />} />
+                  <Route path="/data-populator" element={<DataPopulator />} />
                 </Routes>
               </PageTransition>
             </main>
