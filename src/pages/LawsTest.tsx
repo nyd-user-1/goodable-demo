@@ -22,9 +22,9 @@ const LawsTest = () => {
 
         console.log("Laws data:", data);
         setLaws(data || []);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error fetching laws:", err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : "Failed to fetch laws");
       } finally {
         setLoading(false);
       }
