@@ -1007,10 +1007,11 @@ const LandingPageWaitlist = () => {
             <div>
               <h3 className="font-semibold mb-4 text-sm sm:text-base">A New York Digital Product</h3>
               <div className="flex flex-col items-start space-y-2">
-                <a href="https://www.newyorkdigital.co/a-digital-bill-of-rights" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
-                  <img src="/NYD Logo 256 x 256.png" alt="New York Digital" className="w-12 h-12 sm:w-16 sm:h-16" />
+                <a href="https://www.newyorkdigital.co/a-digital-bill-of-rights" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity flex items-center space-x-3">
+                  <img src="/NYD Logo 256 x 256.png" alt="New York Digital" className="w-6 h-6 sm:w-8 sm:h-8" />
+                  <span className="font-semibold text-foreground">New York Digital</span>
                 </a>
-                <p className="text-xs text-muted-foreground">Innovating policy for the digital age</p>
+                <p className="text-xs text-muted-foreground">Home of AI + Policy</p>
               </div>
             </div>
           </div>
