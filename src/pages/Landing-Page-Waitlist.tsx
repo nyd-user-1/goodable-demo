@@ -1053,7 +1053,7 @@ const LandingPageWaitlist = () => {
                   <span className="font-semibold text-foreground">New York Digital</span>
                 </a>
                 <p className="text-xs text-muted-foreground text-left">
-                  Home of AI + Policy and<br />
+                  Home of AI, Policy, and<br />
                   The Digital Bill of Rights
                 </p>
               </div>
