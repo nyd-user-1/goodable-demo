@@ -1054,7 +1054,7 @@ const LandingPageWaitlist = () => {
                 </a>
                 <p className="text-xs text-muted-foreground text-left">
                   Home of AI + Policy and<br />
-                  Author of The Digital Bill of Rights
+                  The Digital Bill of Rights
                 </p>
               </div>
             </div>
