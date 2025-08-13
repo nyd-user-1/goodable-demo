@@ -1005,25 +1005,18 @@ const LandingPageWaitlist = () => {
             </div>
             
             <div>
-              <h3 className="font-semibold mb-4 text-sm sm:text-base">Made by</h3>
-              <div className="flex flex-col items-start space-y-3">
-                <a href="https://www.newyorkdigital.co" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
-                  <img src="/NYD Logo 256 x 256.png" alt="New York Digital" className="w-8 h-8 sm:w-10 sm:h-10" />
+              <h3 className="font-semibold mb-4 text-sm sm:text-base">A New York Digital Product</h3>
+              <div className="flex flex-col items-start space-y-2">
+                <a href="https://www.newyorkdigital.co/a-digital-bill-of-rights" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
+                  <img src="/NYD Logo 256 x 256.png" alt="New York Digital" className="w-12 h-12 sm:w-16 sm:h-16" />
                 </a>
-                <div className="flex space-x-4">
-                  <a href="#" className="text-muted-foreground hover:text-foreground">
-                    <Twitter className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </a>
-                  <a href="#" className="text-muted-foreground hover:text-foreground">
-                    <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </a>
-                </div>
+                <p className="text-xs text-muted-foreground">Innovating policy for the digital age</p>
               </div>
             </div>
           </div>
           
           <div className="border-t border-border/50 mt-6 sm:mt-8 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-muted-foreground">
-            <p>&copy; 2024 Goodable. All rights reserved.</p>
+            <p>&copy; 2025 Goodable. All rights reserved.</p>
           </div>
         </div>
       </footer>
