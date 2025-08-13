@@ -27,7 +27,6 @@ import {
 } from "lucide-react";
 import { useNavigate, Link } from 'react-router-dom';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { ShineBorder } from '@/components/magicui/shine-border';
 import { ScrollProgress } from '@/components/magicui/scroll-progress';
 import { Marquee } from '@/components/magicui/marquee';
 import { BetaAccessModal } from '@/components/BetaAccessModal';
@@ -907,18 +906,32 @@ const LandingPageWaitlist = () => {
       </section>
 
       {/* CTA Section */}
-      <section id="waitlist" className="py-12 sm:py-20 bg-background relative">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="relative inline-block rounded-xl sm:rounded-2xl">
-            <ShineBorder 
-              className="rounded-xl sm:rounded-2xl"
-              shineColor={["#3D63DD", "#5A7FDB", "#2D53CD"]}
-              borderRadius={16}
-              borderWidth={2}
-              duration={10}
-            />
+      <section id="waitlist" className="py-12 sm:py-20 bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden">
+        {/* Background elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-10 w-32 h-32 bg-[#3D63DD]/5 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 right-10 w-40 h-40 bg-[#3D63DD]/5 rounded-full blur-3xl animate-pulse delay-1000" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-gradient-to-r from-[#3D63DD]/3 to-transparent rounded-full blur-3xl" />
+        </div>
+
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
+            <div className="mb-8 sm:mb-12">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent leading-tight">
+                Good trouble?<br />
+                <span className="bg-gradient-to-r from-[#3D63DD] to-[#5A7FDB] bg-clip-text text-transparent">
+                  That's Goodable.
+                </span>
+              </h2>
+              <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
+                Join thousands collaborating on a new vision for public policy.
+              </p>
+            </div>
+
+            {/* Signup Form */}
             <div 
-              className="relative p-8 sm:p-12 text-center"
+              className="relative max-w-lg mx-auto"
               onMouseEnter={() => {
                 if (!hasTriggeredConfetti) {
                   confettiRef.current?.fire({
@@ -930,32 +943,62 @@ const LandingPageWaitlist = () => {
                 }
               }}
             >
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-                Good trouble? That's Goodable.
-              </h2>
-              <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
-                Join thousands collaborating on a new vision for public policy.
-              </p>
-              <form onSubmit={handleWaitlistSignup} className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
-                <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full sm:flex-1"
-                  disabled={isSubmitting}
-                />
-                <Button 
-                  type="submit"
-                  variant="outline" 
-                  size="lg" 
-                  disabled={isSubmitting}
-                  className="dark:shadow-[0_0_20px_rgba(59,130,246,0.3)] dark:border-blue-500/50 dark:hover:shadow-[0_0_25px_rgba(59,130,246,0.4)] transition-all duration-300 w-full sm:w-auto"
-                >
-                  <Heart className="w-4 h-4 mr-2 text-destructive" />
-                  {isSubmitting ? 'Joining...' : 'Join Waitlist'}
-                </Button>
-              </form>
+              <Card className="p-6 sm:p-8 bg-card/50 backdrop-blur-sm border border-border/50 hover:border-[#3D63DD]/30 transition-all duration-500 hover:shadow-xl hover:shadow-[#3D63DD]/10">
+                <form onSubmit={handleWaitlistSignup} className="space-y-4">
+                  <div className="relative">
+                    <Input
+                      type="email"
+                      placeholder="Enter your email address"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full h-12 px-4 pr-32 text-base border-2 border-border/50 rounded-lg bg-background/50 focus:border-[#3D63DD] focus:ring-2 focus:ring-[#3D63DD]/20 transition-all"
+                      disabled={isSubmitting}
+                    />
+                    <Button 
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 h-8 px-4 bg-gradient-to-r from-[#3D63DD] to-[#5A7FDB] hover:from-[#2D53CD] hover:to-[#4A70E0] text-white border-0 rounded-md font-medium transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:scale-100"
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                          <span className="text-sm">Joining...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Heart className="w-3 h-3" />
+                          <span className="text-sm">Join</span>
+                        </div>
+                      )}
+                    </Button>
+                  </div>
+                  
+                  <p className="text-xs text-muted-foreground">
+                    Be the first to know when Goodable launches. No spam, ever.
+                  </p>
+                </form>
+              </Card>
+              
+              {/* Decorative elements */}
+              <div className="absolute -top-2 -right-2 w-4 h-4 bg-[#3D63DD]/20 rounded-full animate-ping" />
+              <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-[#5A7FDB]/30 rounded-full animate-pulse delay-1000" />
+            </div>
+
+            {/* Social Proof */}
+            <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <div className="flex -space-x-2">
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#3D63DD] to-[#5A7FDB] border-2 border-background" />
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#5A7FDB] to-[#6B8CE8] border-2 border-background" />
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#6B8CE8] to-[#4A70E0] border-2 border-background" />
+                </div>
+                <span>Join 1,200+ policy makers</span>
+              </div>
+              <div className="hidden sm:block w-px h-4 bg-border" />
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#3D63DD]" />
+                <span>Alpha launching soon</span>
+              </div>
             </div>
           </div>
         </div>
