@@ -124,7 +124,7 @@ const LandingPageWaitlist = () => {
     
     try {
       // First check if email already exists
-      const { data: existingEmail, error: checkError } = await (supabase as any)
+      const { data: existingEmail, error: checkError } = await supabase
         .from('waitlist')
         .select('email')
         .eq('email', email)
@@ -141,11 +141,10 @@ const LandingPageWaitlist = () => {
       }
 
       // Add to waitlist
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('waitlist')
         .insert({
-          email: email,
-          created_at: new Date().toISOString()
+          email: email
         });
 
       if (error) throw error;
@@ -183,7 +182,7 @@ const LandingPageWaitlist = () => {
     const fetchFeaturedPosts = async () => {
       try {
         // Try to fetch from the view first
-        let { data, error } = await (supabase as any)
+        let { data, error } = await supabase
           .from('blog_proposal_stats')
           .select('*')
           .eq('is_featured', true)
@@ -193,7 +192,7 @@ const LandingPageWaitlist = () => {
 
         // If view doesn't exist, use the table directly
         if (error && error.code === '42P01') {
-          const result = await (supabase as any)
+          const result = await supabase
             .from('blog_proposals')
             .select(`
               *,
@@ -915,7 +914,7 @@ const LandingPageWaitlist = () => {
         </div>
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             {/* Header */}
             <div className="mb-8 sm:mb-12">
               <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent leading-tight">
@@ -931,7 +930,7 @@ const LandingPageWaitlist = () => {
 
             {/* Signup Form */}
             <div 
-              className="relative max-w-lg mx-auto"
+              className="relative max-w-2xl mx-auto"
               onMouseEnter={() => {
                 if (!hasTriggeredConfetti) {
                   confettiRef.current?.fire({
@@ -1048,13 +1047,15 @@ const LandingPageWaitlist = () => {
             </div>
             
             <div>
-              <h3 className="font-semibold mb-4 text-sm sm:text-base">A New York Digital Product</h3>
               <div className="flex flex-col items-start space-y-2">
                 <a href="https://www.newyorkdigital.co/a-digital-bill-of-rights" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity flex items-center space-x-3">
                   <img src="/NYD Logo 256 x 256.png" alt="New York Digital" className="w-6 h-6 sm:w-8 sm:h-8" />
                   <span className="font-semibold text-foreground">New York Digital</span>
                 </a>
-                <p className="text-xs text-muted-foreground">Home of AI + Policy</p>
+                <p className="text-xs text-muted-foreground text-left">
+                  AI + Policy and<br />
+                  The Digital Bill of Rights
+                </p>
               </div>
             </div>
           </div>
