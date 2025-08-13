@@ -1005,14 +1005,19 @@ const LandingPageWaitlist = () => {
             </div>
             
             <div>
-              <h3 className="font-semibold mb-4 text-sm sm:text-base">Connect</h3>
-              <div className="flex space-x-4">
-                <a href="#" className="text-muted-foreground hover:text-foreground">
-                  <Twitter className="w-4 h-4 sm:w-5 sm:h-5" />
+              <h3 className="font-semibold mb-4 text-sm sm:text-base">Made by</h3>
+              <div className="flex flex-col items-start space-y-3">
+                <a href="https://www.newyorkdigital.co" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">
+                  <img src="/NYD Logo 256 x 256.png" alt="New York Digital" className="w-8 h-8 sm:w-10 sm:h-10" />
                 </a>
-                <a href="#" className="text-muted-foreground hover:text-foreground">
-                  <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
-                </a>
+                <div className="flex space-x-4">
+                  <a href="#" className="text-muted-foreground hover:text-foreground">
+                    <Twitter className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </a>
+                  <a href="#" className="text-muted-foreground hover:text-foreground">
+                    <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </a>
+                </div>
               </div>
             </div>
           </div>
