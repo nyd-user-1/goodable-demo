@@ -114,9 +114,9 @@ export const MessageBubble = ({
   };
 
   return (
-    <div className="message-bubble-container space-y-2">
+    <div className="message-bubble-container space-y-2 min-w-0">
       <div
-        className={`flex ${
+        className={`flex min-w-0 ${
           message.role === "user" ? "justify-end" : "justify-start"
         }`}
       >
