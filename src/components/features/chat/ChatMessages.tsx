@@ -47,7 +47,7 @@ export const ChatMessages = ({
   }, [messages]);
 
   return (
-    <ScrollArea ref={scrollAreaRef} className="flex-1 pr-4">
+    <ScrollArea ref={scrollAreaRef} className="flex-1 pr-4 h-0">
       <div className="space-y-4 w-full overflow-hidden" style={{ maxWidth: '100%' }}>
         {messages.map((message, index) => {
           // Convert Date to string for MessageBubble compatibility and handle streaming

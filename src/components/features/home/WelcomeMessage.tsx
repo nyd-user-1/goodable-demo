@@ -39,11 +39,11 @@ export const WelcomeMessage = ({ mode }: WelcomeMessageProps) => {
       const hour = estTime.getHours();
       
       if (hour < 12) {
-        setGreeting('Good morning');
+        setGreeting('Good Morning');
       } else if (hour < 17) {
-        setGreeting('Good afternoon');
+        setGreeting('Good Afternoon');
       } else {
-        setGreeting('Good evening');
+        setGreeting('Good Evening');
       }
     };
     
@@ -153,7 +153,10 @@ export const WelcomeMessage = ({ mode }: WelcomeMessageProps) => {
   const getUserDisplayName = () => {
     if (user?.user_metadata?.display_name) return user.user_metadata.display_name;
     if (user?.user_metadata?.full_name) return user.user_metadata.full_name;
-    if (user?.email) return user.email.split('@')[0];
+    if (user?.email) {
+      const username = user.email.split('@')[0];
+      return username.charAt(0).toUpperCase() + username.slice(1);
+    }
     return 'there';
   };
 
