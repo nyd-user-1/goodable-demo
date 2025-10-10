@@ -147,11 +147,11 @@ export const MessageBubble = ({
           )}
           
           {message.role === "assistant" ? (
-            <div 
-              className="chat-markdown-content text-sm prose prose-sm dark:prose-invert pr-8 pb-8"
-              style={{ 
-                maxWidth: '100%', 
-                wordWrap: 'break-word', 
+            <div
+              className="chat-markdown-content text-sm prose prose-sm dark:prose-invert max-w-full pr-8 pb-8"
+              style={{
+                maxWidth: '100%',
+                wordWrap: 'break-word',
                 overflowWrap: 'break-word',
                 wordBreak: 'break-word'
               }}
