@@ -123,11 +123,11 @@ export const MessageBubble = ({
         <div
           className={`rounded-lg p-3 relative ${
             message.role === "user"
-              ? "bg-slate-800 text-white max-w-[calc(75%-2rem)] ml-auto mr-4"
-              : "bg-muted max-w-[calc(75%-2rem)] ml-4 mr-4"
+              ? "bg-slate-800 text-white max-w-[75%] ml-auto"
+              : "bg-muted max-w-[75%]"
           }`}
           style={{
-            maxWidth: 'calc(75% - 2rem)',
+            maxWidth: '75%',
             wordWrap: 'break-word',
             overflowWrap: 'break-word',
             wordBreak: 'break-word',
