@@ -53,55 +53,89 @@ interface SidebarNavigationProps {
 export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNavigationProps) {
   const { getNavClassName } = useNavigation();
   const { isAdmin } = useAuth();
+  const [isLegislationOpen, setIsLegislationOpen] = useState(true);
+  const [isDevelopmentOpen, setIsDevelopmentOpen] = useState(true);
   const [isAccountOpen, setIsAccountOpen] = useState(true);
   const [isAdminOpen, setIsAdminOpen] = useState(true);
 
   return (
     <>
-      {/* Navigate Navigation - Hidden when searching */}
+      {/* Legislation Navigation - Hidden when searching */}
       {!hasSearchResults && (
         <SidebarGroup>
-          <SidebarGroupLabel>Navigate</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navigateNavItems
-                .filter(item => !item.adminOnly || isAdmin)
-                .map((item) => (
-                  <NavigationItem
-                    key={item.title}
-                    title={item.title}
-                    url={item.url}
-                    icon={item.icon}
-                    collapsed={collapsed}
-                    getNavClassName={getNavClassName}
-                    requiresAuth={item.requiresAuth}
-                  />
-                ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
+          <Collapsible open={isLegislationOpen} onOpenChange={setIsLegislationOpen}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full justify-between px-2 py-1 h-8 text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+              >
+                <span>Legislation</span>
+                {isLegislationOpen ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {navigateNavItems
+                    .filter(item => !item.adminOnly || isAdmin)
+                    .map((item) => (
+                      <NavigationItem
+                        key={item.title}
+                        title={item.title}
+                        url={item.url}
+                        icon={item.icon}
+                        collapsed={collapsed}
+                        getNavClassName={getNavClassName}
+                        requiresAuth={item.requiresAuth}
+                      />
+                    ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </Collapsible>
         </SidebarGroup>
       )}
 
-      {/* Workflow Navigation - Hidden when searching */}
+      {/* Development Navigation - Hidden when searching */}
       {!hasSearchResults && (
         <SidebarGroup>
-          <SidebarGroupLabel>Workflow</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {workflowNavItems
-                .filter(item => !item.adminOnly || isAdmin)
-                .map((item) => (
-                  <NavigationItem
-                    key={item.title}
-                    title={item.title}
-                    url={item.url}
-                    icon={item.icon}
-                    collapsed={collapsed}
-                    getNavClassName={getNavClassName}
-                  />
-                ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
+          <Collapsible open={isDevelopmentOpen} onOpenChange={setIsDevelopmentOpen}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full justify-between px-2 py-1 h-8 text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+              >
+                <span>Development</span>
+                {isDevelopmentOpen ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {workflowNavItems
+                    .filter(item => !item.adminOnly || isAdmin)
+                    .map((item) => (
+                      <NavigationItem
+                        key={item.title}
+                        title={item.title}
+                        url={item.url}
+                        icon={item.icon}
+                        collapsed={collapsed}
+                        getNavClassName={getNavClassName}
+                      />
+                    ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </Collapsible>
         </SidebarGroup>
       )}
 
