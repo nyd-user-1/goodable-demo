@@ -45,28 +45,32 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
           .single();
 
         if (committeeData && committeeData.committee_members) {
-          // Split the semicolon-separated names
-          const memberNames = committeeData.committee_members
+          // Split the semicolon-separated slugs (e.g., "rebecca-seawright; george-alvarez")
+          const memberSlugs = committeeData.committee_members
             .split(';')
-            .map(name => name.trim())
-            .filter(name => name.length > 0);
+            .map(slug => slug.trim())
+            .filter(slug => slug.length > 0);
 
-          if (memberNames.length > 0) {
-            // Try to fetch members using pattern matching for more flexible matching
-            const memberPromises = memberNames.map(name =>
-              supabase
+          if (memberSlugs.length > 0) {
+            // Convert slugs to search patterns (e.g., "rebecca-seawright" -> "rebecca%seawright")
+            const memberPromises = memberSlugs.map(async (slug) => {
+              // Convert hyphenated slug to space-separated for matching
+              // "rebecca-seawright" becomes "rebecca seawright"
+              const searchName = slug.replace(/-/g, ' ');
+
+              // Try to find member by matching name parts
+              const { data: memberData } = await supabase
                 .from("People")
                 .select("*")
-                .ilike("name", `%${name}%`)
+                .or(`name.ilike.%${searchName}%,first_name.ilike.%${searchName.split(' ')[0]}%`)
                 .limit(1)
-                .single()
-            );
+                .single();
+
+              return memberData;
+            });
 
             const results = await Promise.all(memberPromises);
-            const foundMembers = results
-              .filter(result => result.data)
-              .map(result => result.data)
-              .filter((member): member is Member => member !== null);
+            const foundMembers = results.filter((member): member is Member => member !== null);
 
             // Remove duplicates by people_id
             const uniqueMembers = Array.from(
