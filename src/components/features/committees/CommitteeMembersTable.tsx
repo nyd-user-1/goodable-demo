@@ -143,7 +143,16 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                       <User className="h-4 w-4" />
                     </div>
-                    {chairId === member.people_id && (
+                    {(() => {
+                      if (!committee.chair_name || !member.name) return false;
+                      // Get last names - "Rebecca A. Seawright" -> "Seawright", "Rebecca Seawright" -> "Seawright"
+                      const chairLastName = committee.chair_name.trim().split(' ').pop()?.toLowerCase();
+                      const memberLastName = member.name.trim().split(' ').pop()?.toLowerCase();
+                      // Also check first names
+                      const chairFirstName = committee.chair_name.trim().split(' ')[0]?.toLowerCase();
+                      const memberFirstName = member.name.trim().split(' ')[0]?.toLowerCase();
+                      return chairLastName === memberLastName && chairFirstName === memberFirstName;
+                    })() && (
                       <Badge variant="default" className="text-xs">
                         Chair
                       </Badge>
