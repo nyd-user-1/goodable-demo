@@ -18,12 +18,12 @@ SELECT
     WHEN district IS NOT NULL AND district != '' AND district ~ '^\d+$' THEN
       'https://nyassembly.gov/write/upload/member_files/' ||
       LPAD(district, 3, '0') || '/headshot/' ||
-      LPAD(district, 3, '0') || '.jpg'
+      LPAD(district, 3, '0') || '_500.jpg'
     WHEN district IS NOT NULL AND district != '' AND district LIKE 'HD-%' THEN
       -- Handle "HD-078" format - extract the number
       'https://nyassembly.gov/write/upload/member_files/' ||
       SUBSTRING(district FROM '\d+') || '/headshot/' ||
-      SUBSTRING(district FROM '\d+') || '.jpg'
+      SUBSTRING(district FROM '\d+') || '_500.jpg'
     WHEN district IS NOT NULL AND district != '' AND district LIKE 'SD-%' THEN
       -- Senate districts - skip these, they're not assembly
       NULL
@@ -45,13 +45,13 @@ SET photo_url =
     WHEN district IS NOT NULL AND district != '' AND district ~ '^\d+$' THEN
       'https://nyassembly.gov/write/upload/member_files/' ||
       LPAD(TRIM(district), 3, '0') || '/headshot/' ||
-      LPAD(TRIM(district), 3, '0') || '.jpg'
+      LPAD(TRIM(district), 3, '0') || '_500.jpg'
 
     -- For "HD-078" format districts
     WHEN district IS NOT NULL AND district != '' AND district LIKE 'HD-%' THEN
       'https://nyassembly.gov/write/upload/member_files/' ||
       SUBSTRING(district FROM '\d+') || '/headshot/' ||
-      SUBSTRING(district FROM '\d+') || '.jpg'
+      SUBSTRING(district FROM '\d+') || '_500.jpg'
 
     -- Skip Senate districts
     WHEN district IS NOT NULL AND district != '' AND district LIKE 'SD-%' THEN
@@ -105,11 +105,14 @@ ORDER BY district;
 -- ============================================================================
 -- EXAMPLE URLS THAT WILL BE GENERATED:
 -- ============================================================================
--- District 78  (George Alvarez) → https://nyassembly.gov/write/upload/member_files/078/headshot/078.jpg
--- District 31  (Khaleel Anderson) → https://nyassembly.gov/write/upload/member_files/031/headshot/031.jpg
--- District 121 (Joe Angelino) → https://nyassembly.gov/write/upload/member_files/121/headshot/121.jpg
--- District 133 (Andrea Bailey) → https://nyassembly.gov/write/upload/member_files/133/headshot/133.jpg
--- District 120 (William Barclay) → https://nyassembly.gov/write/upload/member_files/120/headshot/120.jpg
+-- District 78  (George Alvarez) → https://nyassembly.gov/write/upload/member_files/078/headshot/078_500.jpg
+-- District 31  (Khaleel Anderson) → https://nyassembly.gov/write/upload/member_files/031/headshot/031_500.jpg
+-- District 121 (Joe Angelino) → https://nyassembly.gov/write/upload/member_files/121/headshot/121_500.jpg
+-- District 133 (Andrea Bailey) → https://nyassembly.gov/write/upload/member_files/133/headshot/133_500.jpg
+-- District 120 (William Barclay) → https://nyassembly.gov/write/upload/member_files/120/headshot/120_500.jpg
 --
--- Note: District numbers are zero-padded to 3 digits (e.g., 78 becomes 078)
+-- Notes:
+-- - District numbers are zero-padded to 3 digits (e.g., 78 becomes 078)
+-- - Using _500.jpg for 500px image size
+-- - The ?hst= timestamp parameter is NOT included (not required for images to load)
 -- ============================================================================
