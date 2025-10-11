@@ -8,5 +8,6 @@ export { CommitteesErrorState } from './CommitteesErrorState';
 export { CommitteeInformation } from './CommitteeInformation';
 export { CommitteeTabs } from './CommitteeTabs';
 export { CommitteeBillsTable } from './CommitteeBillsTable';
+export { CommitteeBillsTableFull } from './CommitteeBillsTableFull';
 export { CommitteeMembersTable } from './CommitteeMembersTable';
 export { CommitteeVotesTable } from './CommitteeVotesTable';

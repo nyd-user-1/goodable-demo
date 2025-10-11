@@ -6,7 +6,7 @@ import {
   Users,
   Vote
 } from "lucide-react";
-import { CommitteeBillsTable } from "./CommitteeBillsTable";
+import { CommitteeBillsTableFull } from "./CommitteeBillsTableFull";
 import { CommitteeMembersTable } from "./CommitteeMembersTable";
 import { CommitteeVotesTable } from "./CommitteeVotesTable";
 
@@ -112,7 +112,7 @@ export const CommitteeTabs = ({ committee }: CommitteeTabsProps) => {
       </TabsContent>
 
       <TabsContent value="bills">
-        <CommitteeBillsTable committee={committee} />
+        <CommitteeBillsTableFull committee={committee} />
       </TabsContent>
 
       <TabsContent value="members">
