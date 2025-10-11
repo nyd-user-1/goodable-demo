@@ -28,7 +28,7 @@ export const useBillsData = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const BILLS_PER_PAGE = 50;
-  const INITIAL_LOAD_SIZE = 500; // Load more bills initially for better client-side filtering
+  const INITIAL_LOAD_SIZE = 50; // Start with smaller load for faster initial page render
 
   // Initial fetch of bills data
   useEffect(() => {
