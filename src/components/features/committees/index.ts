@@ -5,3 +5,8 @@ export { CommitteesGrid } from './CommitteesGrid';
 export { CommitteesEmptyState } from './CommitteesEmptyState';
 export { CommitteesLoadingSkeleton } from './CommitteesLoadingSkeleton';
 export { CommitteesErrorState } from './CommitteesErrorState';
+export { CommitteeInformation } from './CommitteeInformation';
+export { CommitteeTabs } from './CommitteeTabs';
+export { CommitteeBillsTable } from './CommitteeBillsTable';
+export { CommitteeMembersTable } from './CommitteeMembersTable';
+export { CommitteeVotesTable } from './CommitteeVotesTable';

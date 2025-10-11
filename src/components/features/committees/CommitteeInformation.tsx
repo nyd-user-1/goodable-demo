@@ -1,0 +1,149 @@
+import { useState } from "react";
+import { CardActionButtons } from "@/components/ui/CardActionButtons";
+import { AIChatSheet } from "@/components/AIChatSheet";
+import {
+  Building2,
+  Users,
+  FileText,
+  Mail
+} from "lucide-react";
+import { useCommitteeFavorites } from "@/hooks/useCommitteeFavorites";
+
+type Committee = {
+  committee_id: number;
+  name: string;
+  memberCount: string;
+  billCount: string;
+  description?: string;
+  chair_name?: string;
+  chair_email?: string;
+  chamber: string;
+  committee_url?: string;
+  meeting_schedule?: string;
+  next_meeting?: string;
+  upcoming_agenda?: string;
+  address?: string;
+  slug?: string;
+};
+
+interface CommitteeInformationProps {
+  committee: Committee;
+}
+
+export const CommitteeInformation = ({ committee }: CommitteeInformationProps) => {
+  const [chatOpen, setChatOpen] = useState(false);
+  const { favoriteCommitteeIds, toggleFavorite } = useCommitteeFavorites();
+
+  const isFavorited = favoriteCommitteeIds.has(committee.committee_id);
+
+  const handleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleFavorite(committee.committee_id);
+  };
+
+  const handleAIAnalysis = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setChatOpen(true);
+  };
+
+  return (
+    <>
+      <div className="space-y-6 relative">
+        {/* Action Buttons - Top Right Corner */}
+        <div className="absolute top-0 right-0 z-10">
+          <CardActionButtons
+            onFavorite={handleFavorite}
+            onAIAnalysis={handleAIAnalysis}
+            isFavorited={isFavorited}
+            hasAIChat={false}
+          />
+        </div>
+
+        {/* Committee Name Header */}
+        <div className="pb-4 border-b pr-20">
+          <h1 className="text-2xl font-semibold text-foreground">{committee.name}</h1>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Left Column */}
+          <div className="space-y-6">
+            {/* Chamber */}
+            {committee.chamber && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-foreground font-medium">
+                  <Building2 className="h-4 w-4" />
+                  <span>Chamber</span>
+                </div>
+                <div className="text-muted-foreground ml-6">
+                  {committee.chamber}
+                </div>
+              </div>
+            )}
+
+            {/* Members Count */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-foreground font-medium">
+                <Users className="h-4 w-4" />
+                <span>Members</span>
+              </div>
+              <div className="text-muted-foreground ml-6">
+                {committee.memberCount} {parseInt(committee.memberCount) === 1 ? 'member' : 'members'}
+              </div>
+            </div>
+
+            {/* Bills Count */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-foreground font-medium">
+                <FileText className="h-4 w-4" />
+                <span>Active Bills</span>
+              </div>
+              <div className="text-muted-foreground ml-6">
+                {committee.billCount} {parseInt(committee.billCount) === 1 ? 'bill' : 'bills'}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-6">
+            {/* Chair */}
+            {committee.chair_name && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-foreground font-medium">
+                  <Users className="h-4 w-4" />
+                  <span>Committee Chair</span>
+                </div>
+                <div className="text-muted-foreground ml-6">
+                  {committee.chair_name}
+                </div>
+              </div>
+            )}
+
+            {/* Chair Email */}
+            {committee.chair_email && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-foreground font-medium">
+                  <Mail className="h-4 w-4" />
+                  <span>Chair Email</span>
+                </div>
+                <div className="text-muted-foreground ml-6">
+                  <a
+                    href={`mailto:${committee.chair_email}`}
+                    className="text-primary hover:text-primary/80 hover:underline"
+                  >
+                    {committee.chair_email}
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <AIChatSheet
+        open={chatOpen}
+        onOpenChange={setChatOpen}
+        committee={committee}
+      />
+    </>
+  );
+};
