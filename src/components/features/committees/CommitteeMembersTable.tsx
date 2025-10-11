@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { User, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 
@@ -22,6 +22,7 @@ type Committee = {
   upcoming_agenda?: string;
   address?: string;
   slug?: string;
+  committee_members?: string;
 };
 
 interface CommitteeMembersTableProps {
@@ -36,95 +37,119 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
     const fetchMembers = async () => {
       setLoading(true);
       try {
-        const { data: memberData } = await supabase
-          .from("People")
-          .select("*")
-          .or(`committee_id.eq.${committee.name},committee_id.ilike.%${committee.name}%`)
-          .order("name");
+        // First, get the committee data to access committee_members field
+        const { data: committeeData } = await supabase
+          .from("Committees")
+          .select("committee_members")
+          .eq("committee_id", committee.committee_id)
+          .single();
 
-        setMembers(memberData || []);
+        if (committeeData && committeeData.committee_members) {
+          // Split the semicolon-separated names
+          const memberNames = committeeData.committee_members
+            .split(';')
+            .map(name => name.trim())
+            .filter(name => name.length > 0);
+
+          if (memberNames.length > 0) {
+            // Fetch member details from People table
+            const { data: memberData } = await supabase
+              .from("People")
+              .select("*")
+              .in("name", memberNames)
+              .order("name");
+
+            setMembers(memberData || []);
+          } else {
+            setMembers([]);
+          }
+        } else {
+          setMembers([]);
+        }
       } catch {
         // Error handled silently
+        setMembers([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchMembers();
-  }, [committee.name]);
+  }, [committee.committee_id]);
 
-  if (loading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Members</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-16 bg-muted rounded-lg animate-pulse" />
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Committee Members</h2>
+        <Badge variant="secondary" className="text-xs">
+          {loading ? '...' : `${members.length} ${members.length === 1 ? 'Member' : 'Members'}`}
+        </Badge>
+      </div>
+      <div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full" />
             ))}
           </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (members.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Members</CardTitle>
-        </CardHeader>
-        <CardContent>
+        ) : members.length === 0 ? (
           <div className="text-center py-12">
             <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground">
               No members found for this committee.
             </p>
           </div>
-        </CardContent>
-      </Card>
-    );
-  }
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {members.map((member) => (
+              <div key={member.people_id} className="p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <User className="h-4 w-4" />
+                    </div>
+                    {committee.chair_name === member.name && (
+                      <Badge variant="default" className="text-xs">
+                        Chair
+                      </Badge>
+                    )}
+                  </div>
+                </div>
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Members ({members.length})</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {members.map((member) => (
-            <div
-              key={member.people_id}
-              className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors duration-200"
-            >
-              <div className="flex-1">
-                <div className="font-medium text-foreground">
-                  {member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim() || `Member #${member.people_id}`}
-                </div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  {member.party && member.district
-                    ? `${member.party} - District ${member.district}`
-                    : member.party || member.district || 'Legislative Member'
-                  }
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm">
+                    {member.name ||
+                     `${member.first_name || ''} ${member.last_name || ''}`.trim() ||
+                     `Member #${member.people_id}`}
+                  </h4>
+
+                  <div className="flex flex-wrap gap-2">
+                    {member.party && (
+                      <Badge variant="outline" className="text-xs">
+                        {member.party}
+                      </Badge>
+                    )}
+                    {member.chamber && (
+                      <Badge variant="outline" className="text-xs">
+                        {member.chamber}
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="space-y-1 text-xs text-muted-foreground">
+                    {member.role && (
+                      <p>{member.role}</p>
+                    )}
+                    {member.district && (
+                      <p>District {member.district}</p>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">
-                  {member.chamber || 'Member'}
-                </Badge>
-                {committee.chair_name === member.name && (
-                  <Badge variant="default" className="bg-primary">
-                    Chair
-                  </Badge>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
