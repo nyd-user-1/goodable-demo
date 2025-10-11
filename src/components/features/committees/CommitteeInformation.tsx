@@ -91,17 +91,6 @@ export const CommitteeInformation = ({ committee }: CommitteeInformationProps) =
                 {committee.memberCount || '0'} {parseInt(committee.memberCount || '0') === 1 ? 'member' : 'members'}
               </div>
             </div>
-
-            {/* Bills Count */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-foreground font-medium">
-                <FileText className="h-4 w-4" />
-                <span>Active Bills</span>
-              </div>
-              <div className="text-muted-foreground ml-6">
-                {committee.billCount || '0'} {parseInt(committee.billCount || '0') === 1 ? 'bill' : 'bills'}
-              </div>
-            </div>
           </div>
 
           {/* Right Column */}
