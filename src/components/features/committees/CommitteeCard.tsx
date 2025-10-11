@@ -114,7 +114,6 @@ export const CommitteeCard = ({
             
             <div className="flex gap-4 text-sm text-muted-foreground">
               <span>Members: {committee.memberCount || "N/A"}</span>
-              <span>Bills: {committee.billCount || "N/A"}</span>
             </div>
           </div>
         </div>
