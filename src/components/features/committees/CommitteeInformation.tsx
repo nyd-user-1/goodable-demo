@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CardActionButtons } from "@/components/ui/CardActionButtons";
 import { AIChatSheet } from "@/components/AIChatSheet";
 import {
   Building2,
   Users,
   FileText,
-  Mail
+  Mail,
+  Phone
 } from "lucide-react";
 import { useCommitteeFavorites } from "@/hooks/useCommitteeFavorites";
+import { supabase } from "@/integrations/supabase/client";
 
 type Committee = {
   committee_id: number;
@@ -33,8 +35,32 @@ interface CommitteeInformationProps {
 export const CommitteeInformation = ({ committee }: CommitteeInformationProps) => {
   const [chatOpen, setChatOpen] = useState(false);
   const { favoriteCommitteeIds, toggleFavorite } = useCommitteeFavorites();
+  const [actualMemberCount, setActualMemberCount] = useState<number | null>(null);
+  const [actualBillCount, setActualBillCount] = useState<number | null>(null);
 
   const isFavorited = favoriteCommitteeIds.has(committee.committee_id);
+
+  // Fetch actual member and bill counts
+  useEffect(() => {
+    const fetchCounts = async () => {
+      // Fetch member count
+      const { count: memberCount } = await supabase
+        .from("People")
+        .select("*", { count: 'exact', head: true })
+        .or(`committee_id.eq.${committee.name},committee_id.ilike.%${committee.name}%`);
+
+      // Fetch bill count
+      const { count: billCount } = await supabase
+        .from("Bills")
+        .select("*", { count: 'exact', head: true })
+        .eq("committee", committee.name);
+
+      setActualMemberCount(memberCount || 0);
+      setActualBillCount(billCount || 0);
+    };
+
+    fetchCounts();
+  }, [committee.name]);
 
   const handleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -87,7 +113,7 @@ export const CommitteeInformation = ({ committee }: CommitteeInformationProps) =
                 <span>Members</span>
               </div>
               <div className="text-muted-foreground ml-6">
-                {committee.memberCount} {parseInt(committee.memberCount) === 1 ? 'member' : 'members'}
+                {actualMemberCount !== null ? actualMemberCount : committee.memberCount || '0'} {(actualMemberCount !== null ? actualMemberCount : parseInt(committee.memberCount || '0')) === 1 ? 'member' : 'members'}
               </div>
             </div>
 
@@ -98,7 +124,7 @@ export const CommitteeInformation = ({ committee }: CommitteeInformationProps) =
                 <span>Active Bills</span>
               </div>
               <div className="text-muted-foreground ml-6">
-                {committee.billCount} {parseInt(committee.billCount) === 1 ? 'bill' : 'bills'}
+                {actualBillCount !== null ? actualBillCount : committee.billCount || '0'} {(actualBillCount !== null ? actualBillCount : parseInt(committee.billCount || '0')) === 1 ? 'bill' : 'bills'}
               </div>
             </div>
           </div>
@@ -135,6 +161,17 @@ export const CommitteeInformation = ({ committee }: CommitteeInformationProps) =
                 </div>
               </div>
             )}
+
+            {/* Phone - Placeholder for contact information */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-foreground font-medium">
+                <Phone className="h-4 w-4" />
+                <span>Phone</span>
+              </div>
+              <div className="text-muted-foreground ml-6">
+                Contact via State Legislature
+              </div>
+            </div>
           </div>
         </div>
       </div>
