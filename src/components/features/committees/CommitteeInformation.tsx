@@ -6,7 +6,7 @@ import {
   Users,
   FileText,
   Mail,
-  Phone
+  Globe
 } from "lucide-react";
 import { useCommitteeFavorites } from "@/hooks/useCommitteeFavorites";
 
@@ -126,16 +126,25 @@ export const CommitteeInformation = ({ committee }: CommitteeInformationProps) =
               </div>
             )}
 
-            {/* Phone - Placeholder for contact information */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-foreground font-medium">
-                <Phone className="h-4 w-4" />
-                <span>Phone</span>
+            {/* Website */}
+            {committee.committee_url && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-foreground font-medium">
+                  <Globe className="h-4 w-4" />
+                  <span>Website</span>
+                </div>
+                <div className="text-muted-foreground ml-6">
+                  <a
+                    href={committee.committee_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:text-primary/80 hover:underline"
+                  >
+                    View Committee Page
+                  </a>
+                </div>
               </div>
-              <div className="text-muted-foreground ml-6">
-                Contact via State Legislature
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
