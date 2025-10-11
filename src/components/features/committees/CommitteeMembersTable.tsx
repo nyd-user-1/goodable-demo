@@ -140,7 +140,19 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
               <div key={member.people_id} className="p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    {member.photo_url ? (
+                      <img
+                        src={member.photo_url}
+                        alt={member.name || 'Member photo'}
+                        className="w-8 h-8 rounded-full object-cover bg-primary/10"
+                        onError={(e) => {
+                          // Fallback to user icon if image fails to load
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <div className={`w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center ${member.photo_url ? 'hidden' : ''}`}>
                       <User className="h-4 w-4" />
                     </div>
                     {(() => {
