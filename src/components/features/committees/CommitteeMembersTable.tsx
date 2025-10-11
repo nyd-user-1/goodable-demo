@@ -44,6 +44,22 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
           .eq("committee_id", committee.committee_id)
           .single();
 
+        const allMembers: Member[] = [];
+
+        // Fetch the chair separately if available
+        if (committee.chair_name) {
+          const { data: chairData } = await supabase
+            .from("People")
+            .select("*")
+            .ilike("name", `%${committee.chair_name}%`)
+            .limit(1)
+            .single();
+
+          if (chairData) {
+            allMembers.push(chairData);
+          }
+        }
+
         if (committeeData && committeeData.committee_members) {
           // Split the semicolon-separated slugs (e.g., "rebecca-seawright; george-alvarez")
           const memberSlugs = committeeData.committee_members
@@ -72,18 +88,17 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
             const results = await Promise.all(memberPromises);
             const foundMembers = results.filter((member): member is Member => member !== null);
 
-            // Remove duplicates by people_id
-            const uniqueMembers = Array.from(
-              new Map(foundMembers.map(m => [m.people_id, m])).values()
-            );
-
-            setMembers(uniqueMembers);
-          } else {
-            setMembers([]);
+            // Add all found members
+            allMembers.push(...foundMembers);
           }
-        } else {
-          setMembers([]);
         }
+
+        // Remove duplicates by people_id
+        const uniqueMembers = Array.from(
+          new Map(allMembers.map(m => [m.people_id, m])).values()
+        );
+
+        setMembers(uniqueMembers);
       } catch (error) {
         console.error("Error fetching members:", error);
         setMembers([]);
@@ -93,7 +108,7 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
     };
 
     fetchMembers();
-  }, [committee.committee_id]);
+  }, [committee.committee_id, committee.chair_name]);
 
   return (
     <div className="space-y-4">
@@ -126,7 +141,9 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                       <User className="h-4 w-4" />
                     </div>
-                    {committee.chair_name === member.name && (
+                    {committee.chair_name && member.name &&
+                     (committee.chair_name.toLowerCase().includes(member.name.toLowerCase()) ||
+                      member.name.toLowerCase().includes(committee.chair_name.toLowerCase())) && (
                       <Badge variant="default" className="text-xs">
                         Chair
                       </Badge>
