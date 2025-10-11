@@ -52,22 +52,36 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
             .filter(name => name.length > 0);
 
           if (memberNames.length > 0) {
-            // Fetch member details from People table
-            const { data: memberData } = await supabase
-              .from("People")
-              .select("*")
-              .in("name", memberNames)
-              .order("name");
+            // Try to fetch members using pattern matching for more flexible matching
+            const memberPromises = memberNames.map(name =>
+              supabase
+                .from("People")
+                .select("*")
+                .ilike("name", `%${name}%`)
+                .limit(1)
+                .single()
+            );
 
-            setMembers(memberData || []);
+            const results = await Promise.all(memberPromises);
+            const foundMembers = results
+              .filter(result => result.data)
+              .map(result => result.data)
+              .filter((member): member is Member => member !== null);
+
+            // Remove duplicates by people_id
+            const uniqueMembers = Array.from(
+              new Map(foundMembers.map(m => [m.people_id, m])).values()
+            );
+
+            setMembers(uniqueMembers);
           } else {
             setMembers([]);
           }
         } else {
           setMembers([]);
         }
-      } catch {
-        // Error handled silently
+      } catch (error) {
+        console.error("Error fetching members:", error);
         setMembers([]);
       } finally {
         setLoading(false);
