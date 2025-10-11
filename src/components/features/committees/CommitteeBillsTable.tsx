@@ -36,10 +36,12 @@ export const CommitteeBillsTable = ({ committee }: CommitteeBillsTableProps) => 
     const fetchBills = async () => {
       setLoading(true);
       try {
+        // Match bills where committee contains the committee name
+        // e.g., "Aging" matches "Senate Aging" or "Assembly Aging"
         const { data: billData } = await supabase
           .from("Bills")
           .select("*")
-          .eq("committee", committee.name)
+          .ilike("committee", `%${committee.name}%`)
           .order("last_action_date", { ascending: false })
           .limit(50);
 
