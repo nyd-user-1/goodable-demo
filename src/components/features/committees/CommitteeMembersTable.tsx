@@ -33,6 +33,7 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [chairId, setChairId] = useState<number | null>(null);
+  const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -100,6 +101,13 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
           new Map(allMembers.map(m => [m.people_id, m])).values()
         );
 
+        // Debug: Log members with photo URLs
+        console.log("Fetched members:", uniqueMembers.map(m => ({
+          name: m.name,
+          photo_url: m.photo_url,
+          people_id: m.people_id
+        })));
+
         setMembers(uniqueMembers);
       } catch (error) {
         console.error("Error fetching members:", error);
@@ -140,21 +148,21 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
               <div key={member.people_id} className="p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    {member.photo_url ? (
+                    {member.photo_url && !failedImages.has(member.people_id) ? (
                       <img
                         src={member.photo_url}
                         alt={member.name || 'Member photo'}
                         className="w-8 h-8 rounded-full object-cover bg-primary/10"
-                        onError={(e) => {
-                          // Fallback to user icon if image fails to load
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        onError={() => {
+                          console.log(`Failed to load image for ${member.name}: ${member.photo_url}`);
+                          setFailedImages(prev => new Set([...prev, member.people_id]));
                         }}
                       />
-                    ) : null}
-                    <div className={`w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center ${member.photo_url ? 'hidden' : ''}`}>
-                      <User className="h-4 w-4" />
-                    </div>
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="h-4 w-4" />
+                      </div>
+                    )}
                     {(() => {
                       if (!committee.chair_name || !member.name) return false;
                       // Get last names - "Rebecca A. Seawright" -> "Seawright", "Rebecca Seawright" -> "Seawright"
