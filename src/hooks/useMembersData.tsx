@@ -19,6 +19,7 @@ interface Member {
   bio_short: string;
   bio_long: string;
   ballotpedia: string;
+  committee_ids: string | null;
 }
 
 export const useMembersData = () => {
@@ -88,7 +89,8 @@ export const useMembersData = () => {
           address,
           bio_short,
           bio_long,
-          ballotpedia
+          ballotpedia,
+          committee_ids
         `)
         .not("chamber", "is", null)
         .not("name", "is", null)
