@@ -24,15 +24,21 @@ export const useMemberCommittees = (member: Member) => {
         setLoading(true);
         setError(null);
 
-        // First, try to get committees from the member's committee_id field
-        const memberCommitteeIds = member.committee_id ? [member.committee_id] : [];
-        
+        // Parse the committee_ids field (semicolon-separated IDs like "10; 16; 34")
+        const committeeIdsString = member.committee_ids || '';
+        const memberCommitteeIds = committeeIdsString
+          .split(';')
+          .map(id => id.trim())
+          .filter(id => id !== '')
+          .map(id => parseInt(id))
+          .filter(id => !isNaN(id));
+
         if (memberCommitteeIds.length > 0) {
           // Fetch committee details from the Committees table
           const { data: committeesData, error: committeesError } = await supabase
             .from("Committees")
             .select("*")
-            .in("committee_id", memberCommitteeIds.map(id => parseInt(id)));
+            .in("committee_id", memberCommitteeIds);
 
           if (committeesError) throw committeesError;
 
@@ -46,8 +52,6 @@ export const useMemberCommittees = (member: Member) => {
 
           setCommittees(transformedCommittees);
         } else {
-          // If no committee_id, try to find committees by chamber or other criteria
-          // For now, we'll show an empty list but this could be enhanced
           setCommittees([]);
         }
       } catch (error: any) {
@@ -59,7 +63,7 @@ export const useMemberCommittees = (member: Member) => {
     };
 
     fetchMemberCommittees();
-  }, [member.committee_id, member.people_id]);
+  }, [member.committee_ids, member.people_id]);
 
   return {
     committees,
