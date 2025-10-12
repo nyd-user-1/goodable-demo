@@ -168,9 +168,9 @@ export const CardActionButtons = ({
         )}
         {showFavorite && onFavorite && (
         <Button
-          variant="ghost"
+          variant={variant}
           size={size}
-          className={`px-3 transition-transform duration-200 hover:bg-transparent ${heartClicked ? 'scale-110' : 'hover:scale-105'}`}
+          className={`px-3 transition-transform duration-200 group ${heartClicked ? 'scale-110' : 'hover:scale-105'}`}
           onClick={handleFavoriteClick}
           title={isFavorited ? "Remove from Favorites" : "Add to Favorites"}
         >
@@ -178,16 +178,16 @@ export const CardActionButtons = ({
             className={`h-4 w-4 transition-colors duration-200 ${
               isFavorited
                 ? 'fill-red-500 text-red-500'
-                : 'text-muted-foreground hover:fill-red-500 hover:text-red-500'
+                : 'text-muted-foreground group-hover:fill-red-500 group-hover:text-red-500'
             }`}
           />
         </Button>
       )}
       {showAIAnalysis && onAIAnalysis && (
         <Button
-          variant="ghost"
+          variant={variant}
           size={size}
-          className={`px-3 transition-all duration-300 hover:bg-transparent ${
+          className={`px-3 transition-all duration-300 group ${
             sparkleClicked
               ? 'scale-110 animate-pulse'
               : 'hover:scale-105'
@@ -199,7 +199,7 @@ export const CardActionButtons = ({
             className={`h-4 w-4 transition-colors duration-200 ${
               hasAIChat
                 ? 'fill-yellow-500 text-yellow-500'
-                : 'text-muted-foreground hover:fill-yellow-500 hover:text-yellow-500'
+                : 'text-muted-foreground group-hover:fill-yellow-500 group-hover:text-yellow-500'
             }`}
           />
         </Button>
