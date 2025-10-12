@@ -103,14 +103,15 @@ export const useBillsData = () => {
     if (searchTerm && searchTerm.trim()) {
       const term = searchTerm.toLowerCase().trim();
       filtered = filtered.filter(bill => {
-        const titleMatch = bill.title?.toLowerCase().includes(term);
-        const numberMatch = bill.bill_number?.toLowerCase().includes(term);
-        const descriptionMatch = bill.description?.toLowerCase().includes(term);
-        const summaryMatch = bill.summary?.toLowerCase().includes(term);
-        const statusMatch = bill.status?.toLowerCase().includes(term);
+        // Safe string matching - convert null/undefined to empty string
+        const titleMatch = (bill.title || '').toLowerCase().includes(term);
+        const numberMatch = (bill.bill_number || '').toLowerCase().includes(term);
+        const descriptionMatch = (bill.description || '').toLowerCase().includes(term);
+        const summaryMatch = (bill.summary || '').toLowerCase().includes(term);
+        const statusMatch = (bill.status || '').toLowerCase().includes(term);
         const sponsorMatch = bill.sponsors?.some(sponsor =>
-          sponsor.name?.toLowerCase().includes(term)
-        );
+          (sponsor.name || '').toLowerCase().includes(term)
+        ) || false;
 
         return titleMatch || numberMatch || descriptionMatch || summaryMatch || statusMatch || sponsorMatch;
       });
