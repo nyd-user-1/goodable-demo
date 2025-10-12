@@ -4,7 +4,7 @@ import { Tables } from "@/integrations/supabase/types";
 
 type ChatSession = Tables<"chat_sessions">;
 
-export const useRecentChats = (limit: number = 5) => {
+export const useRecentChats = (limit: number = 10) => {
   const [recentChats, setRecentChats] = useState<ChatSession[]>([]);
   const [loading, setLoading] = useState(true);
 
