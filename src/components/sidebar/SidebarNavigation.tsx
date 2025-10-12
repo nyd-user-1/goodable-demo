@@ -17,10 +17,10 @@ import { useRecentChats } from "@/hooks/useRecentChats";
 import { NavLink } from "react-router-dom";
 
 const legislationItems = [
-  { title: "Dashboard", url: "/dashboard", icon: TrendingUp },
-  { title: "Members", url: "/members", icon: Users },
   { title: "Bills", url: "/bills", icon: FileText, requiresAuth: true },
   { title: "Committees", url: "/committees", icon: Building2, requiresAuth: true },
+  { title: "Members", url: "/members", icon: Users },
+  { title: "Dashboard", url: "/dashboard", icon: TrendingUp },
 ];
 
 const developmentItems = [
@@ -118,13 +118,13 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
         </>
       )}
 
-      {/* Recent Chats Section - Hidden when searching */}
+      {/* Chats Section - Hidden when searching */}
       {!hasSearchResults && (
         <SidebarGroup>
           <Collapsible open={isChatsOpen} onOpenChange={setIsChatsOpen} className="group/collapsible">
             <SidebarGroupLabel asChild>
               <CollapsibleTrigger className="flex w-full items-center justify-between">
-                Recent Chats
+                Chats
                 <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
               </CollapsibleTrigger>
             </SidebarGroupLabel>
