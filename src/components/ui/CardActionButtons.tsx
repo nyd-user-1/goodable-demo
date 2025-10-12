@@ -168,39 +168,39 @@ export const CardActionButtons = ({
         )}
         {showFavorite && onFavorite && (
         <Button
-          variant={variant}
+          variant="ghost"
           size={size}
-          className={`px-3 transition-transform duration-200 ${heartClicked ? 'scale-110' : 'hover:scale-105'}`}
+          className={`px-3 transition-transform duration-200 hover:bg-transparent ${heartClicked ? 'scale-110' : 'hover:scale-105'}`}
           onClick={handleFavoriteClick}
           title={isFavorited ? "Remove from Favorites" : "Add to Favorites"}
         >
-          <Heart 
+          <Heart
             className={`h-4 w-4 transition-colors duration-200 ${
-              isFavorited 
-                ? 'fill-destructive text-destructive' 
-                : 'text-muted-foreground hover:text-destructive'
-            }`} 
+              isFavorited
+                ? 'fill-red-500 text-red-500'
+                : 'text-muted-foreground hover:fill-red-500 hover:text-red-500'
+            }`}
           />
         </Button>
       )}
       {showAIAnalysis && onAIAnalysis && (
         <Button
-          variant={variant}
+          variant="ghost"
           size={size}
-          className={`px-3 transition-all duration-300 ${
-            sparkleClicked 
-              ? 'scale-110 animate-pulse' 
+          className={`px-3 transition-all duration-300 hover:bg-transparent ${
+            sparkleClicked
+              ? 'scale-110 animate-pulse'
               : 'hover:scale-105'
           }`}
           onClick={handleAIAnalysisClick}
           title="AI Analysis"
         >
-          <Sparkles 
+          <Sparkles
             className={`h-4 w-4 transition-colors duration-200 ${
-              hasAIChat 
-                ? 'fill-yellow-500 text-yellow-500' 
-                : 'text-muted-foreground hover:text-yellow-500'
-            }`} 
+              hasAIChat
+                ? 'fill-yellow-500 text-yellow-500'
+                : 'text-muted-foreground hover:fill-yellow-500 hover:text-yellow-500'
+            }`}
           />
         </Button>
       )}
