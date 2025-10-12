@@ -103,17 +103,18 @@ export const useBillsData = () => {
     if (searchTerm && searchTerm.trim()) {
       const term = searchTerm.toLowerCase().trim();
       filtered = filtered.filter(bill => {
-        // Safe string matching - convert null/undefined to empty string
-        const titleMatch = (bill.title || '').toLowerCase().includes(term);
-        const numberMatch = (bill.bill_number || '').toLowerCase().includes(term);
-        const descriptionMatch = (bill.description || '').toLowerCase().includes(term);
-        const summaryMatch = (bill.summary || '').toLowerCase().includes(term);
-        const statusMatch = (bill.status || '').toLowerCase().includes(term);
+        // Safe string matching - convert everything to string first
+        const titleMatch = String(bill.title || '').toLowerCase().includes(term);
+        const numberMatch = String(bill.bill_number || '').toLowerCase().includes(term);
+        const descriptionMatch = String(bill.description || '').toLowerCase().includes(term);
+        const summaryMatch = String(bill.summary || '').toLowerCase().includes(term);
+        const statusMatch = String(bill.status || '').toLowerCase().includes(term);
+        const statusDescMatch = String(bill.status_desc || '').toLowerCase().includes(term);
         const sponsorMatch = bill.sponsors?.some(sponsor =>
-          (sponsor.name || '').toLowerCase().includes(term)
+          String(sponsor.name || '').toLowerCase().includes(term)
         ) || false;
 
-        return titleMatch || numberMatch || descriptionMatch || summaryMatch || statusMatch || sponsorMatch;
+        return titleMatch || numberMatch || descriptionMatch || summaryMatch || statusMatch || statusDescMatch || sponsorMatch;
       });
     }
 
