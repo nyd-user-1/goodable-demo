@@ -1,25 +1,29 @@
 import { useState } from "react";
-import { Search, Settings, User, FileText, Lightbulb, BarChart3, Users, Building2, TrendingUp, MessageSquare, Heart, CreditCard, History, Gamepad2, Factory, Target, Star, ScrollText, Palette, Shield, Lock, Rss, Home, Image, BookOpen, ChevronDown, ChevronRight, FlaskConical, Scale } from "lucide-react";
+import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, ScrollText, Gamepad2, Factory, Home, ChevronDown, ChevronRight, Star } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarMenuSkeleton,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Button } from "@/components/ui/button";
-import { NavigationItem } from "./NavigationItem";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRecentChats } from "@/hooks/useRecentChats";
+import { useTopFavorites } from "@/hooks/useTopFavorites";
+import { NavLink } from "react-router-dom";
 
-const navigateNavItems = [
+const legislationItems = [
   { title: "Dashboard", url: "/dashboard", icon: TrendingUp },
   { title: "Members", url: "/members", icon: Users },
   { title: "Bills", url: "/bills", icon: FileText, requiresAuth: true },
   { title: "Committees", url: "/committees", icon: Building2, requiresAuth: true },
 ];
 
-const workflowNavItems = [
+const developmentItems = [
   { title: "Explore", url: "/home", icon: Home },
   { title: "Problems", url: "/problems", icon: Target },
   { title: "Solutions", url: "/public-policy", icon: ScrollText },
@@ -27,18 +31,6 @@ const workflowNavItems = [
   { title: "Favorites", url: "/favorites", icon: Heart },
   { title: "Playground", url: "/playground", icon: Gamepad2, adminOnly: true },
   { title: "Policy Lab", url: "/policy-portal", icon: Factory, adminOnly: true },
-];
-
-const bottomNavItems = [
-  { title: "Profile", url: "/profile", icon: User },
-  { title: "Plans", url: "/plans", icon: CreditCard },
-  { title: "Change Log", url: "/changelog", icon: History },
-];
-
-const adminNavItems = [
-  { title: "Control Panel", url: "/admin", icon: Shield },
-  { title: "Design System", url: "/style-guide", icon: Palette },
-  { title: "Image System", url: "/image-system", icon: Image },
 ];
 
 interface SidebarNavigationProps {
@@ -49,45 +41,135 @@ interface SidebarNavigationProps {
 export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNavigationProps) {
   const { getNavClassName } = useNavigation();
   const { isAdmin } = useAuth();
+  const { recentChats, loading: chatsLoading } = useRecentChats(5);
+  const { topFavorites, loading: favoritesLoading } = useTopFavorites(5);
+
+  const [isChatsOpen, setIsChatsOpen] = useState(true);
+  const [isFavoritesOpen, setIsFavoritesOpen] = useState(true);
   const [isLegislationOpen, setIsLegislationOpen] = useState(true);
   const [isDevelopmentOpen, setIsDevelopmentOpen] = useState(true);
-  const [isAccountOpen, setIsAccountOpen] = useState(true);
-  const [isAdminOpen, setIsAdminOpen] = useState(true);
 
   return (
     <>
-      {/* Legislation Navigation - Hidden when searching */}
+      {/* Recent Chats Section - Hidden when searching */}
       {!hasSearchResults && (
         <SidebarGroup>
-          <Collapsible open={isLegislationOpen} onOpenChange={setIsLegislationOpen}>
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-full justify-between px-2 py-1 h-8 text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-              >
-                <span>Legislation</span>
-                {isLegislationOpen ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </Button>
-            </CollapsibleTrigger>
+          <Collapsible open={isChatsOpen} onOpenChange={setIsChatsOpen} className="group/collapsible">
+            <SidebarGroupLabel asChild>
+              <CollapsibleTrigger className="flex w-full items-center justify-between">
+                Recent Chats
+                <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
             <CollapsibleContent>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navigateNavItems
-                    .filter(item => !item.adminOnly || isAdmin)
+                  {chatsLoading ? (
+                    Array.from({ length: 3 }).map((_, index) => (
+                      <SidebarMenuItem key={index}>
+                        <SidebarMenuSkeleton showIcon />
+                      </SidebarMenuItem>
+                    ))
+                  ) : recentChats.length > 0 ? (
+                    recentChats.map((chat) => (
+                      <SidebarMenuItem key={chat.id}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to="/chats" className={getNavClassName}>
+                            <MessageSquare className="h-4 w-4" />
+                            <span className="truncate">{chat.title || "Untitled Chat"}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))
+                  ) : (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton disabled>
+                        <MessageSquare className="h-4 w-4" />
+                        <span className="text-muted-foreground text-xs">No recent chats</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </Collapsible>
+        </SidebarGroup>
+      )}
+
+      {/* Favorites Section - Hidden when searching */}
+      {!hasSearchResults && (
+        <SidebarGroup>
+          <Collapsible open={isFavoritesOpen} onOpenChange={setIsFavoritesOpen} className="group/collapsible">
+            <SidebarGroupLabel asChild>
+              <CollapsibleTrigger className="flex w-full items-center justify-between">
+                Favorites
+                <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {favoritesLoading ? (
+                    Array.from({ length: 3 }).map((_, index) => (
+                      <SidebarMenuItem key={index}>
+                        <SidebarMenuSkeleton showIcon />
+                      </SidebarMenuItem>
+                    ))
+                  ) : topFavorites.length > 0 ? (
+                    topFavorites.map((favorite) => (
+                      <SidebarMenuItem key={favorite.id}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={favorite.url} className={getNavClassName}>
+                            <Star className="h-4 w-4" />
+                            <div className="flex flex-col flex-1 min-w-0">
+                              <span className="truncate text-sm">{favorite.title}</span>
+                              {favorite.subtitle && (
+                                <span className="truncate text-xs text-muted-foreground">{favorite.subtitle}</span>
+                              )}
+                            </div>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))
+                  ) : (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton disabled>
+                        <Star className="h-4 w-4" />
+                        <span className="text-muted-foreground text-xs">No favorites yet</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </Collapsible>
+        </SidebarGroup>
+      )}
+
+      {/* Legislation Navigation - Hidden when searching */}
+      {!hasSearchResults && (
+        <SidebarGroup>
+          <Collapsible open={isLegislationOpen} onOpenChange={setIsLegislationOpen} className="group/collapsible">
+            <SidebarGroupLabel asChild>
+              <CollapsibleTrigger className="flex w-full items-center justify-between">
+                Legislation
+                <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {legislationItems
+                    .filter(item => !item.requiresAuth || isAdmin)
                     .map((item) => (
-                      <NavigationItem
-                        key={item.title}
-                        title={item.title}
-                        url={item.url}
-                        icon={item.icon}
-                        collapsed={collapsed}
-                        getNavClassName={getNavClassName}
-                        requiresAuth={item.requiresAuth}
-                      />
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} className={getNavClassName}>
+                            <item.icon className="h-4 w-4" />
+                            <span>{item.title}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
                     ))}
                 </SidebarMenu>
               </SidebarGroupContent>
@@ -99,109 +181,28 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
       {/* Development Navigation - Hidden when searching */}
       {!hasSearchResults && (
         <SidebarGroup>
-          <Collapsible open={isDevelopmentOpen} onOpenChange={setIsDevelopmentOpen}>
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-full justify-between px-2 py-1 h-8 text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-              >
-                <span>Development</span>
-                {isDevelopmentOpen ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </Button>
-            </CollapsibleTrigger>
+          <Collapsible open={isDevelopmentOpen} onOpenChange={setIsDevelopmentOpen} className="group/collapsible">
+            <SidebarGroupLabel asChild>
+              <CollapsibleTrigger className="flex w-full items-center justify-between">
+                Development
+                <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
             <CollapsibleContent>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {workflowNavItems
+                  {developmentItems
                     .filter(item => !item.adminOnly || isAdmin)
                     .map((item) => (
-                      <NavigationItem
-                        key={item.title}
-                        title={item.title}
-                        url={item.url}
-                        icon={item.icon}
-                        collapsed={collapsed}
-                        getNavClassName={getNavClassName}
-                      />
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} className={getNavClassName}>
+                            <item.icon className="h-4 w-4" />
+                            <span>{item.title}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
                     ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </CollapsibleContent>
-          </Collapsible>
-        </SidebarGroup>
-      )}
-
-      {/* Account Navigation - Collapsible */}
-      <SidebarGroup>
-        <Collapsible open={isAccountOpen} onOpenChange={setIsAccountOpen}>
-          <CollapsibleTrigger asChild>
-            <Button
-              variant="ghost"
-              className="w-full justify-between px-2 py-1 h-8 text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-            >
-              <span>Account</span>
-              {isAccountOpen ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {bottomNavItems
-                  .filter(item => !item.adminOnly || isAdmin)
-                  .map((item) => (
-                    <NavigationItem
-                      key={item.title}
-                      title={item.title}
-                      url={item.url}
-                      icon={item.icon}
-                      collapsed={collapsed}
-                      getNavClassName={getNavClassName}
-                    />
-                  ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </CollapsibleContent>
-        </Collapsible>
-      </SidebarGroup>
-
-      {/* Admin Navigation - Only visible to admins, Collapsible */}
-      {isAdmin && (
-        <SidebarGroup>
-          <Collapsible open={isAdminOpen} onOpenChange={setIsAdminOpen}>
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-full justify-between px-2 py-1 h-8 text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-              >
-                <span>Admin</span>
-                {isAdminOpen ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {adminNavItems.map((item) => (
-                    <NavigationItem
-                      key={item.title}
-                      title={item.title}
-                      url={item.url}
-                      icon={item.icon}
-                      collapsed={collapsed}
-                      getNavClassName={getNavClassName}
-                    />
-                  ))}
                 </SidebarMenu>
               </SidebarGroupContent>
             </CollapsibleContent>
