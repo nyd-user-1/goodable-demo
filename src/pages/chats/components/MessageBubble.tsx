@@ -123,15 +123,16 @@ export const MessageBubble = ({
         <div
           className={`rounded-lg p-3 relative ${
             message.role === "user"
-              ? "bg-slate-800 text-white max-w-[75%] ml-auto"
-              : "bg-muted max-w-[75%]"
+              ? "bg-slate-800 text-white max-w-[85%] ml-auto"
+              : "bg-muted max-w-[85%]"
           }`}
           style={{
-            maxWidth: '75%',
+            maxWidth: '85%',
+            width: 'fit-content',
             wordWrap: 'break-word',
             overflowWrap: 'break-word',
             wordBreak: 'break-word',
-            overflow: 'hidden'
+            overflowX: 'hidden'
           }}
         >
           {/* Copy button in top right for assistant messages */}
@@ -151,16 +152,23 @@ export const MessageBubble = ({
               className="chat-markdown-content text-sm prose prose-sm dark:prose-invert max-w-full pr-8 pb-8"
               style={{
                 maxWidth: '100%',
+                width: '100%',
                 wordWrap: 'break-word',
-                overflowWrap: 'break-word',
-                wordBreak: 'break-word'
+                overflowWrap: 'anywhere',
+                wordBreak: 'break-word',
+                hyphens: 'auto'
               }}
             >
-              <ReactMarkdown 
+              <ReactMarkdown
                 components={{
-                  p: ({ children }) => <p style={{ wordWrap: 'break-word', overflowWrap: 'break-word', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</p>,
-                  li: ({ children }) => <li style={{ wordWrap: 'break-word', overflowWrap: 'break-word', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</li>,
-                  div: ({ children }) => <div style={{ wordWrap: 'break-word', overflowWrap: 'break-word', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</div>
+                  p: ({ children }) => <p style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%', margin: '0.5em 0' }}>{children}</p>,
+                  li: ({ children }) => <li style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</li>,
+                  div: ({ children }) => <div style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</div>,
+                  h1: ({ children }) => <h1 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</h1>,
+                  h2: ({ children }) => <h2 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</h2>,
+                  h3: ({ children }) => <h3 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</h3>,
+                  ul: ({ children }) => <ul style={{ paddingLeft: '1.5em', maxWidth: '100%' }}>{children}</ul>,
+                  ol: ({ children }) => <ol style={{ paddingLeft: '1.5em', maxWidth: '100%' }}>{children}</ol>
                 }}
               >
                 {message.content}
