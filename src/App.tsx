@@ -38,6 +38,7 @@ import LawsMinimal from "./pages/LawsMinimal";
 import LawsClean from "./pages/LawsClean";
 import LawsAdminWorking from "./pages/LawsAdminWorking";
 import Chats from "./pages/Chats";
+import NewChat from "./pages/NewChat";
 import Favorites from "./pages/Favorites";
 import Playground from "./pages/Playground";
 import PolicyPortal from "./pages/PolicyPortal";
@@ -87,6 +88,7 @@ const AppLayout = () => {
                 <Routes>
                   <Route path="/home" element={<Home />} />
                   <Route path="/home-2" element={<Home2 />} />
+                  <Route path="/new-chat" element={<NewChat />} />
                   <Route path="/chats" element={<Chats />} />
                   <Route path="/favorites" element={<Favorites />} />
                   <Route path="/playground" element={<Playground />} />

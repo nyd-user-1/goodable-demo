@@ -57,6 +57,14 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/new-chat" className={getNavClassName}>
+                    <MessageSquare className="h-4 w-4" />
+                    <span>New chat</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
                 <Button
                   variant="ghost"
                   onClick={() => setSearchChatsOpen(true)}
