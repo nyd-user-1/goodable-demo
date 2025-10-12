@@ -13,24 +13,20 @@ import { useNavigation } from "@/hooks/useNavigation";
 import { useAuth } from "@/contexts/AuthContext";
 
 const navigateNavItems = [
-  { title: "Home", url: "/home", icon: Home },
-  { title: "Intelligence", url: "/dashboard", icon: TrendingUp },
-  { title: "Feed", url: "/feed", icon: Rss, adminOnly: true },
-  { title: "Blog", url: "/blog", icon: BookOpen },
+  { title: "Dashboard", url: "/dashboard", icon: TrendingUp },
   { title: "Members", url: "/members", icon: Users },
   { title: "Bills", url: "/bills", icon: FileText, requiresAuth: true },
   { title: "Committees", url: "/committees", icon: Building2, requiresAuth: true },
-  { title: "Laws", url: "/laws", icon: Scale, requiresAuth: true },
 ];
 
 const workflowNavItems = [
+  { title: "Explore", url: "/home", icon: Home },
   { title: "Problems", url: "/problems", icon: Target },
   { title: "Solutions", url: "/public-policy", icon: ScrollText },
   { title: "Chats", url: "/chats", icon: MessageSquare },
   { title: "Favorites", url: "/favorites", icon: Heart },
   { title: "Playground", url: "/playground", icon: Gamepad2, adminOnly: true },
-  { title: "Bills and Resolutions", url: "/policy-portal", icon: Factory, adminOnly: true },
-  { title: "Policy Lab", url: "/policy-lab", icon: FlaskConical, adminOnly: true },
+  { title: "Policy Lab", url: "/policy-portal", icon: Factory, adminOnly: true },
 ];
 
 const bottomNavItems = [

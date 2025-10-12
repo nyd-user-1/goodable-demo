@@ -4,9 +4,6 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { ModelSelector } from "@/components/ModelSelector";
-import { useModel } from "@/contexts/ModelContext";
 
 interface SidebarFooterProps {
   collapsed: boolean;
@@ -15,7 +12,6 @@ interface SidebarFooterProps {
 export function SidebarFooter({ collapsed }: SidebarFooterProps) {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { selectedModel, setSelectedModel } = useModel();
 
   const handleSignOut = async () => {
     try {
@@ -45,17 +41,6 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
 
   return (
     <div className="space-y-3">
-      {/* Theme and Model Controls */}
-      {!collapsed && (
-        <div className="flex items-center gap-2 px-2">
-          <ThemeToggle />
-          <ModelSelector 
-            selectedModel={selectedModel}
-            onModelChange={setSelectedModel}
-          />
-        </div>
-      )}
-      
       {/* User Profile */}
       <div className="flex items-center space-x-3">
         <Avatar className="h-8 w-8">
