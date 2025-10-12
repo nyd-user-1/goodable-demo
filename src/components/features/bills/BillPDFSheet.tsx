@@ -1,4 +1,4 @@
-import { Download, FileText, Loader2, MessageSquare, ThumbsUp, ThumbsDown, Minus, StickyNote, GripVertical, X } from "lucide-react";
+import { Download, FileText, Loader2, MessageSquare, ThumbsUp, ThumbsDown, Minus, StickyNote, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
 import {
@@ -214,15 +214,6 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
                 </div>
               </PopoverContent>
             </Popover>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="h-8 w-8"
-            >
-              <X className="h-4 w-4" />
-            </Button>
           </div>
         </div>
 
