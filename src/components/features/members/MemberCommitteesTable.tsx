@@ -1,20 +1,9 @@
 
 import { useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Heart, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Building2 } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
-import { AIChatSheet } from "@/components/AIChatSheet";
-import { useCommitteeChatSessions } from "@/hooks/useCommitteeChatSessions";
 import { useMemberCommittees } from "@/hooks/useMemberCommittees";
-import { useCommitteeFavorites } from "@/hooks/useCommitteeFavorites";
 
 type Member = Tables<"People">;
 
@@ -23,50 +12,16 @@ interface MemberCommitteesTableProps {
 }
 
 export const MemberCommitteesTable = ({ member }: MemberCommitteesTableProps) => {
-  const [chatOpen, setChatOpen] = useState(false);
-  const [selectedCommitteeForChat, setSelectedCommitteeForChat] = useState<any>(null);
-  const { createOrGetChatSession, loading: chatLoading } = useCommitteeChatSessions();
   const { committees, loading, error } = useMemberCommittees(member);
-  const { favoriteCommitteeIds, toggleFavorite } = useCommitteeFavorites();
-
-  const handleAIAnalysis = async (committee: any, e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    // Create the committee object with the correct structure for AIChatSheet
-    const committeeForChat = {
-      committee_id: committee.committee_id,
-      name: committee.committee_name,
-      chamber: committee.chamber,
-      description: committee.description,
-    };
-
-    const session = await createOrGetChatSession({
-      committee_id: committee.committee_id,
-      committee_name: committee.committee_name,
-      description: committee.description,
-    });
-    
-    if (session !== null) {
-      setSelectedCommitteeForChat(committeeForChat);
-      setChatOpen(true);
-    }
-  };
-
-  const handleFavorite = async (committee: any, e: React.MouseEvent) => {
-    e.stopPropagation();
-    await toggleFavorite(committee.committee_id);
-  };
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Committees</h3>
-          <Button variant="outline" size="sm">
-            All Committees
-          </Button>
+          <h2 className="text-lg font-semibold">Committees</h2>
+          <Badge variant="secondary" className="text-xs">...</Badge>
         </div>
-        <div className="text-center py-8">
+        <div className="text-center py-12">
           <p className="text-muted-foreground">Loading committee assignments...</p>
         </div>
       </div>
@@ -75,14 +30,12 @@ export const MemberCommitteesTable = ({ member }: MemberCommitteesTableProps) =>
 
   if (error) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Committees</h3>
-          <Button variant="outline" size="sm">
-            All Committees
-          </Button>
+          <h2 className="text-lg font-semibold">Committees</h2>
+          <Badge variant="secondary" className="text-xs">0 Committees</Badge>
         </div>
-        <div className="text-center py-8">
+        <div className="text-center py-12">
           <p className="text-destructive">Error loading committee assignments: {error}</p>
         </div>
       </div>
@@ -90,96 +43,72 @@ export const MemberCommitteesTable = ({ member }: MemberCommitteesTableProps) =>
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Committees</h3>
-        <Button variant="outline" size="sm">
-          All Committees
-        </Button>
+        <h2 className="text-lg font-semibold">Committees</h2>
+        <Badge variant="secondary" className="text-xs">
+          {committees.length} {committees.length === 1 ? 'Committee' : 'Committees'}
+        </Badge>
       </div>
-
-      <div className="rounded-md border overflow-hidden">
-        <div className="overflow-x-auto">
-          <div className="relative">
-            <Table className="min-w-[800px]">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[80px] bg-background sticky left-0 z-10 border-r">Actions</TableHead>
-                  <TableHead className="min-w-[200px]">Committee</TableHead>
-                  <TableHead className="min-w-[120px]">Role</TableHead>
-                  <TableHead className="min-w-[110px]">Chamber</TableHead>
-                  <TableHead className="min-w-[300px]">Description</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {committees.map((committee) => (
-                  <TableRow 
-                    key={committee.committee_id}
-                    className="hover:bg-muted/50 cursor-pointer transition-colors"
-                    onClick={() => {}}
-                  >
-                    <TableCell className="bg-background sticky left-0 z-10 border-r">
-                      <div className="flex items-center justify-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => handleFavorite(committee, e)}
-                          className="h-8 w-8 p-0 hover:bg-muted"
-                          disabled={chatLoading}
-                        >
-                          <Heart className={`h-4 w-4 ${favoriteCommitteeIds.has(committee.committee_id) ? 'fill-red-500 text-red-500' : ''}`} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => handleAIAnalysis(committee, e)}
-                          className="h-8 w-8 p-0 hover:bg-muted"
-                          disabled={chatLoading}
-                        >
-                          <Sparkles className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {committee.committee_name}
-                    </TableCell>
-                    <TableCell>
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                        committee.role === 'Chair' 
-                          ? 'bg-blue-100 text-blue-700'
-                          : committee.role === 'Ranking'
-                          ? 'bg-purple-100 text-purple-700'
-                          : 'bg-muted text-muted-foreground'
-                      }`}>
-                        {committee.role}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {committee.chamber}
-                    </TableCell>
-                    <TableCell className="max-w-[300px]">
-                      {committee.description || "No description available"}
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {committees.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                      No committee assignments found for this member
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+      <div>
+        {committees.length === 0 ? (
+          <div className="text-center py-12">
+            <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">
+              No committee assignments found for this member.
+            </p>
           </div>
-        </div>
-      </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {committees.map((committee) => (
+              <div key={committee.committee_id} className="p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Building2 className="h-4 w-4" />
+                    </div>
+                    {committee.role && committee.role.toLowerCase() === 'chair' && (
+                      <Badge variant="default" className="text-xs">
+                        Chair
+                      </Badge>
+                    )}
+                    {committee.role && committee.role.toLowerCase() === 'ranking' && (
+                      <Badge variant="secondary" className="text-xs">
+                        Ranking
+                      </Badge>
+                    )}
+                  </div>
+                </div>
 
-      <AIChatSheet
-        open={chatOpen}
-        onOpenChange={setChatOpen}
-        committee={selectedCommitteeForChat}
-      />
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm">
+                    {committee.committee_name}
+                  </h4>
+
+                  <div className="flex flex-wrap gap-2">
+                    {committee.chamber && (
+                      <Badge variant="outline" className="text-xs">
+                        {committee.chamber}
+                      </Badge>
+                    )}
+                    {committee.role && committee.role.toLowerCase() !== 'chair' && committee.role.toLowerCase() !== 'ranking' && (
+                      <Badge variant="outline" className="text-xs">
+                        {committee.role}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {committee.description && (
+                    <div className="text-xs text-muted-foreground line-clamp-2">
+                      {committee.description}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
