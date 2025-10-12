@@ -144,7 +144,7 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
           <GripVertical className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
         </div>
 
-        <div className="px-6 py-4 border-b flex-shrink-0 flex items-center justify-between">
+        <div className="pl-6 pr-14 py-4 border-b flex-shrink-0 flex items-center justify-between">
           <h2 className="text-xl font-semibold">
             Bill {billNumber} - Full Text
           </h2>
