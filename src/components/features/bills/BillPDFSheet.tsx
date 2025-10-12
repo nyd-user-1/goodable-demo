@@ -1,12 +1,9 @@
-import { X, Download, FileText, Loader2, MoreVertical } from "lucide-react";
+import { Download, FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
 } from "@/components/ui/sheet";
 
 interface BillPDFSheetProps {
@@ -76,23 +73,13 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle }: BillPDF
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent
         side="right"
-        className="w-full sm:w-[800px] md:w-[900px] lg:w-[1000px] sm:max-w-[90vw] p-0 flex flex-col"
+        className="w-full sm:w-[800px] md:w-[900px] lg:w-[1000px] sm:max-w-[90vw] p-0 flex flex-col gap-0"
       >
-        <SheetHeader className="px-6 py-5 border-b">
-          <div className="flex items-center justify-between gap-4">
-            <SheetTitle className="text-xl font-semibold">
-              Bill {billNumber} - Full Text
-            </SheetTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="h-8 w-8 flex-shrink-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </SheetHeader>
+        <div className="px-6 py-4 border-b flex-shrink-0">
+          <h2 className="text-xl font-semibold">
+            Bill {billNumber} - Full Text
+          </h2>
+        </div>
 
         {/* PDF Viewer */}
         <div className="flex-1 overflow-hidden relative">
