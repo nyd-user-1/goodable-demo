@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,12 +32,29 @@ export const BillsSearchFilters = ({
   sponsors,
 }: BillsSearchFiltersProps) => {
   const [showFilters, setShowFilters] = useState(false);
+  const [localSearchTerm, setLocalSearchTerm] = useState(filters.search);
+
+  // Debounce search for better performance
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearchTerm !== filters.search) {
+        onFiltersChange({
+          ...filters,
+          search: localSearchTerm,
+        });
+      }
+    }, 300); // 300ms debounce for instant feel
+
+    return () => clearTimeout(timer);
+  }, [localSearchTerm]);
+
+  // Sync local state when external filters change
+  useEffect(() => {
+    setLocalSearchTerm(filters.search);
+  }, [filters.search]);
 
   const handleSearchChange = (value: string) => {
-    onFiltersChange({
-      ...filters,
-      search: value,
-    });
+    setLocalSearchTerm(value);
   };
 
   const handleSponsorChange = (value: string) => {
@@ -90,7 +107,7 @@ export const BillsSearchFilters = ({
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search bills, sponsors, committees..."
-            value={filters.search}
+            value={localSearchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-9"
           />
