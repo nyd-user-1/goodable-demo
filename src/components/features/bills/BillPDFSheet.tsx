@@ -138,10 +138,10 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
         {/* Resize Handle */}
         <div
           ref={resizeRef}
-          className="absolute left-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-primary/20 group flex items-center justify-center"
+          className="absolute left-0 top-0 bottom-0 w-4 cursor-col-resize hover:bg-primary/10 group flex items-center justify-center transition-colors z-10"
           onMouseDown={() => setIsResizing(true)}
         >
-          <div className="w-1 h-12 bg-border group-hover:bg-primary rounded-full transition-colors" />
+          <GripVertical className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
         </div>
 
         <div className="px-6 py-4 border-b flex-shrink-0 flex items-center justify-between">
