@@ -37,10 +37,35 @@ export const useBillsData = () => {
   useEffect(() => {
     if (searchTerm.length >= 3) {
       performDeepSearch(searchTerm);
-    } else {
+    } else if (!sponsorFilter && !committeeFilter) {
+      // Only reset if no other filters are active
       setIsDeepSearch(false);
     }
   }, [searchTerm]);
+
+  // NEW: Trigger server-side query when sponsor filter is applied
+  useEffect(() => {
+    if (sponsorFilter) {
+      performSponsorFilter(sponsorFilter);
+    } else if (!searchTerm || searchTerm.length < 3) {
+      // If sponsor filter cleared and no deep search, reload initial bills
+      if (!committeeFilter) {
+        fetchAllBillsOptimized();
+      }
+    }
+  }, [sponsorFilter]);
+
+  // NEW: Trigger server-side query when committee filter is applied
+  useEffect(() => {
+    if (committeeFilter) {
+      performCommitteeFilter(committeeFilter);
+    } else if (!searchTerm || searchTerm.length < 3) {
+      // If committee filter cleared and no deep search, reload initial bills
+      if (!sponsorFilter) {
+        fetchAllBillsOptimized();
+      }
+    }
+  }, [committeeFilter]);
 
   const fetchAllBillsOptimized = async () => {
     try {
@@ -181,6 +206,146 @@ export const useBillsData = () => {
     }
   };
 
+  // NEW: Sponsor filter - queries ALL bills sponsored by selected person
+  const performSponsorFilter = async (sponsorName: string) => {
+    try {
+      setIsDeepSearch(true); // Use deep search state to indicate server-side filtering
+
+      // Step 1: Find the person_id for this sponsor
+      const { data: personData } = await supabase
+        .from("People")
+        .select("people_id")
+        .eq("name", sponsorName)
+        .single();
+
+      if (!personData) {
+        setBills([]);
+        return;
+      }
+
+      // Step 2: Find all bills sponsored by this person
+      const { data: sponsorshipData } = await supabase
+        .from("Sponsors")
+        .select("bill_id")
+        .eq("people_id", personData.people_id);
+
+      const billIds = sponsorshipData?.map(s => s.bill_id) || [];
+
+      if (billIds.length === 0) {
+        setBills([]);
+        return;
+      }
+
+      // Step 3: Fetch those bills
+      const { data: billsData } = await supabase
+        .from("Bills")
+        .select("*")
+        .in("bill_id", billIds)
+        .order("last_action_date", { ascending: false });
+
+      // Step 4: Fetch sponsors for all these bills
+      const { data: allSponsorsData } = await supabase
+        .from("Sponsors")
+        .select("bill_id, people_id, position")
+        .in("bill_id", billIds)
+        .order("position", { ascending: true });
+
+      const peopleIds = [...new Set(allSponsorsData?.map(s => s.people_id).filter(Boolean) || [])];
+      const { data: peopleData } = await supabase
+        .from("People")
+        .select("people_id, name, party, chamber")
+        .in("people_id", peopleIds);
+
+      const peopleMap = new Map(peopleData?.map(p => [p.people_id, p]) || []);
+      const sponsorsByBill = new Map<number, Array<{ name: string | null; party: string | null; chamber: string | null }>>();
+
+      allSponsorsData?.forEach(sponsor => {
+        if (!sponsorsByBill.has(sponsor.bill_id)) {
+          sponsorsByBill.set(sponsor.bill_id, []);
+        }
+        const person = peopleMap.get(sponsor.people_id);
+        if (person) {
+          sponsorsByBill.get(sponsor.bill_id)!.push({
+            name: person.name,
+            party: person.party,
+            chamber: person.chamber
+          });
+        }
+      });
+
+      const billsWithSponsors = billsData?.map(bill => ({
+        ...bill,
+        sponsors: sponsorsByBill.get(bill.bill_id) || []
+      })) || [];
+
+      setBills(billsWithSponsors);
+    } catch (err) {
+      console.error("Sponsor filter error:", err);
+      setIsDeepSearch(false);
+    }
+  };
+
+  // NEW: Committee filter - queries ALL bills assigned to selected committee
+  const performCommitteeFilter = async (committeeName: string) => {
+    try {
+      setIsDeepSearch(true); // Use deep search state to indicate server-side filtering
+
+      // Query bills by committee
+      const { data: billsData } = await supabase
+        .from("Bills")
+        .select("*")
+        .eq("committee", committeeName)
+        .order("last_action_date", { ascending: false });
+
+      if (!billsData || billsData.length === 0) {
+        setBills([]);
+        return;
+      }
+
+      const billIds = billsData.map(b => b.bill_id);
+
+      // Fetch sponsors for these bills
+      const { data: sponsorsData } = await supabase
+        .from("Sponsors")
+        .select("bill_id, people_id, position")
+        .in("bill_id", billIds)
+        .order("position", { ascending: true });
+
+      const peopleIds = [...new Set(sponsorsData?.map(s => s.people_id).filter(Boolean) || [])];
+      const { data: peopleData } = await supabase
+        .from("People")
+        .select("people_id, name, party, chamber")
+        .in("people_id", peopleIds);
+
+      const peopleMap = new Map(peopleData?.map(p => [p.people_id, p]) || []);
+      const sponsorsByBill = new Map<number, Array<{ name: string | null; party: string | null; chamber: string | null }>>();
+
+      sponsorsData?.forEach(sponsor => {
+        if (!sponsorsByBill.has(sponsor.bill_id)) {
+          sponsorsByBill.set(sponsor.bill_id, []);
+        }
+        const person = peopleMap.get(sponsor.people_id);
+        if (person) {
+          sponsorsByBill.get(sponsor.bill_id)!.push({
+            name: person.name,
+            party: person.party,
+            chamber: person.chamber
+          });
+        }
+      });
+
+      const billsWithSponsors = billsData.map(bill => ({
+        ...bill,
+        sponsors: sponsorsByBill.get(bill.bill_id) || []
+      }));
+
+      setBills(billsWithSponsors);
+    } catch (err) {
+      console.error("Committee filter error:", err);
+      setIsDeepSearch(false);
+    }
+  };
+
   // Instant filtering using useMemo (Committees pattern)
   const filteredBills = useMemo(() => {
     let filtered = bills;
@@ -204,24 +369,15 @@ export const useBillsData = () => {
       });
     }
 
-    // Apply sponsor filter
-    if (sponsorFilter) {
-      filtered = filtered.filter(bill =>
-        bill.sponsors?.some(sponsor => sponsor.name === sponsorFilter)
-      );
-    }
+    // NOTE: Sponsor and committee filters are now handled server-side via performSponsorFilter/performCommitteeFilter
+    // So we DON'T need to filter them here - they're already filtered when isDeepSearch is true
 
-    // Apply committee filter
-    if (committeeFilter) {
-      filtered = filtered.filter(bill => bill.committee === committeeFilter);
-    }
-
-    // NEW: Apply status filter
+    // NEW: Apply status filter (always client-side)
     if (statusFilter) {
       filtered = filtered.filter(bill => bill.status_desc === statusFilter);
     }
 
-    // Apply date filter
+    // Apply date filter (always client-side)
     if (dateRangeFilter) {
       const daysAgo = parseInt(dateRangeFilter);
       const cutoffDate = new Date();
@@ -234,7 +390,7 @@ export const useBillsData = () => {
     }
 
     return filtered;
-  }, [bills, searchTerm, sponsorFilter, committeeFilter, dateRangeFilter, statusFilter, isDeepSearch]);
+  }, [bills, searchTerm, dateRangeFilter, statusFilter, isDeepSearch]);
 
   // Paginate the filtered results
   const paginatedBills = useMemo(() => {
