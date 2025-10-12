@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, X, Filter, Calendar, Zap } from "lucide-react";
+import { Search, X, Filter, Calendar, Zap, RotateCw } from "lucide-react";
 
 interface Filters {
   search: string;
@@ -29,6 +29,7 @@ interface BillsSearchFiltersProps {
   isDeepSearch?: boolean; // NEW: Show deep search indicator
   totalBillsInDb?: number; // NEW: Total bills in database
   totalFiltered?: number; // NEW: Current filtered count
+  onRefresh?: () => void; // NEW: Refresh callback
 }
 
 export const BillsSearchFilters = ({
@@ -39,6 +40,7 @@ export const BillsSearchFilters = ({
   isDeepSearch = false,
   totalBillsInDb = 0,
   totalFiltered = 0,
+  onRefresh,
 }: BillsSearchFiltersProps) => {
   const [showFilters, setShowFilters] = useState(false);
 
@@ -176,10 +178,18 @@ export const BillsSearchFilters = ({
         </div>
       )}
 
-      {/* NEW: Date Preset Buttons */}
+      {/* NEW: Date Preset Buttons and Refresh */}
       <div className="flex flex-wrap items-center gap-2">
-        <Calendar className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm text-muted-foreground">Quick filters:</span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onRefresh}
+          className="h-7 text-xs flex items-center gap-1"
+          title="Refresh bills"
+        >
+          <RotateCw className="h-3 w-3" />
+          Refresh
+        </Button>
         <Button
           variant={filters.dateRange === "30" ? "default" : "outline"}
           size="sm"
@@ -238,7 +248,7 @@ export const BillsSearchFilters = ({
           )}
           {filters.committee && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              Committee: {filters.committee}
+              Committee: {filters.committee.replace(/\s*\([^)]*\)\s*$/, '')}
               <Button
                 variant="ghost"
                 size="sm"
@@ -361,7 +371,7 @@ export const BillsSearchFilters = ({
                 <SelectContent>
                   <SelectItem value="all">All committees</SelectItem>
                   {uniqueCommittees.map((committee) => (
-                    <SelectItem key={committee.name} value={committee.name}>
+                    <SelectItem key={`${committee.name}-${committee.chamber}`} value={`${committee.name} (${committee.chamber})`}>
                       <div className="flex flex-col">
                         <span className="text-sm font-medium">{committee.name}</span>
                         <span className="text-xs text-muted-foreground">

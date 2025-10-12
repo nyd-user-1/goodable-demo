@@ -38,8 +38,12 @@ export const useBillsData = () => {
   useEffect(() => {
     if (searchTerm.length >= 3) {
       performDeepSearch(searchTerm);
+    } else if (searchTerm.length === 0 && !sponsorFilter && !primarySponsorFilter && !committeeFilter) {
+      // If search cleared and no other filters active, reload initial bills
+      setIsDeepSearch(false);
+      fetchAllBillsOptimized();
     } else if (!sponsorFilter && !primarySponsorFilter && !committeeFilter) {
-      // Only reset if no other filters are active
+      // Only reset deep search flag if no other filters are active
       setIsDeepSearch(false);
     }
   }, [searchTerm]);
@@ -379,9 +383,12 @@ export const useBillsData = () => {
   };
 
   // NEW: Committee filter - queries ALL bills assigned to selected committee
-  const performCommitteeFilter = async (committeeName: string) => {
+  const performCommitteeFilter = async (committeeValue: string) => {
     try {
       setIsDeepSearch(true); // Use deep search state to indicate server-side filtering
+
+      // Parse committee name from value format "Committee Name (Chamber)"
+      const committeeName = committeeValue.replace(/\s*\([^)]*\)\s*$/, '').trim();
 
       // Query bills by committee
       const { data: billsData } = await supabase

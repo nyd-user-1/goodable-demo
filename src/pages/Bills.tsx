@@ -125,6 +125,17 @@ const Bills = () => {
     if (newFilters.dateRange !== undefined) setDateRangeFilter(newFilters.dateRange); // NEW
   };
 
+  const handleRefresh = () => {
+    // Clear all filters and reload initial bills
+    setSearchTerm("");
+    setSponsorFilter("");
+    setPrimarySponsorFilter("");
+    setCommitteeFilter("");
+    setStatusFilter("");
+    setDateRangeFilter("");
+    fetchBills();
+  };
+
   if (selectedBill) {
     return (
       <BillDetail bill={selectedBill} onBack={handleBackToBills} />
@@ -158,6 +169,7 @@ const Bills = () => {
             dateRange: dateRangeFilter, // NEW
           }}
           onFiltersChange={handleFiltersChange}
+          onRefresh={handleRefresh} // NEW: Refresh callback
           committees={committees}
           sponsors={sponsors}
           isDeepSearch={isDeepSearch} // NEW
