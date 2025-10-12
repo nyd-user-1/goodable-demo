@@ -93,6 +93,7 @@ export const BillsGrid = ({ bills, onBillSelect }: BillsGridProps) => {
         onClose={() => setPdfOpen(false)}
         billNumber={selectedBillForPDF?.bill_number || ""}
         billTitle={selectedBillForPDF?.title || ""}
+        bill={selectedBillForPDF}
       />
     </>
   );

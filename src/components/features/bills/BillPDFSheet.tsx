@@ -10,12 +10,17 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { AIChatSheet } from "@/components/AIChatSheet";
+import { Tables } from "@/integrations/supabase/types";
+
+type Bill = Tables<"Bills">;
 
 interface BillPDFSheetProps {
   isOpen: boolean;
   onClose: () => void;
   billNumber: string;
   billTitle?: string;
+  bill?: Bill | null;
 }
 
 const CORS_PROXIES = [
@@ -23,7 +28,7 @@ const CORS_PROXIES = [
   'https://api.allorigins.win/raw?url=',
 ];
 
-export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle }: BillPDFSheetProps) => {
+export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: BillPDFSheetProps) => {
   // Clean bill number for URL (remove periods and lowercase)
   const cleanBillNumber = billNumber.toLowerCase().replace(/[^a-z0-9]/g, '');
   const pdfUrl = `https://legislation.nysenate.gov/pdf/bills/2025/${cleanBillNumber}`;
@@ -225,6 +230,13 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle }: BillPDF
           </PopoverContent>
         </Popover>
       </SheetContent>
+
+      {/* AI Chat Sheet */}
+      <AIChatSheet
+        open={chatOpen}
+        onOpenChange={setChatOpen}
+        bill={bill}
+      />
     </Sheet>
   );
 };
