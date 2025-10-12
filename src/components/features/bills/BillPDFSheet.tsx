@@ -1,4 +1,4 @@
-import { X, Download, Printer, Share2, FileText, Loader2, MessageSquare, Bookmark, FileEdit, CheckCircle } from "lucide-react";
+import { X, Download, FileText, Loader2, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import {
@@ -72,94 +72,32 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle }: BillPDF
     window.open(pdfUrl, '_blank');
   };
 
-  const handlePrint = () => {
-    const iframe = document.getElementById('pdf-iframe') as HTMLIFrameElement;
-    if (iframe) {
-      iframe.contentWindow?.print();
-    }
-  };
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `Bill ${billNumber}`,
-          text: billTitle || `View Bill ${billNumber}`,
-          url: pdfUrl,
-        });
-      } catch (error) {
-        console.log('Share cancelled or failed', error);
-      }
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(pdfUrl);
-    }
-  };
-
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent
         side="right"
         className="w-full sm:w-[800px] md:w-[900px] lg:w-[1000px] sm:max-w-[90vw] p-0 flex flex-col"
       >
-        <SheetHeader className="px-6 py-4 border-b">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <SheetTitle className="text-lg font-semibold">
-                Bill {billNumber}
-              </SheetTitle>
-              {billTitle && (
-                <SheetDescription className="mt-1.5 text-sm line-clamp-2">
-                  {billTitle}
-                </SheetDescription>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleDownload}
-                title="Download PDF"
-                className="h-9 w-9"
-              >
-                <Download className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handlePrint}
-                title="Print"
-                className="h-9 w-9"
-              >
-                <Printer className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleShare}
-                title="Share"
-                className="h-9 w-9"
-              >
-                <Share2 className="h-4 w-4" />
-              </Button>
-              <div className="w-px h-6 bg-border mx-1" />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                title="Close"
-                className="h-9 w-9"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+        <SheetHeader className="px-6 py-5 border-b">
+          <div className="flex items-center justify-between gap-4">
+            <SheetTitle className="text-xl font-semibold">
+              Bill {billNumber} - Full Text
+            </SheetTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="h-8 w-8 flex-shrink-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
         </SheetHeader>
 
         {/* PDF Viewer */}
-        <div className="flex-1 overflow-hidden bg-muted/10 relative">
+        <div className="flex-1 overflow-hidden relative">
           {loading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+            <div className="absolute inset-0 flex items-center justify-center bg-background">
               <div className="flex flex-col items-center gap-3">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 <p className="text-sm text-muted-foreground">Loading PDF...</p>
@@ -168,12 +106,13 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle }: BillPDF
           )}
 
           {error && !loading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+            <div className="absolute inset-0 flex items-center justify-center bg-background">
               <div className="flex flex-col items-center gap-4 px-6 text-center">
                 <FileText className="h-12 w-12 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium text-foreground mb-2">{error}</p>
-                  <Button onClick={handleDownload} variant="default">
+                  <p className="text-sm font-medium mb-3">{error}</p>
+                  <Button onClick={handleDownload} size="sm">
+                    <Download className="h-4 w-4 mr-2" />
                     Open in New Tab
                   </Button>
                 </div>
@@ -190,26 +129,6 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle }: BillPDF
               style={{ border: 'none' }}
             />
           )}
-        </div>
-
-        {/* Quick Actions Bar */}
-        <div className="px-6 py-3.5 border-t bg-muted/30 flex gap-2 items-center">
-          <Button variant="outline" size="sm" className="gap-2">
-            <MessageSquare className="h-3.5 w-3.5" />
-            Comment
-          </Button>
-          <Button variant="outline" size="sm" className="gap-2">
-            <Bookmark className="h-3.5 w-3.5" />
-            Bookmark
-          </Button>
-          <Button variant="outline" size="sm" className="gap-2">
-            <FileEdit className="h-3.5 w-3.5" />
-            Notes
-          </Button>
-          <Button variant="default" size="sm" className="ml-auto gap-2">
-            <CheckCircle className="h-3.5 w-3.5" />
-            Mark Reviewed
-          </Button>
         </div>
       </SheetContent>
     </Sheet>
