@@ -1,5 +1,5 @@
 interface BillsHeaderProps {
-  billsCount: number;
+  billsCount: number | string; // Accept both number and string for flexibility
 }
 
 export const BillsHeader = ({ billsCount }: BillsHeaderProps) => {

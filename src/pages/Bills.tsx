@@ -33,11 +33,15 @@ const Bills = () => {
     setCommitteeFilter,
     dateRangeFilter,
     setDateRangeFilter,
+    statusFilter, // NEW
+    setStatusFilter, // NEW
     fetchBills,
     loadMoreBills,
     hasNextPage,
     totalBills,
     currentPageBills,
+    isDeepSearch, // NEW
+    totalBillsInDb, // NEW
   } = useBillsData();
 
   // Handle URL parameter for selected bill
@@ -107,10 +111,14 @@ const Bills = () => {
     search: string;
     sponsor: string;
     committee: string;
+    status?: string; // NEW
+    dateRange?: string; // NEW
   }) => {
     setSearchTerm(newFilters.search);
     setSponsorFilter(newFilters.sponsor);
     setCommitteeFilter(newFilters.committee);
+    if (newFilters.status !== undefined) setStatusFilter(newFilters.status); // NEW
+    if (newFilters.dateRange !== undefined) setDateRangeFilter(newFilters.dateRange); // NEW
   };
 
   if (selectedBill) {
@@ -127,22 +135,29 @@ const Bills = () => {
     return <BillsErrorState error={error} onRetry={fetchBills} />;
   }
 
-  const hasFilters = searchTerm !== "" || sponsorFilter !== "" || committeeFilter !== "" || dateRangeFilter !== "";
+  const hasFilters = searchTerm !== "" || sponsorFilter !== "" || committeeFilter !== "" || dateRangeFilter !== "" || statusFilter !== "";
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6">
       <div className="space-y-6">
-        <BillsHeader billsCount={totalBills} />
-        
+        <BillsHeader
+          billsCount={isDeepSearch ? `${totalBills} of ${totalBillsInDb.toLocaleString()}` : `${totalBills} of 1,000 loaded`}
+        />
+
         <BillsSearchFilters
           filters={{
             search: searchTerm,
             sponsor: sponsorFilter,
             committee: committeeFilter,
+            status: statusFilter, // NEW
+            dateRange: dateRangeFilter, // NEW
           }}
           onFiltersChange={handleFiltersChange}
           committees={committees}
           sponsors={sponsors}
+          isDeepSearch={isDeepSearch} // NEW
+          totalBillsInDb={totalBillsInDb} // NEW
+          totalFiltered={totalBills} // NEW
         />
 
         {bills.length === 0 ? (
