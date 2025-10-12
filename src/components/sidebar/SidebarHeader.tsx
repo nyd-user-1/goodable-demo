@@ -1,4 +1,4 @@
-import { ChevronsUpDown, Home, TrendingUp, Users, FileText, Building2 } from "lucide-react";
+import { ChevronsUpDown, Home, TrendingUp, Users, FileText, Building2, Star } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,9 +13,11 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
+import { useTopFavorites } from "@/hooks/useTopFavorites";
 
 export function SidebarHeader() {
   const navigate = useNavigate();
+  const { topFavorites, loading: favoritesLoading } = useTopFavorites(5);
 
   return (
     <SidebarMenu>
@@ -26,10 +28,7 @@ export function SidebarHeader() {
               <div className="w-8 h-8 bg-card border rounded-lg flex items-center justify-center">
                 <span className="text-lg">❤️</span>
               </div>
-              <div className="flex flex-col flex-1 min-w-0 text-left">
-                <span className="text-sm font-semibold truncate">Goodable</span>
-                <span className="text-xs text-muted-foreground truncate">Civic Engagement</span>
-              </div>
+              <span className="text-sm font-semibold truncate">Goodable</span>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
@@ -38,6 +37,30 @@ export function SidebarHeader() {
             align="start"
             className="w-[--radix-popper-anchor-width]"
           >
+            <DropdownMenuLabel>Favorites</DropdownMenuLabel>
+            {favoritesLoading ? (
+              <DropdownMenuItem disabled>
+                <span className="text-muted-foreground text-xs">Loading...</span>
+              </DropdownMenuItem>
+            ) : topFavorites.length > 0 ? (
+              topFavorites.map((favorite) => (
+                <DropdownMenuItem key={favorite.id} onClick={() => navigate(favorite.url)}>
+                  <Star className="mr-2 h-4 w-4" />
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <span className="truncate text-sm">{favorite.title}</span>
+                    {favorite.subtitle && (
+                      <span className="truncate text-xs text-muted-foreground">{favorite.subtitle}</span>
+                    )}
+                  </div>
+                </DropdownMenuItem>
+              ))
+            ) : (
+              <DropdownMenuItem disabled>
+                <Star className="mr-2 h-4 w-4" />
+                <span className="text-muted-foreground text-xs">No favorites yet</span>
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
             <DropdownMenuLabel>Quick Navigation</DropdownMenuLabel>
             <DropdownMenuItem onClick={() => navigate('/home')}>
               <Home className="mr-2 h-4 w-4" />

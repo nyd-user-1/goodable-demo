@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, ScrollText, Gamepad2, Factory, Home, ChevronDown, Star, Bot } from "lucide-react";
+import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, ScrollText, Gamepad2, Factory, Home, ChevronDown } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -14,9 +14,36 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useNavigation } from "@/hooks/useNavigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecentChats } from "@/hooks/useRecentChats";
-import { useTopFavorites } from "@/hooks/useTopFavorites";
 import { useModel } from "@/contexts/ModelContext";
 import { NavLink } from "react-router-dom";
+
+// Custom icon components for each provider
+const OpenAIIcon = ({ className }: { className?: string }) => (
+  <img
+    src="/OAI LOGO.png"
+    alt="OpenAI"
+    className={`object-contain ${className}`}
+    style={{ maxWidth: '16px', maxHeight: '16px', width: 'auto', height: 'auto' }}
+  />
+);
+
+const ClaudeIcon = ({ className }: { className?: string }) => (
+  <img
+    src="/claude-ai-icon-65aa.png"
+    alt="Claude"
+    className={`object-contain ${className}`}
+    style={{ maxWidth: '16px', maxHeight: '16px', width: 'auto', height: 'auto' }}
+  />
+);
+
+const PerplexityIcon = ({ className }: { className?: string }) => (
+  <img
+    src="/PPLX LOGO.png"
+    alt="Perplexity"
+    className={`object-contain ${className}`}
+    style={{ maxWidth: '16px', maxHeight: '16px', width: 'auto', height: 'auto' }}
+  />
+);
 
 const legislationItems = [
   { title: "Dashboard", url: "/dashboard", icon: TrendingUp },
@@ -35,12 +62,35 @@ const developmentItems = [
   { title: "Policy Lab", url: "/policy-portal", icon: Factory, adminOnly: true },
 ];
 
-const availableModels = [
-  { id: "gpt-4o", name: "GPT-4o", description: "Most capable, multimodal flagship model" },
-  { id: "gpt-4o-mini", name: "GPT-4o mini", description: "Affordable and intelligent small model" },
-  { id: "o1-preview", name: "o1-preview", description: "Reasoning model for hard problems" },
-  { id: "o1-mini", name: "o1-mini", description: "Faster and cheaper reasoning model" },
-];
+type ModelProvider = "openai" | "anthropic" | "perplexity";
+type ModelType = "gpt-4o-mini" | "gpt-4o" | "claude-3-5-sonnet-20241022" | "claude-3-5-haiku-20241022" | "llama-3.1-sonar-small-128k-online" | "llama-3.1-sonar-large-128k-online";
+
+const models: Record<ModelProvider, { name: string; icon: React.ComponentType<{ className?: string }>; models: { id: ModelType; name: string }[] }> = {
+  openai: {
+    name: "OpenAI",
+    icon: OpenAIIcon,
+    models: [
+      { id: "gpt-4o", name: "GPT-4o" },
+      { id: "gpt-4o-mini", name: "GPT-4o Mini" },
+    ]
+  },
+  anthropic: {
+    name: "Anthropic",
+    icon: ClaudeIcon,
+    models: [
+      { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet" },
+      { id: "claude-3-5-haiku-20241022", name: "Claude 3.5 Haiku" },
+    ]
+  },
+  perplexity: {
+    name: "Perplexity",
+    icon: PerplexityIcon,
+    models: [
+      { id: "llama-3.1-sonar-large-128k-online", name: "Sonar Large" },
+      { id: "llama-3.1-sonar-small-128k-online", name: "Sonar Small" },
+    ]
+  }
+};
 
 interface SidebarNavigationProps {
   collapsed: boolean;
@@ -51,10 +101,8 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
   const { getNavClassName } = useNavigation();
   const { isAdmin } = useAuth();
   const { recentChats, loading: chatsLoading } = useRecentChats(10);
-  const { topFavorites, loading: favoritesLoading } = useTopFavorites(5);
   const { selectedModel, setSelectedModel } = useModel();
 
-  const [isFavoritesOpen, setIsFavoritesOpen] = useState(true);
   const [isLegislationOpen, setIsLegislationOpen] = useState(true);
   const [isDevelopmentOpen, setIsDevelopmentOpen] = useState(true);
   const [isModelsOpen, setIsModelsOpen] = useState(false);
@@ -62,59 +110,6 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
 
   return (
     <>
-      {/* Favorites Section - Hidden when searching */}
-      {!hasSearchResults && (
-        <>
-          <SidebarGroup>
-            <Collapsible open={isFavoritesOpen} onOpenChange={setIsFavoritesOpen} className="group/collapsible">
-              <SidebarGroupLabel asChild>
-                <CollapsibleTrigger className="flex w-full items-center justify-between">
-                  Favorites
-                  <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
-                </CollapsibleTrigger>
-              </SidebarGroupLabel>
-              <CollapsibleContent>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {favoritesLoading ? (
-                      Array.from({ length: 3 }).map((_, index) => (
-                        <SidebarMenuItem key={index}>
-                          <SidebarMenuSkeleton showIcon />
-                        </SidebarMenuItem>
-                      ))
-                    ) : topFavorites.length > 0 ? (
-                      topFavorites.map((favorite) => (
-                        <SidebarMenuItem key={favorite.id}>
-                          <SidebarMenuButton asChild>
-                            <NavLink to={favorite.url} className={getNavClassName}>
-                              <Star className="h-4 w-4" />
-                              <div className="flex flex-col flex-1 min-w-0">
-                                <span className="truncate text-sm">{favorite.title}</span>
-                                {favorite.subtitle && (
-                                  <span className="truncate text-xs text-muted-foreground">{favorite.subtitle}</span>
-                                )}
-                              </div>
-                            </NavLink>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))
-                    ) : (
-                      <SidebarMenuItem>
-                        <SidebarMenuButton disabled>
-                          <Star className="h-4 w-4" />
-                          <span className="text-muted-foreground text-xs">No favorites yet</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    )}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </CollapsibleContent>
-            </Collapsible>
-          </SidebarGroup>
-          <SidebarSeparator />
-        </>
-      )}
-
       {/* Legislation Navigation - Hidden when searching */}
       {!hasSearchResults && (
         <>
@@ -199,19 +194,25 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
               <CollapsibleContent>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {availableModels.map((model) => (
-                      <SidebarMenuItem key={model.id}>
-                        <SidebarMenuButton
-                          isActive={selectedModel === model.id}
-                          onClick={() => setSelectedModel(model.id)}
-                        >
-                          <Bot className="h-4 w-4" />
-                          <div className="flex flex-col flex-1 min-w-0">
-                            <span className="truncate text-sm">{model.name}</span>
-                            <span className="truncate text-xs text-muted-foreground">{model.description}</span>
-                          </div>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
+                    {Object.entries(models).map(([providerId, provider]) => (
+                      <div key={providerId}>
+                        {provider.models.map((model) => {
+                          const Icon = provider.icon;
+                          return (
+                            <SidebarMenuItem key={model.id}>
+                              <SidebarMenuButton
+                                isActive={selectedModel === model.id}
+                                onClick={() => setSelectedModel(model.id as any)}
+                              >
+                                <div className="w-4 h-4 flex items-center justify-center">
+                                  <Icon className="h-4 w-4" />
+                                </div>
+                                <span>{model.name}</span>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          );
+                        })}
+                      </div>
                     ))}
                   </SidebarMenu>
                 </SidebarGroupContent>
@@ -234,7 +235,7 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
             </SidebarGroupLabel>
             <CollapsibleContent>
               <SidebarGroupContent>
-                <SidebarMenu className="max-h-[300px] overflow-y-auto">
+                <SidebarMenu>
                   {chatsLoading ? (
                     Array.from({ length: 3 }).map((_, index) => (
                       <SidebarMenuItem key={index}>
