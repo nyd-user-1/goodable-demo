@@ -188,7 +188,7 @@ const NewChat = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col px-4 pb-36 overflow-y-auto">
         {!chatStarted ? (
-          /* Initial State - Prompt Cards - More Minimal */}
+          <>{/* Initial State - Prompt Cards - More Minimal */}
           <div className="flex flex-col items-center justify-center flex-1">
             <h1 className="text-4xl md:text-5xl font-semibold text-center mb-12 tracking-tight">
               What are you researching?
@@ -216,9 +216,9 @@ const NewChat = () => {
                 </Card>
               ))}
             </div>
-          </div>
+          </div></>
         ) : (
-          /* Chat State - Messages */}
+          <>{/* Chat State - Messages */}
           <div className="w-full max-w-4xl mx-auto pt-8 space-y-6">
             {messages.map((message) => (
               <div key={message.id} className="space-y-3">
@@ -342,7 +342,7 @@ const NewChat = () => {
             )}
 
             <div ref={messagesEndRef} />
-          </div>
+          </div></>
         )}
       </div>
 
