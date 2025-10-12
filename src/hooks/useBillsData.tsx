@@ -390,11 +390,11 @@ export const useBillsData = () => {
       // Parse committee name from value format "Committee Name (Chamber)"
       const committeeName = committeeValue.replace(/\s*\([^)]*\)\s*$/, '').trim();
 
-      // Query bills by committee
+      // Query bills by committee using case-insensitive partial match
       const { data: billsData } = await supabase
         .from("Bills")
         .select("*")
-        .eq("committee", committeeName)
+        .ilike("committee", `%${committeeName}%`)
         .order("last_action_date", { ascending: false });
 
       if (!billsData || billsData.length === 0) {
