@@ -1,4 +1,4 @@
-import { Download, FileText, Loader2, MessageSquare, ThumbsUp, ThumbsDown, Minus, StickyNote, GripVertical } from "lucide-react";
+import { Download, FileText, Loader2, MessageSquare, ThumbsUp, ThumbsDown, Minus, StickyNote, GripVertical, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
 import {
@@ -10,6 +10,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { AIChatSheet } from "@/components/AIChatSheet";
 import { Tables } from "@/integrations/supabase/types";
 
@@ -36,6 +44,8 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [quickReviewOpen, setQuickReviewOpen] = useState(false);
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
+  const [noteText, setNoteText] = useState('');
   const [chatOpen, setChatOpen] = useState(false);
   const [sheetWidth, setSheetWidth] = useState(900);
   const [isResizing, setIsResizing] = useState(false);
@@ -85,9 +95,21 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
   };
 
   const handleQuickReview = (action: 'support' | 'oppose' | 'neutral' | 'note') => {
-    console.log(`Quick review action: ${action} for bill ${billNumber}`);
-    // TODO: Save to favorites module
-    setQuickReviewOpen(false);
+    if (action === 'note') {
+      setQuickReviewOpen(false);
+      setNoteDialogOpen(true);
+    } else {
+      console.log(`Quick review action: ${action} for bill ${billNumber}`);
+      // TODO: Save to favorites module
+      setQuickReviewOpen(false);
+    }
+  };
+
+  const handleSaveNote = () => {
+    console.log(`Saving note for bill ${billNumber}:`, noteText);
+    // TODO: Save note to database
+    setNoteDialogOpen(false);
+    setNoteText('');
   };
 
   // Handle panel resizing
@@ -129,10 +151,79 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
           <div className="w-1 h-12 bg-border group-hover:bg-primary rounded-full transition-colors" />
         </div>
 
-        <div className="px-6 py-4 border-b flex-shrink-0">
+        <div className="px-6 py-4 border-b flex-shrink-0 flex items-center justify-between">
           <h2 className="text-xl font-semibold">
             Bill {billNumber} - Full Text
           </h2>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setChatOpen(true)}
+              className="gap-2"
+            >
+              <MessageSquare className="h-4 w-4" />
+              Ask Chat
+            </Button>
+
+            <Popover open={quickReviewOpen} onOpenChange={setQuickReviewOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Quick Review
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent side="bottom" align="end" className="w-auto p-2">
+                <div className="flex flex-col gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="justify-start gap-2"
+                    onClick={() => handleQuickReview('support')}
+                  >
+                    <ThumbsUp className="h-4 w-4 text-green-600" />
+                    Support
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="justify-start gap-2"
+                    onClick={() => handleQuickReview('oppose')}
+                  >
+                    <ThumbsDown className="h-4 w-4 text-red-600" />
+                    Oppose
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="justify-start gap-2"
+                    onClick={() => handleQuickReview('neutral')}
+                  >
+                    <Minus className="h-4 w-4 text-gray-600" />
+                    Neutral
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="justify-start gap-2"
+                    onClick={() => handleQuickReview('note')}
+                  >
+                    <StickyNote className="h-4 w-4 text-yellow-600" />
+                    Add Note
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="h-8 w-8"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* PDF Viewer */}
@@ -171,65 +262,74 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
             />
           )}
         </div>
+      </SheetContent>
 
-        {/* Floating AI Chat Button */}
-        <button
-          onClick={() => setChatOpen(true)}
-          className="absolute bottom-20 left-6 bg-background border rounded-full px-4 py-2 shadow-lg hover:shadow-xl transition-all flex items-center gap-2 text-sm"
-        >
-          <MessageSquare className="h-4 w-4 text-primary" />
-          <span className="font-medium">Ask AI about this bill</span>
-        </button>
+      {/* Quick Review Note Dialog */}
+      <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
+        <DialogContent className="sm:max-w-[525px]">
+          <DialogHeader>
+            <DialogTitle>Quick Review Note</DialogTitle>
+          </DialogHeader>
 
-        {/* Floating Quick Review Button */}
-        <Popover open={quickReviewOpen} onOpenChange={setQuickReviewOpen}>
-          <PopoverTrigger asChild>
-            <button className="absolute bottom-6 right-6 bg-red-500 hover:bg-red-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all">
-              <span className="text-2xl">+</span>
-            </button>
-          </PopoverTrigger>
-          <PopoverContent side="top" align="end" className="w-auto p-2">
-            <div className="flex flex-col gap-1">
+          <div className="space-y-4 py-4">
+            <div className="flex gap-2">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="justify-start gap-2"
-                onClick={() => handleQuickReview('support')}
+                onClick={() => {
+                  handleQuickReview('support');
+                  setNoteDialogOpen(false);
+                }}
               >
-                <ThumbsUp className="h-4 w-4 text-green-600" />
                 Support
               </Button>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="justify-start gap-2"
-                onClick={() => handleQuickReview('oppose')}
+                onClick={() => {
+                  handleQuickReview('oppose');
+                  setNoteDialogOpen(false);
+                }}
               >
-                <ThumbsDown className="h-4 w-4 text-red-600" />
                 Oppose
               </Button>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="justify-start gap-2"
-                onClick={() => handleQuickReview('neutral')}
+                onClick={() => {
+                  handleQuickReview('neutral');
+                  setNoteDialogOpen(false);
+                }}
               >
-                <Minus className="h-4 w-4 text-gray-600" />
                 Neutral
               </Button>
               <Button
-                variant="ghost"
+                variant="destructive"
                 size="sm"
-                className="justify-start gap-2"
-                onClick={() => handleQuickReview('note')}
+                className="ml-auto"
               >
-                <StickyNote className="h-4 w-4 text-yellow-600" />
-                Add Note
+                More Info
               </Button>
             </div>
-          </PopoverContent>
-        </Popover>
-      </SheetContent>
+
+            <Textarea
+              placeholder="No fiscal impact identified. Aligns with national initiatives. Check for similar past resolutions."
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              className="min-h-[120px] font-mono text-sm"
+            />
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNoteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="default" onClick={handleSaveNote}>
+              Save Review
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* AI Chat Sheet */}
       <AIChatSheet
