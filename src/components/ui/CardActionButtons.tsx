@@ -170,7 +170,7 @@ export const CardActionButtons = ({
         <Button
           variant={variant}
           size={size}
-          className={`px-3 transition-transform duration-200 group ${heartClicked ? 'scale-110' : 'hover:scale-105'}`}
+          className={`px-3 transition-transform duration-200 group hover:bg-transparent ${heartClicked ? 'scale-110' : 'hover:scale-105'}`}
           onClick={handleFavoriteClick}
           title={isFavorited ? "Remove from Favorites" : "Add to Favorites"}
         >
@@ -187,7 +187,7 @@ export const CardActionButtons = ({
         <Button
           variant={variant}
           size={size}
-          className={`px-3 transition-all duration-300 group ${
+          className={`px-3 transition-all duration-300 group hover:bg-transparent ${
             sparkleClicked
               ? 'scale-110 animate-pulse'
               : 'hover:scale-105'
