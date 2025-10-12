@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, ChevronDown } from "lucide-react";
+import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, ChevronDown, Search } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -11,10 +11,12 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecentChats } from "@/hooks/useRecentChats";
 import { NavLink } from "react-router-dom";
+import { SearchChatsModal } from "@/components/SearchChatsModal";
 
 const legislationItems = [
   { title: "Bills", url: "/bills", icon: FileText, requiresAuth: true },
@@ -45,6 +47,7 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
   const [isLegislationOpen, setIsLegislationOpen] = useState(true);
   const [isDevelopmentOpen, setIsDevelopmentOpen] = useState(true);
   const [isChatsOpen, setIsChatsOpen] = useState(true);
+  const [searchChatsOpen, setSearchChatsOpen] = useState(false);
 
   return (
     <>
@@ -97,6 +100,19 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
               <CollapsibleContent>
                 <SidebarGroupContent>
                   <SidebarMenu>
+                    {/* Search Chats Button */}
+                    {!collapsed && (
+                      <SidebarMenuItem>
+                        <Button
+                          variant="ghost"
+                          onClick={() => setSearchChatsOpen(true)}
+                          className="w-full justify-start gap-3 px-2 py-2 h-auto hover:bg-accent"
+                        >
+                          <Search className="h-4 w-4 flex-shrink-0" />
+                          <span className="text-sm">Search chats</span>
+                        </Button>
+                      </SidebarMenuItem>
+                    )}
                     {developmentItems
                       .filter(item => !item.adminOnly || isAdmin)
                       .map((item) => (
@@ -162,6 +178,9 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
           </Collapsible>
         </SidebarGroup>
       )}
+
+      {/* Search Chats Modal */}
+      <SearchChatsModal open={searchChatsOpen} onOpenChange={setSearchChatsOpen} />
     </>
   );
 }
