@@ -18,17 +18,19 @@ interface BillCardProps {
   onBillSelect: (bill: Bill) => void;
   onAIAnalysis?: (bill: Bill, e: React.MouseEvent) => void;
   onFavorite?: (bill: Bill, e: React.MouseEvent) => void;
+  onPDFView?: (bill: Bill, e: React.MouseEvent) => void;
   isFavorited?: boolean;
   hasAIChat?: boolean;
 }
 
-export const BillCard = ({ 
-  bill, 
-  onBillSelect, 
-  onAIAnalysis, 
-  onFavorite, 
-  isFavorited = false, 
-  hasAIChat = false 
+export const BillCard = ({
+  bill,
+  onBillSelect,
+  onAIAnalysis,
+  onFavorite,
+  onPDFView,
+  isFavorited = false,
+  hasAIChat = false
 }: BillCardProps) => {
   // Get primary sponsor (first one)
   const primarySponsor = bill.sponsors?.[0];
@@ -49,6 +51,8 @@ export const BillCard = ({
           <CardActionButtons
             onFavorite={onFavorite ? (e) => onFavorite(bill, e) : undefined}
             onAIAnalysis={onAIAnalysis ? (e) => onAIAnalysis(bill, e) : undefined}
+            onPDFView={onPDFView ? (e) => onPDFView(bill, e) : undefined}
+            billNumber={bill.bill_number || ""}
             isFavorited={isFavorited}
             hasAIChat={hasAIChat}
             showFavorite={!!onFavorite}

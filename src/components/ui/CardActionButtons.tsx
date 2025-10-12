@@ -14,6 +14,7 @@ import {
 interface CardActionButtonsProps {
   onFavorite?: (e: React.MouseEvent) => void;
   onAIAnalysis?: (e: React.MouseEvent) => void;
+  onPDFView?: (e: React.MouseEvent) => void;
   isFavorited?: boolean;
   hasAIChat?: boolean;
   showFavorite?: boolean;
@@ -27,6 +28,7 @@ interface CardActionButtonsProps {
 export const CardActionButtons = ({
   onFavorite,
   onAIAnalysis,
+  onPDFView,
   isFavorited = false,
   hasAIChat = false,
   showFavorite = true,
@@ -133,21 +135,17 @@ export const CardActionButtons = ({
                   <FileText className="h-4 w-4 text-muted-foreground animate-pulse" />
                 </Button>
               ) : pdfAvailable ? (
-                // PDF available - active link
+                // PDF available - open in sheet
                 <Button
                   variant={variant}
                   size={size}
                   className="px-3 hover:scale-105 transition-transform duration-200"
-                  asChild
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPDFView?.(e);
+                  }}
                 >
-                  <a 
-                    href={pdfUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <FileText className="h-4 w-4 text-muted-foreground hover:text-primary" />
-                  </a>
+                  <FileText className="h-4 w-4 text-muted-foreground hover:text-primary" />
                 </Button>
               ) : (
                 // PDF not available - greyed out
