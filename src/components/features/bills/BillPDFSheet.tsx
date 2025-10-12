@@ -1,4 +1,4 @@
-import { Download, FileText, Loader2, MessageSquare, ThumbsUp, ThumbsDown, Minus, StickyNote, GripVertical } from "lucide-react";
+import { Download, FileText, Loader2, MessageSquare, ThumbsUp, ThumbsDown, Minus, StickyNote, GripVertical, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
 import {
@@ -10,13 +10,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { AIChatSheet } from "@/components/AIChatSheet";
 import { Tables } from "@/integrations/supabase/types";
@@ -255,72 +248,107 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
         </div>
       </SheetContent>
 
-      {/* Quick Review Note Dialog */}
-      <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
-        <DialogContent className="sm:max-w-[525px]">
-          <DialogHeader>
-            <DialogTitle>Quick Review Note</DialogTitle>
-          </DialogHeader>
+      {/* Quick Review Note Dialog - Draggable without overlay */}
+      {noteDialogOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center pt-20 pointer-events-none"
+        >
+          <div
+            className="bg-background border rounded-lg shadow-lg sm:max-w-[525px] w-full mx-4 pointer-events-auto"
+            style={{
+              cursor: 'move',
+            }}
+            onMouseDown={(e) => {
+              const dialog = e.currentTarget;
+              const startX = e.clientX - dialog.offsetLeft;
+              const startY = e.clientY - dialog.offsetTop;
 
-          <div className="space-y-4 py-4">
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  handleQuickReview('support');
-                  setNoteDialogOpen(false);
-                }}
-              >
-                Support
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  handleQuickReview('oppose');
-                  setNoteDialogOpen(false);
-                }}
-              >
-                Oppose
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  handleQuickReview('neutral');
-                  setNoteDialogOpen(false);
-                }}
-              >
-                Neutral
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                className="ml-auto"
-              >
-                More Info
-              </Button>
+              const handleMouseMove = (e: MouseEvent) => {
+                dialog.style.position = 'fixed';
+                dialog.style.left = `${e.clientX - startX}px`;
+                dialog.style.top = `${e.clientY - startY}px`;
+                dialog.style.transform = 'none';
+              };
+
+              const handleMouseUp = () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+              };
+
+              document.addEventListener('mousemove', handleMouseMove);
+              document.addEventListener('mouseup', handleMouseUp);
+            }}
+          >
+            <div className="p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Quick Review Note</h2>
+                <button
+                  onClick={() => setNoteDialogOpen(false)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    handleQuickReview('support');
+                    setNoteDialogOpen(false);
+                  }}
+                >
+                  Support
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    handleQuickReview('oppose');
+                    setNoteDialogOpen(false);
+                  }}
+                >
+                  Oppose
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    handleQuickReview('neutral');
+                    setNoteDialogOpen(false);
+                  }}
+                >
+                  Neutral
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="ml-auto"
+                >
+                  More Info
+                </Button>
+              </div>
+
+              <Textarea
+                placeholder="No fiscal impact identified. Aligns with national initiatives. Check for similar past resolutions."
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                className="min-h-[120px] font-mono text-sm"
+              />
+
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setNoteDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button variant="default" onClick={handleSaveNote}>
+                  Save Review
+                </Button>
+              </div>
             </div>
-
-            <Textarea
-              placeholder="No fiscal impact identified. Aligns with national initiatives. Check for similar past resolutions."
-              value={noteText}
-              onChange={(e) => setNoteText(e.target.value)}
-              className="min-h-[120px] font-mono text-sm"
-            />
           </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setNoteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="default" onClick={handleSaveNote}>
-              Save Review
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
 
       {/* AI Chat Sheet */}
       <AIChatSheet
