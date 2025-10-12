@@ -366,16 +366,6 @@ After your analysis, would you like me to dive deeper into any specific aspect o
         </SheetHeader>
 
         <ChatContainer>
-          {/* Dynamic Suggested Prompts */}
-          <SuggestedPrompts
-            entity={entity}
-            entityType={entityType}
-            onPromptClick={handlePromptClick}
-            isLoading={isLoading}
-            showPrompts={messages.length === 0}
-            hasMessages={messages.length > 0}
-          />
-
           {/* Chat Messages */}
           <ChatMessages
             messages={messages}
