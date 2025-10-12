@@ -15,7 +15,7 @@ export interface TopFavorite {
   created_at: string;
 }
 
-export const useTopFavorites = (limit: number = 5) => {
+export const useTopFavorites = (limit: number = 10) => {
   const [topFavorites, setTopFavorites] = useState<TopFavorite[]>([]);
   const [loading, setLoading] = useState(true);
 
