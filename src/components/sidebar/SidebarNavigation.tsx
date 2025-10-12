@@ -51,6 +51,26 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
 
   return (
     <>
+      {/* Quick Actions - Always visible */}
+      {!collapsed && (
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <Button
+                  variant="ghost"
+                  onClick={() => setSearchChatsOpen(true)}
+                  className="w-full justify-start gap-3 px-2 py-2 h-auto hover:bg-accent"
+                >
+                  <Search className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-sm">Search chats</span>
+                </Button>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      )}
+
       {/* Legislation Navigation - Hidden when searching */}
       {!hasSearchResults && (
         <>
@@ -100,19 +120,6 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
               <CollapsibleContent>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {/* Search Chats Button */}
-                    {!collapsed && (
-                      <SidebarMenuItem>
-                        <Button
-                          variant="ghost"
-                          onClick={() => setSearchChatsOpen(true)}
-                          className="w-full justify-start gap-3 px-2 py-2 h-auto hover:bg-accent"
-                        >
-                          <Search className="h-4 w-4 flex-shrink-0" />
-                          <span className="text-sm">Search chats</span>
-                        </Button>
-                      </SidebarMenuItem>
-                    )}
                     {developmentItems
                       .filter(item => !item.adminOnly || isAdmin)
                       .map((item) => (
