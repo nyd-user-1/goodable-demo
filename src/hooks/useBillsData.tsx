@@ -16,6 +16,7 @@ export const useBillsData = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sponsorFilter, setSponsorFilter] = useState("");
+  const [primarySponsorFilter, setPrimarySponsorFilter] = useState(""); // NEW: Primary sponsor filter
   const [committeeFilter, setCommitteeFilter] = useState("");
   const [dateRangeFilter, setDateRangeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState(""); // NEW: Status filter
@@ -31,13 +32,13 @@ export const useBillsData = () => {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, sponsorFilter, committeeFilter, dateRangeFilter, statusFilter]);
+  }, [searchTerm, sponsorFilter, primarySponsorFilter, committeeFilter, dateRangeFilter, statusFilter]);
 
   // NEW: Trigger deep search when user types 3+ characters
   useEffect(() => {
     if (searchTerm.length >= 3) {
       performDeepSearch(searchTerm);
-    } else if (!sponsorFilter && !committeeFilter) {
+    } else if (!sponsorFilter && !primarySponsorFilter && !committeeFilter) {
       // Only reset if no other filters are active
       setIsDeepSearch(false);
     }
@@ -49,11 +50,23 @@ export const useBillsData = () => {
       performSponsorFilter(sponsorFilter);
     } else if (!searchTerm || searchTerm.length < 3) {
       // If sponsor filter cleared and no deep search, reload initial bills
-      if (!committeeFilter) {
+      if (!committeeFilter && !primarySponsorFilter) {
         fetchAllBillsOptimized();
       }
     }
   }, [sponsorFilter]);
+
+  // NEW: Trigger server-side query when primary sponsor filter is applied
+  useEffect(() => {
+    if (primarySponsorFilter) {
+      performPrimarySponsorFilter(primarySponsorFilter);
+    } else if (!searchTerm || searchTerm.length < 3) {
+      // If primary sponsor filter cleared and no deep search, reload initial bills
+      if (!committeeFilter && !sponsorFilter) {
+        fetchAllBillsOptimized();
+      }
+    }
+  }, [primarySponsorFilter]);
 
   // NEW: Trigger server-side query when committee filter is applied
   useEffect(() => {
@@ -61,7 +74,7 @@ export const useBillsData = () => {
       performCommitteeFilter(committeeFilter);
     } else if (!searchTerm || searchTerm.length < 3) {
       // If committee filter cleared and no deep search, reload initial bills
-      if (!sponsorFilter) {
+      if (!sponsorFilter && !primarySponsorFilter) {
         fetchAllBillsOptimized();
       }
     }
@@ -206,7 +219,7 @@ export const useBillsData = () => {
     }
   };
 
-  // NEW: Sponsor filter - queries ALL bills sponsored by selected person
+  // NEW: Sponsor filter - queries ALL bills sponsored by selected person (any position)
   const performSponsorFilter = async (sponsorName: string) => {
     try {
       setIsDeepSearch(true); // Use deep search state to indicate server-side filtering
@@ -281,6 +294,86 @@ export const useBillsData = () => {
       setBills(billsWithSponsors);
     } catch (err) {
       console.error("Sponsor filter error:", err);
+      setIsDeepSearch(false);
+    }
+  };
+
+  // NEW: Primary Sponsor filter - queries ALL bills where person is PRIMARY sponsor (position 1)
+  const performPrimarySponsorFilter = async (sponsorName: string) => {
+    try {
+      setIsDeepSearch(true); // Use deep search state to indicate server-side filtering
+
+      // Step 1: Find the person_id for this sponsor
+      const { data: personData } = await supabase
+        .from("People")
+        .select("people_id")
+        .eq("name", sponsorName)
+        .single();
+
+      if (!personData) {
+        setBills([]);
+        return;
+      }
+
+      // Step 2: Find all bills where this person is PRIMARY sponsor (position 1)
+      const { data: sponsorshipData } = await supabase
+        .from("Sponsors")
+        .select("bill_id")
+        .eq("people_id", personData.people_id)
+        .eq("position", 1); // ONLY PRIMARY SPONSORS
+
+      const billIds = sponsorshipData?.map(s => s.bill_id) || [];
+
+      if (billIds.length === 0) {
+        setBills([]);
+        return;
+      }
+
+      // Step 3: Fetch those bills
+      const { data: billsData } = await supabase
+        .from("Bills")
+        .select("*")
+        .in("bill_id", billIds)
+        .order("last_action_date", { ascending: false });
+
+      // Step 4: Fetch sponsors for all these bills
+      const { data: allSponsorsData } = await supabase
+        .from("Sponsors")
+        .select("bill_id, people_id, position")
+        .in("bill_id", billIds)
+        .order("position", { ascending: true });
+
+      const peopleIds = [...new Set(allSponsorsData?.map(s => s.people_id).filter(Boolean) || [])];
+      const { data: peopleData } = await supabase
+        .from("People")
+        .select("people_id, name, party, chamber")
+        .in("people_id", peopleIds);
+
+      const peopleMap = new Map(peopleData?.map(p => [p.people_id, p]) || []);
+      const sponsorsByBill = new Map<number, Array<{ name: string | null; party: string | null; chamber: string | null }>>();
+
+      allSponsorsData?.forEach(sponsor => {
+        if (!sponsorsByBill.has(sponsor.bill_id)) {
+          sponsorsByBill.set(sponsor.bill_id, []);
+        }
+        const person = peopleMap.get(sponsor.people_id);
+        if (person) {
+          sponsorsByBill.get(sponsor.bill_id)!.push({
+            name: person.name,
+            party: person.party,
+            chamber: person.chamber
+          });
+        }
+      });
+
+      const billsWithSponsors = billsData?.map(bill => ({
+        ...bill,
+        sponsors: sponsorsByBill.get(bill.bill_id) || []
+      })) || [];
+
+      setBills(billsWithSponsors);
+    } catch (err) {
+      console.error("Primary sponsor filter error:", err);
       setIsDeepSearch(false);
     }
   };
@@ -417,6 +510,8 @@ export const useBillsData = () => {
     setSearchTerm,
     sponsorFilter,
     setSponsorFilter,
+    primarySponsorFilter, // NEW: Primary sponsor filter
+    setPrimarySponsorFilter, // NEW: Primary sponsor filter setter
     committeeFilter,
     setCommitteeFilter,
     dateRangeFilter,

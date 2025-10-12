@@ -15,6 +15,7 @@ import { Search, X, Filter, Calendar, Zap } from "lucide-react";
 interface Filters {
   search: string;
   sponsor: string;
+  primarySponsor?: string; // NEW: Primary sponsor filter
   committee: string;
   status?: string; // NEW
   dateRange?: string; // NEW
@@ -55,6 +56,14 @@ export const BillsSearchFilters = ({
     });
   };
 
+  // NEW: Primary sponsor filter handler
+  const handlePrimarySponsorChange = (value: string) => {
+    onFiltersChange({
+      ...filters,
+      primarySponsor: value === "all" ? "" : value,
+    });
+  };
+
   const handleCommitteeChange = (value: string) => {
     onFiltersChange({
       ...filters,
@@ -82,6 +91,7 @@ export const BillsSearchFilters = ({
     onFiltersChange({
       search: "",
       sponsor: "",
+      primarySponsor: "", // NEW
       committee: "",
       status: "",
       dateRange: "",
@@ -202,12 +212,25 @@ export const BillsSearchFilters = ({
           <span className="text-sm text-muted-foreground">Active filters:</span>
           {filters.sponsor && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              Sponsor: {filters.sponsor}
+              All Sponsors: {filters.sponsor}
               <Button
                 variant="ghost"
                 size="sm"
                 className="h-4 w-4 p-0 hover:bg-transparent"
                 onClick={() => handleSponsorChange("all")}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          )}
+          {filters.primarySponsor && (
+            <Badge variant="secondary" className="flex items-center gap-1">
+              Primary Sponsor: {filters.primarySponsor}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-4 w-4 p-0 hover:bg-transparent"
+                onClick={() => handlePrimarySponsorChange("all")}
               >
                 <X className="h-3 w-3" />
               </Button>
@@ -286,7 +309,7 @@ export const BillsSearchFilters = ({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Sponsor</label>
+              <label className="text-sm font-medium">All Sponsors</label>
               <Select value={filters.sponsor || "all"} onValueChange={handleSponsorChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="All sponsors" />
@@ -295,6 +318,28 @@ export const BillsSearchFilters = ({
                   <SelectItem value="all">All sponsors</SelectItem>
                   {uniqueSponsors.map((sponsor) => (
                     <SelectItem key={sponsor.name} value={sponsor.name}>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">{sponsor.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {sponsor.chamber} • {sponsor.party}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Primary Sponsor</label>
+              <Select value={filters.primarySponsor || "all"} onValueChange={handlePrimarySponsorChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All primary sponsors" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All primary sponsors</SelectItem>
+                  {uniqueSponsors.map((sponsor) => (
+                    <SelectItem key={`primary-${sponsor.name}`} value={sponsor.name}>
                       <div className="flex flex-col">
                         <span className="text-sm font-medium">{sponsor.name}</span>
                         <span className="text-xs text-muted-foreground">

@@ -29,6 +29,8 @@ const Bills = () => {
     setSearchTerm,
     sponsorFilter,
     setSponsorFilter,
+    primarySponsorFilter, // NEW: Primary sponsor filter
+    setPrimarySponsorFilter, // NEW: Primary sponsor filter setter
     committeeFilter,
     setCommitteeFilter,
     dateRangeFilter,
@@ -110,12 +112,14 @@ const Bills = () => {
   const handleFiltersChange = (newFilters: {
     search: string;
     sponsor: string;
+    primarySponsor?: string; // NEW: Primary sponsor filter
     committee: string;
     status?: string; // NEW
     dateRange?: string; // NEW
   }) => {
     setSearchTerm(newFilters.search);
     setSponsorFilter(newFilters.sponsor);
+    if (newFilters.primarySponsor !== undefined) setPrimarySponsorFilter(newFilters.primarySponsor); // NEW
     setCommitteeFilter(newFilters.committee);
     if (newFilters.status !== undefined) setStatusFilter(newFilters.status); // NEW
     if (newFilters.dateRange !== undefined) setDateRangeFilter(newFilters.dateRange); // NEW
@@ -135,7 +139,7 @@ const Bills = () => {
     return <BillsErrorState error={error} onRetry={fetchBills} />;
   }
 
-  const hasFilters = searchTerm !== "" || sponsorFilter !== "" || committeeFilter !== "" || dateRangeFilter !== "" || statusFilter !== "";
+  const hasFilters = searchTerm !== "" || sponsorFilter !== "" || primarySponsorFilter !== "" || committeeFilter !== "" || dateRangeFilter !== "" || statusFilter !== "";
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6">
@@ -148,6 +152,7 @@ const Bills = () => {
           filters={{
             search: searchTerm,
             sponsor: sponsorFilter,
+            primarySponsor: primarySponsorFilter, // NEW: Primary sponsor filter
             committee: committeeFilter,
             status: statusFilter, // NEW
             dateRange: dateRangeFilter, // NEW
