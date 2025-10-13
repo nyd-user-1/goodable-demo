@@ -572,7 +572,7 @@ const NewChat = () => {
       </div>
 
       {/* Fixed Bottom Input Area - Always Visible */}
-      <div className="sticky bottom-0 bg-background border-t">
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t z-10">
         <div className="w-full px-4 py-4">
           <div className="max-w-[720px] mx-auto">
             <form onSubmit={handleSubmit} className="relative">
