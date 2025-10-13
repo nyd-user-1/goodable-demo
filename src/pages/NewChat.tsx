@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from 'react-markdown';
+import { useModel } from "@/contexts/ModelContext";
 
 // Featuring real bills from our database
 const samplePrompts = [
@@ -43,6 +44,7 @@ const NewChat = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [chatStarted, setChatStarted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { selectedModel } = useModel();
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -162,13 +164,14 @@ const NewChat = () => {
       // Fetch relevant bills while AI generates response
       const relevantBills = await fetchRelevantBills(userQuery);
 
-      // Call your existing OpenAI edge function
+      // Call the edge function with the selected model
       const { data, error } = await supabase.functions.invoke('generate-with-openai', {
         body: {
           prompt: userQuery,
           type: 'default',
           context: 'research_chat',
-          stream: false
+          stream: false,
+          model: selectedModel
         }
       });
 
