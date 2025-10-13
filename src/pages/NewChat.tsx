@@ -224,7 +224,7 @@ const NewChat = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {!chatStarted ? (
-          <>{/* Initial State - Prompt Cards - More Minimal */}
+          /* Initial State - Prompt Cards */
           <div className="flex flex-col items-center justify-center flex-1 px-4">
             <h1 className="text-4xl md:text-5xl font-semibold text-center mb-12 tracking-tight">
               What are you researching?
@@ -252,12 +252,11 @@ const NewChat = () => {
                 </Card>
               ))}
             </div>
-          </div></>
+          </div>
         ) : (
-          <>{/* Chat State - Messages */}
-          <div className="flex-1 flex flex-col overflow-hidden px-4">
-            <div className="flex-1 overflow-y-auto pt-8 pb-4">
-              <div className="w-full max-w-4xl mx-auto space-y-6">
+          /* Chat State - Messages */
+          <div className="flex-1 overflow-y-auto pt-8 pb-4 px-4">
+            <div className="w-full max-w-4xl mx-auto space-y-6">
             {messages.map((message) => (
               <div key={message.id} className="space-y-3">
                 {message.role === "user" ? (
@@ -387,61 +386,61 @@ const NewChat = () => {
               </div>
             )}
 
-              </div>
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Bottom Input Area - Inside chat container */}
-            <div className="border-t bg-background">
-              <div className="w-full max-w-4xl mx-auto py-4">
-          <form onSubmit={handleSubmit} className="relative">
-            {/* Minimal gray input box - Midpage style */}
-            <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-muted/50 border-0">
-              {/* File Attachment Icon */}
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="flex-shrink-0 h-8 w-8 rounded-md hover:bg-muted"
-              >
-                <Paperclip className="h-4 w-4 text-muted-foreground" />
-              </Button>
-
-              {/* Input Field */}
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Ask anything..."
-                className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm px-2 h-8 placeholder:text-muted-foreground/60"
-              />
-
-              {/* Deep Research Label */}
-              <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-muted-foreground border rounded-md bg-background/50">
-                <FileText className="h-3.5 w-3.5" />
-                <span>Deep research</span>
-              </div>
-
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                size="icon"
-                className="flex-shrink-0 h-8 w-8 rounded-md"
-                disabled={!query.trim()}
-              >
-                <ArrowUp className="h-4 w-4" />
-              </Button>
-            </div>
-          </form>
-
-          {/* Disclaimer */}
-          <div className="flex items-center justify-center gap-1 mt-3">
-            <span className="text-xs text-muted-foreground/70">
-              AI-generated responses must be verified and are not legal advice.
-            </span>
-              </div>
-            </div>
-          </div></>
+            <div ref={messagesEndRef} />
+          </div>
+          </div>
         )}
+
+        {/* Bottom Input Area - Always Visible */}
+        <div className="border-t bg-background px-4">
+          <div className="w-full max-w-4xl mx-auto py-4">
+            <form onSubmit={handleSubmit} className="relative">
+              {/* Minimal gray input box - Midpage style */}
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-muted/50 border-0">
+                {/* File Attachment Icon */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="flex-shrink-0 h-8 w-8 rounded-md hover:bg-muted"
+                >
+                  <Paperclip className="h-4 w-4 text-muted-foreground" />
+                </Button>
+
+                {/* Input Field */}
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Ask anything..."
+                  className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm px-2 h-8 placeholder:text-muted-foreground/60"
+                />
+
+                {/* Deep Research Label */}
+                <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-muted-foreground border rounded-md bg-background/50">
+                  <FileText className="h-3.5 w-3.5" />
+                  <span>Deep research</span>
+                </div>
+
+                {/* Submit Button */}
+                <Button
+                  type="submit"
+                  size="icon"
+                  className="flex-shrink-0 h-8 w-8 rounded-md"
+                  disabled={!query.trim()}
+                >
+                  <ArrowUp className="h-4 w-4" />
+                </Button>
+              </div>
+            </form>
+
+            {/* Disclaimer */}
+            <div className="flex items-center justify-center gap-1 mt-3">
+              <span className="text-xs text-muted-foreground/70">
+                AI-generated responses must be verified and are not legal advice.
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
