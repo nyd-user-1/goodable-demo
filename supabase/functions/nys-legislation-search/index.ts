@@ -20,8 +20,8 @@ serve(async (req) => {
 
   try {
     const requestBody = await req.json();
-    const { action, searchType, query, sessionYear, limit = 20, lawId } = requestBody;
-    
+    const { action, searchType, query, sessionYear, limit = 20, lawId, billNumber } = requestBody;
+
     if (!nysApiKey) {
       throw new Error('NYS Legislation API key not configured');
     }
@@ -33,6 +33,8 @@ serve(async (req) => {
       return await syncSingleLaw(lawId);
     } else if (action === 'get-progress') {
       return await getProgress();
+    } else if (action === 'get-bill-detail' && billNumber) {
+      return await getBillDetail(billNumber, sessionYear);
     } else {
       // Default to search functionality
       return await handleSearch(searchType, query, sessionYear, limit);
@@ -389,21 +391,49 @@ async function getProgress() {
   }
 }
 
+async function getBillDetail(billNumber: string, sessionYear: number = 2025) {
+  console.log(`Fetching full bill detail for ${billNumber} (${sessionYear})`);
+
+  // Format: https://legislation.nysenate.gov/api/3/bills/2025/A405?view=info&key=API_KEY
+  const apiUrl = `https://legislation.nysenate.gov/api/3/bills/${sessionYear}/${billNumber}?view=info&key=${nysApiKey}`;
+
+  console.log('Calling NYS API:', apiUrl.replace(nysApiKey, 'REDACTED'));
+
+  try {
+    const response = await fetch(apiUrl);
+
+    if (!response.ok) {
+      console.error('NYS API error:', response.status, response.statusText);
+      throw new Error(`NYS API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Bill detail fetched successfully');
+
+    return new Response(JSON.stringify(data), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Error fetching bill detail:', error);
+    throw error;
+  }
+}
+
 async function fetchWithRetry(url: string, retries: number = 3): Promise<any> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (!data.success) {
         throw new Error(`API Error: ${data.message || "Unknown error"}`);
       }
-      
+
       return data;
     } catch (error) {
       console.log(`Attempt ${attempt}/${retries} failed: ${error.message}`);

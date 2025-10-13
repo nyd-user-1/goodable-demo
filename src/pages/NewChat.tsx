@@ -24,6 +24,9 @@ interface BillCitation {
   bill_number: string;
   title: string;
   status_desc: string;
+  description?: string;
+  committee?: string;
+  session_id?: number;
 }
 
 interface Message {
@@ -79,6 +82,26 @@ const NewChat = () => {
     }, 30); // Enterprise-level speed: 30ms per word
   };
 
+  // Fetch full bill data from NYS Legislature API
+  const fetchFullBillData = async (billNumber: string, sessionYear: number = 2025) => {
+    try {
+      // Call NYS API edge function to get full bill details
+      const { data, error } = await supabase.functions.invoke('nys-legislation-search', {
+        body: {
+          action: 'get-bill-detail',
+          billNumber: billNumber,
+          sessionYear: sessionYear
+        }
+      });
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error(`Error fetching full bill data for ${billNumber}:`, error);
+      return null;
+    }
+  };
+
   // Fetch relevant bills from database to use as citations
   const fetchRelevantBills = async (query: string): Promise<BillCitation[]> => {
     try {
@@ -90,7 +113,7 @@ const NewChat = () => {
       if (billNumbers.length > 0) {
         const { data: exactBills, error } = await supabase
           .from("Bills")
-          .select("bill_number, title, status_desc")
+          .select("bill_number, title, status_desc, description, committee, session_id")
           .in("bill_number", billNumbers.map(b => b.toUpperCase()))
           .limit(5);
 
@@ -120,7 +143,7 @@ const NewChat = () => {
 
         const { data, error } = await supabase
           .from("Bills")
-          .select("bill_number, title, status_desc")
+          .select("bill_number, title, status_desc, description, committee, session_id")
           .or(keywordSearches)
           .limit(5);
 
@@ -164,6 +187,47 @@ const NewChat = () => {
       // Fetch relevant bills while AI generates response
       const relevantBills = await fetchRelevantBills(userQuery);
 
+      // Extract bill numbers from query to fetch full data
+      const billNumberPattern = /[ASK]\d{5,}/gi;
+      const billNumbers = userQuery.match(billNumberPattern) || [];
+
+      // Fetch full bill data from NYS API for specific bills mentioned
+      let fullBillData = null;
+      if (billNumbers.length > 0) {
+        // Get the first bill's full data from NYS API
+        const billNumber = billNumbers[0].toUpperCase();
+        fullBillData = await fetchFullBillData(billNumber);
+      }
+
+      // Format bill data as context for Claude
+      let billContext = null;
+
+      if (fullBillData && fullBillData.result) {
+        // Use full bill data from NYS API (rich context)
+        const bill = fullBillData.result;
+        billContext =
+          `\n# FULL LEGISLATIVE DATA FROM NY STATE LEGISLATURE\n\n` +
+          `## Bill ${bill.printNo || bill.basePrintNo}\n` +
+          `**Session Year:** ${bill.session}\n` +
+          `**Title:** ${bill.title || 'N/A'}\n` +
+          `**Status:** ${bill.status?.statusDesc || 'Unknown'}\n` +
+          `**Sponsor:** ${bill.sponsor?.member?.fullName || 'Unknown'}\n` +
+          `**Committee:** ${bill.status?.committeeDesc || 'Not assigned'}\n\n` +
+          `### Bill Summary\n${bill.summary || 'No summary available'}\n\n` +
+          `### Full Bill Text\n${bill.fullText || bill.amendmentVersions?.[0]?.fullText || 'Full text not available'}\n\n` +
+          `### Sponsor Memo\n${bill.amendmentVersions?.[0]?.memo || 'No sponsor memo available'}\n`;
+      } else if (relevantBills.length > 0) {
+        // Fallback to database metadata
+        billContext = relevantBills.map(bill =>
+            `\n## Bill ${bill.bill_number}\n` +
+            `**Title:** ${bill.title}\n` +
+            `**Status:** ${bill.status_desc || 'Unknown'}\n` +
+            `**Committee:** ${bill.committee || 'Not assigned'}\n` +
+            `**Session:** ${bill.session_id || 'N/A'}\n` +
+            `**Description:** ${bill.description || 'No description available'}\n`
+          ).join('\n');
+      }
+
       // Determine which edge function to call based on model
       const isClaudeModel = selectedModel.startsWith('claude-');
       const edgeFunction = isClaudeModel ? 'generate-with-claude' : 'generate-with-openai';
@@ -173,7 +237,7 @@ const NewChat = () => {
         body: {
           prompt: userQuery,
           type: 'default',
-          context: 'research_chat',
+          context: billContext,  // Pass actual bill data as context
           stream: false,
           model: selectedModel
         }
