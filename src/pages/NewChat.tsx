@@ -399,9 +399,9 @@ const NewChat = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-full bg-background">
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto pb-32">
+      <div className="flex-1 overflow-y-auto pb-4">
         {!chatStarted ? (
           /* Initial State - Prompt Cards */
           <div className="flex flex-col items-center justify-center min-h-full px-4">
@@ -571,8 +571,8 @@ const NewChat = () => {
         )}
       </div>
 
-      {/* Fixed Bottom Input Area - Always Visible */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t">
+      {/* Bottom Input Area - Always Visible */}
+      <div className="bg-background border-t">
         <div className="w-full px-4 py-4">
           <div className="max-w-[720px] mx-auto">
             <form onSubmit={handleSubmit} className="relative">
