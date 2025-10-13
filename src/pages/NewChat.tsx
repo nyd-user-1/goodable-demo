@@ -634,8 +634,19 @@ const NewChat = () => {
 
                 {/* Input Area with Buttons */}
                 <div className="flex items-start gap-2">
-                  {/* Filter Buttons */}
+                  {/* Left Side - Attachment + Filter Buttons */}
                   <div className="flex gap-1 pt-1">
+                    {/* Attachment Button */}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="flex-shrink-0 h-8 w-8 rounded-md hover:bg-muted"
+                      title="Attach files"
+                    >
+                      <Paperclip className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+
                     <Dialog open={membersDialogOpen} onOpenChange={setMembersDialogOpen}>
                       <DialogTrigger asChild>
                         <Button
@@ -704,7 +715,7 @@ const NewChat = () => {
                                             }
                                           }}
                                         >
-                                          <td className="p-3 font-medium text-green-700 dark:text-green-400">{member.name}</td>
+                                          <td className="p-3 font-medium">{member.name}</td>
                                           <td className="p-3 text-muted-foreground">{member.party || 'N/A'}</td>
                                           <td className="p-3 text-muted-foreground">{member.chamber || 'N/A'}</td>
                                           <td className="p-3 text-muted-foreground">{member.district || 'N/A'}</td>
@@ -811,7 +822,7 @@ const NewChat = () => {
                                             }
                                           }}
                                         >
-                                          <td className="p-3 font-medium text-orange-700 dark:text-orange-400">{committee.committee_name}</td>
+                                          <td className="p-3 font-medium">{committee.committee_name}</td>
                                           <td className="p-3 text-muted-foreground">{committee.chamber || 'N/A'}</td>
                                           <td className="p-3 text-muted-foreground">{committee.chair_name || 'N/A'}</td>
                                           <td className="p-3 text-center">
@@ -918,7 +929,7 @@ const NewChat = () => {
                                             }
                                           }}
                                         >
-                                          <td className="p-3 font-medium text-primary">{bill.bill_number}</td>
+                                          <td className="p-3 font-medium">{bill.bill_number}</td>
                                           <td className="p-3 max-w-md truncate">{bill.title}</td>
                                           <td className="p-3 text-muted-foreground">{bill.status_desc || 'N/A'}</td>
                                           <td className="p-3 text-center">
@@ -972,24 +983,15 @@ const NewChat = () => {
                     }}
                   />
 
-                  {/* Right Side - Deep Research + Submit */}
-                  <div className="flex flex-col gap-2 pt-1">
-                    {/* Deep Research Label */}
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-muted-foreground border rounded-md bg-background/50">
-                      <FileText className="h-3.5 w-3.5" />
-                      <span>Deep research</span>
-                    </div>
-
-                    {/* Submit Button */}
-                    <Button
-                      type="submit"
-                      size="icon"
-                      className="flex-shrink-0 h-8 w-8 rounded-md"
-                      disabled={!query.trim()}
-                    >
-                      <ArrowUp className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {/* Right Side - Submit Button Only */}
+                  <Button
+                    type="submit"
+                    size="icon"
+                    className="flex-shrink-0 h-8 w-8 rounded-md self-end"
+                    disabled={!query.trim()}
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             </form>
