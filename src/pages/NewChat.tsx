@@ -974,7 +974,7 @@ const NewChat = () => {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Ask anything..."
-                    className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm px-2 min-h-[96px] resize-none placeholder:text-muted-foreground/60"
+                    className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm min-h-[96px] resize-none placeholder:text-muted-foreground/60"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
