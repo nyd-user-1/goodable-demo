@@ -80,17 +80,53 @@ const NewChat = () => {
   // Fetch relevant bills from database to use as citations
   const fetchRelevantBills = async (query: string): Promise<BillCitation[]> => {
     try {
-      const searchPattern = `%${query.substring(0, 50)}%`;
+      // Extract bill numbers (e.g., A00405, S12345, etc.)
+      const billNumberPattern = /[ASK]\d{5,}/gi;
+      const billNumbers = query.match(billNumberPattern) || [];
 
-      const { data, error } = await supabase
-        .from("Bills")
-        .select("bill_number, title, status_desc")
-        .or(`title.ilike.${searchPattern},description.ilike.${searchPattern}`)
-        .limit(5);
+      // If specific bill numbers are mentioned, fetch those first
+      if (billNumbers.length > 0) {
+        const { data: exactBills, error } = await supabase
+          .from("Bills")
+          .select("bill_number, title, status_desc")
+          .in("bill_number", billNumbers.map(b => b.toUpperCase()))
+          .limit(5);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      return data || [];
+        // If we found the exact bills, return them
+        if (exactBills && exactBills.length > 0) {
+          return exactBills;
+        }
+      }
+
+      // Otherwise, extract keywords and search by content
+      // Remove common words and extract meaningful keywords
+      const stopWords = ['how', 'would', 'does', 'what', 'the', 'is', 'in', 'to', 'for', 'by', 'and', 'or', 'of', 'a', 'an'];
+      const keywords = query
+        .toLowerCase()
+        .replace(/[^\w\s]/g, ' ')
+        .split(/\s+/)
+        .filter(word => word.length > 3 && !stopWords.includes(word))
+        .slice(0, 5); // Take top 5 keywords
+
+      if (keywords.length > 0) {
+        // Build search conditions for keywords
+        const keywordSearches = keywords.map(kw =>
+          `title.ilike.%${kw}%,description.ilike.%${kw}%`
+        ).join(',');
+
+        const { data, error } = await supabase
+          .from("Bills")
+          .select("bill_number, title, status_desc")
+          .or(keywordSearches)
+          .limit(5);
+
+        if (error) throw error;
+        return data || [];
+      }
+
+      return [];
     } catch (error) {
       console.error("Error fetching bills:", error);
       return [];
