@@ -392,8 +392,8 @@ const NewChat = () => {
         )}
 
         {/* Bottom Input Area - Always Visible */}
-        <div className="border-t bg-background px-4">
-          <div className="w-full max-w-4xl mx-auto py-4">
+        <div className="bg-background px-4">
+          <div className="w-full max-w-4xl mx-auto py-2">
             <form onSubmit={handleSubmit} className="relative">
               {/* Minimal gray input box - Midpage style */}
               <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-muted/50 border-0">
