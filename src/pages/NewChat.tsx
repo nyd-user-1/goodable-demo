@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from 'react-markdown';
 
-// Reduced to 2 prompts like Midpage - featuring real bills from our database
+// Featuring real bills from our database
 const samplePrompts = [
   {
     title: "How would Assemblywoman Solages' bill A00405 improve childcare affordability by providing diaper assistance for families receiving safety net support?",
@@ -16,6 +16,10 @@ const samplePrompts = [
   {
     title: "What protections does Assemblyman Bores' A00768, the 'NY Artificial Intelligence Consumer Protection Act', establish against algorithmic discrimination?",
     category: "AI & Technology"
+  },
+  {
+    title: "What are the requirements and benefits of Assemblyman Colton's A00756, mandating project labor agreements for Long Island school construction projects?",
+    category: "Labor & Education"
   }
 ];
 
@@ -230,7 +234,7 @@ const NewChat = () => {
               What are you researching?
             </h1>
 
-            <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
+            <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
               {samplePrompts.map((prompt, index) => (
                 <Card
                   key={index}
