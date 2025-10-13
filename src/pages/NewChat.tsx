@@ -435,7 +435,7 @@ const NewChat = () => {
         ) : (
           /* Chat State - Messages */
           <div className="pt-8 pb-4 px-4">
-            <div className="w-full max-w-4xl mx-auto space-y-6">
+            <div className="w-full max-w-[720px] mx-auto space-y-6">
             {messages.map((message) => (
               <div key={message.id} className="space-y-3">
                 {message.role === "user" ? (
@@ -574,7 +574,7 @@ const NewChat = () => {
       {/* Fixed Bottom Input Area - Always Visible */}
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t">
         <div className="w-full px-4 py-4">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-[720px] mx-auto">
             <form onSubmit={handleSubmit} className="relative">
               {/* Larger input box - Fintool/Claude style */}
               <div className="rounded-lg bg-muted/50 border-0 p-3">
