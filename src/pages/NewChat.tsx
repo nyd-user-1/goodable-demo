@@ -10,11 +10,11 @@ import ReactMarkdown from 'react-markdown';
 // Reduced to 2 prompts like Midpage - featuring real bills from our database
 const samplePrompts = [
   {
-    title: "What are the requirements and implications of A00051, which mandates opioid antagonist training and emergency supplies at all child care facilities?",
+    title: "How would Assemblywoman Solages' bill A00405 improve childcare affordability by providing diaper assistance for families receiving safety net support?",
     category: "Child Care Policy"
   },
   {
-    title: "How does A00768, the 'New York Artificial Intelligence Consumer Protection Act', aim to prevent algorithmic discrimination against protected classes?",
+    title: "What protections does Assemblyman Bores' A00768, the 'NY Artificial Intelligence Consumer Protection Act', establish against algorithmic discrimination?",
     category: "AI & Technology"
   }
 ];
