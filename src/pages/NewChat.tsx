@@ -633,9 +633,9 @@ const NewChat = () => {
                 )}
 
                 {/* Input Area with Buttons */}
-                <div className="flex items-end gap-2">
+                <div className="flex items-end gap-0">
                   {/* Left Side - Attachment + Filter Buttons */}
-                  <div className="flex gap-1 pl-2">
+                  <div className="flex gap-1 px-2">
                     {/* Attachment Button */}
                     <Button
                       type="button"
