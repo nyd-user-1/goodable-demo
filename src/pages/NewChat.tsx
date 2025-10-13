@@ -222,10 +222,10 @@ const NewChat = () => {
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 overflow-y-auto pb-32">
         {!chatStarted ? (
           /* Initial State - Prompt Cards */
-          <div className="flex flex-col items-center justify-center flex-1 px-4">
+          <div className="flex flex-col items-center justify-center min-h-full px-4">
             <h1 className="text-4xl md:text-5xl font-semibold text-center mb-12 tracking-tight">
               What are you researching?
             </h1>
@@ -255,7 +255,7 @@ const NewChat = () => {
           </div>
         ) : (
           /* Chat State - Messages */
-          <div className="flex-1 overflow-y-auto pt-8 pb-4 px-4">
+          <div className="pt-8 pb-4 px-4">
             <div className="w-full max-w-4xl mx-auto space-y-6">
             {messages.map((message) => (
               <div key={message.id} className="space-y-3">
@@ -390,10 +390,12 @@ const NewChat = () => {
           </div>
           </div>
         )}
+      </div>
 
-        {/* Bottom Input Area - Always Visible */}
-        <div className="bg-background px-4 pb-4">
-          <div className="w-full max-w-4xl mx-auto pt-2">
+      {/* Fixed Bottom Input Area - Always Visible */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t">
+        <div className="w-full px-4 py-4">
+          <div className="max-w-4xl mx-auto">
             <form onSubmit={handleSubmit} className="relative">
               {/* Minimal gray input box - Midpage style */}
               <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-muted/50 border-0">
