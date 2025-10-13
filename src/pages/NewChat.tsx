@@ -16,10 +16,6 @@ const samplePrompts = [
   {
     title: "What protections does Assemblyman Bores' A00768, the 'NY Artificial Intelligence Consumer Protection Act', establish against algorithmic discrimination?",
     category: "AI & Technology"
-  },
-  {
-    title: "What are the requirements and benefits of Assemblyman Colton's A00756, mandating project labor agreements for Long Island school construction projects?",
-    category: "Labor & Education"
   }
 ];
 
@@ -226,15 +222,15 @@ const NewChat = () => {
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col px-4 pb-36 overflow-y-auto">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {!chatStarted ? (
           <>{/* Initial State - Prompt Cards - More Minimal */}
-          <div className="flex flex-col items-center justify-center flex-1">
+          <div className="flex flex-col items-center justify-center flex-1 px-4">
             <h1 className="text-4xl md:text-5xl font-semibold text-center mb-12 tracking-tight">
               What are you researching?
             </h1>
 
-            <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
+            <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
               {samplePrompts.map((prompt, index) => (
                 <Card
                   key={index}
@@ -259,7 +255,9 @@ const NewChat = () => {
           </div></>
         ) : (
           <>{/* Chat State - Messages */}
-          <div className="w-full max-w-4xl mx-auto pt-8 space-y-6">
+          <div className="flex-1 flex flex-col overflow-hidden px-4">
+            <div className="flex-1 overflow-y-auto pt-8 pb-4">
+              <div className="w-full max-w-4xl mx-auto space-y-6">
             {messages.map((message) => (
               <div key={message.id} className="space-y-3">
                 {message.role === "user" ? (
@@ -348,8 +346,16 @@ const NewChat = () => {
                         </div>
                         <div className="space-y-2">
                           {message.citations.map((citation, idx) => (
-                            <div key={idx} className="text-xs p-3 rounded-md bg-muted/40 border-0">
-                              <div className="font-medium text-foreground mb-1">
+                            <a
+                              key={idx}
+                              href={`/bills`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                window.location.href = `/bills`;
+                              }}
+                              className="block text-xs p-3 rounded-md bg-muted/40 border-0 hover:bg-muted/60 transition-colors cursor-pointer"
+                            >
+                              <div className="font-medium text-primary mb-1 hover:underline">
                                 {citation.bill_number}
                               </div>
                               <div className="text-muted-foreground line-clamp-2">
@@ -360,7 +366,7 @@ const NewChat = () => {
                                   Status: {citation.status_desc}
                                 </div>
                               )}
-                            </div>
+                            </a>
                           ))}
                         </div>
                       </div>
@@ -381,14 +387,13 @@ const NewChat = () => {
               </div>
             )}
 
-            <div ref={messagesEndRef} />
-          </div></>
-        )}
-      </div>
+              </div>
+              <div ref={messagesEndRef} />
+            </div>
 
-      {/* Bottom Input Area - Minimal Gray Styling like Midpage */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t">
-        <div className="container max-w-4xl mx-auto px-4 py-4">
+            {/* Bottom Input Area - Inside chat container */}
+            <div className="border-t bg-background">
+              <div className="w-full max-w-4xl mx-auto py-4">
           <form onSubmit={handleSubmit} className="relative">
             {/* Minimal gray input box - Midpage style */}
             <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-muted/50 border-0">
@@ -433,8 +438,10 @@ const NewChat = () => {
             <span className="text-xs text-muted-foreground/70">
               AI-generated responses must be verified and are not legal advice.
             </span>
-          </div>
-        </div>
+              </div>
+            </div>
+          </div></>
+        )}
       </div>
     </div>
   );
