@@ -632,8 +632,22 @@ const NewChat = () => {
                   </div>
                 )}
 
-                {/* Input Area with Buttons */}
-                <div className="flex items-end gap-0">
+                {/* Text Input */}
+                <Textarea
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Ask anything..."
+                  className="flex-1 min-h-[96px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 placeholder:text-muted-foreground/60"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmit(e as any);
+                    }
+                  }}
+                />
+
+                {/* Bottom Row with Buttons */}
+                <div className="flex items-center justify-between mt-3">
                   {/* Left Side - Attachment + Filter Buttons */}
                   <div className="flex gap-1">
                     {/* Attachment Button */}
@@ -641,10 +655,10 @@ const NewChat = () => {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="flex-shrink-0 h-8 w-8 rounded-md hover:bg-muted"
+                      className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
                       title="Attach files"
                     >
-                      <Paperclip className="h-4 w-4 text-muted-foreground" />
+                      <Paperclip className="h-4 w-4" />
                     </Button>
 
                     <Dialog open={membersDialogOpen} onOpenChange={setMembersDialogOpen}>
@@ -653,10 +667,10 @@ const NewChat = () => {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="flex-shrink-0 h-8 w-8 rounded-md hover:bg-muted"
+                          className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
                           title="Select Members"
                         >
-                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <Users className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
@@ -761,10 +775,10 @@ const NewChat = () => {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="flex-shrink-0 h-8 w-8 rounded-md hover:bg-muted"
+                          className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
                           title="Select Committees"
                         >
-                          <Building2 className="h-4 w-4 text-muted-foreground" />
+                          <Building2 className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
@@ -867,10 +881,10 @@ const NewChat = () => {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="flex-shrink-0 h-8 w-8 rounded-md hover:bg-muted"
+                          className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
                           title="Select Bills"
                         >
-                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <FileText className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
@@ -969,25 +983,11 @@ const NewChat = () => {
                     </Dialog>
                   </div>
 
-                  {/* Textarea Input */}
-                  <Textarea
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Ask anything..."
-                    className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm p-0 min-h-[96px] resize-none placeholder:text-muted-foreground/60"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSubmit(e as any);
-                      }
-                    }}
-                  />
-
-                  {/* Right Side - Submit Button Only */}
+                  {/* Right Side - Submit Button */}
                   <Button
                     type="submit"
                     size="icon"
-                    className="flex-shrink-0 h-8 w-8 rounded-md self-end"
+                    className="h-9 w-9 rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-50"
                     disabled={!query.trim()}
                   >
                     <ArrowUp className="h-4 w-4" />
