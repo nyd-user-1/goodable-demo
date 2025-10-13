@@ -12,8 +12,6 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import { useNavigate } from "react-router-dom";
-import { useTopFavorites } from "@/hooks/useTopFavorites";
 import { useModel } from "@/contexts/ModelContext";
 
 // Custom icon components for each provider
@@ -75,8 +73,6 @@ const models: Record<ModelProvider, { name: string; icon: React.ComponentType<{ 
 };
 
 export function SidebarHeader() {
-  const navigate = useNavigate();
-  const { topFavorites, loading: favoritesLoading } = useTopFavorites(10);
   const { selectedModel, setSelectedModel } = useModel();
 
   return (
@@ -97,28 +93,6 @@ export function SidebarHeader() {
             align="start"
             className="w-[--radix-popper-anchor-width]"
           >
-            <DropdownMenuLabel>Favorites</DropdownMenuLabel>
-            {favoritesLoading ? (
-              <DropdownMenuItem disabled>
-                <span className="text-muted-foreground text-xs">Loading...</span>
-              </DropdownMenuItem>
-            ) : topFavorites.length > 0 ? (
-              topFavorites.map((favorite) => (
-                <DropdownMenuItem key={favorite.id} onClick={() => navigate(favorite.url)}>
-                  <div className="flex flex-col flex-1 min-w-0">
-                    <span className="truncate text-sm">{favorite.title}</span>
-                    {favorite.subtitle && (
-                      <span className="truncate text-xs text-muted-foreground">{favorite.subtitle}</span>
-                    )}
-                  </div>
-                </DropdownMenuItem>
-              ))
-            ) : (
-              <DropdownMenuItem disabled>
-                <span className="text-muted-foreground text-xs">No favorites yet</span>
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
             <DropdownMenuLabel>Models</DropdownMenuLabel>
             {Object.entries(models).map(([providerId, provider]) => (
               <div key={providerId}>
