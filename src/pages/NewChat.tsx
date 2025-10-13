@@ -7,15 +7,15 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from 'react-markdown';
 
-// Reduced to 2 prompts like Midpage
+// Reduced to 2 prompts like Midpage - featuring real bills from our database
 const samplePrompts = [
   {
-    title: "Are reduced-form regression models acceptable evidence of class-wide impact at the class certification stage?",
-    category: "Legal Research"
+    title: "What are the requirements and implications of A00051, which mandates opioid antagonist training and emergency supplies at all child care facilities?",
+    category: "Child Care Policy"
   },
   {
-    title: "If Delaware is a company's place of incorporation, is that enough to establish personal jurisdiction and venue in Delaware?",
-    category: "Legal Research"
+    title: "How does A00768, the 'New York Artificial Intelligence Consumer Protection Act', aim to prevent algorithmic discrimination against protected classes?",
+    category: "AI & Technology"
   }
 ];
 
