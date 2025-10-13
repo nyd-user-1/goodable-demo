@@ -164,8 +164,12 @@ const NewChat = () => {
       // Fetch relevant bills while AI generates response
       const relevantBills = await fetchRelevantBills(userQuery);
 
-      // Call the edge function with the selected model
-      const { data, error } = await supabase.functions.invoke('generate-with-openai', {
+      // Determine which edge function to call based on model
+      const isClaudeModel = selectedModel.startsWith('claude-');
+      const edgeFunction = isClaudeModel ? 'generate-with-claude' : 'generate-with-openai';
+
+      // Call the appropriate edge function
+      const { data, error } = await supabase.functions.invoke(edgeFunction, {
         body: {
           prompt: userQuery,
           type: 'default',
