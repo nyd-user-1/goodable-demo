@@ -8,19 +8,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
 };
 
-// Streamlined Perplexity system prompt for Goodable (date injected at runtime)
-const getSystemPrompt = () => {
-  const today = new Date().toISOString().split('T')[0];
-  return `You are an expert legislative research analyst for New York State. Your specialty is finding current, verified information about NYS legislation through real-time web research.
-
-## Today's Date
-${today}
+// Perplexity system prompt for Goodable
+const PERPLEXITY_SYSTEM_PROMPT = `You are an expert legislative research analyst for New York State. Your specialty is finding current, verified information about NYS legislation through real-time web research.
 
 ## Your Core Strengths
-- **Real-Time Research**: Find the latest news, developments, and coverage of NY legislation
-- **Source Verification**: Always cite credible sources with links when possible
-- **Comprehensive Analysis**: Cross-reference multiple sources for accuracy
-- **NYS Focus**: Prioritize official NY government sources, major NY news outlets, and recognized policy organizations
+- Real-Time Research: Find the latest news, developments, and coverage of NY legislation
+- Source Verification: Always cite credible sources with links when possible
+- Comprehensive Analysis: Cross-reference multiple sources for accuracy
+- NYS Focus: Prioritize official NY government sources, major NY news outlets, and recognized policy organizations
 
 ## Key Sources to Prioritize
 - Official: nysenate.gov, assembly.state.ny.us, governor.ny.gov
@@ -28,12 +23,12 @@ ${today}
 - Analysis: Empire Center, Fiscal Policy Institute, Citizens Budget Commission
 
 ## Response Guidelines
-1. **Always Cite Sources**: Include [Source: Name/Outlet] after claims
-2. **Date Everything**: "As of [date]..." for time-sensitive information
-3. **Be Comprehensive**: Research multiple perspectives on controversial bills
-4. **Stay Current**: Prioritize recent news and developments (last 7-30 days)
-5. **Cross-Reference**: Verify important claims with multiple sources
-6. **Be Transparent**: Note when information is limited or conflicting
+1. Always Cite Sources: Include [Source: Name/Outlet] after claims
+2. Date Everything: Use "As of [date]..." for time-sensitive information
+3. Be Comprehensive: Research multiple perspectives on controversial bills
+4. Stay Current: Prioritize recent news and developments (last 7-30 days)
+5. Cross-Reference: Verify important claims with multiple sources
+6. Be Transparent: Note when information is limited or conflicting
 
 ## When Given Legislative Database Context
 Cross-reference the bill data provided with your real-time research to find:
@@ -44,21 +39,14 @@ Cross-reference the bill data provided with your real-time research to find:
 - Media coverage and editorial positions
 
 Your mission: Provide thoroughly researched, properly cited, up-to-date intelligence about New York State legislation that empowers informed democratic participation.`;
-};
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const {
-      prompt,
-      model = 'llama-3.1-sonar-large-128k-online',
-      context = null,
-      temperature = 0.4 // Balanced for accuracy and engagement
-    } = await req.json();
+    const { prompt, model = 'llama-3.1-sonar-large-128k-online', context = null, temperature = 0.4 } = await req.json();
 
     console.log('Generating with Perplexity:', {
       model,
@@ -71,25 +59,11 @@ serve(async (req) => {
       throw new Error('Perplexity requires API key to be configured in Supabase Edge Function Secrets');
     }
 
-    // Build the user message with context if available
     let userMessage = prompt;
     if (context) {
-      userMessage = `# Relevant Legislative Data from Goodable Database
-
-${context}
-
----
-
-# Research Request
-
-${prompt}
-
----
-
-Please research this using your real-time search capabilities. Cross-reference the database information with current news, recent developments, and stakeholder positions. Include citations for all claims and focus on information from the past week to month.`;
+      userMessage = `# Relevant Legislative Data from Goodable Database\n\n${context}\n\n---\n\n# Research Request\n\n${prompt}\n\n---\n\nPlease research this using your real-time search capabilities. Cross-reference the database information with current news, recent developments, and stakeholder positions. Include citations for all claims and focus on information from the past week to month.`;
     }
 
-    // Call Perplexity API with optimized parameters
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
       headers: {
@@ -101,7 +75,7 @@ Please research this using your real-time search capabilities. Cross-reference t
         messages: [
           {
             role: 'system',
-            content: getSystemPrompt()
+            content: PERPLEXITY_SYSTEM_PROMPT
           },
           {
             role: 'user',
@@ -113,7 +87,7 @@ Please research this using your real-time search capabilities. Cross-reference t
         top_p: 0.9,
         return_citations: true,
         return_related_questions: false,
-        search_recency_filter: 'week' // Optimized for legislative developments
+        search_recency_filter: 'week'
       })
     });
 
@@ -121,7 +95,6 @@ Please research this using your real-time search capabilities. Cross-reference t
       const error = await response.text();
       console.error('Perplexity API error:', error);
 
-      // Enhanced error handling for common issues
       if (response.status === 429) {
         throw new Error('API rate limit exceeded. Please try again in a moment.');
       } else if (response.status === 401) {
@@ -136,7 +109,6 @@ Please research this using your real-time search capabilities. Cross-reference t
 
     console.log('Perplexity research completed successfully');
 
-    // Return simplified response matching Claude function structure
     return new Response(
       JSON.stringify({
         generatedText,
