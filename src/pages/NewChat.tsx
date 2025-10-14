@@ -572,12 +572,12 @@ const NewChat = () => {
       </div>
 
       {/* Fixed Bottom Input Area - Always Visible */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t z-10">
+      <div className="fixed bottom-0 left-0 right-0 bg-background z-[5]">
         <div className="w-full px-4 py-4">
           <div className="max-w-[720px] mx-auto">
             <form onSubmit={handleSubmit} className="relative">
               {/* Larger input box - Fintool/Claude style */}
-              <div className="rounded-lg bg-muted/50 border-0 p-3">
+              <div className="rounded-2xl bg-muted/50 border-0 p-3 shadow-lg">
                 {/* Selected Items Chips */}
                 {(selectedBills.length > 0 || selectedMembers.length > 0 || selectedCommittees.length > 0) && (
                   <div className="flex flex-wrap gap-2 mb-3">
@@ -637,7 +637,7 @@ const NewChat = () => {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Ask anything..."
-                  className="flex-1 min-h-[96px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 placeholder:text-muted-foreground/60"
+                  className="flex-1 min-h-[60px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 placeholder:text-muted-foreground/60"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
@@ -647,7 +647,7 @@ const NewChat = () => {
                 />
 
                 {/* Bottom Row with Buttons */}
-                <div className="flex items-center justify-between mt-3">
+                <div className="flex items-center justify-between">
                   {/* Left Side - Attachment + Filter Buttons */}
                   <div className="flex gap-1">
                     {/* Attachment Button */}
