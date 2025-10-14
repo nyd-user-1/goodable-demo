@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, ChevronDown, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/hooks/useTheme";
 import { useModel } from "@/contexts/ModelContext";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
@@ -53,11 +52,25 @@ export function VerticalSidebar() {
   const [isModelsOpen, setIsModelsOpen] = useState(true);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   const { getNavClassName } = useNavigation();
   const { isAdmin } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const { selectedModel, setSelectedModel } = useModel();
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    const initialTheme = root.classList.contains('dark') ? 'dark' : 'light';
+    setTheme(initialTheme);
+  }, []);
+
+  const toggleTheme = () => {
+    const root = window.document.documentElement;
+    root.classList.toggle('dark');
+    const newTheme = root.classList.contains('dark') ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+  };
 
   return (
     <>
