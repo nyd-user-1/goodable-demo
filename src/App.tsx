@@ -70,9 +70,9 @@ const AppLayout = () => {
   return (
     <ProtectedRoute>
       <SidebarProvider defaultOpen={true}>
-        <div className="min-h-screen flex w-full">
+        <div className="min-h-screen w-full relative">
           <AppSidebar />
-          <SidebarInset className="flex-1">
+          <SidebarInset className="w-full">
             <ScrollProgress className="top-0" />
             <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between gap-4 px-4 bg-background/80 backdrop-blur-md backdrop-saturate-150 supports-[backdrop-filter]:bg-background/60">
               <HeartSidebarTrigger />

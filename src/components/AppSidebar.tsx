@@ -27,7 +27,7 @@ export function AppSidebar() {
   const hasSearchResults = searchTerm && searchResults.length > 0;
 
   return (
-    <Sidebar className={collapsed ? "w-16" : "w-52"} collapsible="offcanvas">
+    <Sidebar className={`${collapsed ? "w-16" : "w-52"} fixed left-0 top-0 z-40 h-screen`} collapsible="offcanvas">
       <SidebarHeader className="p-4">
         <CustomSidebarHeader />
       </SidebarHeader>
