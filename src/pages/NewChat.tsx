@@ -338,7 +338,12 @@ const NewChat = () => {
 
       // Determine which edge function to call based on model
       const isClaudeModel = selectedModel.startsWith('claude-');
-      const edgeFunction = isClaudeModel ? 'generate-with-claude' : 'generate-with-openai';
+      const isPerplexityModel = selectedModel.startsWith('sonar');
+      const edgeFunction = isClaudeModel
+        ? 'generate-with-claude'
+        : isPerplexityModel
+          ? 'generate-with-perplexity'
+          : 'generate-with-openai';
 
       // Call the appropriate edge function
       const { data, error } = await supabase.functions.invoke(edgeFunction, {
