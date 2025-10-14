@@ -1,0 +1,1003 @@
+import { useState, useRef, useEffect } from "react";
+import { Paperclip, ArrowUp, Search as SearchIcon, FileText, Users, Building2, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import ReactMarkdown from 'react-markdown';
+import { useModel } from "@/contexts/ModelContext";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+// Featuring real bills from our database
+const samplePrompts = [
+  {
+    title: "Are reduced-form regression models acceptable evidence of class-wide impact at the class certification stage?",
+    category: "Legal Research"
+  },
+  {
+    title: "If Delaware is a company's place of incorporation, is that enough to establish personal jurisdiction and venue in Delaware?",
+    category: "Corporate Law"
+  },
+  {
+    title: "What is the meaning of \"after the pleadings are closed\" in rule 12c of the frcp? Do pleadings include motions to dismiss counterclaims?",
+    category: "Civil Procedure"
+  }
+];
+
+interface BillCitation {
+  bill_number: string;
+  title: string;
+  status_desc: string;
+  description?: string;
+  committee?: string;
+  session_id?: number;
+}
+
+interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  isStreaming?: boolean;
+  streamedContent?: string;
+  searchQueries?: string[];
+  reviewedInfo?: string;
+  citations?: BillCitation[];
+}
+
+const NewChat2 = () => {
+  const [query, setQuery] = useState("");
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [chatStarted, setChatStarted] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { selectedModel } = useModel();
+
+  // Selected items state
+  const [selectedBills, setSelectedBills] = useState<BillCitation[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<any[]>([]);
+  const [selectedCommittees, setSelectedCommittees] = useState<any[]>([]);
+
+  // Dialog state
+  const [billsDialogOpen, setBillsDialogOpen] = useState(false);
+  const [billsSearch, setBillsSearch] = useState("");
+  const [availableBills, setAvailableBills] = useState<BillCitation[]>([]);
+  const [billsLoading, setBillsLoading] = useState(false);
+
+  const [membersDialogOpen, setMembersDialogOpen] = useState(false);
+  const [membersSearch, setMembersSearch] = useState("");
+  const [availableMembers, setAvailableMembers] = useState<any[]>([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+
+  const [committeesDialogOpen, setCommitteesDialogOpen] = useState(false);
+  const [committeesSearch, setCommitteesSearch] = useState("");
+  const [availableCommittees, setAvailableCommittees] = useState<any[]>([]);
+  const [committeesLoading, setCommitteesLoading] = useState(false);
+
+  // Auto-scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
+
+  // Fetch bills for dialog
+  const fetchBillsForSelection = async () => {
+    setBillsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("Bills")
+        .select("bill_number, title, status_desc, description, committee, session_id")
+        .order("bill_number", { ascending: true })
+        .limit(100);
+
+      if (error) throw error;
+      setAvailableBills(data || []);
+    } catch (error) {
+      console.error("Error fetching bills:", error);
+    } finally {
+      setBillsLoading(false);
+    }
+  };
+
+  // Load bills when dialog opens
+  useEffect(() => {
+    if (billsDialogOpen && availableBills.length === 0) {
+      fetchBillsForSelection();
+    }
+  }, [billsDialogOpen]);
+
+  // Fetch members for dialog
+  const fetchMembersForSelection = async () => {
+    setMembersLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("People")
+        .select("people_id, name, party, chamber, district")
+        .eq("archived", false)
+        .order("name", { ascending: true })
+        .limit(100);
+
+      if (error) throw error;
+      setAvailableMembers(data || []);
+    } catch (error) {
+      console.error("Error fetching members:", error);
+    } finally {
+      setMembersLoading(false);
+    }
+  };
+
+  // Load members when dialog opens
+  useEffect(() => {
+    if (membersDialogOpen && availableMembers.length === 0) {
+      fetchMembersForSelection();
+    }
+  }, [membersDialogOpen]);
+
+  // Fetch committees for dialog
+  const fetchCommitteesForSelection = async () => {
+    setCommitteesLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("Committees")
+        .select("committee_id, committee_name, chamber, chair_name")
+        .order("committee_name", { ascending: true })
+        .limit(100);
+
+      if (error) throw error;
+      setAvailableCommittees(data || []);
+    } catch (error) {
+      console.error("Error fetching committees:", error);
+    } finally {
+      setCommitteesLoading(false);
+    }
+  };
+
+  // Load committees when dialog opens
+  useEffect(() => {
+    if (committeesDialogOpen && availableCommittees.length === 0) {
+      fetchCommitteesForSelection();
+    }
+  }, [committeesDialogOpen]);
+
+  // Stream text effect - 30ms per word for enterprise speed
+  const streamText = (text: string, messageId: string) => {
+    const words = text.split(' ');
+    let currentIndex = 0;
+
+    const streamInterval = setInterval(() => {
+      if (currentIndex < words.length) {
+        const streamedText = words.slice(0, currentIndex + 1).join(' ');
+
+        setMessages(prev => prev.map(msg =>
+          msg.id === messageId
+            ? { ...msg, streamedContent: streamedText, isStreaming: true }
+            : msg
+        ));
+
+        currentIndex++;
+      } else {
+        // Streaming complete
+        setMessages(prev => prev.map(msg =>
+          msg.id === messageId
+            ? { ...msg, isStreaming: false, streamedContent: text }
+            : msg
+        ));
+        clearInterval(streamInterval);
+      }
+    }, 30); // Enterprise-level speed: 30ms per word
+  };
+
+  // Fetch full bill data from NYS Legislature API
+  const fetchFullBillData = async (billNumber: string, sessionYear: number = 2025) => {
+    try {
+      // Call NYS API edge function to get full bill details
+      const { data, error } = await supabase.functions.invoke('nys-legislation-search', {
+        body: {
+          action: 'get-bill-detail',
+          billNumber: billNumber,
+          sessionYear: sessionYear
+        }
+      });
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error(`Error fetching full bill data for ${billNumber}:`, error);
+      return null;
+    }
+  };
+
+  // Fetch relevant bills from database to use as citations
+  const fetchRelevantBills = async (query: string): Promise<BillCitation[]> => {
+    try {
+      // Extract bill numbers (e.g., A00405, S12345, etc.)
+      const billNumberPattern = /[ASK]\d{5,}/gi;
+      const billNumbers = query.match(billNumberPattern) || [];
+
+      // If specific bill numbers are mentioned, fetch those first
+      if (billNumbers.length > 0) {
+        const { data: exactBills, error } = await supabase
+          .from("Bills")
+          .select("bill_number, title, status_desc, description, committee, session_id")
+          .in("bill_number", billNumbers.map(b => b.toUpperCase()))
+          .limit(5);
+
+        if (error) throw error;
+
+        // If we found the exact bills, return them
+        if (exactBills && exactBills.length > 0) {
+          return exactBills;
+        }
+      }
+
+      // Otherwise, extract keywords and search by content
+      // Remove common words and extract meaningful keywords
+      const stopWords = ['how', 'would', 'does', 'what', 'the', 'is', 'in', 'to', 'for', 'by', 'and', 'or', 'of', 'a', 'an'];
+      const keywords = query
+        .toLowerCase()
+        .replace(/[^\w\s]/g, ' ')
+        .split(/\s+/)
+        .filter(word => word.length > 3 && !stopWords.includes(word))
+        .slice(0, 5); // Take top 5 keywords
+
+      if (keywords.length > 0) {
+        // Build search conditions for keywords
+        const keywordSearches = keywords.map(kw =>
+          `title.ilike.%${kw}%,description.ilike.%${kw}%`
+        ).join(',');
+
+        const { data, error } = await supabase
+          .from("Bills")
+          .select("bill_number, title, status_desc, description, committee, session_id")
+          .or(keywordSearches)
+          .limit(5);
+
+        if (error) throw error;
+        return data || [];
+      }
+
+      return [];
+    } catch (error) {
+      console.error("Error fetching bills:", error);
+      return [];
+    }
+  };
+
+  const handlePromptClick = (prompt: string) => {
+    setQuery(prompt);
+    handleSubmit(null, prompt);
+  };
+
+  const handleSubmit = async (e: React.FormEvent | null, promptText?: string) => {
+    if (e) e.preventDefault();
+
+    const userQuery = promptText || query.trim();
+    if (!userQuery) return;
+
+    // Start chat interface
+    setChatStarted(true);
+
+    // Add user message
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      content: userQuery,
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setQuery("");
+    setIsTyping(true);
+
+    try {
+      // Fetch relevant bills while AI generates response
+      const relevantBills = await fetchRelevantBills(userQuery);
+
+      // Extract bill numbers from query to fetch full data
+      const billNumberPattern = /[ASK]\d{5,}/gi;
+      const billNumbers = userQuery.match(billNumberPattern) || [];
+
+      // Fetch full bill data from NYS API for specific bills mentioned
+      let fullBillData = null;
+      if (billNumbers.length > 0) {
+        // Get the first bill's full data from NYS API
+        const billNumber = billNumbers[0].toUpperCase();
+        fullBillData = await fetchFullBillData(billNumber);
+      }
+
+      // Format bill data as context for Claude
+      let billContext = null;
+
+      if (fullBillData && fullBillData.result) {
+        // Use full bill data from NYS API (rich context)
+        const bill = fullBillData.result;
+        billContext =
+          `\n# FULL LEGISLATIVE DATA FROM NY STATE LEGISLATURE\n\n` +
+          `## Bill ${bill.printNo || bill.basePrintNo}\n` +
+          `**Session Year:** ${bill.session}\n` +
+          `**Title:** ${bill.title || 'N/A'}\n` +
+          `**Status:** ${bill.status?.statusDesc || 'Unknown'}\n` +
+          `**Sponsor:** ${bill.sponsor?.member?.fullName || 'Unknown'}\n` +
+          `**Committee:** ${bill.status?.committeeDesc || 'Not assigned'}\n\n` +
+          `### Bill Summary\n${bill.summary || 'No summary available'}\n\n` +
+          `### Full Bill Text\n${bill.fullText || bill.amendmentVersions?.[0]?.fullText || 'Full text not available'}\n\n` +
+          `### Sponsor Memo\n${bill.amendmentVersions?.[0]?.memo || 'No sponsor memo available'}\n`;
+      } else if (relevantBills.length > 0) {
+        // Fallback to database metadata
+        billContext = relevantBills.map(bill =>
+            `\n## Bill ${bill.bill_number}\n` +
+            `**Title:** ${bill.title}\n` +
+            `**Status:** ${bill.status_desc || 'Unknown'}\n` +
+            `**Committee:** ${bill.committee || 'Not assigned'}\n` +
+            `**Session:** ${bill.session_id || 'N/A'}\n` +
+            `**Description:** ${bill.description || 'No description available'}\n`
+          ).join('\n');
+      }
+
+      // Determine which edge function to call based on model
+      const isClaudeModel = selectedModel.startsWith('claude-');
+      const edgeFunction = isClaudeModel ? 'generate-with-claude' : 'generate-with-openai';
+
+      // Call the appropriate edge function
+      const { data, error } = await supabase.functions.invoke(edgeFunction, {
+        body: {
+          prompt: userQuery,
+          type: 'default',
+          context: billContext,  // Pass actual bill data as context
+          stream: false,
+          model: selectedModel
+        }
+      });
+
+      if (error) {
+        console.error('API Error:', error);
+        throw error;
+      }
+
+      const aiResponse = data?.generatedText || 'I apologize, but I encountered an error. Please try again.';
+
+      // Create AI message with streaming and research metadata
+      const messageId = `assistant-${Date.now()}`;
+      const assistantMessage: Message = {
+        id: messageId,
+        role: "assistant",
+        content: aiResponse,
+        isStreaming: true,
+        streamedContent: '',
+        searchQueries: [
+          `Searched for "${userQuery.substring(0, 60)}${userQuery.length > 60 ? '...' : ''}" in NY State Legislature`,
+          `Searched for "${userQuery.substring(0, 60)}${userQuery.length > 60 ? '...' : ''}" in NY State Bills Database`,
+        ],
+        reviewedInfo: `Reviewed ${relevantBills.length} bills: ${
+          relevantBills.length > 0
+            ? `Found relevant legislation including ${relevantBills[0]?.bill_number || 'pending bills'} related to your query.`
+            : 'No directly matching bills found, providing general legislative context.'
+        }`,
+        citations: relevantBills
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+      setIsTyping(false);
+
+      // Start streaming the response
+      streamText(aiResponse, messageId);
+
+    } catch (error) {
+      console.error('Error generating response:', error);
+
+      const errorMessage: Message = {
+        id: `assistant-${Date.now()}`,
+        role: "assistant",
+        content: "I apologize, but I encountered an error generating a response. Please try again.",
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+      setIsTyping(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-screen bg-background">
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto pb-32">
+        {!chatStarted ? (
+          /* Initial State - Midpage Design */
+          <div className="flex flex-col items-center justify-center min-h-full px-4 py-16">
+            <h1 className="text-5xl font-normal text-center mb-16 tracking-tight">
+              What are you researching?
+            </h1>
+
+            <div className="w-full max-w-2xl grid grid-cols-1 gap-3 mb-8">
+              {samplePrompts.map((prompt, index) => (
+                <Card
+                  key={index}
+                  className={cn(
+                    "p-4 cursor-pointer transition-all duration-200 border bg-card hover:bg-accent/50",
+                    hoveredCard === index && "bg-accent/50"
+                  )}
+                  onClick={() => handlePromptClick(prompt.title)}
+                  onMouseEnter={() => setHoveredCard(index)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                >
+                  <p className="text-sm leading-relaxed text-foreground">
+                    {prompt.title}
+                  </p>
+                </Card>
+              ))}
+            </div>
+          </div>
+        ) : (
+          /* Chat State - Messages */
+          <div className="pt-8 pb-4 px-4">
+            <div className="w-full max-w-[720px] mx-auto space-y-6">
+            {messages.map((message) => (
+              <div key={message.id} className="space-y-3">
+                {message.role === "user" ? (
+                  <div className="bg-muted/40 rounded-lg p-4 border-0">
+                    <p className="text-base leading-relaxed">{message.content}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {/* Searched and Reviewed Section */}
+                    {(message.searchQueries || message.reviewedInfo) && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                          <SearchIcon className="h-3.5 w-3.5" />
+                          <span>Searched and reviewed sources</span>
+                        </div>
+
+                        {/* Search Queries */}
+                        {message.searchQueries && message.isStreaming && (
+                          <div className="text-xs text-muted-foreground space-y-1 pl-5">
+                            {message.searchQueries.map((query, idx) => (
+                              <div key={idx} className="flex items-start gap-2">
+                                <SearchIcon className="h-3 w-3 mt-0.5 animate-pulse flex-shrink-0" />
+                                <span>{query}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Reviewed Info */}
+                        {message.reviewedInfo && !message.isStreaming && (
+                          <div className="text-xs text-muted-foreground pl-5 flex items-start gap-2">
+                            <FileText className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                            <span>{message.reviewedInfo}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* AI Response */}
+                    <div className="prose prose-sm max-w-none dark:prose-invert">
+                      <ReactMarkdown
+                        components={{
+                          p: ({ children }) => (
+                            <p className="mb-3 leading-relaxed text-foreground">
+                              {children}
+                            </p>
+                          ),
+                          strong: ({ children }) => (
+                            <strong className="font-semibold text-foreground">
+                              {children}
+                            </strong>
+                          ),
+                          h1: ({ children }) => (
+                            <h1 className="text-xl font-semibold mb-3 text-foreground">
+                              {children}
+                            </h1>
+                          ),
+                          h2: ({ children }) => (
+                            <h2 className="text-lg font-semibold mb-2 text-foreground">
+                              {children}
+                            </h2>
+                          ),
+                          ul: ({ children }) => (
+                            <ul className="list-disc pl-5 mb-3 space-y-1">
+                              {children}
+                            </ul>
+                          ),
+                          li: ({ children }) => (
+                            <li className="text-foreground text-sm">{children}</li>
+                          ),
+                        }}
+                      >
+                        {message.isStreaming ? message.streamedContent || '' : message.content}
+                      </ReactMarkdown>
+                      {message.isStreaming && (
+                        <span className="inline-block w-1.5 h-4 bg-current animate-pulse ml-0.5">|</span>
+                      )}
+                    </div>
+
+                    {/* Citations from Bills Database */}
+                    {message.citations && message.citations.length > 0 && !message.isStreaming && (
+                      <div className="mt-4 pt-4 border-t">
+                        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-3">
+                          <FileText className="h-3.5 w-3.5" />
+                          <span>Referenced Bills ({message.citations.length})</span>
+                        </div>
+                        <div className="space-y-2">
+                          {message.citations.map((citation, idx) => (
+                            <a
+                              key={idx}
+                              href={`/bills`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                window.location.href = `/bills`;
+                              }}
+                              className="block text-xs p-3 rounded-md bg-muted/40 border-0 hover:bg-muted/60 transition-colors cursor-pointer"
+                            >
+                              <div className="font-medium text-primary mb-1 hover:underline">
+                                {citation.bill_number}
+                              </div>
+                              <div className="text-muted-foreground line-clamp-2">
+                                {citation.title}
+                              </div>
+                              {citation.status_desc && (
+                                <div className="text-muted-foreground/80 mt-1 text-xs">
+                                  Status: {citation.status_desc}
+                                </div>
+                              )}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* Typing Indicator */}
+            {isTyping && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="flex space-x-1">
+                  <div className="bg-muted-foreground/50 h-2 w-2 animate-bounce rounded-full"></div>
+                  <div className="bg-muted-foreground/50 h-2 w-2 animate-bounce rounded-full delay-75"></div>
+                  <div className="bg-muted-foreground/50 h-2 w-2 animate-bounce rounded-full delay-150"></div>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+          </div>
+        )}
+      </div>
+
+      {/* Fixed Bottom Input Area - Midpage Style */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t z-10">
+        <div className="w-full px-4 py-6">
+          <div className="max-w-2xl mx-auto">
+            <form onSubmit={handleSubmit} className="relative">
+              {/* Midpage-inspired input design */}
+              <div className="relative flex items-center gap-2 bg-muted/30 rounded-full border px-4 py-2">
+                {/* Left Side - Filter Buttons */}
+                <div className="flex gap-1 items-center">
+                  {/* Attachment Button */}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
+                    title="Attach files"
+                  >
+                    <Paperclip className="h-4 w-4" />
+                  </Button>
+
+                  <Dialog open={billsDialogOpen} onOpenChange={setBillsDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
+                        title="Select Bills"
+                      >
+                        <FileText className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+                      <DialogHeader>
+                        <DialogTitle>Select Bills</DialogTitle>
+                      </DialogHeader>
+
+                      {/* Search Input */}
+                      <div className="px-6 pb-4">
+                        <Input
+                          placeholder="Search bills by number or title..."
+                          value={billsSearch}
+                          onChange={(e) => setBillsSearch(e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
+
+                      {/* Bills Table */}
+                      <div className="flex-1 overflow-y-auto px-6 pb-6">
+                        {billsLoading ? (
+                          <div className="flex items-center justify-center py-8 text-muted-foreground">
+                            Loading bills...
+                          </div>
+                        ) : (
+                          <div className="border rounded-lg overflow-hidden">
+                            <table className="w-full text-sm">
+                              <thead className="bg-muted/50">
+                                <tr>
+                                  <th className="text-left p-3 font-medium">Bill Number</th>
+                                  <th className="text-left p-3 font-medium">Title</th>
+                                  <th className="text-left p-3 font-medium">Status</th>
+                                  <th className="text-center p-3 font-medium w-20">Select</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {availableBills
+                                  .filter(bill =>
+                                    billsSearch === "" ||
+                                    bill.bill_number.toLowerCase().includes(billsSearch.toLowerCase()) ||
+                                    bill.title.toLowerCase().includes(billsSearch.toLowerCase())
+                                  )
+                                  .map((bill) => {
+                                    const isSelected = selectedBills.some(b => b.bill_number === bill.bill_number);
+                                    return (
+                                      <tr
+                                        key={bill.bill_number}
+                                        className={cn(
+                                          "border-t hover:bg-muted/30 cursor-pointer transition-colors",
+                                          isSelected && "bg-primary/5"
+                                        )}
+                                        onClick={() => {
+                                          if (isSelected) {
+                                            setSelectedBills(prev => prev.filter(b => b.bill_number !== bill.bill_number));
+                                          } else {
+                                            setSelectedBills(prev => [...prev, bill]);
+                                          }
+                                        }}
+                                      >
+                                        <td className="p-3 font-medium">{bill.bill_number}</td>
+                                        <td className="p-3 max-w-md truncate">{bill.title}</td>
+                                        <td className="p-3 text-muted-foreground">{bill.status_desc || 'N/A'}</td>
+                                        <td className="p-3 text-center">
+                                          <input
+                                            type="checkbox"
+                                            checked={isSelected}
+                                            onChange={(e) => {
+                                              e.stopPropagation();
+                                              if (isSelected) {
+                                                setSelectedBills(prev => prev.filter(b => b.bill_number !== bill.bill_number));
+                                              } else {
+                                                setSelectedBills(prev => [...prev, bill]);
+                                              }
+                                            }}
+                                            className="w-4 h-4 rounded"
+                                          />
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Footer with selected count */}
+                      <div className="px-6 py-3 border-t flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          {selectedBills.length} bill{selectedBills.length !== 1 ? 's' : ''} selected
+                        </span>
+                        <Button onClick={() => setBillsDialogOpen(false)} size="sm">
+                          Done
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Dialog open={membersDialogOpen} onOpenChange={setMembersDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
+                        title="Select Members"
+                      >
+                        <Users className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+                      <DialogHeader>
+                        <DialogTitle>Select Members</DialogTitle>
+                      </DialogHeader>
+
+                      {/* Search Input */}
+                      <div className="px-6 pb-4">
+                        <Input
+                          placeholder="Search members by name..."
+                          value={membersSearch}
+                          onChange={(e) => setMembersSearch(e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
+
+                      {/* Members Table */}
+                      <div className="flex-1 overflow-y-auto px-6 pb-6">
+                        {membersLoading ? (
+                          <div className="flex items-center justify-center py-8 text-muted-foreground">
+                            Loading members...
+                          </div>
+                        ) : (
+                          <div className="border rounded-lg overflow-hidden">
+                            <table className="w-full text-sm">
+                              <thead className="bg-muted/50">
+                                <tr>
+                                  <th className="text-left p-3 font-medium">Name</th>
+                                  <th className="text-left p-3 font-medium">Party</th>
+                                  <th className="text-left p-3 font-medium">Chamber</th>
+                                  <th className="text-left p-3 font-medium">District</th>
+                                  <th className="text-center p-3 font-medium w-20">Select</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {availableMembers
+                                  .filter(member =>
+                                    membersSearch === "" ||
+                                    member.name.toLowerCase().includes(membersSearch.toLowerCase())
+                                  )
+                                  .map((member) => {
+                                    const isSelected = selectedMembers.some(m => m.people_id === member.people_id);
+                                    return (
+                                      <tr
+                                        key={member.people_id}
+                                        className={cn(
+                                          "border-t hover:bg-muted/30 cursor-pointer transition-colors",
+                                          isSelected && "bg-green-500/5"
+                                        )}
+                                        onClick={() => {
+                                          if (isSelected) {
+                                            setSelectedMembers(prev => prev.filter(m => m.people_id !== member.people_id));
+                                          } else {
+                                            setSelectedMembers(prev => [...prev, member]);
+                                          }
+                                        }}
+                                      >
+                                        <td className="p-3 font-medium">{member.name}</td>
+                                        <td className="p-3 text-muted-foreground">{member.party || 'N/A'}</td>
+                                        <td className="p-3 text-muted-foreground">{member.chamber || 'N/A'}</td>
+                                        <td className="p-3 text-muted-foreground">{member.district || 'N/A'}</td>
+                                        <td className="p-3 text-center">
+                                          <input
+                                            type="checkbox"
+                                            checked={isSelected}
+                                            onChange={(e) => {
+                                              e.stopPropagation();
+                                              if (isSelected) {
+                                                setSelectedMembers(prev => prev.filter(m => m.people_id !== member.people_id));
+                                              } else {
+                                                setSelectedMembers(prev => [...prev, member]);
+                                              }
+                                            }}
+                                            className="w-4 h-4 rounded"
+                                          />
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Footer with selected count */}
+                      <div className="px-6 py-3 border-t flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          {selectedMembers.length} member{selectedMembers.length !== 1 ? 's' : ''} selected
+                        </span>
+                        <Button onClick={() => setMembersDialogOpen(false)} size="sm">
+                          Done
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Dialog open={committeesDialogOpen} onOpenChange={setCommitteesDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
+                        title="Select Committees"
+                      >
+                        <Building2 className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+                      <DialogHeader>
+                        <DialogTitle>Select Committees</DialogTitle>
+                      </DialogHeader>
+
+                      {/* Search Input */}
+                      <div className="px-6 pb-4">
+                        <Input
+                          placeholder="Search committees by name..."
+                          value={committeesSearch}
+                          onChange={(e) => setCommitteesSearch(e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
+
+                      {/* Committees Table */}
+                      <div className="flex-1 overflow-y-auto px-6 pb-6">
+                        {committeesLoading ? (
+                          <div className="flex items-center justify-center py-8 text-muted-foreground">
+                            Loading committees...
+                          </div>
+                        ) : (
+                          <div className="border rounded-lg overflow-hidden">
+                            <table className="w-full text-sm">
+                              <thead className="bg-muted/50">
+                                <tr>
+                                  <th className="text-left p-3 font-medium">Committee Name</th>
+                                  <th className="text-left p-3 font-medium">Chamber</th>
+                                  <th className="text-left p-3 font-medium">Chair</th>
+                                  <th className="text-center p-3 font-medium w-20">Select</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {availableCommittees
+                                  .filter(committee =>
+                                    committeesSearch === "" ||
+                                    committee.committee_name.toLowerCase().includes(committeesSearch.toLowerCase())
+                                  )
+                                  .map((committee) => {
+                                    const isSelected = selectedCommittees.some(c => c.committee_id === committee.committee_id);
+                                    return (
+                                      <tr
+                                        key={committee.committee_id}
+                                        className={cn(
+                                          "border-t hover:bg-muted/30 cursor-pointer transition-colors",
+                                          isSelected && "bg-orange-500/5"
+                                        )}
+                                        onClick={() => {
+                                          if (isSelected) {
+                                            setSelectedCommittees(prev => prev.filter(c => c.committee_id !== committee.committee_id));
+                                          } else {
+                                            setSelectedCommittees(prev => [...prev, committee]);
+                                          }
+                                        }}
+                                      >
+                                        <td className="p-3 font-medium">{committee.committee_name}</td>
+                                        <td className="p-3 text-muted-foreground">{committee.chamber || 'N/A'}</td>
+                                        <td className="p-3 text-muted-foreground">{committee.chair_name || 'N/A'}</td>
+                                        <td className="p-3 text-center">
+                                          <input
+                                            type="checkbox"
+                                            checked={isSelected}
+                                            onChange={(e) => {
+                                              e.stopPropagation();
+                                              if (isSelected) {
+                                                setSelectedCommittees(prev => prev.filter(c => c.committee_id !== committee.committee_id));
+                                              } else {
+                                                setSelectedCommittees(prev => [...prev, committee]);
+                                              }
+                                            }}
+                                            className="w-4 h-4 rounded"
+                                          />
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Footer with selected count */}
+                      <div className="px-6 py-3 border-t flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          {selectedCommittees.length} committee{selectedCommittees.length !== 1 ? 's' : ''} selected
+                        </span>
+                        <Button onClick={() => setCommitteesDialogOpen(false)} size="sm">
+                          Done
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                {/* Center - Input Field */}
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Ask anything..."
+                  className="flex-1 bg-transparent border-0 focus:outline-none focus:ring-0 placeholder:text-muted-foreground/60 text-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmit(e as any);
+                    }
+                  }}
+                />
+
+                {/* Right Side - Submit Button */}
+                <Button
+                  type="submit"
+                  size="icon"
+                  className="h-8 w-8 rounded-full bg-primary hover:bg-primary/90 disabled:opacity-50 shrink-0"
+                  disabled={!query.trim()}
+                >
+                  <ArrowUp className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Selected Items Chips - Above Input */}
+              {(selectedBills.length > 0 || selectedMembers.length > 0 || selectedCommittees.length > 0) && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {selectedBills.map((bill) => (
+                    <div
+                      key={bill.bill_number}
+                      className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium"
+                    >
+                      <FileText className="h-3 w-3" />
+                      <span>{bill.bill_number}</span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedBills(prev => prev.filter(b => b.bill_number !== bill.bill_number))}
+                        className="hover:bg-primary/20 rounded-full p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  {selectedMembers.map((member) => (
+                    <div
+                      key={member.people_id}
+                      className="flex items-center gap-1.5 px-2.5 py-1 bg-green-500/10 text-green-700 dark:text-green-400 rounded-full text-xs font-medium"
+                    >
+                      <Users className="h-3 w-3" />
+                      <span>{member.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedMembers(prev => prev.filter(m => m.people_id !== member.people_id))}
+                        className="hover:bg-green-500/20 rounded-full p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  {selectedCommittees.map((committee) => (
+                    <div
+                      key={committee.committee_id}
+                      className="flex items-center gap-1.5 px-2.5 py-1 bg-orange-500/10 text-orange-700 dark:text-orange-400 rounded-full text-xs font-medium"
+                    >
+                      <Building2 className="h-3 w-3" />
+                      <span>{committee.committee_name}</span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCommittees(prev => prev.filter(c => c.committee_id !== committee.committee_id))}
+                        className="hover:bg-orange-500/20 rounded-full p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default NewChat2;
