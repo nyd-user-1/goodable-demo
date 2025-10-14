@@ -74,19 +74,6 @@ export function VerticalSidebar() {
 
   return (
     <>
-      {/* Floating Goodable Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 left-4 z-50 flex items-center gap-3 px-4 py-3 bg-background border rounded-2xl shadow-lg hover:shadow-xl transition-all"
-      >
-        <span className="text-2xl">❤️</span>
-        <span className="font-semibold text-lg">Goodable</span>
-        <ChevronDown className={cn(
-          "h-4 w-4 transition-transform ml-2",
-          isOpen && "rotate-180"
-        )} />
-      </button>
-
       {/* Overlay */}
       {isOpen && (
         <div
@@ -95,14 +82,28 @@ export function VerticalSidebar() {
         />
       )}
 
-      {/* Vertical Expanding Sidebar */}
-      <div
-        className={cn(
-          "fixed left-4 top-20 w-80 bg-background border rounded-2xl shadow-2xl z-50 transition-all duration-300 overflow-hidden",
-          isOpen ? "max-h-[calc(100vh-6rem)] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
-        )}
-      >
-        <div className="overflow-y-auto h-full p-4 space-y-2">
+      {/* Single Container - Button + Menu */}
+      <div className="fixed top-4 left-4 w-80 bg-background border rounded-2xl z-50 overflow-hidden transition-all duration-300">
+        {/* Header/Trigger */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full flex items-center justify-between px-4 py-3 hover:bg-accent transition-colors"
+        >
+          <span className="font-semibold text-lg">Goodable</span>
+          <ChevronDown className={cn(
+            "h-4 w-4 transition-transform",
+            isOpen && "rotate-180"
+          )} />
+        </button>
+
+        {/* Expandable Content */}
+        <div
+          className={cn(
+            "transition-all duration-300 overflow-hidden",
+            isOpen ? "max-h-[calc(100vh-8rem)]" : "max-h-0"
+          )}
+        >
+          <div className="overflow-y-auto p-4 pt-0 space-y-2">
           {/* New Chat - Always at top */}
           <NavLink
             to="/new-chat"
@@ -250,6 +251,7 @@ export function VerticalSidebar() {
               </CollapsibleContent>
             </Collapsible>
           )}
+          </div>
         </div>
       </div>
     </>
