@@ -19,16 +19,12 @@ import {
 // Featuring real bills from our database
 const samplePrompts = [
   {
-    title: "Are reduced-form regression models acceptable evidence of class-wide impact at the class certification stage?",
-    category: "Legal Research"
+    title: "How would Assemblywoman Solages' bill A00405 improve childcare affordability by providing diaper assistance for families receiving safety net support?",
+    category: "Child Care Policy"
   },
   {
-    title: "If Delaware is a company's place of incorporation, is that enough to establish personal jurisdiction and venue in Delaware?",
-    category: "Corporate Law"
-  },
-  {
-    title: "What is the meaning of \"after the pleadings are closed\" in rule 12c of the frcp? Do pleadings include motions to dismiss counterclaims?",
-    category: "Civil Procedure"
+    title: "What protections does Assemblyman Bores' A00768, the 'NY Artificial Intelligence Consumer Protection Act', establish against algorithmic discrimination?",
+    category: "AI & Technology"
   }
 ];
 
