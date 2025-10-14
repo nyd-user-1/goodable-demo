@@ -8,16 +8,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ModelProvider } from "@/contexts/ModelContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
-import { HeartSidebarTrigger } from "@/components/HeartSidebarTrigger";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import { PageTransition } from "@/components/PageTransition";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ScrollToTop } from "@/components/ScrollToTop";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { ModelSelector } from "@/components/ModelSelector";
-import { useModel } from "@/contexts/ModelContext";
+import { VerticalSidebar } from "@/components/VerticalSidebar";
 import Landing from "./pages/Landing";
 import LandingPageWaitlist from "./pages/Landing-Page-Waitlist";
 import Home from "./pages/Home";
@@ -65,68 +60,54 @@ import FixABCStructure from "./pages/FixABCStructure";
 const queryClient = new QueryClient();
 
 const AppLayout = () => {
-  const { selectedModel, setSelectedModel } = useModel();
-
   return (
     <ProtectedRoute>
-      <SidebarProvider defaultOpen={true}>
-        <AppSidebar />
-        <SidebarInset>
-            <ScrollProgress className="top-0" />
-            <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between gap-4 px-4 bg-background/80 backdrop-blur-md backdrop-saturate-150 supports-[backdrop-filter]:bg-background/60">
-              <HeartSidebarTrigger />
-              <div className="flex items-center gap-2">
-                <ThemeToggle />
-                <ModelSelector
-                  selectedModel={selectedModel}
-                  onModelChange={setSelectedModel}
-                />
-              </div>
-            </header>
-            <main className="flex-1 overflow-hidden">
-              <PageTransition>
-                <Routes>
-                  <Route path="/home" element={<Home />} />
-                  <Route path="/home-2" element={<Home2 />} />
-                  <Route path="/new-chat" element={<NewChat />} />
-                  <Route path="/new-chat-2" element={<NewChat2 />} />
-                  <Route path="/chats" element={<Chats />} />
-                  <Route path="/favorites" element={<Favorites />} />
-                  <Route path="/playground" element={<Playground />} />
-                  <Route path="/policy-portal" element={<PolicyPortal />} />
-                  <Route path="/policy-lab" element={<PolicyLab />} />
-                  <Route path="/bills" element={<Bills />} />
-                  <Route path="/members" element={<Members />} />
-                  <Route path="/problems" element={<Problems />} />
-                  <Route path="/problems/:problemSlug" element={<ProblemPage />} />
-                  <Route path="/committees" element={<Committees />} />
-                  <Route path="/laws" element={<LawsClean />} />
-                  <Route path="/laws/admin" element={<LawsAdminWorking />} />
-                  <Route path="/laws/admin-full" element={<LawsAdmin />} />
-                  <Route path="/laws/test" element={<LawsTest />} />
-                  <Route path="/plans" element={<Plans />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/changelog" element={<ChangeLog />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/public-policy" element={<PublicPolicy />} />
-                  <Route path="/style-guide" element={<StyleGuide />} />
-                  <Route path="/image-system" element={<ImageSystem />} />
-                  <Route path="/blog" element={<Blog />} />
-                  <Route path="/blog/:id" element={<BlogPost />} />
-                  <Route path="/admin" element={<Admin />} />
-                  <Route path="/dashboard" element={<Index />} />
-                  <Route path="/feed" element={<FeedPage />} />
-                  <Route path="/shadcn-showcase" element={<ShadcnShowcase />} />
-                  <Route path="/image-upload-test" element={<ImageUploadTest />} />
-                  <Route path="/customerstory" element={<Customerstory />} />
-                  <Route path="/data-populator" element={<DataPopulator />} />
-                  <Route path="/real-abc-populator" element={<RealABCPopulator />} />
-                  <Route path="/fix-abc-structure" element={<FixABCStructure />} />
-                </Routes>
-              </PageTransition>
-            </main>
-          </SidebarInset>
-      </SidebarProvider>
+      <div className="relative min-h-screen">
+        <VerticalSidebar />
+        <ScrollProgress className="top-0" />
+        <main className="flex-1 overflow-hidden">
+          <PageTransition>
+            <Routes>
+              <Route path="/home" element={<Home />} />
+              <Route path="/home-2" element={<Home2 />} />
+              <Route path="/new-chat" element={<NewChat />} />
+              <Route path="/new-chat-2" element={<NewChat2 />} />
+              <Route path="/chats" element={<Chats />} />
+              <Route path="/favorites" element={<Favorites />} />
+              <Route path="/playground" element={<Playground />} />
+              <Route path="/policy-portal" element={<PolicyPortal />} />
+              <Route path="/policy-lab" element={<PolicyLab />} />
+              <Route path="/bills" element={<Bills />} />
+              <Route path="/members" element={<Members />} />
+              <Route path="/problems" element={<Problems />} />
+              <Route path="/problems/:problemSlug" element={<ProblemPage />} />
+              <Route path="/committees" element={<Committees />} />
+              <Route path="/laws" element={<LawsClean />} />
+              <Route path="/laws/admin" element={<LawsAdminWorking />} />
+              <Route path="/laws/admin-full" element={<LawsAdmin />} />
+              <Route path="/laws/test" element={<LawsTest />} />
+              <Route path="/plans" element={<Plans />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/changelog" element={<ChangeLog />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/public-policy" element={<PublicPolicy />} />
+              <Route path="/style-guide" element={<StyleGuide />} />
+              <Route path="/image-system" element={<ImageSystem />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:id" element={<BlogPost />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/dashboard" element={<Index />} />
+              <Route path="/feed" element={<FeedPage />} />
+              <Route path="/shadcn-showcase" element={<ShadcnShowcase />} />
+              <Route path="/image-upload-test" element={<ImageUploadTest />} />
+              <Route path="/customerstory" element={<Customerstory />} />
+              <Route path="/data-populator" element={<DataPopulator />} />
+              <Route path="/real-abc-populator" element={<RealABCPopulator />} />
+              <Route path="/fix-abc-structure" element={<FixABCStructure />} />
+            </Routes>
+          </PageTransition>
+        </main>
+      </div>
     </ProtectedRoute>
   );
 };
