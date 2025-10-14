@@ -8,11 +8,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
 };
 
-// Streamlined Perplexity system prompt for Goodable
-const PERPLEXITY_SYSTEM_PROMPT = `You are an expert legislative research analyst for New York State. Your specialty is finding current, verified information about NYS legislation through real-time web research.
+// Streamlined Perplexity system prompt for Goodable (date injected at runtime)
+const getSystemPrompt = () => {
+  const today = new Date().toISOString().split('T')[0];
+  return `You are an expert legislative research analyst for New York State. Your specialty is finding current, verified information about NYS legislation through real-time web research.
 
 ## Today's Date
-${new Date().toISOString().split('T')[0]}
+${today}
 
 ## Your Core Strengths
 - **Real-Time Research**: Find the latest news, developments, and coverage of NY legislation
@@ -42,6 +44,7 @@ Cross-reference the bill data provided with your real-time research to find:
 - Media coverage and editorial positions
 
 Your mission: Provide thoroughly researched, properly cited, up-to-date intelligence about New York State legislation that empowers informed democratic participation.`;
+};
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -98,7 +101,7 @@ Please research this using your real-time search capabilities. Cross-reference t
         messages: [
           {
             role: 'system',
-            content: PERPLEXITY_SYSTEM_PROMPT
+            content: getSystemPrompt()
           },
           {
             role: 'user',
