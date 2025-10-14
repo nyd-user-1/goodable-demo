@@ -80,11 +80,11 @@ export function VerticalSidebar() {
       )}
 
       {/* Single Container - Button + Menu */}
-      <div className="fixed top-4 left-4 w-80 bg-background rounded-2xl z-50 overflow-hidden transition-all duration-300">
+      <div className="fixed top-4 left-4 w-80 bg-background border rounded-2xl z-50 overflow-hidden transition-all duration-300">
         {/* Header/Trigger */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted transition-colors"
+          className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors"
         >
           <span className="font-semibold text-lg">Goodable</span>
           <ChevronDown className={cn(
