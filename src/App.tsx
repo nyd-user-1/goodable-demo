@@ -13,8 +13,6 @@ import { PageTransition } from "@/components/PageTransition";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { VerticalSidebar } from "@/components/VerticalSidebar";
-import { ModelSelector } from "@/components/ModelSelector";
-import { useModel } from "@/contexts/ModelContext";
 import Landing from "./pages/Landing";
 import LandingPageWaitlist from "./pages/Landing-Page-Waitlist";
 import Home from "./pages/Home";
@@ -62,19 +60,11 @@ import FixABCStructure from "./pages/FixABCStructure";
 const queryClient = new QueryClient();
 
 const AppLayout = () => {
-  const { selectedModel, setSelectedModel } = useModel();
-
   return (
     <ProtectedRoute>
       <div className="relative min-h-screen">
         <VerticalSidebar />
         <ScrollProgress className="top-0" />
-        <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center justify-end gap-4 px-4 bg-background/80 backdrop-blur-md backdrop-saturate-150 supports-[backdrop-filter]:bg-background/60">
-          <ModelSelector
-            selectedModel={selectedModel}
-            onModelChange={setSelectedModel}
-          />
-        </header>
         <main className="flex-1 overflow-hidden">
           <PageTransition>
             <Routes>
