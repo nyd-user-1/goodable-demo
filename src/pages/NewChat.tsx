@@ -15,6 +15,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { CitationText } from "@/components/CitationText";
+import { CitationTabs } from "@/components/CitationTabs";
+import { PerplexityCitation, extractCitationNumbers } from "@/utils/citationParser";
 
 // Featuring real bills from our database
 const samplePrompts = [
@@ -46,6 +49,8 @@ interface Message {
   searchQueries?: string[];
   reviewedInfo?: string;
   citations?: BillCitation[];
+  perplexityCitations?: PerplexityCitation[];
+  isPerplexityResponse?: boolean;
 }
 
 const NewChat = () => {
@@ -363,6 +368,24 @@ const NewChat = () => {
 
       const aiResponse = data?.generatedText || 'I apologize, but I encountered an error. Please try again.';
 
+      // Extract Perplexity citations if this is a Perplexity response
+      let perplexityCitations: PerplexityCitation[] = [];
+      if (isPerplexityModel && aiResponse) {
+        // Extract citation numbers from the response
+        const citationNumbers = extractCitationNumbers(aiResponse);
+
+        // Create mock citation data
+        // TODO: Replace with actual citation data from Perplexity API response
+        perplexityCitations = citationNumbers.map(num => ({
+          number: num,
+          url: `https://example.com/source-${num}`,
+          title: `Source ${num}`,
+          excerpt: ''
+        }));
+
+        console.log('Extracted Perplexity citations:', perplexityCitations);
+      }
+
       // Create AI message with streaming and research metadata
       const messageId = `assistant-${Date.now()}`;
       const assistantMessage: Message = {
@@ -380,7 +403,9 @@ const NewChat = () => {
             ? `Found relevant legislation including ${relevantBills[0]?.bill_number || 'pending bills'} related to your query.`
             : 'No directly matching bills found, providing general legislative context.'
         }`,
-        citations: relevantBills
+        citations: relevantBills,
+        perplexityCitations: isPerplexityModel ? perplexityCitations : undefined,
+        isPerplexityResponse: isPerplexityModel
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -481,78 +506,107 @@ const NewChat = () => {
 
                     {/* AI Response */}
                     <div className="prose prose-sm max-w-none dark:prose-invert">
-                      <ReactMarkdown
-                        components={{
-                          p: ({ children }) => (
-                            <p className="mb-3 leading-relaxed text-foreground">
-                              {children}
-                            </p>
-                          ),
-                          strong: ({ children }) => (
-                            <strong className="font-semibold text-foreground">
-                              {children}
-                            </strong>
-                          ),
-                          h1: ({ children }) => (
-                            <h1 className="text-xl font-semibold mb-3 text-foreground">
-                              {children}
-                            </h1>
-                          ),
-                          h2: ({ children }) => (
-                            <h2 className="text-lg font-semibold mb-2 text-foreground">
-                              {children}
-                            </h2>
-                          ),
-                          ul: ({ children }) => (
-                            <ul className="list-disc pl-5 mb-3 space-y-1">
-                              {children}
-                            </ul>
-                          ),
-                          li: ({ children }) => (
-                            <li className="text-foreground text-sm">{children}</li>
-                          ),
-                        }}
-                      >
-                        {message.isStreaming ? message.streamedContent || '' : message.content}
-                      </ReactMarkdown>
+                      {message.isPerplexityResponse && message.perplexityCitations ? (
+                        // Render Perplexity response with inline citation badges
+                        <div className="space-y-3">
+                          <ReactMarkdown
+                            components={{
+                              p: ({ children }) => {
+                                const textContent = String(children);
+                                return (
+                                  <p className="mb-3 leading-relaxed text-foreground">
+                                    <CitationText
+                                      text={textContent}
+                                      citations={message.perplexityCitations || []}
+                                      onCitationClick={(num) => {
+                                        // Scroll to citation in tabs
+                                        console.log('Citation clicked:', num);
+                                      }}
+                                    />
+                                  </p>
+                                );
+                              },
+                              strong: ({ children }) => (
+                                <strong className="font-semibold text-foreground">
+                                  {children}
+                                </strong>
+                              ),
+                              h1: ({ children }) => (
+                                <h1 className="text-xl font-semibold mb-3 text-foreground">
+                                  {children}
+                                </h1>
+                              ),
+                              h2: ({ children }) => (
+                                <h2 className="text-lg font-semibold mb-2 text-foreground">
+                                  {children}
+                                </h2>
+                              ),
+                              ul: ({ children }) => (
+                                <ul className="list-disc pl-5 mb-3 space-y-1">
+                                  {children}
+                                </ul>
+                              ),
+                              li: ({ children }) => (
+                                <li className="text-foreground text-sm">{children}</li>
+                              ),
+                            }}
+                          >
+                            {message.isStreaming ? message.streamedContent || '' : message.content}
+                          </ReactMarkdown>
+                        </div>
+                      ) : (
+                        // Standard markdown rendering for non-Perplexity responses
+                        <>
+                          <ReactMarkdown
+                            components={{
+                              p: ({ children }) => (
+                                <p className="mb-3 leading-relaxed text-foreground">
+                                  {children}
+                                </p>
+                              ),
+                              strong: ({ children }) => (
+                                <strong className="font-semibold text-foreground">
+                                  {children}
+                                </strong>
+                              ),
+                              h1: ({ children }) => (
+                                <h1 className="text-xl font-semibold mb-3 text-foreground">
+                                  {children}
+                                </h1>
+                              ),
+                              h2: ({ children }) => (
+                                <h2 className="text-lg font-semibold mb-2 text-foreground">
+                                  {children}
+                                </h2>
+                              ),
+                              ul: ({ children }) => (
+                                <ul className="list-disc pl-5 mb-3 space-y-1">
+                                  {children}
+                                </ul>
+                              ),
+                              li: ({ children }) => (
+                                <li className="text-foreground text-sm">{children}</li>
+                              ),
+                            }}
+                          >
+                            {message.isStreaming ? message.streamedContent || '' : message.content}
+                          </ReactMarkdown>
+                        </>
+                      )}
                       {message.isStreaming && (
                         <span className="inline-block w-1.5 h-4 bg-current animate-pulse ml-0.5">|</span>
                       )}
                     </div>
 
-                    {/* Citations from Bills Database */}
-                    {message.citations && message.citations.length > 0 && !message.isStreaming && (
-                      <div className="mt-4 pt-4 border-t">
-                        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-3">
-                          <FileText className="h-3.5 w-3.5" />
-                          <span>Referenced Bills ({message.citations.length})</span>
-                        </div>
-                        <div className="space-y-2">
-                          {message.citations.map((citation, idx) => (
-                            <a
-                              key={idx}
-                              href={`/bills`}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                window.location.href = `/bills`;
-                              }}
-                              className="block text-xs p-3 rounded-md bg-muted/40 border-0 hover:bg-muted/60 transition-colors cursor-pointer"
-                            >
-                              <div className="font-medium text-primary mb-1 hover:underline">
-                                {citation.bill_number}
-                              </div>
-                              <div className="text-muted-foreground line-clamp-2">
-                                {citation.title}
-                              </div>
-                              {citation.status_desc && (
-                                <div className="text-muted-foreground/80 mt-1 text-xs">
-                                  Status: {citation.status_desc}
-                                </div>
-                              )}
-                            </a>
-                          ))}
-                        </div>
-                      </div>
+                    {/* Tabbed Citations (Bills + Research Sources) */}
+                    {!message.isStreaming && (message.citations || message.perplexityCitations) && (
+                      <CitationTabs
+                        bills={message.citations || []}
+                        sources={message.perplexityCitations || []}
+                        onCitationClick={(num) => {
+                          console.log('Citation clicked:', num);
+                        }}
+                      />
                     )}
                   </div>
                 )}
