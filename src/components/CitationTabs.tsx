@@ -30,9 +30,7 @@ interface CitationTabsProps {
 }
 
 export function CitationTabs({ bills, sources, onCitationClick }: CitationTabsProps) {
-  const hasB
-
-ills = bills && bills.length > 0;
+  const hasBills = bills && bills.length > 0;
   const hasSources = sources && sources.length > 0;
 
   if (!hasBills && !hasSources) {
