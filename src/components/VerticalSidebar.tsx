@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
-import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, ChevronDown, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, Sun, Moon } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, ChevronDown, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, Sun, Moon, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { useModel } from "@/contexts/ModelContext";
+import { useSearch, SearchResult } from "@/hooks/useSearch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const legislationItems = [
   { title: "Bills", url: "/bills", icon: FileText },
@@ -36,27 +37,17 @@ const adminItems = [
   { title: "Image System", url: "/image-system", icon: ImageIcon },
 ];
 
-const modelOptions = [
-  { id: "gpt-4o", name: "GPT-4o", icon: "🤖" },
-  { id: "gpt-4o-mini", name: "GPT-4o Mini", icon: "🤖" },
-  { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet", icon: "🧠" },
-  { id: "claude-3-5-haiku-20241022", name: "Claude 3.5 Haiku", icon: "🧠" },
-  { id: "sonar-pro", name: "Sonar Large", icon: "🔍" },
-  { id: "sonar", name: "Sonar Small", icon: "🔍" },
-];
-
 export function VerticalSidebar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isLegislationOpen, setIsLegislationOpen] = useState(true);
   const [isDevelopmentOpen, setIsDevelopmentOpen] = useState(true);
-  const [isModelsOpen, setIsModelsOpen] = useState(true);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   const { getNavClassName } = useNavigation();
   const { isAdmin } = useAuth();
-  const { selectedModel, setSelectedModel } = useModel();
+  const navigate = useNavigate();
+  const { searchTerm, setSearchTerm, searchResults, clearSearch } = useSearch();
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -72,6 +63,12 @@ export function VerticalSidebar() {
     localStorage.setItem('theme', newTheme);
   };
 
+  const handleSearchResultClick = (result: SearchResult) => {
+    navigate(result.url);
+    clearSearch();
+    setIsOpen(false);
+  };
+
   return (
     <>
       {/* Overlay */}
@@ -83,11 +80,11 @@ export function VerticalSidebar() {
       )}
 
       {/* Single Container - Button + Menu */}
-      <div className="fixed top-4 left-4 w-80 bg-background border rounded-2xl z-50 overflow-hidden transition-all duration-300">
+      <div className="fixed top-4 left-4 w-80 bg-background rounded-2xl z-50 overflow-hidden transition-all duration-300">
         {/* Header/Trigger */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between px-4 py-3 hover:bg-accent transition-colors"
+          className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted transition-colors"
         >
           <span className="font-semibold text-lg">Goodable</span>
           <ChevronDown className={cn(
@@ -114,29 +111,64 @@ export function VerticalSidebar() {
             <span className="font-medium">New chat</span>
           </NavLink>
 
-          {/* Legislation */}
-          <Collapsible open={isLegislationOpen} onOpenChange={setIsLegislationOpen}>
-            <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 hover:bg-accent rounded-lg transition-colors">
-              <span className="text-sm font-medium text-muted-foreground">Legislation</span>
-              <ChevronDown className={cn(
-                "h-4 w-4 transition-transform",
-                isLegislationOpen && "rotate-180"
-              )} />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-1 mt-1">
-              {legislationItems.map((item) => (
-                <NavLink
-                  key={item.title}
-                  to={item.url}
-                  className={cn("flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors", getNavClassName)}
-                  onClick={() => setIsOpen(false)}
+          {/* Search Chat */}
+          <div className="px-3 py-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 h-9"
+              />
+              {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearSearch}
+                  className="absolute right-2 top-2 h-5 w-5 p-0"
                 >
-                  <item.icon className="h-4 w-4" />
-                  <span className="text-sm">{item.title}</span>
-                </NavLink>
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Search Results */}
+          {searchResults.length > 0 && (
+            <div className="space-y-1">
+              <div className="px-3 py-1">
+                <span className="text-xs font-medium text-muted-foreground">Search Results</span>
+              </div>
+              {searchResults.map((result) => (
+                <button
+                  key={result.id}
+                  onClick={() => handleSearchResultClick(result)}
+                  className="w-full flex items-start gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors text-left"
+                >
+                  <div className="flex-1">
+                    <div className="text-sm font-medium">{result.title}</div>
+                    <div className="text-xs text-muted-foreground">{result.type}</div>
+                  </div>
+                </button>
               ))}
-            </CollapsibleContent>
-          </Collapsible>
+            </div>
+          )}
+
+          {/* Bills, Committees, Members */}
+          <div className="space-y-1">
+            {legislationItems.map((item) => (
+              <NavLink
+                key={item.title}
+                to={item.url}
+                className={cn("flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors", getNavClassName)}
+                onClick={() => setIsOpen(false)}
+              >
+                <item.icon className="h-4 w-4" />
+                <span className="text-sm">{item.title}</span>
+              </NavLink>
+            ))}
+          </div>
 
           {/* Development */}
           <Collapsible open={isDevelopmentOpen} onOpenChange={setIsDevelopmentOpen}>
@@ -161,35 +193,6 @@ export function VerticalSidebar() {
                     <span className="text-sm">{item.title}</span>
                   </NavLink>
                 ))}
-            </CollapsibleContent>
-          </Collapsible>
-
-          {/* Models */}
-          <Collapsible open={isModelsOpen} onOpenChange={setIsModelsOpen}>
-            <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 hover:bg-accent rounded-lg transition-colors">
-              <span className="text-sm font-medium text-muted-foreground">Models</span>
-              <ChevronDown className={cn(
-                "h-4 w-4 transition-transform",
-                isModelsOpen && "rotate-180"
-              )} />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-1 mt-1">
-              {modelOptions.map((model) => (
-                <button
-                  key={model.id}
-                  onClick={() => {
-                    setSelectedModel(model.id);
-                    setIsOpen(false);
-                  }}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors w-full text-left",
-                    selectedModel === model.id && "bg-primary text-primary-foreground"
-                  )}
-                >
-                  <span>{model.icon}</span>
-                  <span className="text-sm">{model.name}</span>
-                </button>
-              ))}
             </CollapsibleContent>
           </Collapsible>
 
