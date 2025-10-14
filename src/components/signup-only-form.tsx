@@ -25,7 +25,7 @@ export function SignupOnlyForm({ className, ...props }: SignupOnlyFormProps) {
 
     try {
       await signUp(email, password);
-      navigate('/home');
+      navigate('/new-chat');
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
     } finally {

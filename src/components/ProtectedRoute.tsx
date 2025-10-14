@@ -18,10 +18,10 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }
   }, [user, loading, navigate]);
 
-  // Redirect authenticated users from root to home
+  // Redirect authenticated users from root to new-chat
   useEffect(() => {
     if (!loading && user && location.pathname === '/') {
-      navigate('/home');
+      navigate('/new-chat');
     }
   }, [user, loading, location.pathname, navigate]);
 

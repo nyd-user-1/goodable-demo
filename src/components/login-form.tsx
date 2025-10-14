@@ -30,7 +30,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
       } else {
         await signIn(email, password);
       }
-      navigate('/home');
+      navigate('/new-chat');
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
     } finally {

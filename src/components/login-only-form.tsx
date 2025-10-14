@@ -25,7 +25,7 @@ export function LoginOnlyForm({ className, ...props }: LoginOnlyFormProps) {
 
     try {
       await signIn(email, password);
-      navigate('/home');
+      navigate('/new-chat');
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
     } finally {
