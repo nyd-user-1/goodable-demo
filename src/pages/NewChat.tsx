@@ -464,7 +464,7 @@ const NewChat = () => {
           </div>
         ) : (
           /* Chat State - Messages */
-          <div className="pt-8 pb-4 px-4">
+          <div className="pt-8 pb-16 px-4">
             <div className="w-full max-w-[720px] mx-auto space-y-6">
             {messages.map((message) => (
               <div key={message.id} className="space-y-3">
