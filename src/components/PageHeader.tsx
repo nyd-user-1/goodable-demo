@@ -14,14 +14,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { ChatGPTIcon, ClaudeIcon, PerplexityIcon } from "@/components/icons/ModelIcons";
 
 const modelOptions = [
-  { id: "gpt-4o", name: "GPT-4o", description: "Most capable model", icon: "🤖" },
-  { id: "gpt-4o-mini", name: "GPT-4o Mini", description: "Fast and affordable", icon: "🤖" },
-  { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet", description: "Most intelligent model", icon: "🧠" },
-  { id: "claude-3-5-haiku-20241022", name: "Claude 3.5 Haiku", description: "Fast and versatile", icon: "🧠" },
-  { id: "sonar-pro", name: "Sonar Large", description: "Large model with web access", icon: "🔍" },
-  { id: "sonar", name: "Sonar Small", description: "Efficient with web access", icon: "🔍" },
+  { id: "gpt-4o", name: "GPT-4o", description: "Most capable model", IconComponent: ChatGPTIcon },
+  { id: "gpt-4o-mini", name: "GPT-4o Mini", description: "Fast and affordable", IconComponent: ChatGPTIcon },
+  { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet", description: "Most intelligent model", IconComponent: ClaudeIcon },
+  { id: "claude-3-5-haiku-20241022", name: "Claude 3.5 Haiku", description: "Fast and versatile", IconComponent: ClaudeIcon },
+  { id: "sonar-pro", name: "Sonar Large", description: "Large model with web access", IconComponent: PerplexityIcon },
+  { id: "sonar", name: "Sonar Small", description: "Efficient with web access", IconComponent: PerplexityIcon },
 ];
 
 export function PageHeader() {
@@ -43,21 +44,22 @@ export function PageHeader() {
   };
 
   const selectedModelOption = modelOptions.find(m => m.id === selectedModel) || modelOptions[0];
+  const SelectedIcon = selectedModelOption.IconComponent;
 
   return (
-    <div className="fixed top-4 right-4 z-40 flex items-center gap-2">
+    <div className="fixed top-4 right-4 z-40 flex items-center gap-3">
       {/* Theme Toggle */}
       <Button
         variant="outline"
         size="icon"
         onClick={toggleTheme}
-        className="h-9 w-9 rounded-lg bg-background border"
+        className="h-10 w-10 rounded-xl bg-background border"
         title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
       >
         {theme === 'dark' ? (
-          <Sun className="h-4 w-4" />
+          <Sun className="h-5 w-5" />
         ) : (
-          <Moon className="h-4 w-4" />
+          <Moon className="h-5 w-5" />
         )}
       </Button>
 
@@ -66,32 +68,43 @@ export function PageHeader() {
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="h-9 px-3 rounded-lg bg-background border font-normal min-w-[160px] justify-between"
+            className="h-10 px-4 rounded-xl bg-background border font-normal min-w-[180px] justify-between"
           >
-            <div className="flex items-center gap-2">
-              <span>{selectedModelOption.icon}</span>
-              <span className="text-sm">{selectedModelOption.name}</span>
+            <div className="flex items-center gap-2.5">
+              <SelectedIcon className="h-5 w-5" />
+              <span className="text-sm font-medium">{selectedModelOption.name}</span>
             </div>
-            <ChevronDown className="h-4 w-4 opacity-50" />
+            <ChevronDown className="h-4 w-4 ml-2 opacity-50" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[280px]">
-          {modelOptions.map((model) => (
-            <DropdownMenuItem
-              key={model.id}
-              onClick={() => setSelectedModel(model.id)}
-              className={cn(
-                "cursor-pointer flex flex-col items-start gap-1 py-3",
-                selectedModel === model.id && "bg-accent"
-              )}
-            >
-              <div className="flex items-center gap-2 w-full">
-                <span>{model.icon}</span>
-                <span className="font-medium">{model.name}</span>
-              </div>
-              <span className="text-xs text-muted-foreground ml-6">{model.description}</span>
-            </DropdownMenuItem>
-          ))}
+        <DropdownMenuContent align="end" className="w-[320px] p-2">
+          {modelOptions.map((model) => {
+            const Icon = model.IconComponent;
+            return (
+              <DropdownMenuItem
+                key={model.id}
+                onClick={() => setSelectedModel(model.id)}
+                className={cn(
+                  "cursor-pointer flex items-start gap-3 py-3 px-3 rounded-lg",
+                  selectedModel === model.id && "bg-primary text-primary-foreground"
+                )}
+              >
+                <Icon className={cn(
+                  "h-5 w-5 mt-0.5 flex-shrink-0",
+                  selectedModel === model.id ? "text-primary-foreground" : "text-foreground"
+                )} />
+                <div className="flex flex-col gap-0.5 flex-1">
+                  <span className="font-medium text-sm leading-tight">{model.name}</span>
+                  <span className={cn(
+                    "text-xs leading-tight",
+                    selectedModel === model.id ? "text-primary-foreground/70" : "text-muted-foreground"
+                  )}>
+                    {model.description}
+                  </span>
+                </div>
+              </DropdownMenuItem>
+            );
+          })}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
