@@ -42,16 +42,35 @@ export const BillSummary = ({
   };
 
   // Helper to generate committee slug from committee name
-  // e.g., "Senate Education" → "senate-education"
+  // Bill committee names often include chamber prefix: "Assembly Governmental Operations"
+  // We need to extract chamber and committee name separately
   const generateCommitteeSlugFromName = (committeeName: string | null): string | null => {
     if (!committeeName) return null;
-    return committeeName
-      .toLowerCase()
-      .trim()
+
+    // Normalize the name
+    const normalized = committeeName.toLowerCase().trim();
+
+    // Check if it starts with "assembly" or "senate"
+    let chamber = '';
+    let name = normalized;
+
+    if (normalized.startsWith('assembly ')) {
+      chamber = 'assembly';
+      name = normalized.replace(/^assembly\s+/, '');
+    } else if (normalized.startsWith('senate ')) {
+      chamber = 'senate';
+      name = normalized.replace(/^senate\s+/, '');
+    }
+
+    // Clean up the name part
+    const cleanName = name
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '');
+
+    // Return in format: chamber-name
+    return chamber ? `${chamber}-${cleanName}` : cleanName;
   };
 
   const primarySponsor = sponsors.find(s => s.position === 1);

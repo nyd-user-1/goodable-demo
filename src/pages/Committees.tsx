@@ -73,26 +73,60 @@ const Committees = () => {
         try {
           const { chamber, name } = parseCommitteeSlug(committeeSlug);
 
-          // Query database for committee matching chamber and name using partial matching
-          // This handles cases like "Senate Education" matching "Senate Education Committee"
-          const { data, error } = await supabase
+          // Fetch all committees for this chamber
+          const { data: chamberCommittees, error } = await supabase
             .from("Committees")
             .select("*")
-            .ilike("chamber", chamber)
-            .ilike("committee_name", `%${name}%`)
-            .limit(1)
-            .single();
+            .ilike("chamber", chamber);
 
-          if (data && !error) {
+          if (error) throw error;
+
+          // Try multiple matching strategies on the client side
+          let matchedCommittee = null;
+
+          if (chamberCommittees && chamberCommittees.length > 0) {
+            // Strategy 1: Exact case-insensitive partial match
+            matchedCommittee = chamberCommittees.find(c =>
+              c.committee_name?.toLowerCase().includes(name.toLowerCase())
+            );
+
+            // Strategy 2: If not found, try fuzzy matching by comparing significant words
+            // This handles "governmental operations" vs "government operations"
+            if (!matchedCommittee) {
+              const words = name.split(' ').filter(word =>
+                word.length > 2 && !['the', 'and', 'for', 'of', 'on'].includes(word)
+              );
+
+              matchedCommittee = chamberCommittees.find(c => {
+                const committeeName = c.committee_name?.toLowerCase() || '';
+                // Match if all significant words are present (even as substrings)
+                return words.every(word => committeeName.includes(word.substring(0, Math.max(4, word.length - 2))));
+              });
+            }
+
+            // Strategy 3: If still not found, try matching individual words
+            if (!matchedCommittee) {
+              const words = name.split(' ').filter(word => word.length > 3);
+
+              matchedCommittee = chamberCommittees.find(c => {
+                const committeeName = c.committee_name?.toLowerCase() || '';
+                // Match if at least 2 significant words are present
+                const matchCount = words.filter(word => committeeName.includes(word)).length;
+                return matchCount >= Math.min(2, words.length);
+              });
+            }
+          }
+
+          if (matchedCommittee) {
             // Transform to match Committee type
             const committee: Committee = {
-              committee_id: data.committee_id,
-              name: data.committee_name || '',
-              memberCount: data.member_count || '0',
-              billCount: data.active_bills_count || '0',
-              description: data.description,
-              chair_name: data.chair_name,
-              chamber: data.chamber,
+              committee_id: matchedCommittee.committee_id,
+              name: matchedCommittee.committee_name || '',
+              memberCount: matchedCommittee.member_count || '0',
+              billCount: matchedCommittee.active_bills_count || '0',
+              description: matchedCommittee.description,
+              chair_name: matchedCommittee.chair_name,
+              chamber: matchedCommittee.chamber,
               slug: committeeSlug,
             };
             setSelectedCommittee(committee);
