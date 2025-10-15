@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { generateMemberSlug } from "@/utils/memberSlug";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -113,7 +114,8 @@ export const MembersTable = ({ limit = 500 }: MembersTableProps) => {
   }, []);
 
   const handleMemberClick = (member: Member) => {
-    navigate(`/members?selected=${member.people_id}`);
+    const slug = generateMemberSlug(member);
+    navigate(`/members/${slug}`);
   };
 
   const handleAIAnalysis = async (member: Member, e: React.MouseEvent) => {

@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { SearchResult } from "@/types/search";
+import { generateMemberSlug } from "@/utils/memberSlug";
 
 export const fetchAllSearchContent = async (): Promise<SearchResult[]> => {
   try {
@@ -108,7 +109,7 @@ export const fetchAllSearchContent = async (): Promise<SearchResult[]> => {
         type: 'bill' as const,
         content: b.description || b.last_action || '',
         created_at: b.status_date || new Date().toISOString(),
-        url: `/bills?selected=${b.bill_id}`
+        url: `/bills/${b.bill_number}`
       })) || []),
       ...(members?.map(m => ({
         id: m.people_id.toString(),
@@ -116,7 +117,7 @@ export const fetchAllSearchContent = async (): Promise<SearchResult[]> => {
         type: 'member' as const,
         content: `${m.party || ''} ${m.chamber || ''} ${m.district || ''}`.trim() || m.bio_short || '',
         created_at: new Date().toISOString(),
-        url: `/members?selected=${m.people_id}`
+        url: `/members/${generateMemberSlug(m)}`
       })) || []),
       ...(committees?.map(c => ({
         id: c.committee_id.toString(),

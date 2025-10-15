@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useMembersData } from "@/hooks/useMembersData";
+import { generateMemberSlug, slugToNamePattern } from "@/utils/memberSlug";
 import { useMemberFavorites } from "@/hooks/useMemberFavorites";
 import { MembersHeader } from "@/components/features/members/MembersHeader";
 import { MembersSearchFilters } from "@/components/features/members/MembersSearchFilters";
@@ -20,6 +21,7 @@ type Member = Tables<"People">;
 
 const Members = () => {
   const [searchParams] = useSearchParams();
+  const { memberSlug } = useParams<{ memberSlug?: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
@@ -50,7 +52,7 @@ const Members = () => {
     fetchMembers,
   } = useMembersData();
 
-  // Handle URL parameter for selected member
+  // Handle URL parameter for selected member (legacy support for ?selected=id)
   useEffect(() => {
     const selectedId = searchParams.get('selected');
     if (selectedId) {
@@ -62,7 +64,7 @@ const Members = () => {
           return;
         }
       }
-      
+
       // If not found in filtered results, fetch directly from database
       const fetchSelectedMember = async () => {
         try {
@@ -71,19 +73,52 @@ const Members = () => {
             .select('*')
             .eq('people_id', parseInt(selectedId))
             .single();
-          
+
           if (member) {
             setSelectedMember(member);
           }
         } catch (error) {
         }
       };
-      
+
       fetchSelectedMember();
     } else {
       setSelectedMember(null);
     }
   }, [searchParams, members]);
+
+  // Handle URL parameter for member slug (/members/:memberSlug)
+  useEffect(() => {
+    const fetchMemberBySlug = async () => {
+      if (memberSlug) {
+        try {
+          const namePattern = slugToNamePattern(memberSlug);
+
+          // Try to match by name using ILIKE for case-insensitive matching
+          const { data, error } = await supabase
+            .from("People")
+            .select("*")
+            .ilike("name", namePattern)
+            .single();
+
+          if (data && !error) {
+            setSelectedMember(data);
+          } else {
+            console.error("Member not found:", memberSlug);
+            // Optionally navigate back to /members if member not found
+            // navigate('/members');
+          }
+        } catch (error) {
+          console.error("Error fetching member:", error);
+        }
+      } else {
+        // If no memberSlug in URL, clear selected member
+        setSelectedMember(null);
+      }
+    };
+
+    fetchMemberBySlug();
+  }, [memberSlug]);
 
   // Scroll to top when member is selected or deselected
   useEffect(() => {
@@ -179,8 +214,8 @@ const Members = () => {
   };
 
   const navigateToMember = (member: any) => {
-    setSelectedMember(member);
-    navigate(`/members?selected=${member.people_id}`);
+    const slug = generateMemberSlug(member);
+    navigate(`/members/${slug}`);
   };
 
   const navigation = getMemberNavigation();
@@ -238,9 +273,9 @@ const Members = () => {
             <MembersEmptyState hasFilters={hasFilters} />
           ) : (
             <>
-              <MembersGrid 
-                members={members} 
-                onMemberSelect={user ? setSelectedMember : () => navigate('/auth-2')}
+              <MembersGrid
+                members={members}
+                onMemberSelect={user ? navigateToMember : () => navigate('/auth-2')}
                 onFavorite={handleFavorite}
                 onAIAnalysis={handleAIAnalysis}
                 favoriteMembers={favoriteMemberIds}
