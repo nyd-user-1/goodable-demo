@@ -73,12 +73,14 @@ const Committees = () => {
         try {
           const { chamber, name } = parseCommitteeSlug(committeeSlug);
 
-          // Query database for committee matching chamber and name
+          // Query database for committee matching chamber and name using partial matching
+          // This handles cases like "Senate Education" matching "Senate Education Committee"
           const { data, error } = await supabase
             .from("Committees")
             .select("*")
             .ilike("chamber", chamber)
-            .ilike("committee_name", name)
+            .ilike("committee_name", `%${name}%`)
+            .limit(1)
             .single();
 
           if (data && !error) {

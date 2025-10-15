@@ -94,11 +94,13 @@ const Members = () => {
         try {
           const namePattern = slugToNamePattern(memberSlug);
 
-          // Try to match by name using ILIKE for case-insensitive matching
+          // Try to match by name using ILIKE with wildcards for partial matching
+          // This handles cases like "Joseph P. Addabbo" matching "joseph addabbo"
           const { data, error } = await supabase
             .from("People")
             .select("*")
-            .ilike("name", namePattern)
+            .ilike("name", `%${namePattern}%`)
+            .limit(1)
             .single();
 
           if (data && !error) {
