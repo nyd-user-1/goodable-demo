@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useParams, useNavigate } from "react-router-dom";
 import { BillDetail } from "@/components/BillDetail";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
@@ -17,6 +17,8 @@ type Bill = Tables<"Bills">;
 
 const Bills = () => {
   const [searchParams] = useSearchParams();
+  const { billNumber } = useParams<{ billNumber?: string }>();
+  const navigate = useNavigate();
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
   const [committees, setCommittees] = useState<Array<{ name: string; chamber: string }>>([]);
   const [sponsors, setSponsors] = useState<Array<{ name: string; chamber: string; party: string }>>([]);
@@ -46,7 +48,7 @@ const Bills = () => {
     totalBillsInDb, // NEW
   } = useBillsData();
 
-  // Handle URL parameter for selected bill
+  // Handle URL parameter for selected bill (legacy support for ?selected=id)
   useEffect(() => {
     const selectedId = searchParams.get('selected');
     if (selectedId && bills && bills.length > 0) {
@@ -56,6 +58,36 @@ const Bills = () => {
       }
     }
   }, [searchParams, bills]);
+
+  // Handle URL parameter for bill number (/bills/:billNumber)
+  useEffect(() => {
+    const fetchBillByNumber = async () => {
+      if (billNumber) {
+        try {
+          const { data, error } = await supabase
+            .from("Bills")
+            .select("*")
+            .ilike("bill_number", billNumber)
+            .single();
+
+          if (data && !error) {
+            setSelectedBill(data);
+          } else {
+            console.error("Bill not found:", billNumber);
+            // Optionally navigate back to /bills if bill not found
+            // navigate('/bills');
+          }
+        } catch (error) {
+          console.error("Error fetching bill:", error);
+        }
+      } else {
+        // If no billNumber in URL, clear selected bill
+        setSelectedBill(null);
+      }
+    };
+
+    fetchBillByNumber();
+  }, [billNumber]);
 
   useEffect(() => {
     fetchCommittees();
@@ -102,11 +134,13 @@ const Bills = () => {
   };
 
   const handleBillSelect = (bill: Bill) => {
-    setSelectedBill(bill);
+    // Navigate to the bill's URL
+    navigate(`/bills/${bill.bill_number}`);
   };
 
   const handleBackToBills = () => {
-    setSelectedBill(null);
+    // Navigate back to bills list
+    navigate('/bills');
   };
 
   const handleFiltersChange = (newFilters: {

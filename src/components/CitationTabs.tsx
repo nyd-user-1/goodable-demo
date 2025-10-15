@@ -3,6 +3,7 @@
  * Tabbed interface for Referenced Bills and Research Sources
  */
 
+import { Link } from "react-router-dom";
 import { FileText, Globe } from "lucide-react";
 import {
   Tabs,
@@ -56,13 +57,9 @@ export function CitationTabs({ bills, sources, onCitationClick }: CitationTabsPr
           {hasBills ? (
             <div className="space-y-2">
               {bills.map((citation, idx) => (
-                <a
+                <Link
                   key={idx}
-                  href={`/bills`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    window.location.href = `/bills`;
-                  }}
+                  to={`/bills/${citation.bill_number}`}
                   className="block text-xs p-3 rounded-md bg-muted/40 border hover:bg-muted/60 transition-colors cursor-pointer"
                 >
                   <div className="font-medium text-primary mb-1 hover:underline">
@@ -76,7 +73,7 @@ export function CitationTabs({ bills, sources, onCitationClick }: CitationTabsPr
                       Status: {citation.status_desc}
                     </div>
                   )}
-                </a>
+                </Link>
               ))}
             </div>
           ) : (
