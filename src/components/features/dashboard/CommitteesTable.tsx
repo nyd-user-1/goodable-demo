@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { generateCommitteeSlug } from "@/utils/committeeSlug";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -121,7 +122,12 @@ export const CommitteesTable = ({ limit = 10 }: CommitteesTableProps) => {
   }, []);
 
   const handleCommitteeClick = (committee: Committee) => {
-    navigate(`/committees?selected=${committee.committee_id}`);
+    const slug = generateCommitteeSlug({
+      committee_id: committee.committee_id,
+      committee_name: committee.name,
+      chamber: committee.chamber,
+    } as any);
+    navigate(`/committees/${slug}`);
   };
 
   const handleAIAnalysis = async (committee: Committee, e: React.MouseEvent) => {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useParams, useNavigate } from "react-router-dom";
 import { useCommitteesData } from "@/hooks/useCommitteesData";
+import { generateCommitteeSlug, parseCommitteeSlug } from "@/utils/committeeSlug";
 import { useCommitteeFavorites } from "@/hooks/useCommitteeFavorites";
 import { CommitteesHeader } from "@/components/features/committees/CommitteesHeader";
 import { CommitteesSearchFilters } from "@/components/features/committees/CommitteesSearchFilters";
@@ -31,6 +32,8 @@ type Committee = {
 
 const Committees = () => {
   const [searchParams] = useSearchParams();
+  const { committeeSlug } = useParams<{ committeeSlug?: string }>();
+  const navigate = useNavigate();
   const [selectedCommittee, setSelectedCommittee] = useState<Committee | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [selectedCommitteeForChat, setSelectedCommitteeForChat] = useState<Committee | null>(null);
@@ -52,7 +55,7 @@ const Committees = () => {
     chambers,
   } = useCommitteesData();
 
-  // Handle URL parameter for selected committee
+  // Handle URL parameter for selected committee (legacy support for ?selected=id)
   useEffect(() => {
     const selectedId = searchParams.get('selected');
     if (selectedId && committees && committees.length > 0) {
@@ -62,6 +65,49 @@ const Committees = () => {
       }
     }
   }, [searchParams, committees]);
+
+  // Handle URL parameter for committee slug (/committees/:committeeSlug)
+  useEffect(() => {
+    const fetchCommitteeBySlug = async () => {
+      if (committeeSlug) {
+        try {
+          const { chamber, name } = parseCommitteeSlug(committeeSlug);
+
+          // Query database for committee matching chamber and name
+          const { data, error } = await supabase
+            .from("Committees")
+            .select("*")
+            .ilike("chamber", chamber)
+            .ilike("committee_name", name)
+            .single();
+
+          if (data && !error) {
+            // Transform to match Committee type
+            const committee: Committee = {
+              committee_id: data.committee_id,
+              name: data.committee_name || '',
+              memberCount: data.member_count || '0',
+              billCount: data.active_bills_count || '0',
+              description: data.description,
+              chair_name: data.chair_name,
+              chamber: data.chamber,
+              slug: committeeSlug,
+            };
+            setSelectedCommittee(committee);
+          } else {
+            console.error("Committee not found:", committeeSlug);
+          }
+        } catch (error) {
+          console.error("Error fetching committee:", error);
+        }
+      } else {
+        // If no committeeSlug in URL, clear selected committee
+        setSelectedCommittee(null);
+      }
+    };
+
+    fetchCommitteeBySlug();
+  }, [committeeSlug]);
 
   // Fetch committees that have AI chat sessions
   useEffect(() => {
@@ -107,12 +153,27 @@ const Committees = () => {
     return <CommitteesErrorState error={error} onRetry={fetchCommittees} />;
   }
 
+  // Navigate to committee detail
+  const handleCommitteeSelect = (committee: Committee) => {
+    const slug = generateCommitteeSlug({
+      committee_id: committee.committee_id,
+      committee_name: committee.name,
+      chamber: committee.chamber,
+      slug: committee.slug,
+      description: committee.description,
+      chair_name: committee.chair_name,
+      member_count: committee.memberCount,
+      active_bills_count: committee.billCount,
+    } as any);
+    navigate(`/committees/${slug}`);
+  };
+
   // Show committee detail if one is selected
   if (selectedCommittee) {
     return (
-      <CommitteeDetail 
-        committee={selectedCommittee} 
-        onBack={() => setSelectedCommittee(null)} 
+      <CommitteeDetail
+        committee={selectedCommittee}
+        onBack={() => navigate('/committees')}
       />
     );
   }
@@ -147,9 +208,9 @@ const Committees = () => {
           {committees.length === 0 ? (
             <CommitteesEmptyState hasFilters={hasFilters} />
           ) : (
-            <CommitteesGrid 
-              committees={committees} 
-              onCommitteeSelect={setSelectedCommittee}
+            <CommitteesGrid
+              committees={committees}
+              onCommitteeSelect={handleCommitteeSelect}
               onFavorite={handleFavorite}
               onAIAnalysis={handleAIAnalysis}
               favoriteCommittees={favoriteCommitteeIds}

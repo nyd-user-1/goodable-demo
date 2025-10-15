@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { SearchResult } from "@/types/search";
 import { generateMemberSlug } from "@/utils/memberSlug";
+import { generateCommitteeSlug } from "@/utils/committeeSlug";
 
 export const fetchAllSearchContent = async (): Promise<SearchResult[]> => {
   try {
@@ -125,7 +126,7 @@ export const fetchAllSearchContent = async (): Promise<SearchResult[]> => {
         type: 'committee' as const,
         content: c.description || c.chair_name || '',
         created_at: new Date().toISOString(),
-        url: `/committees?selected=${c.committee_id}`
+        url: `/committees/${generateCommitteeSlug(c)}`
       })) || [])
     ];
 
