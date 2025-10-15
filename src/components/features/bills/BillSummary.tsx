@@ -1,8 +1,10 @@
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BillStatusBadge } from "@/components/BillStatusBadge";
 import { CardActionButtons } from "@/components/ui/CardActionButtons";
 import { Tables } from "@/integrations/supabase/types";
+import { generateMemberSlug } from "@/utils/memberSlug";
 
 type Bill = Tables<"Bills">;
 type Sponsor = Tables<"Sponsors"> & {
@@ -39,7 +41,22 @@ export const BillSummary = ({
     }
   };
 
+  // Helper to generate committee slug from committee name
+  // e.g., "Senate Education" → "senate-education"
+  const generateCommitteeSlugFromName = (committeeName: string | null): string | null => {
+    if (!committeeName) return null;
+    return committeeName
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  };
+
   const primarySponsor = sponsors.find(s => s.position === 1);
+  const memberSlug = primarySponsor?.person ? generateMemberSlug(primarySponsor.person) : null;
+  const committeeSlug = generateCommitteeSlugFromName(bill.committee);
 
   return (
     <Card className="card bg-card rounded-xl shadow-sm border overflow-hidden">
@@ -70,9 +87,18 @@ export const BillSummary = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div>
             <h4 className="font-medium text-sm text-muted-foreground mb-2">Primary Sponsor</h4>
-            <p className="text-sm font-medium">
-              {primarySponsor?.person?.name || "Not specified"}
-            </p>
+            {memberSlug ? (
+              <Link
+                to={`/members/${memberSlug}`}
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                {primarySponsor?.person?.name || "Not specified"}
+              </Link>
+            ) : (
+              <p className="text-sm font-medium">
+                {primarySponsor?.person?.name || "Not specified"}
+              </p>
+            )}
           </div>
           
           <div>
@@ -82,7 +108,16 @@ export const BillSummary = ({
           
           <div>
             <h4 className="font-medium text-sm text-muted-foreground mb-2">Committee</h4>
-            <p className="text-sm">{bill.committee || "Not assigned"}</p>
+            {committeeSlug ? (
+              <Link
+                to={`/committees/${committeeSlug}`}
+                className="text-sm text-primary hover:underline"
+              >
+                {bill.committee || "Not assigned"}
+              </Link>
+            ) : (
+              <p className="text-sm">{bill.committee || "Not assigned"}</p>
+            )}
           </div>
           
           <div>
