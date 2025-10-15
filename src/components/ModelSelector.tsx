@@ -38,7 +38,7 @@ const PerplexityIcon = ({ className }: { className?: string }) => (
 );
 
 export type ModelProvider = "openai" | "anthropic" | "perplexity";
-export type ModelType = "gpt-4o-mini" | "gpt-4o" | "claude-3-5-sonnet-20241022" | "claude-3-5-haiku-20241022" | "llama-3.1-sonar-small-128k-online" | "llama-3.1-sonar-large-128k-online";
+export type ModelType = "gpt-4o-mini" | "gpt-4o" | "claude-3-5-sonnet-20241022" | "claude-3-5-haiku-20241022" | "sonar" | "sonar-pro";
 
 interface ModelSelectorProps {
   selectedModel: ModelType;
@@ -69,8 +69,8 @@ const models: Record<ModelProvider, { name: string; icon: React.ComponentType<{ 
     icon: PerplexityIcon,
     color: "text-blue-600",
     models: [
-      { id: "llama-3.1-sonar-large-128k-online", name: "Sonar Large", description: "Large model with web access" },
-      { id: "llama-3.1-sonar-small-128k-online", name: "Sonar Small", description: "Efficient with web access" },
+      { id: "sonar-pro", name: "Sonar Large", description: "Large model with web access" },
+      { id: "sonar", name: "Sonar Small", description: "Efficient with web access" },
     ]
   }
 };
