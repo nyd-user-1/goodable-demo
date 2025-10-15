@@ -343,7 +343,7 @@ const NewChat = () => {
 
       // Determine which edge function to call based on model
       const isClaudeModel = selectedModel.startsWith('claude-');
-      const isPerplexityModel = selectedModel.startsWith('sonar');
+      const isPerplexityModel = selectedModel.includes('sonar');
       const edgeFunction = isClaudeModel
         ? 'generate-with-claude'
         : isPerplexityModel
