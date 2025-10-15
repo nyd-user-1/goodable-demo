@@ -1,12 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, ChevronDown, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, Sun, Moon } from "lucide-react";
+import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, ChevronDown, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { useModel } from "@/contexts/ModelContext";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Button } from "@/components/ui/button";
 
 const legislationItems = [
   { title: "Bills", url: "/bills", icon: FileText },
@@ -36,41 +34,16 @@ const adminItems = [
   { title: "Image System", url: "/image-system", icon: ImageIcon },
 ];
 
-const modelOptions = [
-  { id: "gpt-4o", name: "GPT-4o", icon: "🤖" },
-  { id: "gpt-4o-mini", name: "GPT-4o Mini", icon: "🤖" },
-  { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet", icon: "🧠" },
-  { id: "claude-3-5-haiku-20241022", name: "Claude 3.5 Haiku", icon: "🧠" },
-  { id: "sonar-pro", name: "Sonar Large", icon: "🔍" },
-  { id: "sonar", name: "Sonar Small", icon: "🔍" },
-];
 
 export function VerticalSidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLegislationOpen, setIsLegislationOpen] = useState(true);
   const [isDevelopmentOpen, setIsDevelopmentOpen] = useState(true);
-  const [isModelsOpen, setIsModelsOpen] = useState(true);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   const { getNavClassName } = useNavigation();
   const { isAdmin } = useAuth();
-  const { selectedModel, setSelectedModel } = useModel();
-
-  useEffect(() => {
-    const root = window.document.documentElement;
-    const initialTheme = root.classList.contains('dark') ? 'dark' : 'light';
-    setTheme(initialTheme);
-  }, []);
-
-  const toggleTheme = () => {
-    const root = window.document.documentElement;
-    root.classList.toggle('dark');
-    const newTheme = root.classList.contains('dark') ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-  };
 
   return (
     <>
@@ -164,35 +137,6 @@ export function VerticalSidebar() {
             </CollapsibleContent>
           </Collapsible>
 
-          {/* Models */}
-          <Collapsible open={isModelsOpen} onOpenChange={setIsModelsOpen}>
-            <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 hover:bg-accent rounded-lg transition-colors">
-              <span className="text-sm font-medium text-muted-foreground">Models</span>
-              <ChevronDown className={cn(
-                "h-4 w-4 transition-transform",
-                isModelsOpen && "rotate-180"
-              )} />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-1 mt-1">
-              {modelOptions.map((model) => (
-                <button
-                  key={model.id}
-                  onClick={() => {
-                    setSelectedModel(model.id);
-                    setIsOpen(false);
-                  }}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors w-full text-left",
-                    selectedModel === model.id && "bg-primary text-primary-foreground"
-                  )}
-                >
-                  <span>{model.icon}</span>
-                  <span className="text-sm">{model.name}</span>
-                </button>
-              ))}
-            </CollapsibleContent>
-          </Collapsible>
-
           {/* Account */}
           <Collapsible open={isAccountOpen} onOpenChange={setIsAccountOpen}>
             <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 hover:bg-accent rounded-lg transition-colors">
@@ -214,15 +158,6 @@ export function VerticalSidebar() {
                   <span className="text-sm">{item.title}</span>
                 </NavLink>
               ))}
-
-              {/* Theme Toggle */}
-              <button
-                onClick={() => toggleTheme()}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors w-full text-left"
-              >
-                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                <span className="text-sm">{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
-              </button>
             </CollapsibleContent>
           </Collapsible>
 

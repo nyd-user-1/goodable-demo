@@ -13,6 +13,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { VerticalSidebar } from "@/components/VerticalSidebar";
+import { PageHeader } from "@/components/PageHeader";
 import Landing from "./pages/Landing";
 import LandingPageWaitlist from "./pages/Landing-Page-Waitlist";
 import Home from "./pages/Home";
@@ -64,6 +65,7 @@ const AppLayout = () => {
     <ProtectedRoute>
       <div className="relative min-h-screen">
         <VerticalSidebar />
+        <PageHeader />
         <ScrollProgress className="top-0" />
         <main className="flex-1 overflow-hidden">
           <PageTransition>
