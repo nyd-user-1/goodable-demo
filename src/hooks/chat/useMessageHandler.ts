@@ -95,14 +95,35 @@ export const useMessageHandler = (entity: any, entityType: EntityType) => {
       // For bills, members, committees - use the original message for comprehensive analysis
       const contextualPrompt = message;
 
-      // Use 'chat' type for comprehensive analysis of legislative entities
-      const contextType = 'chat';
+      // Get Supabase session for auth
+      const { data: { session } } = await supabase.auth.getSession();
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const projectUrl = import.meta.env.VITE_SUPABASE_URL;
 
-      const { data, error } = await supabase.functions.invoke('generate-with-openai', {
-        body: {
+      // Create streaming assistant message
+      const assistantId = generateId();
+      const streamingMessage: Message = {
+        id: assistantId,
+        role: "assistant",
+        content: "",
+        timestamp: new Date()
+      };
+
+      let currentMessages = [...updatedMessages, streamingMessage];
+      setMessages(currentMessages);
+
+      // Call edge function with streaming
+      const response = await fetch(`${projectUrl}/functions/v1/generate-with-openai`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token || anonKey}`,
+          'apikey': anonKey,
+        },
+        body: JSON.stringify({
           prompt: contextualPrompt,
           type: entityType,
-          stream: false,
+          stream: true,
           fastMode: true,
           context: {
             chatType: entityType,
@@ -114,34 +135,71 @@ export const useMessageHandler = (entity: any, entityType: EntityType) => {
                    entityType === 'committee' ? entity?.committee_name : '',
             previousMessages: messages.slice(-5) // Last 5 messages for context
           }
-        }
+        }),
       });
 
-      if (error) {
+      if (!response.ok) {
         throw new Error('Failed to generate response');
       }
 
-      const assistantMessage: Message = {
-        id: generateId(),
-        role: "assistant",
-        content: data.generatedText || 'Unable to generate response. Please try again.',
-        timestamp: new Date()
-      };
+      // Read streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let fullResponse = '';
 
-      const finalMessages = [...updatedMessages, assistantMessage];
-      setMessages(finalMessages);
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
+
+              try {
+                const parsed = JSON.parse(data);
+                const content = parsed.choices?.[0]?.delta?.content || '';
+
+                if (content) {
+                  fullResponse += content;
+                  // Update streaming message
+                  currentMessages = currentMessages.map(msg =>
+                    msg.id === assistantId
+                      ? { ...msg, content: fullResponse }
+                      : msg
+                  );
+                  setMessages(currentMessages);
+                }
+              } catch (e) {
+                console.debug('Skipping chunk:', line);
+              }
+            }
+          }
+        }
+      }
+
+      if (!fullResponse) {
+        fullResponse = 'Unable to generate response. Please try again.';
+        currentMessages = currentMessages.map(msg =>
+          msg.id === assistantId
+            ? { ...msg, content: fullResponse }
+            : msg
+        );
+        setMessages(currentMessages);
+      }
 
       // Extract and store citations from the response
-      if (setCitations && data.citations) {
-        setCitations(data.citations);
-      } else if (setCitations) {
-        // Generate citations based on the entity and response content
-        const extractedCitations = extractCitationsFromResponse(data.generatedText, entity, entityType);
+      if (setCitations) {
+        const extractedCitations = extractCitationsFromResponse(fullResponse, entity, entityType);
         setCitations(extractedCitations);
       }
 
       // Save updated messages to database
-      await saveChatSession(finalMessages);
+      await saveChatSession(currentMessages);
 
     } catch (error) {
       toast({
