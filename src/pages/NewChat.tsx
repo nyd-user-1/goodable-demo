@@ -18,7 +18,6 @@ import {
 import { CitationText } from "@/components/CitationText";
 import { CitationTabs } from "@/components/CitationTabs";
 import { PerplexityCitation, extractCitationNumbers } from "@/utils/citationParser";
-import { TextScrambler } from "@/utils/textScrambler";
 
 // Featuring real bills from our database
 const samplePrompts = [
@@ -88,29 +87,6 @@ const NewChat = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
-
-  // Apply scrambling effect to new assistant messages
-  useEffect(() => {
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage && lastMessage.role === 'assistant' && !lastMessage.isStreaming) {
-      // Small delay to ensure DOM is rendered
-      setTimeout(() => {
-        const messageElement = document.querySelector(`[data-message-id="${lastMessage.id}"]`);
-        if (messageElement) {
-          const textElements = messageElement.querySelectorAll('p, h1, h2, li');
-          textElements.forEach((el, index) => {
-            if (el.textContent && el.textContent.trim()) {
-              const scrambler = new TextScrambler(el as HTMLElement);
-              // Stagger the scrambling effect
-              setTimeout(() => {
-                scrambler.setText(el.textContent || '');
-              }, index * 30);
-            }
-          });
-        }
-      }, 50);
-    }
-  }, [messages]);
 
   // Fetch bills for dialog
   const fetchBillsForSelection = async () => {
@@ -349,23 +325,98 @@ const NewChat = () => {
           ? 'generate-with-perplexity'
           : 'generate-with-openai';
 
-      // Call the appropriate edge function
-      const { data, error } = await supabase.functions.invoke(edgeFunction, {
-        body: {
+      // Get Supabase URL from the client (avoids env var issues)
+      const supabaseUrl = supabase.supabaseUrl;
+      const { data: { session } } = await supabase.auth.getSession();
+
+      // Create placeholder streaming message
+      const messageId = `assistant-${Date.now()}`;
+      const streamingMessage: Message = {
+        id: messageId,
+        role: "assistant",
+        content: "",
+        isStreaming: true,
+        streamedContent: "",
+        searchQueries: [
+          `Searched for "${userQuery.substring(0, 60)}${userQuery.length > 60 ? '...' : ''}" in NY State Legislature`,
+          `Searched for "${userQuery.substring(0, 60)}${userQuery.length > 60 ? '...' : ''}" in NY State Bills Database`,
+        ],
+      };
+      setMessages(prev => [...prev, streamingMessage]);
+
+      // Call edge function with streaming via direct fetch
+      const response = await fetch(`${supabaseUrl}/functions/v1/${edgeFunction}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token || supabase.supabaseKey}`,
+          'apikey': supabase.supabaseKey,
+        },
+        body: JSON.stringify({
           prompt: userQuery,
           type: 'default',
-          context: billContext,  // Pass actual bill data as context
-          stream: false,
+          context: billContext,
+          stream: true,
           model: selectedModel
-        }
+        }),
       });
 
-      if (error) {
-        console.error('API Error:', error);
-        throw error;
+      if (!response.ok) {
+        throw new Error(`Edge function error: ${response.status}`);
       }
 
-      const aiResponse = data?.generatedText || 'I apologize, but I encountered an error. Please try again.';
+      // Read streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let aiResponse = '';
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
+
+              try {
+                const parsed = JSON.parse(data);
+
+                // Handle different streaming formats
+                let content = '';
+                if (parsed.choices?.[0]?.delta?.content) {
+                  // OpenAI/Perplexity format
+                  content = parsed.choices[0].delta.content;
+                } else if (parsed.delta?.text) {
+                  // Claude format
+                  content = parsed.delta.text;
+                }
+
+                if (content) {
+                  aiResponse += content;
+                  // Update UI with streamed content
+                  setMessages(prev => prev.map(msg =>
+                    msg.id === messageId
+                      ? { ...msg, streamedContent: aiResponse }
+                      : msg
+                  ));
+                }
+              } catch (e) {
+                // Skip invalid JSON chunks
+                console.debug('Skipping chunk:', line);
+              }
+            }
+          }
+        }
+      }
+
+      if (!aiResponse) {
+        aiResponse = 'I apologize, but I encountered an error. Please try again.';
+      }
 
       // Extract Perplexity citations if this is a Perplexity response
       let perplexityCitations: PerplexityCitation[] = [];
@@ -385,30 +436,26 @@ const NewChat = () => {
         console.log('Extracted Perplexity citations:', perplexityCitations);
       }
 
-      // Create AI message with research metadata
-      // Store the full response but initially show empty content for scrambling effect
-      const messageId = `assistant-${Date.now()}`;
-      const assistantMessage: Message = {
-        id: messageId,
-        role: "assistant",
-        content: aiResponse, // Full content stored here
-        isStreaming: false,
-        streamedContent: aiResponse,
-        searchQueries: [
-          `Searched for "${userQuery.substring(0, 60)}${userQuery.length > 60 ? '...' : ''}" in NY State Legislature`,
-          `Searched for "${userQuery.substring(0, 60)}${userQuery.length > 60 ? '...' : ''}" in NY State Bills Database`,
-        ],
-        reviewedInfo: `Reviewed ${relevantBills.length} bills: ${
-          relevantBills.length > 0
-            ? `Found relevant legislation including ${relevantBills[0]?.bill_number || 'pending bills'} related to your query.`
-            : 'No directly matching bills found, providing general legislative context.'
-        }`,
-        citations: relevantBills,
-        perplexityCitations: isPerplexityModel ? perplexityCitations : undefined,
-        isPerplexityResponse: isPerplexityModel
-      };
+      // Finalize the streaming message with all metadata
+      setMessages(prev => prev.map(msg =>
+        msg.id === messageId
+          ? {
+              ...msg,
+              content: aiResponse,
+              isStreaming: false,
+              streamedContent: aiResponse,
+              reviewedInfo: `Reviewed ${relevantBills.length} bills: ${
+                relevantBills.length > 0
+                  ? `Found relevant legislation including ${relevantBills[0]?.bill_number || 'pending bills'} related to your query.`
+                  : 'No directly matching bills found, providing general legislative context.'
+              }`,
+              citations: relevantBills,
+              perplexityCitations: isPerplexityModel ? perplexityCitations : undefined,
+              isPerplexityResponse: isPerplexityModel
+            }
+          : msg
+      ));
 
-      setMessages(prev => [...prev, assistantMessage]);
       setIsTyping(false);
 
     } catch (error) {
@@ -470,7 +517,7 @@ const NewChat = () => {
                     <p className="text-base leading-relaxed">{message.content}</p>
                   </div>
                 ) : (
-                  <div className="space-y-3" data-message-id={message.id}>
+                  <div className="space-y-3">
                     {/* Searched and Reviewed Section - Like Midpage */}
                     {(message.searchQueries || message.reviewedInfo) && (
                       <div className="space-y-2">

@@ -91,52 +91,126 @@ export const useMessageHandler = (entity: any, entityType: EntityType) => {
     setMessages(updatedMessages);
     setIsLoading(true);
 
+    // Create streaming message placeholder
+    const messageId = generateId();
+    const streamingMessage: Message = {
+      id: messageId,
+      role: "assistant",
+      content: "",
+      timestamp: new Date()
+    };
+
+    setMessages([...updatedMessages, streamingMessage]);
+
     try {
       // For bills, members, committees - use the original message for comprehensive analysis
       const contextualPrompt = message;
 
-      // Use 'chat' type for comprehensive analysis of legislative entities
-      const contextType = 'chat';
+      // Build entity context
+      const entityContext = {
+        chatType: entityType,
+        relatedId: entityType === 'bill' ? entity?.bill_id :
+                  entityType === 'member' ? entity?.people_id :
+                  entityType === 'committee' ? entity?.committee_id : null,
+        title: entityType === 'bill' ? entity?.title || entity?.bill_number :
+               entityType === 'member' ? entity?.name :
+               entityType === 'committee' ? entity?.committee_name : '',
+        previousMessages: messages.slice(-5) // Last 5 messages for context
+      };
 
-      const { data, error } = await supabase.functions.invoke('generate-with-openai', {
-        body: {
+      // Get Supabase URL from the client (avoids env var issues)
+      const supabaseUrl = supabase.supabaseUrl;
+      const { data: { session } } = await supabase.auth.getSession();
+
+      // Call edge function with streaming via direct fetch
+      const response = await fetch(`${supabaseUrl}/functions/v1/generate-with-openai`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token || supabase.supabaseKey}`,
+          'apikey': supabase.supabaseKey,
+        },
+        body: JSON.stringify({
           prompt: contextualPrompt,
           type: entityType,
-          stream: false,
+          stream: true,
           fastMode: true,
-          context: {
-            chatType: entityType,
-            relatedId: entityType === 'bill' ? entity?.bill_id :
-                      entityType === 'member' ? entity?.people_id :
-                      entityType === 'committee' ? entity?.committee_id : null,
-            title: entityType === 'bill' ? entity?.title || entity?.bill_number :
-                   entityType === 'member' ? entity?.name :
-                   entityType === 'committee' ? entity?.committee_name : '',
-            previousMessages: messages.slice(-5) // Last 5 messages for context
-          }
-        }
+          context: entityContext
+        }),
       });
 
-      if (error) {
-        throw new Error('Failed to generate response');
+      if (!response.ok) {
+        throw new Error(`Edge function error: ${response.status}`);
       }
 
-      const assistantMessage: Message = {
-        id: generateId(),
+      // Read streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let aiResponse = '';
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
+
+              try {
+                const parsed = JSON.parse(data);
+
+                // Handle different streaming formats
+                let content = '';
+                if (parsed.choices?.[0]?.delta?.content) {
+                  // OpenAI format
+                  content = parsed.choices[0].delta.content;
+                } else if (parsed.delta?.text) {
+                  // Claude format
+                  content = parsed.delta.text;
+                }
+
+                if (content) {
+                  aiResponse += content;
+                  // Update UI with streamed content
+                  setMessages(prev => prev.map(msg =>
+                    msg.id === messageId
+                      ? { ...msg, content: aiResponse }
+                      : msg
+                  ));
+                }
+              } catch (e) {
+                // Skip invalid JSON chunks
+                console.debug('Skipping chunk:', line);
+              }
+            }
+          }
+        }
+      }
+
+      if (!aiResponse) {
+        aiResponse = 'Unable to generate response. Please try again.';
+      }
+
+      // Finalize the message
+      const finalMessage: Message = {
+        id: messageId,
         role: "assistant",
-        content: data.generatedText || 'Unable to generate response. Please try again.',
+        content: aiResponse,
         timestamp: new Date()
       };
 
-      const finalMessages = [...updatedMessages, assistantMessage];
+      const finalMessages = [...updatedMessages, finalMessage];
       setMessages(finalMessages);
 
       // Extract and store citations from the response
-      if (setCitations && data.citations) {
-        setCitations(data.citations);
-      } else if (setCitations) {
+      if (setCitations) {
         // Generate citations based on the entity and response content
-        const extractedCitations = extractCitationsFromResponse(data.generatedText, entity, entityType);
+        const extractedCitations = extractCitationsFromResponse(aiResponse, entity, entityType);
         setCitations(extractedCitations);
       }
 
@@ -144,11 +218,15 @@ export const useMessageHandler = (entity: any, entityType: EntityType) => {
       await saveChatSession(finalMessages);
 
     } catch (error) {
+      console.error('Error generating response:', error);
       toast({
-        title: "Error", 
+        title: "Error",
         description: "Failed to send message. Please try again.",
         variant: "destructive"
       });
+
+      // Remove streaming message and show error
+      setMessages(updatedMessages);
     } finally {
       setIsLoading(false);
     }
