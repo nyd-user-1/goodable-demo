@@ -40,11 +40,17 @@ export const CommitteeInformation = ({ committee }: CommitteeInformationProps) =
 
   // Generate member slug from chair name
   const generateMemberSlugFromName = (name: string): string => {
-    return name
+    // Split name into parts and filter out single-letter parts (middle initials)
+    const nameParts = name
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-')          // Replace spaces with hyphens
+      .split(/\s+/) // Split on whitespace
+      .filter(part => part.length > 1); // Remove single-letter parts (middle initials)
+
+    // Join with hyphens
+    return nameParts
+      .join('-')
       .replace(/-+/g, '-')           // Replace multiple hyphens with single
       .replace(/^-|-$/g, '');        // Remove leading/trailing hyphens
   };
