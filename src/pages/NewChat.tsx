@@ -167,33 +167,8 @@ const NewChat = () => {
     }
   }, [committeesDialogOpen]);
 
-  // Stream text effect - 30ms per word for enterprise speed
-  const streamText = (text: string, messageId: string) => {
-    const words = text.split(' ');
-    let currentIndex = 0;
-
-    const streamInterval = setInterval(() => {
-      if (currentIndex < words.length) {
-        const streamedText = words.slice(0, currentIndex + 1).join(' ');
-
-        setMessages(prev => prev.map(msg =>
-          msg.id === messageId
-            ? { ...msg, streamedContent: streamedText, isStreaming: true }
-            : msg
-        ));
-
-        currentIndex++;
-      } else {
-        // Streaming complete
-        setMessages(prev => prev.map(msg =>
-          msg.id === messageId
-            ? { ...msg, isStreaming: false, streamedContent: text }
-            : msg
-        ));
-        clearInterval(streamInterval);
-      }
-    }, 30); // Enterprise-level speed: 30ms per word
-  };
+  // Note: Real streaming is now handled by the edge functions
+  // The fake client-side streaming has been removed for better performance
 
   // Fetch full bill data from NYS Legislature API
   const fetchFullBillData = async (billNumber: string, sessionYear: number = 2025) => {
@@ -350,13 +325,13 @@ const NewChat = () => {
           ? 'generate-with-perplexity'
           : 'generate-with-openai';
 
-      // Call the appropriate edge function
+      // Call the appropriate edge function with streaming enabled
       const { data, error } = await supabase.functions.invoke(edgeFunction, {
         body: {
           prompt: userQuery,
           type: 'default',
           context: billContext,  // Pass actual bill data as context
-          stream: false,
+          stream: true,
           model: selectedModel
         }
       });
@@ -386,14 +361,14 @@ const NewChat = () => {
         console.log('Extracted Perplexity citations:', perplexityCitations);
       }
 
-      // Create AI message with streaming and research metadata
+      // Create AI message with research metadata
       const messageId = `assistant-${Date.now()}`;
       const assistantMessage: Message = {
         id: messageId,
         role: "assistant",
         content: aiResponse,
-        isStreaming: true,
-        streamedContent: '',
+        isStreaming: false,
+        streamedContent: aiResponse,
         searchQueries: [
           `Searched for "${userQuery.substring(0, 60)}${userQuery.length > 60 ? '...' : ''}" in NY State Legislature`,
           `Searched for "${userQuery.substring(0, 60)}${userQuery.length > 60 ? '...' : ''}" in NY State Bills Database`,
@@ -410,9 +385,6 @@ const NewChat = () => {
 
       setMessages(prev => [...prev, assistantMessage]);
       setIsTyping(false);
-
-      // Start streaming the response
-      streamText(aiResponse, messageId);
 
     } catch (error) {
       console.error('Error generating response:', error);

@@ -289,15 +289,16 @@ serve(async (req) => {
   }
 
   try {
-    const { 
-      prompt, 
-      type = 'default', 
-      stream = false, 
+    const {
+      prompt,
+      type = 'default',
+      stream = true,
       model = 'gpt-4o-mini',
       context = null,
       entityContext = null,
       enhanceWithNYSData = true,
-      domainFiltering = null
+      domainFiltering = null,
+      fastMode = type === 'chat'
     } = await req.json();
 
     console.log('Generating content:', { type, model, promptLength: prompt?.length, stream, enhanceWithNYSData, context });
@@ -324,13 +325,18 @@ serve(async (req) => {
     // Enhanced search for relevant NYS legislative data
     let nysData = null;
     let entityData = '';
-    
-    // Skip NYS data enhancement for landing_page context
-    if (enhanceWithNYSData && nysApiKey && type !== 'media' && context !== 'landing_page') {
+
+    // Fast-path detection: skip NYS data for simple chat queries in fast mode
+    const shouldSkipNYSData = fastMode && !prompt.match(/[ASK]\d{5,}/gi) && type !== 'media' && context !== 'landing_page';
+
+    // Start NYS data search in parallel (non-blocking) if needed
+    let nysDataPromise: Promise<any> | null = null;
+
+    if (enhanceWithNYSData && nysApiKey && !shouldSkipNYSData && type !== 'media' && context !== 'landing_page') {
       // Build comprehensive search query based on entity context
       let searchQuery = prompt;
       let entityId = null;
-      
+
       if (entityContext?.bill) {
         searchQuery = entityContext.bill.bill_number || entityContext.bill.title || prompt;
         entityId = entityContext.bill.bill_number;
@@ -361,8 +367,15 @@ Chair: ${entityContext.committee.chair_name || 'Unknown'}
 Description: ${entityContext.committee.description || 'No description'}
 Member Count: ${entityContext.committee.member_count || 'Unknown'}`;
       }
-      
-      nysData = await searchNYSData(searchQuery, entityContext?.type, entityId);
+
+      // Start NYS search without blocking (runs in parallel)
+      nysDataPromise = searchNYSData(searchQuery, entityContext?.type, entityId);
+    }
+
+    // For streaming: start LLM call immediately without waiting for NYS data
+    // For non-streaming: optionally wait for NYS data if available
+    if (!stream && nysDataPromise) {
+      nysData = await nysDataPromise;
     }
 
     // Build enhanced context with all available information
@@ -371,8 +384,8 @@ Member Count: ${entityContext.committee.member_count || 'Unknown'}`;
     };
 
     const systemPrompt = getSystemPrompt(type, context, entityData);
-    const enhancedPrompt = contextObj.nysData ? 
-      `${prompt}\n\n[IMPORTANT: Use the comprehensive NYS legislative database information provided above to give specific, detailed answers with exact names, numbers, and current information.]` : 
+    const enhancedPrompt = contextObj.nysData ?
+      `${prompt}\n\n[IMPORTANT: Use the comprehensive NYS legislative database information provided above to give specific, detailed answers with exact names, numbers, and current information.]` :
       prompt;
 
     let response;

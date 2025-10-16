@@ -130,8 +130,8 @@ serve(async (req) => {
   try {
     const {
       prompt,
-      model = 'claude-3-5-sonnet-20241022',
-      stream = false,
+      model = 'claude-3-5-haiku-20241022',
+      stream = true,
       context = null
     } = await req.json();
 
@@ -165,6 +165,7 @@ serve(async (req) => {
         }],
         system: CLAUDE_SYSTEM_PROMPT,  // Send system prompt separately
         temperature: 0.7,
+        stream: stream,  // Enable streaming
       }),
     });
 
@@ -174,17 +175,30 @@ serve(async (req) => {
       throw new Error(`Claude API error: ${response.status} - ${error}`);
     }
 
-    const data = await response.json();
-    const generatedText = data.content[0].text;
+    if (stream) {
+      // Return streaming response
+      return new Response(response.body, {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
+      });
+    } else {
+      // Return complete response
+      const data = await response.json();
+      const generatedText = data.content[0].text;
 
-    console.log('Claude response generated successfully');
+      console.log('Claude response generated successfully');
 
-    return new Response(JSON.stringify({
-      generatedText,
-      model: model
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+      return new Response(JSON.stringify({
+        generatedText,
+        model: model
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
   } catch (error) {
     console.error('Error in generate-with-claude function:', error);

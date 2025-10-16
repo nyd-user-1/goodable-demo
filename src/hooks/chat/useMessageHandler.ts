@@ -99,13 +99,15 @@ export const useMessageHandler = (entity: any, entityType: EntityType) => {
       const contextType = 'chat';
 
       const { data, error } = await supabase.functions.invoke('generate-with-openai', {
-        body: { 
+        body: {
           prompt: contextualPrompt,
           type: entityType,
+          stream: true,
+          fastMode: true,
           context: {
             chatType: entityType,
-            relatedId: entityType === 'bill' ? entity?.bill_id : 
-                      entityType === 'member' ? entity?.people_id : 
+            relatedId: entityType === 'bill' ? entity?.bill_id :
+                      entityType === 'member' ? entity?.people_id :
                       entityType === 'committee' ? entity?.committee_id : null,
             title: entityType === 'bill' ? entity?.title || entity?.bill_number :
                    entityType === 'member' ? entity?.name :

@@ -37,7 +37,7 @@ serve(async (req) => {
       throw new Error("Invalid JSON. Please send a valid JSON body with a 'prompt' field.");
     }
 
-    const { prompt, model = "sonar-pro", context = null, temperature = 0.4 } = body;
+    const { prompt, model = "sonar-pro", context = null, temperature = 0.4, stream = true } = body;
 
     if (!prompt) throw new Error("Missing required 'prompt' field.");
     if (!perplexityApiKey) throw new Error("Perplexity API key not configured.");
@@ -60,7 +60,8 @@ serve(async (req) => {
         ],
         temperature,
         max_tokens: 2000,
-        top_p: 0.9
+        top_p: 0.9,
+        stream: stream
       })
     });
 
@@ -70,13 +71,26 @@ serve(async (req) => {
       throw new Error(`Perplexity API returned ${response.status}: ${error}`);
     }
 
-    const data = await response.json();
-    const generatedText = data.choices?.[0]?.message?.content ?? "";
+    if (stream) {
+      // Return streaming response
+      return new Response(response.body, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive",
+        },
+      });
+    } else {
+      // Return complete response
+      const data = await response.json();
+      const generatedText = data.choices?.[0]?.message?.content ?? "";
 
-    return new Response(
-      JSON.stringify({ generatedText, model }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+      return new Response(
+        JSON.stringify({ generatedText, model }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
   } catch (error) {
     console.error("Error in generate-with-perplexity:", error);
     return new Response(
