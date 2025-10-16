@@ -94,21 +94,53 @@ const Members = () => {
         try {
           const namePattern = slugToNamePattern(memberSlug);
 
-          // Try to match by name using ILIKE with wildcards for partial matching
-          // This handles cases like "Joseph P. Addabbo" matching "joseph addabbo"
-          const { data, error } = await supabase
+          // Fetch all members and do flexible client-side matching
+          const { data: allMembers, error } = await supabase
             .from("People")
-            .select("*")
-            .ilike("name", `%${namePattern}%`)
-            .limit(1)
-            .single();
+            .select("*");
 
-          if (data && !error) {
-            setSelectedMember(data);
+          if (error) throw error;
+
+          let matchedMember = null;
+
+          if (allMembers && allMembers.length > 0) {
+            const nameParts = namePattern.split(' ').filter(part => part.length > 0);
+
+            // Strategy 1: Exact case-insensitive partial match
+            matchedMember = allMembers.find(m =>
+              m.name?.toLowerCase().includes(namePattern.toLowerCase())
+            );
+
+            // Strategy 2: Match by first and last name parts
+            if (!matchedMember) {
+              matchedMember = allMembers.find(m => {
+                const memberName = m.name?.toLowerCase() || '';
+                // Match if all name parts from slug are in the member name
+                return nameParts.every(part => memberName.includes(part));
+              });
+            }
+
+            // Strategy 3: Match by last name and first initial
+            if (!matchedMember && nameParts.length >= 2) {
+              const firstName = nameParts[0];
+              const lastName = nameParts[nameParts.length - 1];
+              matchedMember = allMembers.find(m => {
+                const memberName = m.name?.toLowerCase() || '';
+                const memberLastName = m.last_name?.toLowerCase() || '';
+                const memberFirstName = m.first_name?.toLowerCase() || '';
+                // Match if last name matches and first name starts with first letter
+                return (
+                  memberLastName.includes(lastName) &&
+                  memberFirstName.startsWith(firstName[0])
+                );
+              });
+            }
+          }
+
+          if (matchedMember) {
+            setSelectedMember(matchedMember);
           } else {
-            console.error("Member not found:", memberSlug);
-            // Optionally navigate back to /members if member not found
-            // navigate('/members');
+            console.error("Member not found:", memberSlug, "Pattern:", namePattern);
           }
         } catch (error) {
           console.error("Error fetching member:", error);
