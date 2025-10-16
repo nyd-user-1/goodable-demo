@@ -1,10 +1,9 @@
 /**
  * PageHeader Component
- * Top-right header with Model Selector and Theme Toggle
+ * Top-right header with Model Selector
  */
 
 import { useModel } from "@/contexts/ModelContext";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { ModelSelector, type ModelType } from "@/components/ModelSelector";
 
 export function PageHeader() {
@@ -12,7 +11,6 @@ export function PageHeader() {
 
   return (
     <div className="fixed top-4 right-4 z-40 flex items-center gap-2">
-      <ThemeToggle />
       <ModelSelector
         selectedModel={selectedModel as ModelType}
         onModelChange={(model) => setSelectedModel(model)}
