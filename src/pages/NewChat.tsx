@@ -673,8 +673,8 @@ const NewChat = () => {
               </div>
             ))}
 
-            {/* Typing Indicator */}
-            {isTyping && (
+            {/* Typing Indicator - Only show before streaming starts */}
+            {isTyping && !messages.some(msg => msg.isStreaming) && (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <div className="flex space-x-1">
                   <div className="bg-muted-foreground/50 h-2 w-2 animate-bounce rounded-full"></div>
