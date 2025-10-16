@@ -11,7 +11,7 @@ const corsHeaders = {
 };
 
 // Enhanced system prompt for legislative analysis
-function getSystemPrompt(type, context = null, entityData = null) {
+function getSystemPrompt(type, context = null, entityData = null, domainFiltering = null) {
   const basePrompts = {
     'problem': context === 'landing_page' 
       ? 'You are helping a first-time user who is new to legislative processes. Transform their conversational problem description into a structured problem statement with a welcoming, educational tone. Generate a response with exactly these sections: **Problem Definition**: Clear, formal statement of the issue, **Scope**: Who and what is affected, **Impact**: Consequences and implications, **Stakeholders**: Key groups involved or affected. Use markdown formatting. Be thorough but accessible to newcomers.'
@@ -368,7 +368,7 @@ Member Count: ${entityContext.committee.member_count || 'Unknown'}`;
       nysData: nysData ? formatNYSDataForContext(nysData) : null
     };
 
-    const systemPrompt = getSystemPrompt(type, context, entityData);
+    const systemPrompt = getSystemPrompt(type, context, entityData, domainFiltering);
     const enhancedPrompt = contextObj.nysData ?
       `${prompt}\n\n[IMPORTANT: Use the comprehensive NYS legislative database information provided above to give specific, detailed answers with exact names, numbers, and current information.]` :
       prompt;
