@@ -1,4 +1,4 @@
-import { ChevronUp, User, CreditCard, History, Shield, Palette, Image, LogOut, Moon, Sun } from "lucide-react";
+import { ChevronUp, User, CreditCard, History, Shield, Palette, Image, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -17,7 +17,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
 
 interface SidebarFooterProps {
   collapsed: boolean;
@@ -27,21 +26,6 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
   const { toast } = useToast();
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-
-  useEffect(() => {
-    const root = window.document.documentElement;
-    const initialTheme = root.classList.contains('dark') ? 'dark' : 'light';
-    setTheme(initialTheme);
-  }, []);
-
-  const toggleTheme = () => {
-    const root = window.document.documentElement;
-    root.classList.toggle('dark');
-    const newTheme = root.classList.contains('dark') ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-  };
 
   const handleSignOut = async () => {
     try {
@@ -110,14 +94,6 @@ export function SidebarFooter({ collapsed }: SidebarFooterProps) {
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuLabel>Admin</DropdownMenuLabel>
-                <DropdownMenuItem onClick={toggleTheme}>
-                  {theme === 'dark' ? (
-                    <Sun className="mr-2 h-4 w-4" />
-                  ) : (
-                    <Moon className="mr-2 h-4 w-4" />
-                  )}
-                  <span>Theme: {theme === 'dark' ? 'Light' : 'Dark'}</span>
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate('/admin')}>
                   <Shield className="mr-2 h-4 w-4" />
                   <span>Control Panel</span>

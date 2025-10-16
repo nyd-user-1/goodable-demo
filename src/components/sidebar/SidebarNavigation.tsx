@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, ChevronDown, Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, ChevronDown, Search, Shield, Palette, Image, Moon, Sun } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -34,6 +34,12 @@ const developmentItems = [
   { title: "Lab", url: "/policy-portal", icon: Factory, adminOnly: true },
 ];
 
+const adminItems = [
+  { title: "Control Panel", url: "/admin", icon: Shield },
+  { title: "Design System", url: "/style-guide", icon: Palette },
+  { title: "Image System", url: "/image-system", icon: Image },
+];
+
 interface SidebarNavigationProps {
   collapsed: boolean;
   hasSearchResults: boolean;
@@ -47,7 +53,23 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
   const [isLegislationOpen, setIsLegislationOpen] = useState(true);
   const [isDevelopmentOpen, setIsDevelopmentOpen] = useState(true);
   const [isChatsOpen, setIsChatsOpen] = useState(true);
+  const [isAdminOpen, setIsAdminOpen] = useState(true);
   const [searchChatsOpen, setSearchChatsOpen] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    const initialTheme = root.classList.contains('dark') ? 'dark' : 'light';
+    setTheme(initialTheme);
+  }, []);
+
+  const toggleTheme = () => {
+    const root = window.document.documentElement;
+    root.classList.toggle('dark');
+    const newTheme = root.classList.contains('dark') ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+  };
 
   return (
     <>
@@ -192,6 +214,50 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
             </CollapsibleContent>
           </Collapsible>
         </SidebarGroup>
+      )}
+
+      {/* Admin Section - Hidden when searching, only visible to admins */}
+      {!hasSearchResults && isAdmin && (
+        <>
+          <SidebarSeparator />
+          <SidebarGroup>
+            <Collapsible open={isAdminOpen} onOpenChange={setIsAdminOpen} className="group/collapsible">
+              <SidebarGroupLabel asChild>
+                <CollapsibleTrigger className="flex w-full items-center justify-between">
+                  Admin
+                  <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                </CollapsibleTrigger>
+              </SidebarGroupLabel>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {adminItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} className={getNavClassName}>
+                            <item.icon className="h-4 w-4" />
+                            <span>{item.title}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                    {/* Theme Toggle */}
+                    <SidebarMenuItem>
+                      <SidebarMenuButton onClick={toggleTheme}>
+                        {theme === 'dark' ? (
+                          <Sun className="h-4 w-4" />
+                        ) : (
+                          <Moon className="h-4 w-4" />
+                        )}
+                        <span>Theme: {theme === 'dark' ? 'Light' : 'Dark'}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </Collapsible>
+          </SidebarGroup>
+        </>
       )}
 
       {/* Search Chats Modal */}
