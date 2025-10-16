@@ -8,7 +8,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ModelProvider } from "@/contexts/ModelContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import { PageTransition } from "@/components/PageTransition";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ScrollToTop } from "@/components/ScrollToTop";
@@ -66,7 +65,6 @@ const AppLayout = () => {
       <div className="relative min-h-screen">
         <VerticalSidebar />
         <PageHeader />
-        <ScrollProgress className="top-0" />
         <main className="flex-1 overflow-hidden">
           <PageTransition>
             <Routes>
