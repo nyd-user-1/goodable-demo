@@ -231,16 +231,6 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
               <CollapsibleContent>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {adminItems.map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild>
-                          <NavLink to={item.url} className={getNavClassName}>
-                            <item.icon className="h-4 w-4" />
-                            <span>{item.title}</span>
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
                     {/* Theme Toggle */}
                     <SidebarMenuItem>
                       <SidebarMenuButton onClick={toggleTheme}>
@@ -252,6 +242,16 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
                         <span>Theme: {theme === 'dark' ? 'Light' : 'Dark'}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
+                    {adminItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} className={getNavClassName}>
+                            <item.icon className="h-4 w-4" />
+                            <span>{item.title}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
                   </SidebarMenu>
                 </SidebarGroupContent>
               </CollapsibleContent>
