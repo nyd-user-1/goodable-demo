@@ -37,7 +37,7 @@ serve(async (req) => {
       throw new Error("Invalid JSON. Please send a valid JSON body with a 'prompt' field.");
     }
 
-    const { prompt, model = "sonar-pro", context = null, temperature = 0.4, stream = true } = body;
+    const { prompt, model = "sonar-pro", context = null, temperature = 0.4, stream = true, domainFiltering = null } = body;
 
     if (!prompt) throw new Error("Missing required 'prompt' field.");
     if (!perplexityApiKey) throw new Error("Perplexity API key not configured.");

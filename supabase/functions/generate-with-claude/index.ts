@@ -132,7 +132,8 @@ serve(async (req) => {
       prompt,
       model = 'claude-3-5-haiku-20241022',
       stream = true,
-      context = null
+      context = null,
+      domainFiltering = null
     } = await req.json();
 
     console.log('Generating with Claude:', { model, promptLength: prompt?.length, hasContext: !!context, stream });
