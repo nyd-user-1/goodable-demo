@@ -325,99 +325,23 @@ const NewChat = () => {
           ? 'generate-with-perplexity'
           : 'generate-with-openai';
 
-      // Get Supabase session for auth
-      const { data: { session } } = await supabase.auth.getSession();
-      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      const projectUrl = import.meta.env.VITE_SUPABASE_URL;
-
-      // Create streaming message
-      const messageId = `assistant-${Date.now()}`;
-      const streamingMessage: Message = {
-        id: messageId,
-        role: "assistant",
-        content: "",
-        isStreaming: true,
-        streamedContent: "",
-        searchQueries: [
-          `Searched for "${userQuery.substring(0, 60)}${userQuery.length > 60 ? '...' : ''}" in NY State Legislature`,
-          `Searched for "${userQuery.substring(0, 60)}${userQuery.length > 60 ? '...' : ''}" in NY State Bills Database`,
-        ],
-      };
-      setMessages(prev => [...prev, streamingMessage]);
-
-      // Call edge function with streaming
-      const response = await fetch(`${projectUrl}/functions/v1/${edgeFunction}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token || anonKey}`,
-          'apikey': anonKey,
-        },
-        body: JSON.stringify({
+      // Call the appropriate edge function
+      const { data, error } = await supabase.functions.invoke(edgeFunction, {
+        body: {
           prompt: userQuery,
           type: 'default',
-          context: billContext,
-          stream: true,
+          context: billContext,  // Pass actual bill data as context
+          stream: false,
           model: selectedModel
-        }),
+        }
       });
 
-      if (!response.ok) {
-        throw new Error(`Edge function error: ${response.status}`);
+      if (error) {
+        console.error('API Error:', error);
+        throw error;
       }
 
-      // Read streaming response
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let aiResponse = '';
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6);
-              if (data === '[DONE]') continue;
-
-              try {
-                const parsed = JSON.parse(data);
-
-                // Handle different streaming formats
-                let content = '';
-                if (parsed.choices?.[0]?.delta?.content) {
-                  // OpenAI/Perplexity format
-                  content = parsed.choices[0].delta.content;
-                } else if (parsed.delta?.text) {
-                  // Claude format
-                  content = parsed.delta.text;
-                }
-
-                if (content) {
-                  aiResponse += content;
-                  // Update UI with streamed content
-                  setMessages(prev => prev.map(msg =>
-                    msg.id === messageId
-                      ? { ...msg, streamedContent: aiResponse }
-                      : msg
-                  ));
-                }
-              } catch (e) {
-                // Skip invalid JSON chunks
-                console.debug('Skipping chunk:', line);
-              }
-            }
-          }
-        }
-      }
-
-      if (!aiResponse) {
-        aiResponse = 'I apologize, but I encountered an error. Please try again.';
-      }
+      const aiResponse = data?.generatedText || 'I apologize, but I encountered an error. Please try again.';
 
       // Extract Perplexity citations if this is a Perplexity response
       let perplexityCitations: PerplexityCitation[] = [];
@@ -437,26 +361,29 @@ const NewChat = () => {
         console.log('Extracted Perplexity citations:', perplexityCitations);
       }
 
-      // Finalize the streaming message with citations
-      setMessages(prev => prev.map(msg =>
-        msg.id === messageId
-          ? {
-              ...msg,
-              content: aiResponse,
-              isStreaming: false,
-              streamedContent: aiResponse,
-              reviewedInfo: `Reviewed ${relevantBills.length} bills: ${
-                relevantBills.length > 0
-                  ? `Found relevant legislation including ${relevantBills[0]?.bill_number || 'pending bills'} related to your query.`
-                  : 'No directly matching bills found, providing general legislative context.'
-              }`,
-              citations: relevantBills,
-              perplexityCitations: isPerplexityModel ? perplexityCitations : undefined,
-              isPerplexityResponse: isPerplexityModel
-            }
-          : msg
-      ));
+      // Create AI message with research metadata
+      const messageId = `assistant-${Date.now()}`;
+      const assistantMessage: Message = {
+        id: messageId,
+        role: "assistant",
+        content: aiResponse,
+        isStreaming: false,
+        streamedContent: aiResponse,
+        searchQueries: [
+          `Searched for "${userQuery.substring(0, 60)}${userQuery.length > 60 ? '...' : ''}" in NY State Legislature`,
+          `Searched for "${userQuery.substring(0, 60)}${userQuery.length > 60 ? '...' : ''}" in NY State Bills Database`,
+        ],
+        reviewedInfo: `Reviewed ${relevantBills.length} bills: ${
+          relevantBills.length > 0
+            ? `Found relevant legislation including ${relevantBills[0]?.bill_number || 'pending bills'} related to your query.`
+            : 'No directly matching bills found, providing general legislative context.'
+        }`,
+        citations: relevantBills,
+        perplexityCitations: isPerplexityModel ? perplexityCitations : undefined,
+        isPerplexityResponse: isPerplexityModel
+      };
 
+      setMessages(prev => [...prev, assistantMessage]);
       setIsTyping(false);
 
     } catch (error) {
