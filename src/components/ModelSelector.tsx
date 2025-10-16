@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Bot } from "lucide-react";
+import { ChevronDown, CircuitBoard } from "lucide-react";
 
 // Custom icon components for each provider
 const OpenAIIcon = ({ className }: { className?: string }) => (
@@ -90,7 +90,7 @@ export const ModelSelector = ({ selectedModel, onModelChange }: ModelSelectorPro
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="icon" className="small-button relative h-9 w-9">
-          <Bot className="h-4 w-4" />
+          <CircuitBoard className="h-4 w-4" />
           <span className="sr-only">Select AI Model</span>
         </Button>
       </DropdownMenuTrigger>
