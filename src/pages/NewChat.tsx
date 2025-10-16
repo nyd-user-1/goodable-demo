@@ -18,6 +18,7 @@ import {
 import { CitationText } from "@/components/CitationText";
 import { CitationTabs } from "@/components/CitationTabs";
 import { PerplexityCitation, extractCitationNumbers } from "@/utils/citationParser";
+import { TextScrambler } from "@/utils/textScrambler";
 
 // Featuring real bills from our database
 const samplePrompts = [
@@ -87,6 +88,29 @@ const NewChat = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
+
+  // Apply scrambling effect to new assistant messages
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage && lastMessage.role === 'assistant' && !lastMessage.isStreaming) {
+      // Small delay to ensure DOM is rendered
+      setTimeout(() => {
+        const messageElement = document.querySelector(`[data-message-id="${lastMessage.id}"]`);
+        if (messageElement) {
+          const textElements = messageElement.querySelectorAll('p, h1, h2, li');
+          textElements.forEach((el, index) => {
+            if (el.textContent && el.textContent.trim()) {
+              const scrambler = new TextScrambler(el as HTMLElement);
+              // Stagger the scrambling effect
+              setTimeout(() => {
+                scrambler.setText(el.textContent || '');
+              }, index * 30);
+            }
+          });
+        }
+      }, 50);
+    }
+  }, [messages]);
 
   // Fetch bills for dialog
   const fetchBillsForSelection = async () => {
@@ -362,11 +386,12 @@ const NewChat = () => {
       }
 
       // Create AI message with research metadata
+      // Store the full response but initially show empty content for scrambling effect
       const messageId = `assistant-${Date.now()}`;
       const assistantMessage: Message = {
         id: messageId,
         role: "assistant",
-        content: aiResponse,
+        content: aiResponse, // Full content stored here
         isStreaming: false,
         streamedContent: aiResponse,
         searchQueries: [
@@ -445,7 +470,7 @@ const NewChat = () => {
                     <p className="text-base leading-relaxed">{message.content}</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-3" data-message-id={message.id}>
                     {/* Searched and Reviewed Section - Like Midpage */}
                     {(message.searchQueries || message.reviewedInfo) && (
                       <div className="space-y-2">
