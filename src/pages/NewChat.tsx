@@ -526,7 +526,7 @@ const NewChat = () => {
                   <div className="space-y-3">
                     {/* Searched and Reviewed Section - Accordion with Dotted Border */}
                     {(message.searchQueries || message.reviewedInfo) && (
-                      <Accordion type="single" collapsible defaultValue="sources" className="w-full">
+                      <Accordion type="single" collapsible className="w-full">
                         <AccordionItem
                           value="sources"
                           className="border-0 relative before:absolute before:inset-0 before:rounded-lg before:border-2 before:border-dashed before:border-border/50 data-[state=open]:before:border-border/70 before:transition-colors before:duration-300"
