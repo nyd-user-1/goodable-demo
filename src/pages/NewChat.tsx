@@ -18,6 +18,12 @@ import {
 import { CitationText } from "@/components/CitationText";
 import { CitationTabs } from "@/components/CitationTabs";
 import { PerplexityCitation, extractCitationNumbers } from "@/utils/citationParser";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 // Featuring real bills from our database
 const samplePrompts = [
@@ -518,34 +524,44 @@ const NewChat = () => {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {/* Searched and Reviewed Section - Like Midpage */}
+                    {/* Searched and Reviewed Section - Accordion with Dotted Border */}
                     {(message.searchQueries || message.reviewedInfo) && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                          <SearchIcon className="h-3.5 w-3.5" />
-                          <span>Searched and reviewed sources</span>
-                        </div>
-
-                        {/* Search Queries */}
-                        {message.searchQueries && message.isStreaming && (
-                          <div className="text-xs text-muted-foreground space-y-1 pl-5">
-                            {message.searchQueries.map((query, idx) => (
-                              <div key={idx} className="flex items-start gap-2">
-                                <SearchIcon className="h-3 w-3 mt-0.5 animate-pulse flex-shrink-0" />
-                                <span>{query}</span>
+                      <Accordion type="single" collapsible defaultValue="sources" className="w-full">
+                        <AccordionItem
+                          value="sources"
+                          className="border-0 relative before:absolute before:inset-0 before:rounded-lg before:border-2 before:border-dashed before:border-border/50 data-[state=open]:before:border-border/70 before:transition-colors before:duration-300"
+                        >
+                          <div className="relative p-0.5">
+                            <AccordionTrigger className="hover:no-underline px-4 py-2.5 rounded-t-lg text-xs font-medium">
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <SearchIcon className="h-3.5 w-3.5" />
+                                <span>Searched and reviewed sources</span>
                               </div>
-                            ))}
-                          </div>
-                        )}
+                            </AccordionTrigger>
+                            <AccordionContent className="px-4 pb-3">
+                              {/* Search Queries */}
+                              {message.searchQueries && message.isStreaming && (
+                                <div className="text-xs text-muted-foreground space-y-1.5">
+                                  {message.searchQueries.map((query, idx) => (
+                                    <div key={idx} className="flex items-start gap-2">
+                                      <SearchIcon className="h-3 w-3 mt-0.5 animate-pulse flex-shrink-0" />
+                                      <span>{query}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
 
-                        {/* Reviewed Info */}
-                        {message.reviewedInfo && !message.isStreaming && (
-                          <div className="text-xs text-muted-foreground pl-5 flex items-start gap-2">
-                            <FileText className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                            <span>{message.reviewedInfo}</span>
+                              {/* Reviewed Info */}
+                              {message.reviewedInfo && !message.isStreaming && (
+                                <div className="text-xs text-muted-foreground flex items-start gap-2">
+                                  <FileText className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                                  <span>{message.reviewedInfo}</span>
+                                </div>
+                              )}
+                            </AccordionContent>
                           </div>
-                        )}
-                      </div>
+                        </AccordionItem>
+                      </Accordion>
                     )}
 
                     {/* AI Response */}
