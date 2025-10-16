@@ -105,27 +105,43 @@ const Members = () => {
 
           if (allMembers && allMembers.length > 0) {
             const nameParts = namePattern.split(' ').filter(part => part.length > 0);
+            // Filter out single-letter parts (likely middle initials) for core matching
+            const significantParts = nameParts.filter(part => part.length > 1);
 
-            // Strategy 1: Exact case-insensitive partial match
+            // Strategy 1: Exact case-insensitive partial match (try with full pattern first)
             matchedMember = allMembers.find(m =>
               m.name?.toLowerCase().includes(namePattern.toLowerCase())
             );
 
-            // Strategy 2: Match by first and last name parts
-            if (!matchedMember) {
+            // Strategy 2: Match using significant parts only (ignoring middle initials)
+            if (!matchedMember && significantParts.length > 0) {
               matchedMember = allMembers.find(m => {
                 const memberName = m.name?.toLowerCase() || '';
-                // Match if all name parts from slug are in the member name
-                return nameParts.every(part => memberName.includes(part));
+                // Match if all significant parts are in the member name
+                return significantParts.every(part => memberName.includes(part));
               });
             }
 
-            // Strategy 3: Match by last name and first initial
+            // Strategy 3: Match by first and last name from database fields
+            if (!matchedMember && significantParts.length >= 2) {
+              const firstName = significantParts[0];
+              const lastName = significantParts[significantParts.length - 1];
+              matchedMember = allMembers.find(m => {
+                const memberLastName = m.last_name?.toLowerCase() || '';
+                const memberFirstName = m.first_name?.toLowerCase() || '';
+                // Match if both first and last names match
+                return (
+                  memberLastName.includes(lastName) &&
+                  memberFirstName.includes(firstName)
+                );
+              });
+            }
+
+            // Strategy 4: Match by last name and first initial only (most flexible)
             if (!matchedMember && nameParts.length >= 2) {
               const firstName = nameParts[0];
               const lastName = nameParts[nameParts.length - 1];
               matchedMember = allMembers.find(m => {
-                const memberName = m.name?.toLowerCase() || '';
                 const memberLastName = m.last_name?.toLowerCase() || '';
                 const memberFirstName = m.first_name?.toLowerCase() || '';
                 // Match if last name matches and first name starts with first letter
