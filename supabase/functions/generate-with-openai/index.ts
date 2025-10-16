@@ -11,7 +11,7 @@ const corsHeaders = {
 };
 
 // Enhanced system prompt for legislative analysis
-function getSystemPrompt(type, context = null, entityData = null, domainFiltering = null) {
+function getSystemPrompt(type, context = null, entityData = null) {
   const basePrompts = {
     'problem': context === 'landing_page' 
       ? 'You are helping a first-time user who is new to legislative processes. Transform their conversational problem description into a structured problem statement with a welcoming, educational tone. Generate a response with exactly these sections: **Problem Definition**: Clear, formal statement of the issue, **Scope**: Who and what is affected, **Impact**: Consequences and implications, **Stakeholders**: Key groups involved or affected. Use markdown formatting. Be thorough but accessible to newcomers.'
@@ -143,31 +143,16 @@ Enable every Goodable user - whether citizen, staffer, researcher, or profession
   };
 
   let systemPrompt = basePrompts[type] || basePrompts['default'];
-  
+
   // Add entity-specific context
   if (entityData) {
     systemPrompt += `\n\nSPECIFIC ENTITY INFORMATION:\n${entityData}\n\nUse this information to provide detailed, specific answers about this entity.`;
   }
-  
-  // Add domain filtering instructions
-  if (domainFiltering && domainFiltering.enabled) {
-    systemPrompt += `\n\nSOURCE QUALITY REQUIREMENTS:
-- Only cite authoritative sources (government, established research institutions)
-- If using Goodable data, MUST include at least one external authoritative source
-- Goodable should not exceed 40% of total sources cited
-- Prefer: congress.gov, nysenate.gov, brookings.edu, urban.org, cbo.gov, gao.gov, pewresearch.org
-- Avoid: social media, blogs, unverified sources
-- Always indicate source credibility in citations`;
-  }
-  
+
   if (context && typeof context === 'object' && context.nysData) {
     systemPrompt += `\n\nCURRENT NYS LEGISLATIVE DATA:\n${context.nysData}\n\nUse this information to provide accurate, up-to-date legislative analysis with specific details.`;
   }
-  
-  if (domainFiltering && domainFiltering.requireMultiSource) {
-    systemPrompt += `\n\nMULTI-SOURCE REQUIREMENT: When referencing Goodable legislative database, always supplement with external authoritative sources for validation and comprehensive analysis.`;
-  }
-  
+
   return systemPrompt;
 }
 
@@ -295,7 +280,6 @@ serve(async (req) => {
       context = null,
       entityContext = null,
       enhanceWithNYSData = true,
-      domainFiltering = null,
       fastMode = type === 'chat'
     } = await req.json();
 
@@ -368,7 +352,7 @@ Member Count: ${entityContext.committee.member_count || 'Unknown'}`;
       nysData: nysData ? formatNYSDataForContext(nysData) : null
     };
 
-    const systemPrompt = getSystemPrompt(type, context, entityData, domainFiltering);
+    const systemPrompt = getSystemPrompt(type, context, entityData);
     const enhancedPrompt = contextObj.nysData ?
       `${prompt}\n\n[IMPORTANT: Use the comprehensive NYS legislative database information provided above to give specific, detailed answers with exact names, numbers, and current information.]` :
       prompt;
