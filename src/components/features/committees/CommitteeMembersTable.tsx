@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { User, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
+import { generateMemberSlug } from "@/utils/memberSlug";
 
 type Member = Tables<"People">;
 
@@ -145,7 +147,11 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {members.map((member) => (
-              <div key={member.people_id} className="p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors">
+              <Link
+                key={member.people_id}
+                to={`/members/${generateMemberSlug(member)}`}
+                className="p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors block"
+              >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
                     {member.photo_url && !failedImages.has(member.people_id) ? (
@@ -209,7 +215,7 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
                     )}
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

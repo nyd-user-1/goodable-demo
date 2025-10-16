@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { CardActionButtons } from "@/components/ui/CardActionButtons";
 import { AIChatSheet } from "@/components/AIChatSheet";
 import {
@@ -36,6 +37,19 @@ export const CommitteeInformation = ({ committee }: CommitteeInformationProps) =
   const { favoriteCommitteeIds, toggleFavorite } = useCommitteeFavorites();
 
   const isFavorited = favoriteCommitteeIds.has(committee.committee_id);
+
+  // Generate member slug from chair name
+  const generateMemberSlugFromName = (name: string): string => {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-')          // Replace spaces with hyphens
+      .replace(/-+/g, '-')           // Replace multiple hyphens with single
+      .replace(/^-|-$/g, '');        // Remove leading/trailing hyphens
+  };
+
+  const chairSlug = committee.chair_name ? generateMemberSlugFromName(committee.chair_name) : null;
 
   const handleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -102,8 +116,17 @@ export const CommitteeInformation = ({ committee }: CommitteeInformationProps) =
                   <Users className="h-4 w-4" />
                   <span>Committee Chair</span>
                 </div>
-                <div className="text-muted-foreground ml-6">
-                  {committee.chair_name}
+                <div className="ml-6">
+                  {chairSlug ? (
+                    <Link
+                      to={`/members/${chairSlug}`}
+                      className="text-primary hover:text-primary/80 hover:underline"
+                    >
+                      {committee.chair_name}
+                    </Link>
+                  ) : (
+                    <span className="text-muted-foreground">{committee.chair_name}</span>
+                  )}
                 </div>
               </div>
             )}
