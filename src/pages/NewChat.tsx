@@ -325,13 +325,13 @@ const NewChat = () => {
           ? 'generate-with-perplexity'
           : 'generate-with-openai';
 
-      // Call the appropriate edge function with streaming enabled
+      // Call the appropriate edge function
       const { data, error } = await supabase.functions.invoke(edgeFunction, {
         body: {
           prompt: userQuery,
           type: 'default',
           context: billContext,  // Pass actual bill data as context
-          stream: true,
+          stream: false,
           model: selectedModel
         }
       });

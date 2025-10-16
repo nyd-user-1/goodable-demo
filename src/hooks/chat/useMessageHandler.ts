@@ -102,7 +102,7 @@ export const useMessageHandler = (entity: any, entityType: EntityType) => {
         body: {
           prompt: contextualPrompt,
           type: entityType,
-          stream: true,
+          stream: false,
           fastMode: true,
           context: {
             chatType: entityType,
