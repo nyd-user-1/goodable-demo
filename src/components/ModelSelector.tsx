@@ -86,7 +86,6 @@ export const ModelSelector = ({ selectedModel, onModelChange }: ModelSelectorPro
                     onModelChange(currentValue as ModelType)
                     setOpen(false)
                   }}
-                  className="data-[selected='true']:bg-[hsl(0_0%_63.9%)] data-[selected=true]:bg-[hsl(0_0%_63.9%)] data-[selected='true']:text-white data-[selected=true]:text-white dark:data-[selected='true']:bg-[hsl(0_0%_20%)] dark:data-[selected=true]:bg-[hsl(0_0%_20%)]"
                 >
                   {model.label}
                   <Check
