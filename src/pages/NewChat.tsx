@@ -1118,7 +1118,7 @@ const NewChat = () => {
             {/* Disclaimer */}
             <div className="flex items-center justify-center gap-1 mt-3">
               <span className="text-xs text-muted-foreground/70">
-                AI-generated responses must be verified and are not legal advice.
+                Goodable can make mistakes. Please double-check responses.
               </span>
             </div>
           </div>
