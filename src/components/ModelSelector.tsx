@@ -1,13 +1,12 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { ChevronDown, Bot } from "lucide-react";
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarRadioGroup,
+  MenubarRadioItem,
+  MenubarTrigger,
+} from "@/components/ui/menubar";
 
 // Custom icon components for each provider
 const OpenAIIcon = ({ className }: { className?: string }) => (
@@ -76,58 +75,31 @@ const models: Record<ModelProvider, { name: string; icon: React.ComponentType<{ 
 };
 
 export const ModelSelector = ({ selectedModel, onModelChange }: ModelSelectorProps) => {
-  const getCurrentModelInfo = () => {
-    for (const provider of Object.values(models)) {
-      const model = provider.models.find(m => m.id === selectedModel);
-      if (model) return model;
-    }
-    return models.openai.models[1]; // gpt-4o-mini as default
-  };
-
-  const currentModel = getCurrentModelInfo();
-
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon" className="small-button relative h-9 w-9">
-          <Bot className="h-4 w-4" />
-          <span className="sr-only">Select AI Model</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
-        {Object.entries(models).map(([providerId, provider], providerIndex) => (
-          <div key={providerId}>
-            {providerIndex > 0 && <DropdownMenuSeparator />}
-            {provider.models.map((model) => {
-              const Icon = provider.icon;
-              return (
-                <DropdownMenuItem
-                  key={model.id}
-                  onClick={() => onModelChange(model.id)}
-                  className={`cursor-pointer ${selectedModel === model.id ? 'bg-accent' : ''}`}
-                >
-                  <div className="flex items-start space-x-3 w-full">
-                    <div className="flex-shrink-0 mt-0.5">
-                      <div className="w-6 h-6 bg-muted/50 rounded-full flex items-center justify-center">
-                        <Icon className="h-3 w-3" />
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium truncate">{model.name}</p>
-                        {selectedModel === model.id && (
-                          <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 ml-2" />
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground">{model.description}</p>
-                    </div>
-                  </div>
-                </DropdownMenuItem>
-              );
-            })}
-          </div>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Menubar>
+      {Object.entries(models).map(([providerId, provider]) => {
+        const Icon = provider.icon;
+        return (
+          <MenubarMenu key={providerId}>
+            <MenubarTrigger className="cursor-pointer">
+              <Icon className="h-4 w-4" />
+            </MenubarTrigger>
+            <MenubarContent>
+              <MenubarRadioGroup value={selectedModel} onValueChange={onModelChange}>
+                {provider.models.map((model) => (
+                  <MenubarRadioItem
+                    key={model.id}
+                    value={model.id}
+                    className="cursor-pointer"
+                  >
+                    {model.name}
+                  </MenubarRadioItem>
+                ))}
+              </MenubarRadioGroup>
+            </MenubarContent>
+          </MenubarMenu>
+        );
+      })}
+    </Menubar>
   );
 };
