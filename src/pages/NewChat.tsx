@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import { CitationText } from "@/components/CitationText";
 import { CitationTabs } from "@/components/CitationTabs";
-import { ResponseTabs } from "@/components/ResponseTabs";
 import { PerplexityCitation, extractCitationNumbers } from "@/utils/citationParser";
 import {
   Accordion,
@@ -524,20 +523,197 @@ const NewChat = () => {
                     <p className="text-base leading-relaxed">{message.content}</p>
                   </div>
                 ) : (
-                  <ResponseTabs
-                    content={message.content}
-                    isStreaming={message.isStreaming}
-                    streamedContent={message.streamedContent}
-                    bills={message.citations || []}
-                    sources={message.perplexityCitations || []}
-                    searchQueries={message.searchQueries}
-                    reviewedInfo={message.reviewedInfo}
-                    isPerplexityResponse={message.isPerplexityResponse}
-                    perplexityCitations={message.perplexityCitations}
-                    onCitationClick={(num) => {
-                      console.log('Citation clicked:', num);
-                    }}
-                  />
+                  <div className="space-y-3">
+                    {/* Enhanced Searched and Reviewed Section with Process Content */}
+                    {(message.searchQueries || message.reviewedInfo) && (
+                      <Accordion type="single" collapsible className="w-full">
+                        <AccordionItem
+                          value="sources"
+                          className="border-0 relative before:absolute before:inset-0 before:rounded-lg before:border-2 before:border-dashed before:border-border/50 data-[state=open]:before:border-border/70 before:transition-colors before:duration-300"
+                        >
+                          <div className="relative p-0.5">
+                            <AccordionTrigger className="hover:no-underline px-4 py-2.5 rounded-t-lg text-xs font-medium">
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <SearchIcon className="h-3.5 w-3.5" />
+                                <span>Searched and reviewed sources</span>
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="px-4 pb-3 space-y-3">
+                              {/* Searching Section */}
+                              {message.searchQueries && (
+                                <div className="space-y-1.5">
+                                  <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                                    <SearchIcon className={cn(
+                                      "h-3 w-3",
+                                      message.isStreaming ? "text-primary animate-pulse" : "text-muted-foreground"
+                                    )} />
+                                    Searching
+                                  </h3>
+                                  <div className="pl-5 space-y-1">
+                                    {message.searchQueries.map((query, idx) => (
+                                      <div key={idx} className="flex items-start gap-2 text-xs text-muted-foreground">
+                                        <div className={cn(
+                                          "w-1 h-1 rounded-full mt-1.5 flex-shrink-0",
+                                          message.isStreaming ? "bg-primary animate-pulse" : "bg-muted-foreground/50"
+                                        )} />
+                                        <span>{query}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Reviewing Sources Section */}
+                              {message.reviewedInfo && !message.isStreaming && (
+                                <div className="space-y-1.5">
+                                  <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                                    <FileText className="h-3 w-3 text-muted-foreground" />
+                                    Reviewing sources · {message.citations?.length || 0}
+                                  </h3>
+                                  <div className="pl-5">
+                                    <p className="text-xs text-muted-foreground">{message.reviewedInfo}</p>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Finished State */}
+                              {!message.isStreaming && (
+                                <div className="space-y-1.5">
+                                  <h3 className="text-xs font-semibold text-green-600 dark:text-green-400 flex items-center gap-1.5">
+                                    <div className="w-3 h-3 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-green-600 dark:bg-green-400" />
+                                    </div>
+                                    Finished
+                                  </h3>
+                                </div>
+                              )}
+                            </AccordionContent>
+                          </div>
+                        </AccordionItem>
+                      </Accordion>
+                    )}
+
+                    {/* AI Response */}
+                    <div className="prose prose-sm max-w-none dark:prose-invert">
+                      {message.isPerplexityResponse && message.perplexityCitations ? (
+                        // Render Perplexity response with inline citation badges
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => {
+                              const textContent = String(children);
+                              return (
+                                <p className="mb-3 leading-relaxed text-foreground">
+                                  <CitationText
+                                    text={textContent}
+                                    citations={message.perplexityCitations || []}
+                                    onCitationClick={(num) => {
+                                      console.log('Citation clicked:', num);
+                                    }}
+                                  />
+                                </p>
+                              );
+                            },
+                            strong: ({ children }) => (
+                              <strong className="font-semibold text-foreground">
+                                {children}
+                              </strong>
+                            ),
+                            h1: ({ children }) => (
+                              <h1 className="text-xl font-semibold mb-3 text-foreground">
+                                {children}
+                              </h1>
+                            ),
+                            h2: ({ children }) => (
+                              <h2 className="text-lg font-semibold mb-2 text-foreground">
+                                {children}
+                              </h2>
+                            ),
+                            ul: ({ children }) => (
+                              <ul className="list-disc pl-5 mb-3 space-y-1">
+                                {children}
+                              </ul>
+                            ),
+                            li: ({ children }) => (
+                              <li className="text-foreground text-sm">{children}</li>
+                            ),
+                          }}
+                        >
+                          {message.isStreaming ? message.streamedContent || '' : message.content}
+                        </ReactMarkdown>
+                      ) : (
+                        // Standard markdown rendering
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => (
+                              <p className="mb-3 leading-relaxed text-foreground">
+                                {children}
+                              </p>
+                            ),
+                            strong: ({ children }) => (
+                              <strong className="font-semibold text-foreground">
+                                {children}
+                              </strong>
+                            ),
+                            h1: ({ children }) => (
+                              <h1 className="text-xl font-semibold mb-3 text-foreground">
+                                {children}
+                              </h1>
+                            ),
+                            h2: ({ children }) => (
+                              <h2 className="text-lg font-semibold mb-2 text-foreground">
+                                {children}
+                              </h2>
+                            ),
+                            ul: ({ children }) => (
+                              <ul className="list-disc pl-5 mb-3 space-y-1">
+                                {children}
+                              </ul>
+                            ),
+                            li: ({ children }) => (
+                              <li className="text-foreground text-sm">{children}</li>
+                            ),
+                          }}
+                        >
+                          {message.isStreaming ? message.streamedContent || '' : message.content}
+                        </ReactMarkdown>
+                      )}
+                      {message.isStreaming && (
+                        <span className="inline-block w-1.5 h-4 bg-current animate-pulse ml-0.5">|</span>
+                      )}
+                    </div>
+
+                    {/* Tabbed Citations (Bills + Research Sources) with Default Sources */}
+                    {!message.isStreaming && (message.citations || message.perplexityCitations) && (
+                      <CitationTabs
+                        bills={message.citations || []}
+                        sources={[
+                          ...(message.perplexityCitations || []),
+                          // Always include default sources
+                          {
+                            number: (message.perplexityCitations?.length || 0) + 1,
+                            url: 'https://www.goodable.dev',
+                            title: 'Goodable - Legislative Policy Platform',
+                            excerpt: 'AI-powered legislative research and policy analysis platform.'
+                          },
+                          {
+                            number: (message.perplexityCitations?.length || 0) + 2,
+                            url: 'https://nyassembly.gov/',
+                            title: 'New York State Assembly',
+                            excerpt: 'Official website of the New York State Assembly with bill tracking and legislative information.'
+                          },
+                          {
+                            number: (message.perplexityCitations?.length || 0) + 3,
+                            url: 'https://www.nysenate.gov/',
+                            title: 'New York State Senate',
+                            excerpt: 'Official website of the New York State Senate with comprehensive legislative data.'
+                          },
+                        ]}
+                        onCitationClick={(num) => {
+                          console.log('Citation clicked:', num);
+                        }}
+                      />
+                    )}
+                  </div>
                 )}
               </div>
             ))}
