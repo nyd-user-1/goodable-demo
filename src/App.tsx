@@ -11,7 +11,8 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { PageTransition } from "@/components/PageTransition";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ScrollToTop } from "@/components/ScrollToTop";
-import { VerticalSidebar } from "@/components/VerticalSidebar";
+import { NewAppSidebar } from "@/components/NewAppSidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { PageHeader } from "@/components/PageHeader";
 import Landing from "./pages/Landing";
 import LandingPageWaitlist from "./pages/Landing-Page-Waitlist";
@@ -62,12 +63,16 @@ const queryClient = new QueryClient();
 const AppLayout = () => {
   return (
     <ProtectedRoute>
-      <div className="relative min-h-screen">
-        <VerticalSidebar />
-        <PageHeader />
-        <main className="flex-1 overflow-hidden">
-          <PageTransition>
-            <Routes>
+      <SidebarProvider>
+        <NewAppSidebar />
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger />
+            <PageHeader />
+          </header>
+          <div className="flex-1 overflow-auto">
+            <PageTransition>
+              <Routes>
               <Route path="/home" element={<Home />} />
               <Route path="/home-2" element={<Home2 />} />
               <Route path="/new-chat" element={<NewChat />} />
@@ -104,10 +109,11 @@ const AppLayout = () => {
               <Route path="/data-populator" element={<DataPopulator />} />
               <Route path="/real-abc-populator" element={<RealABCPopulator />} />
               <Route path="/fix-abc-structure" element={<FixABCStructure />} />
-            </Routes>
-          </PageTransition>
-        </main>
-      </div>
+              </Routes>
+            </PageTransition>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
     </ProtectedRoute>
   );
 };
