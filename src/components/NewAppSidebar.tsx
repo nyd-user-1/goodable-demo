@@ -15,6 +15,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   Collapsible,
@@ -53,6 +54,7 @@ const adminItems = [
 export function NewAppSidebar() {
   const location = useLocation();
   const { isAdmin } = useAuth();
+  const { toggleSidebar } = useSidebar();
 
   const isActive = (url: string) => location.pathname === url;
 
@@ -61,14 +63,12 @@ export function NewAppSidebar() {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <div>
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <span className="text-lg font-bold">G</span>
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Goodable</span>
-                </div>
+            <SidebarMenuButton size="lg" onClick={toggleSidebar}>
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground cursor-pointer">
+                <span className="text-lg font-bold">G</span>
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">Goodable</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>

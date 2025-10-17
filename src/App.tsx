@@ -12,7 +12,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { NewAppSidebar } from "@/components/NewAppSidebar";
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { PageHeader } from "@/components/PageHeader";
 import Landing from "./pages/Landing";
 import LandingPageWaitlist from "./pages/Landing-Page-Waitlist";
@@ -66,7 +66,6 @@ const AppLayout = () => {
       <SidebarProvider>
         <NewAppSidebar />
         <SidebarInset>
-          <SidebarTrigger className="fixed top-4 left-4 z-50" />
           <PageHeader />
           <div className="flex-1 overflow-auto">
             <PageTransition>
