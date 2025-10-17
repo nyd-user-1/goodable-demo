@@ -66,7 +66,7 @@ const AppLayout = () => {
       <SidebarProvider>
         <NewAppSidebar />
         <SidebarInset>
-          <SidebarTrigger />
+          <SidebarTrigger className="fixed top-4 left-4 z-50" />
           <PageHeader />
           <div className="flex-1 overflow-auto">
             <PageTransition>
