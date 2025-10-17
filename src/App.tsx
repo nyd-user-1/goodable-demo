@@ -66,10 +66,8 @@ const AppLayout = () => {
       <SidebarProvider>
         <NewAppSidebar />
         <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger />
-            <PageHeader />
-          </header>
+          <SidebarTrigger />
+          <PageHeader />
           <div className="flex-1 overflow-auto">
             <PageTransition>
               <Routes>
