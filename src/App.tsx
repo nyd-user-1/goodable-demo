@@ -67,7 +67,7 @@ const AppLayout = () => {
         <NewAppSidebar />
         <SidebarInset>
           <PageHeader />
-          <div className="flex-1 overflow-auto pt-16 md:pt-20">
+          <div className="flex-1 overflow-auto pt-16 md:pt-0">
             <PageTransition>
               <Routes>
               <Route path="/home" element={<Home />} />
