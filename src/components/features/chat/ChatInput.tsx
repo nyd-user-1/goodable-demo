@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send } from "lucide-react";
+import { Send, Square } from "lucide-react";
 
 interface ChatInputProps {
   inputValue: string;
@@ -9,6 +9,7 @@ interface ChatInputProps {
   onSendMessage: () => void;
   isLoading: boolean;
   placeholder?: string;
+  onStop?: () => void;
 }
 
 export const ChatInput = ({
@@ -16,11 +17,22 @@ export const ChatInput = ({
   onInputChange,
   onSendMessage,
   isLoading,
-  placeholder = "Ask about this legislation..."
+  placeholder = "Ask about this legislation...",
+  onStop
 }: ChatInputProps) => {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
+      if (!isLoading) {
+        onSendMessage();
+      }
+    }
+  };
+
+  const handleButtonClick = () => {
+    if (isLoading && onStop) {
+      onStop();
+    } else {
       onSendMessage();
     }
   };
@@ -36,12 +48,17 @@ export const ChatInput = ({
           disabled={isLoading}
           className="flex-1"
         />
-        <Button 
-          onClick={onSendMessage} 
-          disabled={!inputValue.trim() || isLoading}
+        <Button
+          onClick={handleButtonClick}
+          disabled={!isLoading && !inputValue.trim()}
           size="icon"
+          variant={isLoading ? "destructive" : "default"}
         >
-          <Send className="w-4 h-4" />
+          {isLoading ? (
+            <Square className="w-4 h-4" fill="currentColor" />
+          ) : (
+            <Send className="w-4 h-4" />
+          )}
         </Button>
       </div>
     </div>
