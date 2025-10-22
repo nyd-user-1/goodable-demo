@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Paperclip, ArrowUp, Search as SearchIcon, FileText, Users, Building2, X } from "lucide-react";
+import { Paperclip, ArrowUp, Square, Search as SearchIcon, FileText, Users, Building2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -66,6 +66,8 @@ const NewChat = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [chatStarted, setChatStarted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
   const { selectedModel } = useModel();
 
   // Selected items state
@@ -93,6 +95,19 @@ const NewChat = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
+
+  // Stop streaming function
+  const stopStream = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    if (readerRef.current) {
+      readerRef.current.cancel();
+      readerRef.current = null;
+    }
+    setIsTyping(false);
+  };
 
   // Fetch bills for dialog
   const fetchBillsForSelection = async () => {
@@ -350,6 +365,9 @@ const NewChat = () => {
       };
       setMessages(prev => [...prev, streamingMessage]);
 
+      // Create abort controller for this request
+      abortControllerRef.current = new AbortController();
+
       // Call edge function with streaming via direct fetch
       const response = await fetch(`${supabaseUrl}/functions/v1/${edgeFunction}`, {
         method: 'POST',
@@ -365,6 +383,7 @@ const NewChat = () => {
           stream: true,
           model: selectedModel
         }),
+        signal: abortControllerRef.current.signal
       });
 
       if (!response.ok) {
@@ -373,6 +392,7 @@ const NewChat = () => {
 
       // Read streaming response
       const reader = response.body?.getReader();
+      readerRef.current = reader || null;
       const decoder = new TextDecoder();
       let aiResponse = '';
 
@@ -487,18 +507,26 @@ const NewChat = () => {
       ));
 
       setIsTyping(false);
+      abortControllerRef.current = null;
+      readerRef.current = null;
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating response:', error);
 
-      const errorMessage: Message = {
-        id: `assistant-${Date.now()}`,
-        role: "assistant",
-        content: "I apologize, but I encountered an error generating a response. Please try again.",
-      };
+      // Don't show error message if it was an abort (user stopped the stream)
+      if (error.name !== 'AbortError') {
+        const errorMessage: Message = {
+          id: `assistant-${Date.now()}`,
+          role: "assistant",
+          content: "I apologize, but I encountered an error generating a response. Please try again.",
+        };
 
-      setMessages(prev => [...prev, errorMessage]);
+        setMessages(prev => [...prev, errorMessage]);
+      }
+
       setIsTyping(false);
+      abortControllerRef.current = null;
+      readerRef.current = null;
     }
   };
 
@@ -1171,14 +1199,24 @@ const NewChat = () => {
                     </Dialog>
                   </div>
 
-                  {/* Right Side - Submit Button */}
+                  {/* Right Side - Submit/Stop Button */}
                   <Button
-                    type="submit"
+                    type={isTyping ? "button" : "submit"}
                     size="icon"
-                    className="h-9 w-9 rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-50"
-                    disabled={!query.trim()}
+                    className={cn(
+                      "h-9 w-9 rounded-lg disabled:opacity-50",
+                      isTyping
+                        ? "bg-destructive hover:bg-destructive/90"
+                        : "bg-primary hover:bg-primary/90"
+                    )}
+                    disabled={!isTyping && !query.trim()}
+                    onClick={isTyping ? stopStream : undefined}
                   >
-                    <ArrowUp className="h-4 w-4" />
+                    {isTyping ? (
+                      <Square className="h-4 w-4" fill="currentColor" />
+                    ) : (
+                      <ArrowUp className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </div>
