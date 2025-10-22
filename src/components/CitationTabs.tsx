@@ -12,7 +12,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { PerplexityCitation } from "@/utils/citationParser";
-import { getSourceCredibilityBadge, extractDomain } from "@/config/domainFilters";
+import { extractDomain } from "@/config/domainFilters";
 import { Badge } from "@/components/ui/badge";
 
 interface BillCitation {
@@ -116,7 +116,6 @@ export function CitationTabs({ bills, sources, onCitationClick }: CitationTabsPr
             <div className="space-y-3">
               {sources.map((citation) => {
                 const domain = extractDomain(citation.url);
-                const credibilityBadge = getSourceCredibilityBadge(domain);
 
                 return (
                   <div
@@ -124,58 +123,34 @@ export function CitationTabs({ bills, sources, onCitationClick }: CitationTabsPr
                     className="p-3 rounded-md bg-muted/40 border hover:bg-muted/60 transition-colors cursor-pointer"
                     onClick={() => onCitationClick?.(citation.number)}
                   >
-                    <div className="flex items-start gap-3">
-                      {/* Citation Number Badge */}
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center text-xs font-medium">
-                        {citation.number}
-                      </div>
-
-                      {/* Citation Content */}
-                      <div className="flex-1 space-y-2">
-                        <div className="space-y-1">
-                          <h4 className="font-medium text-sm leading-tight">
-                            {citation.title || domain}
-                          </h4>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge
-                              variant="outline"
-                              className={`text-xs ${
-                                credibilityBadge.color === 'green'
-                                  ? 'text-green-600 border-green-200'
-                                  : credibilityBadge.color === 'blue'
-                                  ? 'text-blue-600 border-blue-200'
-                                  : credibilityBadge.color === 'orange'
-                                  ? 'text-orange-600 border-orange-200'
-                                  : 'text-gray-600 border-gray-200'
-                              }`}
-                            >
-                              {credibilityBadge.icon && (
-                                <span className="mr-1">{credibilityBadge.icon}</span>
-                              )}
-                              {credibilityBadge.label}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">{domain}</span>
-                          </div>
+                    {/* Citation Content */}
+                    <div className="space-y-2">
+                      <div className="space-y-1">
+                        <h4 className="font-medium text-sm leading-tight">
+                          {citation.title || domain}
+                        </h4>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs text-muted-foreground">{domain}</span>
                         </div>
-
-                        {citation.excerpt && (
-                          <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
-                            {citation.excerpt}
-                          </p>
-                        )}
-
-                        {citation.url && (
-                          <a
-                            href={citation.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-primary hover:underline inline-flex items-center gap-1"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            View source →
-                          </a>
-                        )}
                       </div>
+
+                      {citation.excerpt && (
+                        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                          {citation.excerpt}
+                        </p>
+                      )}
+
+                      {citation.url && (
+                        <a
+                          href={citation.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          View source →
+                        </a>
+                      )}
                     </div>
                   </div>
                 );
