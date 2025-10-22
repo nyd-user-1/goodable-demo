@@ -23,7 +23,7 @@ export const useChatLogic = (entity: any, entityType: EntityType) => {
   const { handleShareChat, getTitle } = useChatActions(entity, entityType);
 
   const { saveChatSession } = useSessionManager(entity, entityType);
-  const { sendMessage: handleSendMessage } = useMessageHandler(entity, entityType);
+  const { sendMessage: handleSendMessage, stopStream } = useMessageHandler(entity, entityType);
   const { initializeSession: handleInitialization } = useSessionInitializer(entity, entityType);
 
   const wrappedSaveChatSession = useCallback(async (messages: any[], title?: string) => {
@@ -59,6 +59,7 @@ export const useChatLogic = (entity: any, entityType: EntityType) => {
     sendMessage,
     handleShareChat,
     getTitle,
-    initializeSession
+    initializeSession,
+    stopStream
   };
 };

@@ -46,7 +46,8 @@ export const AIChatSheet = ({ open, onOpenChange, bill, member, committee }: AIC
   // Use ref to track if we've already initialized this session
   const hasInitialized = useRef(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  
+  const streamIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
   // Replace hook-based system with direct state management for fast streaming
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -59,35 +60,60 @@ export const AIChatSheet = ({ open, onOpenChange, bill, member, committee }: AIC
     streamedContent?: string;
     hasYesNoButtons?: boolean;
   }>>([]);
-  
+
   // Determine the entity and type for the chat session
   const entity = bill || member || committee || null;
   const entityType = bill ? 'bill' : member ? 'member' : committee ? 'committee' : null;
-  
+
+  // Stop streaming function
+  const stopStream = () => {
+    if (streamIntervalRef.current) {
+      clearInterval(streamIntervalRef.current);
+      streamIntervalRef.current = null;
+
+      // Mark all streaming messages as complete
+      setMessages(prev => prev.map(msg =>
+        msg.isStreaming
+          ? { ...msg, isStreaming: false }
+          : msg
+      ));
+
+      setIsLoading(false);
+    }
+  };
+
   // Stream text effect - blazing fast like FeatureChat
   const streamText = (text: string, messageId: string) => {
+    // Clear any existing stream
+    if (streamIntervalRef.current) {
+      clearInterval(streamIntervalRef.current);
+    }
+
     const words = text.split(' ');
     let currentIndex = 0;
-    
-    const streamInterval = setInterval(() => {
+
+    streamIntervalRef.current = setInterval(() => {
       if (currentIndex < words.length) {
         const streamedText = words.slice(0, currentIndex + 1).join(' ');
-        
-        setMessages(prev => prev.map(msg => 
-          msg.id === messageId 
+
+        setMessages(prev => prev.map(msg =>
+          msg.id === messageId
             ? { ...msg, streamedContent: streamedText, isStreaming: true }
             : msg
         ));
-        
+
         currentIndex++;
       } else {
         // Streaming complete
-        setMessages(prev => prev.map(msg => 
-          msg.id === messageId 
+        setMessages(prev => prev.map(msg =>
+          msg.id === messageId
             ? { ...msg, isStreaming: false, streamedContent: text }
             : msg
         ));
-        clearInterval(streamInterval);
+        if (streamIntervalRef.current) {
+          clearInterval(streamIntervalRef.current);
+          streamIntervalRef.current = null;
+        }
       }
     }, 30); // Very fast - 30ms per word like FeatureChat
   };
@@ -384,6 +410,7 @@ After your analysis, would you like me to dive deeper into any specific aspect o
             onInputChange={setInputValue}
             onSendMessage={handleSendMessage}
             isLoading={isLoading}
+            onStop={stopStream}
           />
         </ChatContainer>
       </SheetContent>

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Message, EntityType, Citation } from './types';
@@ -69,6 +69,22 @@ const extractCitationsFromResponse = (content: string, entity: any, entityType: 
 
 export const useMessageHandler = (entity: any, entityType: EntityType) => {
   const { toast } = useToast();
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
+
+  const stopStream = useCallback(() => {
+    // Cancel the fetch request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
+    // Cancel the reader
+    if (readerRef.current) {
+      readerRef.current.cancel();
+      readerRef.current = null;
+    }
+  }, []);
 
   const sendMessage = useCallback(async (
     message: string,
@@ -122,6 +138,9 @@ export const useMessageHandler = (entity: any, entityType: EntityType) => {
       const supabaseUrl = supabase.supabaseUrl;
       const { data: { session } } = await supabase.auth.getSession();
 
+      // Create abort controller for this request
+      abortControllerRef.current = new AbortController();
+
       // Call edge function with streaming via direct fetch
       const response = await fetch(`${supabaseUrl}/functions/v1/generate-with-openai`, {
         method: 'POST',
@@ -137,6 +156,7 @@ export const useMessageHandler = (entity: any, entityType: EntityType) => {
           fastMode: true,
           context: entityContext
         }),
+        signal: abortControllerRef.current.signal
       });
 
       if (!response.ok) {
@@ -145,6 +165,7 @@ export const useMessageHandler = (entity: any, entityType: EntityType) => {
 
       // Read streaming response
       const reader = response.body?.getReader();
+      readerRef.current = reader || null;
       const decoder = new TextDecoder();
       let aiResponse = '';
 
@@ -218,19 +239,24 @@ export const useMessageHandler = (entity: any, entityType: EntityType) => {
       await saveChatSession(finalMessages);
 
     } catch (error) {
-      console.error('Error generating response:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
-        variant: "destructive"
-      });
+      // Only show error if it wasn't an abort
+      if (error.name !== 'AbortError') {
+        console.error('Error generating response:', error);
+        toast({
+          title: "Error",
+          description: "Failed to send message. Please try again.",
+          variant: "destructive"
+        });
 
-      // Remove streaming message and show error
-      setMessages(updatedMessages);
+        // Remove streaming message and show error
+        setMessages(updatedMessages);
+      }
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
+      readerRef.current = null;
     }
   }, [entity, entityType, toast]);
 
-  return { sendMessage };
+  return { sendMessage, stopStream };
 };

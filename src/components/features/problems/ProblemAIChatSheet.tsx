@@ -56,7 +56,8 @@ export const ProblemAIChatSheet = ({
     sendMessage,
     handleShareChat,
     getTitle,
-    initializeSession
+    initializeSession,
+    stopStream
   } = useChatLogic(problemEntity, 'problem');
 
   // Initialize session when sheet opens
@@ -197,6 +198,7 @@ export const ProblemAIChatSheet = ({
             onInputChange={setInputValue}
             onSendMessage={handleSendMessage}
             isLoading={isLoading}
+            onStop={stopStream}
           />
         </ChatContainer>
       </SheetContent>
