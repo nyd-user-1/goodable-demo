@@ -58,9 +58,16 @@ export function NewAppSidebar() {
 
   const isActive = (url: string) => location.pathname === url;
 
+  const handleWhitespaceClick = (e: React.MouseEvent) => {
+    // Only toggle if clicking on the whitespace itself, not on buttons or links
+    if (e.target === e.currentTarget) {
+      toggleSidebar();
+    }
+  };
+
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader>
+      <SidebarHeader onClick={handleWhitespaceClick}>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" onClick={toggleSidebar}>
@@ -75,7 +82,7 @@ export function NewAppSidebar() {
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent onClick={handleWhitespaceClick}>
         {/* New Chat */}
         <SidebarGroup>
           <SidebarMenu>
@@ -207,12 +214,12 @@ export function NewAppSidebar() {
         )}
       </SidebarContent>
 
-      <SidebarFooter>
+      <SidebarFooter onClick={handleWhitespaceClick}>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg">
-              <User />
-              <span className="truncate font-semibold">Account</span>
+            <SidebarMenuButton>
+              <User className="h-4 w-4" />
+              <span>Account</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
