@@ -56,7 +56,7 @@ export function CitationAccordion({ bills, sources, relatedBills = [], onCitatio
   return (
     <div className="mt-4 pt-4 border-t">
       <div className="border-2 border-dashed border-border/50 rounded-lg p-0.5">
-        <Tabs defaultValue={hasBills ? "references" : hasRelated ? "related" : "sources"} className="w-full">
+        <Tabs defaultValue="" className="w-full">
           <TabsList className="w-full grid grid-cols-3 bg-transparent h-auto p-2 gap-1">
             <TabsTrigger
               value="references"
@@ -95,7 +95,7 @@ export function CitationAccordion({ bills, sources, relatedBills = [], onCitatio
                     <div key={idx} className="group">
                       <Link
                         to={`/bills/${citation.bill_number}`}
-                        className="block text-xs p-4 rounded-md bg-muted/40 border hover:bg-muted/60 hover:border-primary/50 transition-all cursor-pointer"
+                        className="block text-xs p-4 rounded-md border hover:border-primary/50 transition-all cursor-pointer"
                       >
                         <div className="flex items-start gap-3">
                           {/* PDF View Button */}
@@ -158,7 +158,7 @@ export function CitationAccordion({ bills, sources, relatedBills = [], onCitatio
                     <div key={idx} className="group">
                       <Link
                         to={`/bills/${citation.bill_number}`}
-                        className="block text-xs p-4 rounded-md bg-muted/40 border hover:bg-muted/60 hover:border-primary/50 transition-all cursor-pointer"
+                        className="block text-xs p-4 rounded-md border hover:border-primary/50 transition-all cursor-pointer"
                       >
                         <div className="flex items-start gap-3">
                           {/* PDF View Button */}
@@ -223,7 +223,7 @@ export function CitationAccordion({ bills, sources, relatedBills = [], onCitatio
                     return (
                       <div
                         key={citation.number}
-                        className="p-3 rounded-md bg-muted/40 border hover:bg-muted/60 transition-colors cursor-pointer"
+                        className="p-3 rounded-md border hover:border-primary/50 transition-colors cursor-pointer"
                         onClick={() => onCitationClick?.(citation.number)}
                       >
                         {/* Citation Content */}
