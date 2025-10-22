@@ -22,6 +22,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const legislationItems = [
   { title: "Bills", url: "/bills", icon: FileText },
@@ -87,12 +92,19 @@ export function NewAppSidebar() {
         <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive("/new-chat")}>
-                <NavLink to="/new-chat">
-                  <MessageSquare />
-                  <span>New chat</span>
-                </NavLink>
-              </SidebarMenuButton>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <SidebarMenuButton asChild isActive={isActive("/new-chat")}>
+                    <NavLink to="/new-chat">
+                      <MessageSquare />
+                      <span>New chat</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>New chat</p>
+                </TooltipContent>
+              </Tooltip>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
@@ -111,12 +123,19 @@ export function NewAppSidebar() {
                 <SidebarMenu>
                   {legislationItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                        <NavLink to={item.url}>
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </NavLink>
-                      </SidebarMenuButton>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                            <NavLink to={item.url}>
+                              <item.icon />
+                              <span>{item.title}</span>
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>{item.title}</p>
+                        </TooltipContent>
+                      </Tooltip>
                     </SidebarMenuItem>
                   ))}
                 </SidebarMenu>
@@ -141,12 +160,19 @@ export function NewAppSidebar() {
                     .filter(item => !item.adminOnly || isAdmin)
                     .map((item) => (
                       <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                          <NavLink to={item.url}>
-                            <item.icon />
-                            <span>{item.title}</span>
-                          </NavLink>
-                        </SidebarMenuButton>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                              <NavLink to={item.url}>
+                                <item.icon />
+                                <span>{item.title}</span>
+                              </NavLink>
+                            </SidebarMenuButton>
+                          </TooltipTrigger>
+                          <TooltipContent side="right">
+                            <p>{item.title}</p>
+                          </TooltipContent>
+                        </Tooltip>
                       </SidebarMenuItem>
                     ))}
                 </SidebarMenu>
@@ -169,12 +195,19 @@ export function NewAppSidebar() {
                 <SidebarMenu>
                   {accountItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                        <NavLink to={item.url}>
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </NavLink>
-                      </SidebarMenuButton>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                            <NavLink to={item.url}>
+                              <item.icon />
+                              <span>{item.title}</span>
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>{item.title}</p>
+                        </TooltipContent>
+                      </Tooltip>
                     </SidebarMenuItem>
                   ))}
                 </SidebarMenu>
@@ -217,10 +250,17 @@ export function NewAppSidebar() {
       <SidebarFooter onClick={handleWhitespaceClick}>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton>
-              <User className="h-4 w-4" />
-              <span>Account</span>
-            </SidebarMenuButton>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SidebarMenuButton>
+                  <User className="h-4 w-4" />
+                  <span>Account</span>
+                </SidebarMenuButton>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Account</p>
+              </TooltipContent>
+            </Tooltip>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
