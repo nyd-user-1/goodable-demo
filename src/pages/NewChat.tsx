@@ -603,28 +603,22 @@ const NewChat = () => {
                             <AccordionTrigger className="hover:no-underline px-4 py-2.5 rounded-t-lg text-xs font-medium">
                               <div className="flex items-center gap-2 text-muted-foreground">
                                 <SearchIcon className="h-3.5 w-3.5" />
-                                <span>Searched and reviewed sources</span>
+                                <span>Additional Thoughts</span>
                               </div>
                             </AccordionTrigger>
-                            <AccordionContent className="px-4 pb-3 space-y-3">
+                            <AccordionContent className="px-4 pb-3 space-y-2">
                               {/* Searching Section */}
                               {message.searchQueries && (
-                                <div className="space-y-1.5">
-                                  <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                                    <SearchIcon className={cn(
-                                      "h-3 w-3",
-                                      message.isStreaming ? "text-primary animate-pulse" : "text-muted-foreground"
-                                    )} />
+                                <div className="space-y-2">
+                                  <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                                    <SearchIcon className="h-3.5 w-3.5" />
                                     Searching
                                   </h3>
-                                  <div className="pl-5 space-y-1">
+                                  <div className="space-y-1.5">
                                     {message.searchQueries.map((query, idx) => (
-                                      <div key={idx} className="flex items-start gap-2 text-xs text-muted-foreground">
-                                        <div className={cn(
-                                          "w-1 h-1 rounded-full mt-1.5 flex-shrink-0",
-                                          message.isStreaming ? "bg-primary animate-pulse" : "bg-muted-foreground/50"
-                                        )} />
-                                        <span>{query}</span>
+                                      <div key={idx} className="flex items-start gap-2.5 p-2.5 rounded-md bg-muted/30 border border-border/50 text-xs text-muted-foreground">
+                                        <SearchIcon className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-muted-foreground/70" />
+                                        <span className="leading-relaxed">{query}</span>
                                       </div>
                                     ))}
                                   </div>
@@ -633,26 +627,22 @@ const NewChat = () => {
 
                               {/* Reviewing Sources Section */}
                               {message.reviewedInfo && !message.isStreaming && (
-                                <div className="space-y-1.5">
-                                  <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                                    <FileText className="h-3 w-3 text-muted-foreground" />
+                                <div className="space-y-2">
+                                  <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                                    <FileText className="h-3.5 w-3.5" />
                                     Reviewing sources · {message.citations?.length || 0}
                                   </h3>
-                                  <div className="pl-5">
-                                    <p className="text-xs text-muted-foreground">{message.reviewedInfo}</p>
+                                  <div className="p-2.5 rounded-md bg-muted/30 border border-border/50">
+                                    <p className="text-xs text-muted-foreground leading-relaxed">{message.reviewedInfo}</p>
                                   </div>
                                 </div>
                               )}
 
                               {/* Finished State */}
                               {!message.isStreaming && (
-                                <div className="space-y-1.5">
-                                  <h3 className="text-xs font-semibold text-green-600 dark:text-green-400 flex items-center gap-1.5">
-                                    <div className="w-3 h-3 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-green-600 dark:bg-green-400" />
-                                    </div>
-                                    Finished
-                                  </h3>
+                                <div className="flex items-center gap-1.5 text-xs font-medium text-green-600 dark:text-green-400 pt-1">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-green-600 dark:bg-green-400" />
+                                  Finished
                                 </div>
                               )}
                             </AccordionContent>
