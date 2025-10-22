@@ -442,6 +442,30 @@ const NewChat = () => {
         console.log('Extracted Perplexity citations:', perplexityCitations);
       }
 
+      // Extract bill numbers from AI response to fetch accurate citations
+      let responseCitations = relevantBills; // Default to query-based search
+      if (aiResponse) {
+        const responseBillNumbers = aiResponse.match(/[ASK]\d{4,}/gi) || [];
+        if (responseBillNumbers.length > 0) {
+          try {
+            // Fetch the exact bills mentioned in the AI response
+            const { data: mentionedBills, error } = await supabase
+              .from("Bills")
+              .select("bill_number, title, status_desc, description, committee, session_id")
+              .in("bill_number", responseBillNumbers.map(b => b.toUpperCase()))
+              .limit(10);
+
+            if (!error && mentionedBills && mentionedBills.length > 0) {
+              responseCitations = mentionedBills;
+              console.log(`Found ${mentionedBills.length} bills mentioned in AI response`);
+            }
+          } catch (error) {
+            console.error("Error fetching bills from AI response:", error);
+            // Fall back to relevantBills
+          }
+        }
+      }
+
       // Finalize the streaming message with all metadata
       setMessages(prev => prev.map(msg =>
         msg.id === messageId
@@ -450,12 +474,12 @@ const NewChat = () => {
               content: aiResponse,
               isStreaming: false,
               streamedContent: aiResponse,
-              reviewedInfo: `Reviewed ${relevantBills.length} bills: ${
-                relevantBills.length > 0
-                  ? `Found relevant legislation including ${relevantBills[0]?.bill_number || 'pending bills'} related to your query.`
+              reviewedInfo: `Reviewed ${responseCitations.length} bills: ${
+                responseCitations.length > 0
+                  ? `Found relevant legislation including ${responseCitations[0]?.bill_number || 'pending bills'} related to your query.`
                   : 'No directly matching bills found, providing general legislative context.'
               }`,
-              citations: relevantBills,
+              citations: responseCitations,
               perplexityCitations: isPerplexityModel ? perplexityCitations : undefined,
               isPerplexityResponse: isPerplexityModel
             }
