@@ -324,51 +324,22 @@ const NewChat = () => {
     setSelectedCommittees([]);
     setIsTyping(true);
 
+    // INSTANT FEEDBACK: Create and show assistant message immediately (0ms delay)
+    const messageId = `assistant-${Date.now()}`;
+    const streamingMessage: Message = {
+      id: messageId,
+      role: "assistant",
+      content: "",
+      isStreaming: true,
+      streamedContent: "",
+      searchQueries: [
+        `Analyzing "${userQuery.substring(0, 60)}${userQuery.length > 60 ? '...' : ''}" in NY State Legislature`,
+        `Searching NY State Bills Database`,
+      ],
+    };
+    setMessages(prev => [...prev, streamingMessage]);
+
     try {
-      // Fetch relevant bills while AI generates response
-      const relevantBills = await fetchRelevantBills(userQuery);
-
-      // Extract bill numbers from query to fetch full data
-      const billNumberPattern = /[ASK]\d{5,}/gi;
-      const billNumbers = userQuery.match(billNumberPattern) || [];
-
-      // Fetch full bill data from NYS API for specific bills mentioned
-      let fullBillData = null;
-      if (billNumbers.length > 0) {
-        // Get the first bill's full data from NYS API
-        const billNumber = billNumbers[0].toUpperCase();
-        fullBillData = await fetchFullBillData(billNumber);
-      }
-
-      // Format bill data as context for Claude
-      let billContext = null;
-
-      if (fullBillData && fullBillData.result) {
-        // Use full bill data from NYS API (rich context)
-        const bill = fullBillData.result;
-        billContext =
-          `\n# FULL LEGISLATIVE DATA FROM NY STATE LEGISLATURE\n\n` +
-          `## Bill ${bill.printNo || bill.basePrintNo}\n` +
-          `**Session Year:** ${bill.session}\n` +
-          `**Title:** ${bill.title || 'N/A'}\n` +
-          `**Status:** ${bill.status?.statusDesc || 'Unknown'}\n` +
-          `**Sponsor:** ${bill.sponsor?.member?.fullName || 'Unknown'}\n` +
-          `**Committee:** ${bill.status?.committeeDesc || 'Not assigned'}\n\n` +
-          `### Bill Summary\n${bill.summary || 'No summary available'}\n\n` +
-          `### Full Bill Text\n${bill.fullText || bill.amendmentVersions?.[0]?.fullText || 'Full text not available'}\n\n` +
-          `### Sponsor Memo\n${bill.amendmentVersions?.[0]?.memo || 'No sponsor memo available'}\n`;
-      } else if (relevantBills.length > 0) {
-        // Fallback to database metadata
-        billContext = relevantBills.map(bill =>
-            `\n## Bill ${bill.bill_number}\n` +
-            `**Title:** ${bill.title}\n` +
-            `**Status:** ${bill.status_desc || 'Unknown'}\n` +
-            `**Committee:** ${bill.committee || 'Not assigned'}\n` +
-            `**Session:** ${bill.session_id || 'N/A'}\n` +
-            `**Description:** ${bill.description || 'No description available'}\n`
-          ).join('\n');
-      }
-
       // Determine which edge function to call based on model
       const isClaudeModel = selectedModel.startsWith('claude-');
       const isPerplexityModel = selectedModel.includes('sonar');
@@ -382,25 +353,10 @@ const NewChat = () => {
       const supabaseUrl = supabase.supabaseUrl;
       const { data: { session } } = await supabase.auth.getSession();
 
-      // Create placeholder streaming message
-      const messageId = `assistant-${Date.now()}`;
-      const streamingMessage: Message = {
-        id: messageId,
-        role: "assistant",
-        content: "",
-        isStreaming: true,
-        streamedContent: "",
-        searchQueries: [
-          `Searched for "${userQuery.substring(0, 60)}${userQuery.length > 60 ? '...' : ''}" in NY State Legislature`,
-          `Searched for "${userQuery.substring(0, 60)}${userQuery.length > 60 ? '...' : ''}" in NY State Bills Database`,
-        ],
-      };
-      setMessages(prev => [...prev, streamingMessage]);
-
       // Create abort controller for this request
       abortControllerRef.current = new AbortController();
 
-      // Call edge function with streaming via direct fetch
+      // Call edge function with streaming (edge function handles all data fetching)
       const response = await fetch(`${supabaseUrl}/functions/v1/${edgeFunction}`, {
         method: 'POST',
         headers: {
@@ -410,8 +366,7 @@ const NewChat = () => {
         },
         body: JSON.stringify({
           prompt: userQuery,
-          type: 'default',
-          context: billContext,
+          type: 'chat',
           stream: true,
           model: selectedModel
         }),
@@ -494,8 +449,8 @@ const NewChat = () => {
         console.log('Extracted Perplexity citations:', perplexityCitations);
       }
 
-      // Extract bill numbers from AI response to fetch accurate citations
-      let responseCitations = relevantBills; // Default to query-based search
+      // Extract bill numbers from AI response to fetch citations (progressive loading)
+      let responseCitations: BillCitation[] = [];
       if (aiResponse) {
         const responseBillNumbers = aiResponse.match(/[ASK]\d{4,}/gi) || [];
         if (responseBillNumbers.length > 0) {
@@ -513,7 +468,6 @@ const NewChat = () => {
             }
           } catch (error) {
             console.error("Error fetching bills from AI response:", error);
-            // Fall back to relevantBills
           }
         }
       }
