@@ -280,7 +280,30 @@ const NewChat = () => {
   const handleSubmit = async (e: React.FormEvent | null, promptText?: string) => {
     if (e) e.preventDefault();
 
-    const userQuery = promptText || query.trim();
+    let userQuery = promptText || query.trim();
+
+    // Auto-generate prompt if no text but items are selected
+    if (!userQuery && (selectedMembers.length > 0 || selectedBills.length > 0 || selectedCommittees.length > 0)) {
+      const promptParts: string[] = [];
+
+      if (selectedMembers.length > 0) {
+        const memberNames = selectedMembers.map(m => m.name).join(", ");
+        promptParts.push(`Tell me about ${selectedMembers.length === 1 ? 'legislator' : 'legislators'} ${memberNames}, including their legislative record, sponsored bills, and committee work`);
+      }
+
+      if (selectedBills.length > 0) {
+        const billNumbers = selectedBills.map(b => b.bill_number).join(", ");
+        promptParts.push(`Tell me about ${selectedBills.length === 1 ? 'bill' : 'bills'} ${billNumbers}, including ${selectedBills.length === 1 ? 'its' : 'their'} status, sponsors, and details`);
+      }
+
+      if (selectedCommittees.length > 0) {
+        const committeeNames = selectedCommittees.map(c => c.committee_name).join(", ");
+        promptParts.push(`Tell me about the ${committeeNames} ${selectedCommittees.length === 1 ? 'committee' : 'committees'}, including focus areas and current bills`);
+      }
+
+      userQuery = promptParts.join(". Also, ");
+    }
+
     if (!userQuery) return;
 
     // Start chat interface
@@ -295,6 +318,10 @@ const NewChat = () => {
 
     setMessages(prev => [...prev, userMessage]);
     setQuery("");
+    // Clear selected items after submission
+    setSelectedMembers([]);
+    setSelectedBills([]);
+    setSelectedCommittees([]);
     setIsTyping(true);
 
     try {
