@@ -1,12 +1,101 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Get current NY legislative session year (odd years)
+function getCurrentSessionYear(): number {
+  const currentYear = new Date().getFullYear();
+  // NY legislative sessions run on odd years
+  return currentYear % 2 === 1 ? currentYear : currentYear - 1;
+}
+
+// Search Goodable's Supabase database for relevant bills
+async function searchGoodableDatabase(query: string, sessionYear?: number) {
+  try {
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Extract bill numbers from query (e.g., A00405, S12345, K00123)
+    const billNumberPattern = /[ASK]\d{4,}/gi;
+    const billNumbers = query.match(billNumberPattern) || [];
+
+    console.log('Searching Goodable database with query:', query.substring(0, 100));
+    console.log('Extracted bill numbers:', billNumbers);
+
+    let results: any[] = [];
+
+    // If specific bill numbers mentioned, fetch those
+    if (billNumbers.length > 0) {
+      const { data, error } = await supabase
+        .from('Bills')
+        .select('*')
+        .in('bill_number', billNumbers.map(b => b.toUpperCase()))
+        .limit(10);
+
+      if (!error && data) {
+        results = data;
+        console.log(`Found ${data.length} bills by number`);
+      }
+    }
+
+    // If no results yet, do keyword search
+    if (results.length === 0) {
+      const stopWords = [
+        'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+        'of', 'with', 'by', 'from', 'about', 'as', 'into', 'through', 'during',
+        'before', 'after', 'above', 'below', 'between', 'under', 'again',
+        'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why',
+        'how', 'all', 'both', 'each', 'few', 'more', 'most', 'other', 'some',
+        'such', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'can',
+        'will', 'just', 'should', 'now', 'tell', 'me', 'you', 'it', 'is', 'are',
+        'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does',
+        'did', 'would', 'could', 'their', 'this', 'that', 'these', 'those'
+      ];
+
+      // Extract keywords (filter out stop words, take top 3)
+      const keywordArray = query
+        .toLowerCase()
+        .replace(/[^\w\s]/g, ' ')
+        .split(/\s+/)
+        .filter(word => word.length > 3 && !stopWords.includes(word))
+        .slice(0, 3);
+
+      console.log('Extracted keywords:', keywordArray);
+
+      if (keywordArray.length > 0) {
+        // Build OR conditions for each keyword
+        const orConditions = keywordArray.flatMap(keyword => [
+          `title.ilike.%${keyword}%`,
+          `description.ilike.%${keyword}%`
+        ]).join(',');
+
+        const { data, error } = await supabase
+          .from('Bills')
+          .select('*')
+          .or(orConditions)
+          .limit(10);
+
+        if (!error && data) {
+          results = data;
+          console.log(`Found ${data.length} bills by keyword search`);
+        }
+      }
+    }
+
+    return results;
+  } catch (error) {
+    console.error('Error searching Goodable database:', error);
+    return [];
+  }
+}
 
 // Claude-specific system prompt for Goodable
 const CLAUDE_SYSTEM_PROMPT = `# System Prompt for Goodable NY State Legislative Analysis AI
@@ -19,13 +108,18 @@ You are a knowledgeable, impartial policy analyst who combines deep expertise in
 
 ## Available Data & Context
 
-When users ask questions, you will be provided with:
-- **Relevant NYS legislative data**: Actual bill texts, titles, descriptions, sponsors, status, committee assignments from the Goodable database
-- **Bill metadata**: Bill numbers, session info, current status, committee assignments
-- **Legislative context**: The system fetches and provides relevant bills matching the user's query
-- **User context**: Users may reference specific bills or be viewing bill PDFs
+You have DIRECT ACCESS to comprehensive, up-to-date legislative data through TWO sources:
 
-**IMPORTANT**: Always use the specific bill data provided to you in each conversation. The data comes directly from the NY State Legislature database and is current. Reference specific bill numbers, titles, and details from the provided context.
+1. **Goodable's Complete Database (Supabase)**:
+   - Contains ALL New York State bills from multiple sessions including current and future sessions (2023, 2024, 2025, and beyond)
+   - The system automatically searches this database for relevant bills based on user queries
+   - Returns bill metadata: bill numbers, titles, descriptions, sponsors, status, committee assignments
+
+2. **User-provided context**:
+   - Bill texts, PDFs, or specific legislative documents
+   - Context from their current view or research
+
+**IMPORTANT**: When users ask about bills from 2025 or the current session, you have COMPLETE ACCESS to this data through the Goodable database. The database is searched automatically and relevant bills are provided to you. Always use the specific bill data provided to you in each conversation.
 
 ## Response Framework
 
@@ -143,10 +237,38 @@ serve(async (req) => {
       throw new Error('Claude requires Anthropic API key to be configured in Supabase Edge Function Secrets');
     }
 
+    // Search Goodable database for relevant bills
+    let goodableBills: any[] = [];
+    const goodableDataPromise = searchGoodableDatabase(prompt, getCurrentSessionYear());
+
+    // Always wait for database search to complete before generating response
+    if (goodableDataPromise) {
+      goodableBills = await goodableDataPromise;
+      console.log(`Found ${goodableBills?.length || 0} bills from Goodable database`);
+    }
+
     // Build the user message with context if available
     let userMessage = prompt;
-    if (context) {
-      userMessage = `# Relevant Legislative Data from Database\n\n${context}\n\n---\n\n# User Question\n\n${prompt}\n\n---\n\nPlease analyze the above legislative data to answer the user's question. Use specific details from the bills provided.`;
+    let combinedContext = context || '';
+
+    // Add Goodable database results to context
+    if (goodableBills && goodableBills.length > 0) {
+      const goodableContext = goodableBills.map(bill =>
+        `\n## Bill ${bill.bill_number}\n` +
+        `**Title:** ${bill.title}\n` +
+        `**Status:** ${bill.status_desc || 'Unknown'}\n` +
+        `**Committee:** ${bill.committee || 'Not assigned'}\n` +
+        `**Session:** ${bill.session_id || 'N/A'}\n` +
+        `**Description:** ${bill.description || 'No description available'}\n`
+      ).join('\n');
+
+      combinedContext = combinedContext
+        ? `${combinedContext}\n\n# Additional Bills from Goodable Database\n${goodableContext}`
+        : `# Relevant Bills from Goodable Database\n${goodableContext}`;
+    }
+
+    if (combinedContext) {
+      userMessage = `# Relevant Legislative Data from Database\n\n${combinedContext}\n\n---\n\n# User Question\n\n${prompt}\n\n---\n\nPlease analyze the above legislative data to answer the user's question. Use specific details from the bills provided.`;
     }
 
     // Call Claude API with correct authentication header
