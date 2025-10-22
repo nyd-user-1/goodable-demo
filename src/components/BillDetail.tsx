@@ -27,7 +27,8 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
   const [sponsors, setSponsors] = useState<(Sponsor & { person?: Person })[]>([]);
   const [rollCalls, setRollCalls] = useState<(RollCall & { votes?: (Vote & { person?: Person })[] })[]>([]);
   const [loading, setLoading] = useState(true);
-  
+  const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
+
   const { favoriteBillIds, toggleFavorite } = useFavorites();
 
   useEffect(() => {
@@ -222,9 +223,21 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
                           <div key={sponsor.id} className="p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors">
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                  <User className="h-4 w-4" />
-                                </div>
+                                {sponsor.person?.photo_url && !failedImages.has(sponsor.people_id) ? (
+                                  <img
+                                    src={sponsor.person.photo_url}
+                                    alt={sponsor.person?.name || 'Sponsor photo'}
+                                    className="w-8 h-8 rounded-full object-cover bg-primary/10"
+                                    onError={() => {
+                                      console.log(`Failed to load image for sponsor: ${sponsor.person?.name}`);
+                                      setFailedImages(prev => new Set([...prev, sponsor.people_id]));
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                    <User className="h-4 w-4" />
+                                  </div>
+                                )}
                                 {sponsor.position === 1 && (
                                   <Badge variant="default" className="text-xs">
                                     Primary
