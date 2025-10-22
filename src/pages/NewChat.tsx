@@ -947,16 +947,9 @@ const NewChat = () => {
                                         <tr
                                           key={member.people_id}
                                           className={cn(
-                                            "border-t hover:bg-muted/30 cursor-pointer transition-colors",
+                                            "border-t hover:bg-muted/30 transition-colors",
                                             isSelected && "bg-green-500/5"
                                           )}
-                                          onClick={() => {
-                                            if (isSelected) {
-                                              setSelectedMembers(prev => prev.filter(m => m.people_id !== member.people_id));
-                                            } else {
-                                              setSelectedMembers(prev => [...prev, member]);
-                                            }
-                                          }}
                                         >
                                           <td className="p-3 font-medium">{member.name}</td>
                                           <td className="p-3 text-muted-foreground">{member.party || 'N/A'}</td>
@@ -1058,16 +1051,9 @@ const NewChat = () => {
                                         <tr
                                           key={committee.committee_id}
                                           className={cn(
-                                            "border-t hover:bg-muted/30 cursor-pointer transition-colors",
+                                            "border-t hover:bg-muted/30 transition-colors",
                                             isSelected && "bg-orange-500/5"
                                           )}
-                                          onClick={() => {
-                                            if (isSelected) {
-                                              setSelectedCommittees(prev => prev.filter(c => c.committee_id !== committee.committee_id));
-                                            } else {
-                                              setSelectedCommittees(prev => [...prev, committee]);
-                                            }
-                                          }}
                                         >
                                           <td className="p-3 font-medium">{committee.committee_name}</td>
                                           <td className="p-3 text-muted-foreground">{committee.chamber || 'N/A'}</td>
@@ -1169,16 +1155,9 @@ const NewChat = () => {
                                         <tr
                                           key={bill.bill_number}
                                           className={cn(
-                                            "border-t hover:bg-muted/30 cursor-pointer transition-colors",
+                                            "border-t hover:bg-muted/30 transition-colors",
                                             isSelected && "bg-primary/5"
                                           )}
-                                          onClick={() => {
-                                            if (isSelected) {
-                                              setSelectedBills(prev => prev.filter(b => b.bill_number !== bill.bill_number));
-                                            } else {
-                                              setSelectedBills(prev => [...prev, bill]);
-                                            }
-                                          }}
                                         >
                                           <td className="p-3 font-medium">{bill.bill_number}</td>
                                           <td className="p-3 max-w-md truncate">{bill.title}</td>
@@ -1230,7 +1209,7 @@ const NewChat = () => {
                         ? "bg-destructive hover:bg-destructive/90"
                         : "bg-primary hover:bg-primary/90"
                     )}
-                    disabled={!isTyping && !query.trim()}
+                    disabled={!isTyping && !query.trim() && selectedMembers.length === 0 && selectedBills.length === 0 && selectedCommittees.length === 0}
                     onClick={isTyping ? stopStream : undefined}
                   >
                     {isTyping ? (
