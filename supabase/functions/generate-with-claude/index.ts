@@ -302,29 +302,47 @@ serve(async (req) => {
       model = 'claude-3-5-haiku-20241022',
       stream = true,
       context = null,
-      domainFiltering = null
+      domainFiltering = null,
+      type = 'chat',
+      fastMode = type === 'chat'
     } = await req.json();
 
-    console.log('Generating with Claude:', { model, promptLength: prompt?.length, hasContext: !!context, stream });
+    console.log('Generating with Claude:', { model, promptLength: prompt?.length, hasContext: !!context, stream, fastMode });
 
     if (!anthropicApiKey) {
       console.error('Anthropic API key not configured');
       throw new Error('Claude requires Anthropic API key to be configured in Supabase Edge Function Secrets');
     }
 
-    // Search both Goodable database AND NYS API for comprehensive results
+    // Search Goodable database AND conditionally search NYS API
     let goodableBills: any[] = [];
     let nysData: any = null;
 
-    // Start both searches in parallel
+    // Fast-path detection: skip NYS API for simple chat queries in fast mode
+    // BUT always search Goodable database for legislative queries
+    const shouldSkipNYSData = fastMode && !prompt.match(/[ASK]\d{5,}/gi) && type !== 'media' && context !== 'landing_page';
+
+    // Start data searches in parallel (non-blocking)
+    let nysDataPromise: Promise<any> | null = null;
     const goodableDataPromise = searchGoodableDatabase(prompt, getCurrentSessionYear());
-    const nysDataPromise = searchNYSData(prompt);
 
-    // Wait for both searches to complete before generating response
-    [goodableBills, nysData] = await Promise.all([goodableDataPromise, nysDataPromise]);
+    // Start NYS API search if appropriate
+    if (nysApiKey && !shouldSkipNYSData) {
+      nysDataPromise = searchNYSData(prompt);
+    }
 
-    console.log(`Found ${goodableBills?.length || 0} bills from Goodable database`);
-    console.log(`Found ${nysData?.bills?.length || 0} bills from NYS API`);
+    // IMPORTANT: Always wait for Goodable database search before generating response
+    // This ensures AI has context even for streaming responses
+    goodableBills = await goodableDataPromise;
+    console.log(`Goodable database search found ${goodableBills?.length || 0} bills`);
+
+    // For non-streaming, also wait for NYS API data
+    if (!stream && nysDataPromise) {
+      nysData = await nysDataPromise;
+      console.log(`NYS API search found ${nysData?.bills?.length || 0} bills`);
+    } else if (shouldSkipNYSData) {
+      console.log('Skipping NYS API search (fast mode enabled)');
+    }
 
     // Build enhanced context with all available information
     let legislativeContext = '';
