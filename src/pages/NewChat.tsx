@@ -874,14 +874,12 @@ const NewChat = () => {
                     {/* Attachment Button */}
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button
+                        <button
                           type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 rounded-lg !text-muted-foreground !hover:text-muted-foreground !hover:bg-accent !focus:bg-transparent !focus:text-muted-foreground !focus-visible:ring-0 !focus-visible:ring-offset-0 !active:bg-transparent !active:text-muted-foreground"
+                          className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-accent transition-colors"
                         >
                           <Paperclip className="h-4 w-4" />
-                        </Button>
+                        </button>
                       </TooltipTrigger>
                       <TooltipContent side="top">
                         <p>Attach files</p>
@@ -892,14 +890,12 @@ const NewChat = () => {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <DialogTrigger asChild>
-                            <Button
+                            <button
                               type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-9 w-9 rounded-lg !text-muted-foreground !hover:text-muted-foreground !hover:bg-accent !focus:bg-transparent !focus:text-muted-foreground !focus-visible:ring-0 !focus-visible:ring-offset-0 !active:bg-transparent !active:text-muted-foreground !data-[state=open]:bg-transparent !data-[state=open]:text-muted-foreground"
+                              className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-accent transition-colors"
                             >
                               <Users className="h-4 w-4" />
-                            </Button>
+                            </button>
                           </DialogTrigger>
                         </TooltipTrigger>
                         <TooltipContent side="top">
@@ -1006,14 +1002,12 @@ const NewChat = () => {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <DialogTrigger asChild>
-                            <Button
+                            <button
                               type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-9 w-9 rounded-lg !text-muted-foreground !hover:text-muted-foreground !hover:bg-accent !focus:bg-transparent !focus:text-muted-foreground !focus-visible:ring-0 !focus-visible:ring-offset-0 !active:bg-transparent !active:text-muted-foreground !data-[state=open]:bg-transparent !data-[state=open]:text-muted-foreground"
+                              className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-accent transition-colors"
                             >
                               <Building2 className="h-4 w-4" />
-                            </Button>
+                            </button>
                           </DialogTrigger>
                         </TooltipTrigger>
                         <TooltipContent side="top">
@@ -1118,14 +1112,12 @@ const NewChat = () => {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <DialogTrigger asChild>
-                            <Button
+                            <button
                               type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-9 w-9 rounded-lg !text-muted-foreground !hover:text-muted-foreground !hover:bg-accent !focus:bg-transparent !focus:text-muted-foreground !focus-visible:ring-0 !focus-visible:ring-offset-0 !active:bg-transparent !active:text-muted-foreground !data-[state=open]:bg-transparent !data-[state=open]:text-muted-foreground"
+                              className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-accent transition-colors"
                             >
                               <FileText className="h-4 w-4" />
-                            </Button>
+                            </button>
                           </DialogTrigger>
                         </TooltipTrigger>
                         <TooltipContent side="top">
