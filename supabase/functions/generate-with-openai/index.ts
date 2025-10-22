@@ -1,14 +1,26 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const nysApiKey = Deno.env.get('NYS_LEGISLATION_API_KEY');
+const supabaseUrl = Deno.env.get('SUPABASE_URL');
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Get current NYS legislative session year
+// NYS sessions are 2-year periods (odd years start new sessions)
+function getCurrentSessionYear(): number {
+  const currentYear = new Date().getFullYear();
+  // If current year is odd, it's the start of a new session
+  // If even, use the previous (odd) year
+  return currentYear % 2 === 1 ? currentYear : currentYear - 1;
+}
 
 // Enhanced system prompt for legislative analysis
 function getSystemPrompt(type, context = null, entityData = null) {
@@ -39,12 +51,25 @@ You are a knowledgeable, impartial policy analyst who combines deep expertise in
 
 ## Available Data & Context
 
-You have access to:
-- **Complete NYS legislative data**: Bill texts, sponsors, co-sponsors, status, amendments, committee assignments
-- **Legislator profiles**: Names, party affiliations, districts, chamber (Assembly/Senate), leadership roles
-- **Committee information**: Names, chambers, chairs, members, jurisdiction
-- **Voting records and patterns**
+You have DIRECT ACCESS to comprehensive, up-to-date legislative data through TWO sources:
+
+1. **Goodable's Complete Database (Supabase)**:
+   - Contains ALL New York State bills from multiple sessions including current and future sessions (2023, 2024, 2025, and beyond)
+   - Full bill texts, titles, descriptions, sponsors, status updates, committee assignments
+   - Complete legislator profiles with party affiliations, districts, contact information
+   - Committee information with chairs, members, and jurisdiction
+   - This is NOT historical data - it includes bills from the CURRENT legislative session
+
+2. **Live NYS Legislature API**:
+   - Real-time data directly from the New York State Senate/Assembly
+   - Current bill status, amendments, voting records, and legislative actions
+   - Up-to-the-minute information on bill progress and committee actions
+
+**IMPORTANT**: When users ask about bills from 2025 or the current session, you have COMPLETE ACCESS to this data. Never claim you don't have access to "future" data - if it's the current or recent legislative session, the data is in the Goodable database and will be provided to you in the context.
+
+You also have access to:
 - **User context**: The user may be viewing a bill PDF while chatting with you
+- **Historical patterns**: Voting records, legislator voting patterns, and political trends
 
 ## Response Framework
 
@@ -164,21 +189,22 @@ async function searchNYSData(query, entityType = null, entityId = null) {
   }
 
   try {
+    const sessionYear = getCurrentSessionYear();
     const searchTypes = entityType ? [entityType] : ['bills', 'members', 'laws'];
     const results = {};
 
     for (const searchType of searchTypes) {
       try {
         let apiUrl;
-        
+
         // If we have a specific entity ID, get detailed information
         if (entityId && entityType === searchType) {
           switch (searchType) {
             case 'bills':
-              apiUrl = `https://legislation.nysenate.gov/api/3/bills/2024/${entityId}?key=${nysApiKey}`;
+              apiUrl = `https://legislation.nysenate.gov/api/3/bills/${sessionYear}/${entityId}?key=${nysApiKey}`;
               break;
             case 'members':
-              apiUrl = `https://legislation.nysenate.gov/api/3/members/2024/${entityId}?key=${nysApiKey}`;
+              apiUrl = `https://legislation.nysenate.gov/api/3/members/${sessionYear}/${entityId}?key=${nysApiKey}`;
               break;
             default:
               // Fall back to search
@@ -265,6 +291,96 @@ function formatNYSDataForContext(nysData) {
   return contextText;
 }
 
+// Search Goodable's Supabase database for bills
+async function searchGoodableDatabase(query: string, sessionYear?: number) {
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.log('Supabase credentials not available, skipping database search');
+    return null;
+  }
+
+  try {
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Extract bill numbers if present (e.g., A00405, S1234)
+    const billNumberPattern = /[ASK]\d{4,}/gi;
+    const billNumbers = query.match(billNumberPattern);
+
+    // Extract year from query if not provided
+    const yearPattern = /20\d{2}/g;
+    const yearMatches = query.match(yearPattern);
+    const extractedYear = yearMatches ? parseInt(yearMatches[yearMatches.length - 1]) : null;
+    const targetYear = sessionYear || extractedYear || new Date().getFullYear();
+
+    let billsData = [];
+
+    // If specific bill numbers are mentioned, search for those first
+    if (billNumbers && billNumbers.length > 0) {
+      const { data, error } = await supabase
+        .from('Bills')
+        .select('*')
+        .in('bill_number', billNumbers.map(bn => bn.toUpperCase()))
+        .limit(10);
+
+      if (data && !error) {
+        billsData = data;
+      }
+    }
+
+    // If no specific bills found or no bill numbers mentioned, do keyword search
+    if (billsData.length === 0) {
+      // Extract keywords from query (remove common words)
+      const keywords = query
+        .toLowerCase()
+        .replace(/\b(the|a|an|in|on|at|for|to|of|and|or|but|bills?|legislation|2024|2025)\b/gi, '')
+        .trim();
+
+      if (keywords.length > 2) {
+        // Search in title and description using full-text search
+        const { data, error } = await supabase
+          .from('Bills')
+          .select('*')
+          .or(`title.ilike.%${keywords}%,description.ilike.%${keywords}%`)
+          .order('session_id', { ascending: false })
+          .limit(10);
+
+        if (data && !error) {
+          billsData = data;
+        }
+      }
+    }
+
+    return billsData.length > 0 ? billsData : null;
+  } catch (error) {
+    console.error('Error searching Goodable database:', error);
+    return null;
+  }
+}
+
+// Format Goodable database results for context
+function formatGoodableBillsForContext(bills: any[]) {
+  if (!bills || bills.length === 0) return '';
+
+  let contextText = '\n\nGOODABLE DATABASE - BILLS FROM SUPABASE:\n\n';
+
+  bills.forEach((bill, index) => {
+    contextText += `${index + 1}. BILL ${bill.bill_number}: ${bill.title || 'No title'}\n`;
+    contextText += `   Session: ${bill.session_id || 'Unknown'}\n`;
+    contextText += `   Status: ${bill.status_desc || 'Unknown'}\n`;
+    if (bill.committee) {
+      contextText += `   Committee: ${bill.committee}\n`;
+    }
+    if (bill.description) {
+      contextText += `   Description: ${bill.description.substring(0, 200)}${bill.description.length > 200 ? '...' : ''}\n`;
+    }
+    if (bill.state_link) {
+      contextText += `   Link: ${bill.state_link}\n`;
+    }
+    contextText += '\n';
+  });
+
+  return contextText;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -291,35 +407,37 @@ serve(async (req) => {
       throw new Error('OpenAI API key must be configured in Supabase Edge Function Secrets');
     }
 
-    // Enhanced search for relevant NYS legislative data
+    // Enhanced search for relevant NYS legislative data and Goodable database
     let nysData = null;
+    let goodableBills = null;
     let entityData = '';
 
-    // Fast-path detection: skip NYS data for simple chat queries in fast mode
+    // Fast-path detection: skip NYS API for simple chat queries in fast mode
+    // BUT always search Goodable database for legislative queries
     const shouldSkipNYSData = fastMode && !prompt.match(/[ASK]\d{5,}/gi) && type !== 'media' && context !== 'landing_page';
 
-    // Start NYS data search in parallel (non-blocking) if needed
+    // Start data searches in parallel (non-blocking)
     let nysDataPromise: Promise<any> | null = null;
+    let goodableDataPromise: Promise<any> | null = null;
 
-    if (enhanceWithNYSData && nysApiKey && !shouldSkipNYSData && type !== 'media' && context !== 'landing_page') {
-      // Build comprehensive search query based on entity context
-      let searchQuery = prompt;
-      let entityId = null;
+    // Build comprehensive search query based on entity context
+    let searchQuery = prompt;
+    let entityId = null;
 
-      if (entityContext?.bill) {
-        searchQuery = entityContext.bill.bill_number || entityContext.bill.title || prompt;
-        entityId = entityContext.bill.bill_number;
-        entityData = `BILL INFORMATION:
+    if (entityContext?.bill) {
+      searchQuery = entityContext.bill.bill_number || entityContext.bill.title || prompt;
+      entityId = entityContext.bill.bill_number;
+      entityData = `BILL INFORMATION:
 Bill Number: ${entityContext.bill.bill_number || 'Unknown'}
 Title: ${entityContext.bill.title || 'No title'}
 Status: ${entityContext.bill.status_desc || 'Unknown'}
 Committee: ${entityContext.bill.committee || 'No committee assigned'}
 Last Action: ${entityContext.bill.last_action || 'No recent action'}
 Description: ${entityContext.bill.description || 'No description'}`;
-      } else if (entityContext?.member) {
-        searchQuery = entityContext.member.name || prompt;
-        entityId = entityContext.member.people_id;
-        entityData = `MEMBER INFORMATION:
+    } else if (entityContext?.member) {
+      searchQuery = entityContext.member.name || prompt;
+      entityId = entityContext.member.people_id;
+      entityData = `MEMBER INFORMATION:
 Name: ${entityContext.member.name || 'Unknown'}
 Party: ${entityContext.member.party || 'Unknown'}
 District: ${entityContext.member.district || 'Unknown'}
@@ -327,34 +445,55 @@ Chamber: ${entityContext.member.chamber || 'Unknown'}
 Role: ${entityContext.member.role || 'Unknown'}
 Email: ${entityContext.member.email || 'Not available'}
 Phone: ${entityContext.member.phone_capitol || 'Not available'}`;
-      } else if (entityContext?.committee) {
-        searchQuery = entityContext.committee.committee_name || prompt;
-        entityData = `COMMITTEE INFORMATION:
+    } else if (entityContext?.committee) {
+      searchQuery = entityContext.committee.committee_name || prompt;
+      entityData = `COMMITTEE INFORMATION:
 Name: ${entityContext.committee.committee_name || 'Unknown'}
 Chamber: ${entityContext.committee.chamber || 'Unknown'}
 Chair: ${entityContext.committee.chair_name || 'Unknown'}
 Description: ${entityContext.committee.description || 'No description'}
 Member Count: ${entityContext.committee.member_count || 'Unknown'}`;
-      }
+    }
 
-      // Start NYS search without blocking (runs in parallel)
+    // Always search Goodable database for chat queries (critical for answering questions about bills)
+    if (type === 'chat' || type === 'default' || !shouldSkipNYSData) {
+      goodableDataPromise = searchGoodableDatabase(searchQuery);
+    }
+
+    // Start NYS API search if appropriate
+    if (enhanceWithNYSData && nysApiKey && !shouldSkipNYSData && type !== 'media' && context !== 'landing_page') {
       nysDataPromise = searchNYSData(searchQuery, entityContext?.type, entityId);
     }
 
-    // For streaming: start LLM call immediately without waiting for NYS data
-    // For non-streaming: optionally wait for NYS data if available
-    if (!stream && nysDataPromise) {
-      nysData = await nysDataPromise;
+    // For streaming: start LLM call immediately without waiting for data
+    // For non-streaming: wait for data if available
+    if (!stream) {
+      if (nysDataPromise) {
+        nysData = await nysDataPromise;
+      }
+      if (goodableDataPromise) {
+        goodableBills = await goodableDataPromise;
+      }
     }
 
     // Build enhanced context with all available information
     const contextObj = {
-      nysData: nysData ? formatNYSDataForContext(nysData) : null
+      nysData: nysData ? formatNYSDataForContext(nysData) : null,
+      goodableData: goodableBills ? formatGoodableBillsForContext(goodableBills) : null
     };
 
-    const systemPrompt = getSystemPrompt(type, context, entityData);
-    const enhancedPrompt = contextObj.nysData ?
-      `${prompt}\n\n[IMPORTANT: Use the comprehensive NYS legislative database information provided above to give specific, detailed answers with exact names, numbers, and current information.]` :
+    // Combine all context data
+    let combinedContext = entityData;
+    if (contextObj.nysData) {
+      combinedContext += `\n\n${contextObj.nysData}`;
+    }
+    if (contextObj.goodableData) {
+      combinedContext += `\n\n${contextObj.goodableData}`;
+    }
+
+    const systemPrompt = getSystemPrompt(type, combinedContext ? { nysData: combinedContext } : context, entityData);
+    const enhancedPrompt = combinedContext ?
+      `${prompt}\n\n[IMPORTANT: Use the comprehensive legislative database information provided in your system context to give specific, detailed answers with exact bill numbers, names, and current information. You have access to the complete Goodable database containing all NYS bills, plus live NYS API data.]` :
       prompt;
 
     // Call OpenAI API
