@@ -896,7 +896,7 @@ const NewChat = () => {
                               type="button"
                               variant="ghost"
                               size="icon"
-                              className="h-9 w-9 rounded-lg text-muted-foreground hover:text-muted-foreground hover:bg-accent data-[state=open]:bg-transparent data-[state=open]:text-muted-foreground"
+                              className="h-9 w-9 rounded-lg text-muted-foreground hover:text-muted-foreground hover:bg-accent focus:bg-transparent focus:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 active:bg-transparent active:text-muted-foreground data-[state=open]:bg-transparent data-[state=open]:text-muted-foreground"
                             >
                               <Users className="h-4 w-4" />
                             </Button>
@@ -1010,7 +1010,7 @@ const NewChat = () => {
                               type="button"
                               variant="ghost"
                               size="icon"
-                              className="h-9 w-9 rounded-lg text-muted-foreground hover:text-muted-foreground hover:bg-accent data-[state=open]:bg-transparent data-[state=open]:text-muted-foreground"
+                              className="h-9 w-9 rounded-lg text-muted-foreground hover:text-muted-foreground hover:bg-accent focus:bg-transparent focus:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 active:bg-transparent active:text-muted-foreground data-[state=open]:bg-transparent data-[state=open]:text-muted-foreground"
                             >
                               <Building2 className="h-4 w-4" />
                             </Button>
@@ -1122,7 +1122,7 @@ const NewChat = () => {
                               type="button"
                               variant="ghost"
                               size="icon"
-                              className="h-9 w-9 rounded-lg text-muted-foreground hover:text-muted-foreground hover:bg-accent data-[state=open]:bg-transparent data-[state=open]:text-muted-foreground"
+                              className="h-9 w-9 rounded-lg text-muted-foreground hover:text-muted-foreground hover:bg-accent focus:bg-transparent focus:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 active:bg-transparent active:text-muted-foreground data-[state=open]:bg-transparent data-[state=open]:text-muted-foreground"
                             >
                               <FileText className="h-4 w-4" />
                             </Button>
