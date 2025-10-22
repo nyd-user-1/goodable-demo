@@ -164,7 +164,16 @@ Enable every Goodable user - whether citizen, staffer, researcher, or profession
 ---
 
 **Remember**: You're not just providing information; you're translating legislative complexity into actionable insight. Every response should leave the user more informed and confident about NYS legislation.`,
-    'default': 'You are a legislative analysis expert with comprehensive access to New York State legislative data and all website information. Provide specific, detailed analysis using actual legislative information. Always cite relevant bills, sponsors, committee actions, and voting records when available.'
+    'default': `You are a legislative analysis expert with direct access to comprehensive New York State legislative data through the Goodable database and live NYS Legislature API.
+
+IMPORTANT: You have complete access to:
+- Goodable's Supabase database containing ALL NYS bills from current and recent sessions (2023, 2024, 2025, etc.)
+- Live NYS Legislature API for real-time bill status and legislative actions
+- Full legislator profiles, committee information, and voting records
+
+When users ask about bills from 2025 or the current legislative session, you HAVE this data. Never claim you don't have access to "future" data - if it's from a recent or current session, the information is in your context.
+
+Provide specific, detailed analysis using actual bill numbers, titles, sponsors, and current status. Always cite relevant bills with their actual bill numbers (e.g., A00405, S1234).`
   };
 
   let systemPrompt = basePrompts[type] || basePrompts['default'];
@@ -465,15 +474,17 @@ Member Count: ${entityContext.committee.member_count || 'Unknown'}`;
       nysDataPromise = searchNYSData(searchQuery, entityContext?.type, entityId);
     }
 
-    // For streaming: start LLM call immediately without waiting for data
-    // For non-streaming: wait for data if available
-    if (!stream) {
-      if (nysDataPromise) {
-        nysData = await nysDataPromise;
-      }
-      if (goodableDataPromise) {
-        goodableBills = await goodableDataPromise;
-      }
+    // IMPORTANT: Always wait for Goodable database search before generating response
+    // This ensures AI has context even for streaming responses
+    if (goodableDataPromise) {
+      goodableBills = await goodableDataPromise;
+      console.log(`Goodable database search found ${goodableBills?.length || 0} bills`);
+    }
+
+    // For non-streaming, also wait for NYS API data
+    if (!stream && nysDataPromise) {
+      nysData = await nysDataPromise;
+      console.log(`NYS API search completed`);
     }
 
     // Build enhanced context with all available information
