@@ -602,8 +602,7 @@ const NewChat = () => {
                           <div className="relative p-0.5">
                             <AccordionTrigger className="hover:no-underline px-4 py-2.5 rounded-t-lg text-xs font-medium">
                               <div className="flex items-center gap-2 text-muted-foreground">
-                                <SearchIcon className="h-3.5 w-3.5" />
-                                <span>Additional Thoughts</span>
+                                <span>Thinking...</span>
                               </div>
                             </AccordionTrigger>
                             <AccordionContent className="px-4 pb-3 space-y-2">
