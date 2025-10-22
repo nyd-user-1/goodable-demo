@@ -231,12 +231,19 @@ export function NewAppSidebar() {
                   <SidebarMenu>
                     {adminItems.map((item) => (
                       <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                          <NavLink to={item.url}>
-                            <item.icon />
-                            <span>{item.title}</span>
-                          </NavLink>
-                        </SidebarMenuButton>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                              <NavLink to={item.url}>
+                                <item.icon />
+                                <span>{item.title}</span>
+                              </NavLink>
+                            </SidebarMenuButton>
+                          </TooltipTrigger>
+                          <TooltipContent side="right">
+                            <p>{item.title}</p>
+                          </TooltipContent>
+                        </Tooltip>
                       </SidebarMenuItem>
                     ))}
                   </SidebarMenu>
