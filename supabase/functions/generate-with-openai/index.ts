@@ -337,23 +337,32 @@ async function searchGoodableDatabase(query: string, sessionYear?: number) {
 
     // If no specific bills found or no bill numbers mentioned, do keyword search
     if (billsData.length === 0) {
-      // Extract keywords from query (remove common words)
-      const keywords = query
+      // Extract keywords from query (remove common words and split into array)
+      const stopWords = ['the', 'a', 'an', 'in', 'on', 'at', 'for', 'to', 'of', 'and', 'or', 'but', 'bills', 'bill', 'legislation', 'about', 'tell', 'me', 'any', 'introduced', 'great', 'now'];
+      const keywordArray = query
         .toLowerCase()
-        .replace(/\b(the|a|an|in|on|at|for|to|of|and|or|but|bills?|legislation|2024|2025)\b/gi, '')
-        .trim();
+        .replace(/[^\w\s]/g, ' ')
+        .split(/\s+/)
+        .filter(word => word.length > 3 && !stopWords.includes(word))
+        .slice(0, 3); // Take top 3 keywords
 
-      if (keywords.length > 2) {
-        // Search in title and description using full-text search
+      if (keywordArray.length > 0) {
+        // Build OR conditions for each keyword searching both title and description
+        const orConditions = keywordArray.flatMap(keyword => [
+          `title.ilike.%${keyword}%`,
+          `description.ilike.%${keyword}%`
+        ]).join(',');
+
         const { data, error } = await supabase
           .from('Bills')
           .select('*')
-          .or(`title.ilike.%${keywords}%,description.ilike.%${keywords}%`)
+          .or(orConditions)
           .order('session_id', { ascending: false })
           .limit(10);
 
         if (data && !error) {
           billsData = data;
+          console.log(`Found ${billsData.length} bills for keywords: ${keywordArray.join(', ')}`);
         }
       }
     }
