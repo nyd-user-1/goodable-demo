@@ -3,6 +3,7 @@
  * Tabbed interface for Referenced Bills and Research Sources
  */
 
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { FileText, Globe } from "lucide-react";
 import {
@@ -14,6 +15,7 @@ import {
 import { PerplexityCitation } from "@/utils/citationParser";
 import { extractDomain } from "@/config/domainFilters";
 import { Badge } from "@/components/ui/badge";
+import { BillPDFSheet } from "@/components/features/bills/BillPDFSheet";
 
 interface BillCitation {
   bill_number: string;
@@ -33,10 +35,21 @@ interface CitationTabsProps {
 export function CitationTabs({ bills, sources, onCitationClick }: CitationTabsProps) {
   const hasBills = bills && bills.length > 0;
   const hasSources = sources && sources.length > 0;
+  const [pdfOpen, setPdfOpen] = useState(false);
+  const [selectedBillNumber, setSelectedBillNumber] = useState<string>("");
+  const [selectedBillTitle, setSelectedBillTitle] = useState<string>("");
 
   if (!hasBills && !hasSources) {
     return null;
   }
+
+  const handlePDFView = (billNumber: string, billTitle: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedBillNumber(billNumber);
+    setSelectedBillTitle(billTitle);
+    setPdfOpen(true);
+  };
 
   return (
     <div className="mt-4 pt-4 border-t">
@@ -57,19 +70,19 @@ export function CitationTabs({ bills, sources, onCitationClick }: CitationTabsPr
           {hasBills ? (
             <div className="space-y-3">
               {bills.map((citation, idx) => (
-                <Link
-                  key={idx}
-                  to={`/bills/${citation.bill_number}`}
-                  className="block text-xs p-4 rounded-md bg-muted/40 border hover:bg-muted/60 hover:border-primary/50 transition-all cursor-pointer group"
-                >
-                  <div className="flex items-start gap-3">
-                    {/* Bill Icon */}
-                    <div className="flex-shrink-0 w-8 h-8 rounded-md bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                      <FileText className="h-4 w-4" />
-                    </div>
+                <div key={idx} className="relative group">
+                  <Link
+                    to={`/bills/${citation.bill_number}`}
+                    className="block text-xs p-4 rounded-md bg-muted/40 border hover:bg-muted/60 hover:border-primary/50 transition-all cursor-pointer"
+                  >
+                    <div className="flex items-start gap-3">
+                      {/* Bill Icon */}
+                      <div className="flex-shrink-0 w-8 h-8 rounded-md bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                        <FileText className="h-4 w-4" />
+                      </div>
 
-                    {/* Bill Content */}
-                    <div className="flex-1 space-y-1.5">
+                      {/* Bill Content */}
+                      <div className="flex-1 space-y-1.5 pr-10">
                       {/* Bill Number */}
                       <div className="font-bold text-sm text-primary group-hover:underline">
                         {citation.bill_number}
@@ -101,6 +114,16 @@ export function CitationTabs({ bills, sources, onCitationClick }: CitationTabsPr
                     </div>
                   </div>
                 </Link>
+
+                {/* PDF View Button */}
+                <button
+                  onClick={(e) => handlePDFView(citation.bill_number, citation.title, e)}
+                  className="absolute top-4 right-4 p-2 rounded-md bg-background border hover:bg-muted hover:border-primary transition-colors"
+                  title="View Full Text"
+                >
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </div>
               ))}
             </div>
           ) : (
@@ -163,6 +186,15 @@ export function CitationTabs({ bills, sources, onCitationClick }: CitationTabsPr
           )}
         </TabsContent>
       </Tabs>
+
+      {/* PDF Viewer Sheet */}
+      <BillPDFSheet
+        isOpen={pdfOpen}
+        onClose={() => setPdfOpen(false)}
+        billNumber={selectedBillNumber}
+        billTitle={selectedBillTitle}
+        bill={null}
+      />
     </div>
   );
 }
