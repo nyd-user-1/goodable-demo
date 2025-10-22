@@ -927,8 +927,15 @@ const NewChat = () => {
                                       return (
                                         <tr
                                           key={member.people_id}
+                                          onClick={() => {
+                                            if (isSelected) {
+                                              setSelectedMembers(prev => prev.filter(m => m.people_id !== member.people_id));
+                                            } else {
+                                              setSelectedMembers(prev => [...prev, member]);
+                                            }
+                                          }}
                                           className={cn(
-                                            "border-t hover:bg-muted/30 transition-colors",
+                                            "border-t hover:bg-muted/30 transition-colors cursor-pointer",
                                             isSelected && "bg-green-500/5"
                                           )}
                                         >
@@ -948,7 +955,7 @@ const NewChat = () => {
                                                   setSelectedMembers(prev => [...prev, member]);
                                                 }
                                               }}
-                                              className="w-4 h-4 rounded"
+                                              className="w-4 h-4 rounded pointer-events-none"
                                             />
                                           </td>
                                         </tr>
@@ -1031,8 +1038,15 @@ const NewChat = () => {
                                       return (
                                         <tr
                                           key={committee.committee_id}
+                                          onClick={() => {
+                                            if (isSelected) {
+                                              setSelectedCommittees(prev => prev.filter(c => c.committee_id !== committee.committee_id));
+                                            } else {
+                                              setSelectedCommittees(prev => [...prev, committee]);
+                                            }
+                                          }}
                                           className={cn(
-                                            "border-t hover:bg-muted/30 transition-colors",
+                                            "border-t hover:bg-muted/30 transition-colors cursor-pointer",
                                             isSelected && "bg-orange-500/5"
                                           )}
                                         >
@@ -1051,7 +1065,7 @@ const NewChat = () => {
                                                   setSelectedCommittees(prev => [...prev, committee]);
                                                 }
                                               }}
-                                              className="w-4 h-4 rounded"
+                                              className="w-4 h-4 rounded pointer-events-none"
                                             />
                                           </td>
                                         </tr>
@@ -1135,8 +1149,15 @@ const NewChat = () => {
                                       return (
                                         <tr
                                           key={bill.bill_number}
+                                          onClick={() => {
+                                            if (isSelected) {
+                                              setSelectedBills(prev => prev.filter(b => b.bill_number !== bill.bill_number));
+                                            } else {
+                                              setSelectedBills(prev => [...prev, bill]);
+                                            }
+                                          }}
                                           className={cn(
-                                            "border-t hover:bg-muted/30 transition-colors",
+                                            "border-t hover:bg-muted/30 transition-colors cursor-pointer",
                                             isSelected && "bg-primary/5"
                                           )}
                                         >
@@ -1155,7 +1176,7 @@ const NewChat = () => {
                                                   setSelectedBills(prev => [...prev, bill]);
                                                 }
                                               }}
-                                              className="w-4 h-4 rounded"
+                                              className="w-4 h-4 rounded pointer-events-none"
                                             />
                                           </td>
                                         </tr>
