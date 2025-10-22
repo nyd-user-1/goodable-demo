@@ -24,6 +24,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Featuring real bills from our database
 const samplePrompts = [
@@ -867,28 +872,40 @@ const NewChat = () => {
                   {/* Left Side - Attachment + Filter Buttons */}
                   <div className="flex gap-1">
                     {/* Attachment Button */}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
-                      title="Attach files"
-                    >
-                      <Paperclip className="h-4 w-4" />
-                    </Button>
-
-                    <Dialog open={membersDialogOpen} onOpenChange={setMembersDialogOpen}>
-                      <DialogTrigger asChild>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
                           className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
-                          title="Select Members"
                         >
-                          <Users className="h-4 w-4" />
+                          <Paperclip className="h-4 w-4" />
                         </Button>
-                      </DialogTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p>Attach files</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Dialog open={membersDialogOpen} onOpenChange={setMembersDialogOpen}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <DialogTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
+                            >
+                              <Users className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p>Select Members</p>
+                        </TooltipContent>
+                      </Tooltip>
                       <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
                         <DialogHeader>
                           <DialogTitle>Select Members</DialogTitle>
@@ -986,17 +1003,23 @@ const NewChat = () => {
                     </Dialog>
 
                     <Dialog open={committeesDialogOpen} onOpenChange={setCommitteesDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
-                          title="Select Committees"
-                        >
-                          <Building2 className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <DialogTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
+                            >
+                              <Building2 className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p>Select Committees</p>
+                        </TooltipContent>
+                      </Tooltip>
                       <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
                         <DialogHeader>
                           <DialogTitle>Select Committees</DialogTitle>
@@ -1092,17 +1115,23 @@ const NewChat = () => {
                     </Dialog>
 
                     <Dialog open={billsDialogOpen} onOpenChange={setBillsDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
-                          title="Select Bills"
-                        >
-                          <FileText className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <DialogTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
+                            >
+                              <FileText className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p>Select Bills</p>
+                        </TooltipContent>
+                      </Tooltip>
                       <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
                         <DialogHeader>
                           <DialogTitle>Select Bills</DialogTitle>
