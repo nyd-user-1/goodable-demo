@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
+const nysApiKey = Deno.env.get('NYS_LEGISLATION_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -88,6 +89,87 @@ async function searchGoodableDatabase(query: string, sessionYear?: number) {
     console.error('Error searching Goodable database:', error);
     return [];
   }
+}
+
+// Search NYS Legislature API for live data
+async function searchNYSData(query: string) {
+  if (!nysApiKey) {
+    console.log('NYS API key not available, skipping live legislative data search');
+    return null;
+  }
+
+  try {
+    const sessionYear = getCurrentSessionYear();
+    const searchTypes = ['bills'];
+    const results: any = {};
+
+    for (const searchType of searchTypes) {
+      try {
+        const apiUrl = `https://legislation.nysenate.gov/api/3/${searchType}/search?term=${encodeURIComponent(query)}&limit=10&key=${nysApiKey}`;
+
+        const response = await fetch(apiUrl);
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.result?.items?.length > 0) {
+            results[searchType] = data.result.items.slice(0, 5);
+            console.log(`Found ${results[searchType].length} ${searchType} from NYS API`);
+          }
+        }
+      } catch (error) {
+        console.error(`Error searching NYS API ${searchType}:`, error);
+      }
+    }
+
+    return Object.keys(results).length > 0 ? results : null;
+  } catch (error) {
+    console.error('Error in NYS data search:', error);
+    return null;
+  }
+}
+
+// Format NYS API data for context
+function formatNYSDataForContext(nysData: any) {
+  if (!nysData) return '';
+
+  let contextText = '\n\nLIVE NYS LEGISLATURE API DATA:\n\n';
+
+  if (nysData.bills) {
+    contextText += 'CURRENT BILLS FROM NYS API:\n';
+    nysData.bills.forEach((bill: any, index: number) => {
+      contextText += `${index + 1}. BILL ${bill.result?.printNo || bill.result?.basePrintNo}: ${bill.result?.title || 'No title'}\n`;
+      contextText += `   Current Status: ${bill.result?.status?.statusDesc || 'Unknown'}\n`;
+      contextText += `   Primary Sponsor: ${bill.result?.sponsor?.member?.shortName || 'Unknown'}\n`;
+      if (bill.result?.status?.committeeName) {
+        contextText += `   Committee: ${bill.result.status.committeeName}\n`;
+      }
+      contextText += '\n';
+    });
+  }
+
+  return contextText;
+}
+
+// Format Goodable database results for context
+function formatGoodableBillsForContext(bills: any[]) {
+  if (!bills || bills.length === 0) return '';
+
+  let contextText = '\n\nGOODABLE DATABASE - BILLS FROM SUPABASE:\n\n';
+
+  bills.forEach((bill, index) => {
+    contextText += `${index + 1}. BILL ${bill.bill_number}: ${bill.title || 'No title'}\n`;
+    contextText += `   Session: ${bill.session_id || 'Unknown'}\n`;
+    contextText += `   Status: ${bill.status_desc || 'Unknown'}\n`;
+    if (bill.committee) {
+      contextText += `   Committee: ${bill.committee}\n`;
+    }
+    if (bill.description) {
+      contextText += `   Description: ${bill.description.substring(0, 200)}${bill.description.length > 200 ? '...' : ''}\n`;
+    }
+    contextText += '\n';
+  });
+
+  return contextText;
 }
 
 // Claude-specific system prompt for Goodable
@@ -230,39 +312,43 @@ serve(async (req) => {
       throw new Error('Claude requires Anthropic API key to be configured in Supabase Edge Function Secrets');
     }
 
-    // Search Goodable database for relevant bills
+    // Search both Goodable database AND NYS API for comprehensive results
     let goodableBills: any[] = [];
+    let nysData: any = null;
+
+    // Start both searches in parallel
     const goodableDataPromise = searchGoodableDatabase(prompt, getCurrentSessionYear());
+    const nysDataPromise = searchNYSData(prompt);
 
-    // Always wait for database search to complete before generating response
-    if (goodableDataPromise) {
-      goodableBills = await goodableDataPromise;
-      console.log(`Found ${goodableBills?.length || 0} bills from Goodable database`);
-    }
+    // Wait for both searches to complete before generating response
+    [goodableBills, nysData] = await Promise.all([goodableDataPromise, nysDataPromise]);
 
-    // Build the user message with context if available
-    let userMessage = prompt;
-    let combinedContext = context || '';
+    console.log(`Found ${goodableBills?.length || 0} bills from Goodable database`);
+    console.log(`Found ${nysData?.bills?.length || 0} bills from NYS API`);
 
-    // Add Goodable database results to context
+    // Build enhanced context with all available information
+    let legislativeContext = '';
+
+    // Add Goodable database results
     if (goodableBills && goodableBills.length > 0) {
-      const goodableContext = goodableBills.map(bill =>
-        `\n## Bill ${bill.bill_number}\n` +
-        `**Title:** ${bill.title}\n` +
-        `**Status:** ${bill.status_desc || 'Unknown'}\n` +
-        `**Committee:** ${bill.committee || 'Not assigned'}\n` +
-        `**Session:** ${bill.session_id || 'N/A'}\n` +
-        `**Description:** ${bill.description || 'No description available'}\n`
-      ).join('\n');
-
-      combinedContext = combinedContext
-        ? `${combinedContext}\n\n# Additional Bills from Goodable Database\n${goodableContext}`
-        : `# Relevant Bills from Goodable Database\n${goodableContext}`;
+      legislativeContext += formatGoodableBillsForContext(goodableBills);
     }
 
-    if (combinedContext) {
-      userMessage = `# Relevant Legislative Data from Database\n\n${combinedContext}\n\n---\n\n# User Question\n\n${prompt}\n\n---\n\nPlease analyze the above legislative data to answer the user's question. Use specific details from the bills provided.`;
+    // Add NYS API results
+    if (nysData) {
+      legislativeContext += formatNYSDataForContext(nysData);
     }
+
+    // Build the enhanced system prompt with legislative data
+    let enhancedSystemPrompt = CLAUDE_SYSTEM_PROMPT;
+    if (legislativeContext) {
+      enhancedSystemPrompt += `\n\nCURRENT LEGISLATIVE DATA:\n${legislativeContext}\n\nUse this information to provide accurate, up-to-date legislative analysis with specific details.`;
+    }
+
+    // Build user message
+    const userMessage = legislativeContext
+      ? `${prompt}\n\n[IMPORTANT: Use the comprehensive legislative database information provided in your system context to give specific, detailed answers with exact bill numbers, titles, and current information.]`
+      : prompt;
 
     // Call Claude API with correct authentication header
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -279,7 +365,7 @@ serve(async (req) => {
           role: 'user',
           content: userMessage
         }],
-        system: CLAUDE_SYSTEM_PROMPT,  // Send system prompt separately
+        system: enhancedSystemPrompt,  // Send enhanced system prompt with legislative data
         temperature: 0.7,
         stream: stream,  // Enable streaming
       }),
