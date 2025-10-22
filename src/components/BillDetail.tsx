@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -138,6 +139,11 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
     }
   };
 
+  const generateMemberSlug = (person: Person) => {
+    if (!person.name) return '';
+    return person.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  };
+
   const handleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
     toggleFavorite(bill.bill_id);
@@ -219,8 +225,16 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
                       </p>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {sponsors.map((sponsor, _index) => (
-                          <div key={sponsor.id} className="p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors">
+                        {sponsors.map((sponsor, _index) => {
+                          const memberSlug = sponsor.person ? generateMemberSlug(sponsor.person) : '';
+                          const memberUrl = memberSlug ? `/members/${memberSlug}` : '#';
+
+                          return sponsor.person && memberSlug ? (
+                            <Link
+                              key={sponsor.id}
+                              to={memberUrl}
+                              className="p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors block"
+                            >
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex items-center gap-2">
                                 {sponsor.person?.photo_url && !failedImages.has(sponsor.people_id) ? (
@@ -278,8 +292,33 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
                                 )}
                               </div>
                             </div>
-                          </div>
-                        ))}
+                            </Link>
+                          ) : (
+                            <div key={sponsor.id} className="p-4 border border-border rounded-lg bg-muted/10">
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                    <User className="h-4 w-4" />
+                                  </div>
+                                  {sponsor.position === 1 && (
+                                    <Badge variant="default" className="text-xs">
+                                      Primary
+                                    </Badge>
+                                  )}
+                                </div>
+                                {sponsor.position && (
+                                  <span className="text-xs text-muted-foreground">#{sponsor.position}</span>
+                                )}
+                              </div>
+                              <div className="space-y-2">
+                                <h4 className="font-semibold text-sm text-muted-foreground">
+                                  Person ID: {sponsor.people_id}
+                                </h4>
+                                <p className="text-xs text-muted-foreground">Member information not available</p>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
