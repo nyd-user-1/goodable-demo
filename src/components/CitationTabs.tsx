@@ -75,14 +75,8 @@ export function CitationTabs({ bills, sources, onCitationClick }: CitationTabsPr
                     to={`/bills/${citation.bill_number}`}
                     className="block text-xs p-4 rounded-md bg-muted/40 border hover:bg-muted/60 hover:border-primary/50 transition-all cursor-pointer"
                   >
-                    <div className="flex items-start gap-3">
-                      {/* Bill Icon */}
-                      <div className="flex-shrink-0 w-8 h-8 rounded-md bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                        <FileText className="h-4 w-4" />
-                      </div>
-
-                      {/* Bill Content */}
-                      <div className="flex-1 space-y-1.5 pr-10">
+                    {/* Bill Content */}
+                    <div className="space-y-1.5 pr-10">
                       {/* Bill Number */}
                       <div className="font-bold text-sm text-primary group-hover:underline">
                         {citation.bill_number}
@@ -112,8 +106,7 @@ export function CitationTabs({ bills, sources, onCitationClick }: CitationTabsPr
                         </p>
                       )}
                     </div>
-                  </div>
-                </Link>
+                  </Link>
 
                 {/* PDF View Button */}
                 <button
