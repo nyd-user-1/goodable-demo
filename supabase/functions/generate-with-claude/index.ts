@@ -48,17 +48,7 @@ async function searchGoodableDatabase(query: string, sessionYear?: number) {
 
     // If no results yet, do keyword search
     if (results.length === 0) {
-      const stopWords = [
-        'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-        'of', 'with', 'by', 'from', 'about', 'as', 'into', 'through', 'during',
-        'before', 'after', 'above', 'below', 'between', 'under', 'again',
-        'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why',
-        'how', 'all', 'both', 'each', 'few', 'more', 'most', 'other', 'some',
-        'such', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'can',
-        'will', 'just', 'should', 'now', 'tell', 'me', 'you', 'it', 'is', 'are',
-        'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does',
-        'did', 'would', 'could', 'their', 'this', 'that', 'these', 'those'
-      ];
+      const stopWords = ['the', 'a', 'an', 'in', 'on', 'at', 'for', 'to', 'of', 'and', 'or', 'but', 'bills', 'bill', 'legislation', 'about', 'tell', 'me', 'any', 'introduced', 'great', 'now'];
 
       // Extract keywords (filter out stop words, take top 3)
       const keywordArray = query
@@ -81,11 +71,14 @@ async function searchGoodableDatabase(query: string, sessionYear?: number) {
           .from('Bills')
           .select('*')
           .or(orConditions)
+          .order('session_id', { ascending: false })
           .limit(10);
 
         if (!error && data) {
           results = data;
-          console.log(`Found ${data.length} bills by keyword search`);
+          console.log(`Found ${data.length} bills for keywords: ${keywordArray.join(', ')}`);
+        } else if (error) {
+          console.error('Keyword search error:', error);
         }
       }
     }
