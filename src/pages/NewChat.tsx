@@ -60,6 +60,7 @@ interface Message {
   searchQueries?: string[];
   reviewedInfo?: string;
   citations?: BillCitation[];
+  relatedBills?: BillCitation[];
   perplexityCitations?: PerplexityCitation[];
   isPerplexityResponse?: boolean;
 }
@@ -492,6 +493,35 @@ const NewChat = () => {
           : msg
       ));
 
+      // Fetch related bills based on the first cited bill's committee (progressive loading)
+      if (responseCitations.length > 0) {
+        const firstBill = responseCitations[0];
+        if (firstBill.committee) {
+          try {
+            const { data: relatedBillsData, error: relatedError } = await supabase
+              .from('Bills')
+              .select('*')
+              .eq('committee', firstBill.committee)
+              .neq('bill_number', firstBill.bill_number) // Exclude the cited bill itself
+              .order('session_id', { ascending: false })
+              .limit(5);
+
+            if (!relatedError && relatedBillsData && relatedBillsData.length > 0) {
+              console.log(`Found ${relatedBillsData.length} related bills from committee: ${firstBill.committee}`);
+
+              // Update message with related bills
+              setMessages(prev => prev.map(msg =>
+                msg.id === messageId
+                  ? { ...msg, relatedBills: relatedBillsData }
+                  : msg
+              ));
+            }
+          } catch (err) {
+            console.error('Error fetching related bills:', err);
+          }
+        }
+      }
+
       setIsTyping(false);
       abortControllerRef.current = null;
       readerRef.current = null;
@@ -720,10 +750,11 @@ const NewChat = () => {
                       )}
                     </div>
 
-                    {/* Tabbed Citations (Bills + Research Sources) with Default Sources */}
+                    {/* Tabbed Citations (Bills + Research Sources + Related Bills) with Default Sources */}
                     {!message.isStreaming && (message.citations || message.perplexityCitations) && (
                       <CitationTabs
                         bills={message.citations || []}
+                        relatedBills={message.relatedBills || []}
                         sources={[
                           ...(message.perplexityCitations || []),
                           // Always include default sources
