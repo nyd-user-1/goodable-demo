@@ -876,7 +876,7 @@ const NewChat = () => {
                       <TooltipTrigger asChild>
                         <button
                           type="button"
-                          className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-accent transition-colors"
+                          className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent transition-colors"
                         >
                           <Paperclip className="h-4 w-4" />
                         </button>
@@ -892,7 +892,7 @@ const NewChat = () => {
                           <DialogTrigger asChild>
                             <button
                               type="button"
-                              className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-accent transition-colors"
+                              className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent transition-colors"
                             >
                               <Users className="h-4 w-4" />
                             </button>
@@ -1004,7 +1004,7 @@ const NewChat = () => {
                           <DialogTrigger asChild>
                             <button
                               type="button"
-                              className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-accent transition-colors"
+                              className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent transition-colors"
                             >
                               <Building2 className="h-4 w-4" />
                             </button>
@@ -1114,7 +1114,7 @@ const NewChat = () => {
                           <DialogTrigger asChild>
                             <button
                               type="button"
-                              className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-accent transition-colors"
+                              className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent transition-colors"
                             >
                               <FileText className="h-4 w-4" />
                             </button>
