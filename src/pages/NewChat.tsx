@@ -1229,7 +1229,7 @@ const NewChat = () => {
                       "h-9 w-9 rounded-lg disabled:opacity-50",
                       isTyping
                         ? "bg-destructive hover:bg-destructive/90"
-                        : "bg-primary hover:bg-primary/90"
+                        : "bg-foreground hover:bg-foreground/90"
                     )}
                     disabled={!isTyping && !query.trim() && selectedMembers.length === 0 && selectedBills.length === 0 && selectedCommittees.length === 0}
                     onClick={isTyping ? stopStream : undefined}
