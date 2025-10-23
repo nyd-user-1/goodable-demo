@@ -16,7 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { CitationText } from "@/components/CitationText";
-import { CitationAccordion } from "@/components/CitationAccordion";
+import { CitationTabsNew } from "@/components/CitationTabsNew";
 import { PerplexityCitation, extractCitationNumbers } from "@/utils/citationParser";
 import {
   Accordion,
@@ -739,9 +739,9 @@ const NewChat = () => {
                       )}
                     </div>
 
-                    {/* Accordion Citations (References + Related + Resources) with Default Sources */}
+                    {/* Tabbed Citations (References + Related + Resources) with Default Sources */}
                     {!message.isStreaming && (message.citations || message.perplexityCitations) && (
-                      <CitationAccordion
+                      <CitationTabsNew
                         bills={message.citations || []}
                         relatedBills={message.relatedBills || []}
                         sources={[
