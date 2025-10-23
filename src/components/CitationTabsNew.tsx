@@ -183,12 +183,7 @@ export function CitationTabsNew({
 
       {/* "More" Section - Accordion with References, Related, Resources */}
       {!isStreaming && (hasBills || hasRelated || hasSources) && (
-        <div className="pt-4 border-t">
-          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            More
-          </h3>
-
+        <div className="pt-4">
           <Accordion type="multiple" className="w-full">
             {/* References Accordion */}
             {hasBills && (
