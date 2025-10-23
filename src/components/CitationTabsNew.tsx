@@ -139,13 +139,13 @@ export function CitationTabsNew({
                   <div key={idx} className="group">
                     <Link
                       to={`/bills/${citation.bill_number}`}
-                      className="block p-4 rounded-lg border hover:border-primary/50 transition-all"
+                      className="block p-4 rounded-lg border hover:border-foreground/20 transition-all"
                     >
                       <div className="flex items-start gap-3">
                         {/* PDF View Button */}
                         <button
                           onClick={(e) => handlePDFView(citation.bill_number, citation.title, e)}
-                          className="flex-shrink-0 w-10 h-10 rounded-md bg-muted hover:bg-muted/80 border hover:border-primary transition-colors flex items-center justify-center"
+                          className="flex-shrink-0 w-10 h-10 rounded-md bg-muted hover:bg-muted/80 border hover:border-foreground/20 transition-colors flex items-center justify-center"
                           title="View Full Text"
                         >
                           <FileText className="h-4 w-4 text-muted-foreground" />
@@ -204,13 +204,13 @@ export function CitationTabsNew({
                   <div key={idx} className="group">
                     <Link
                       to={`/bills/${citation.bill_number}`}
-                      className="block p-4 rounded-lg border hover:border-primary/50 transition-all"
+                      className="block p-4 rounded-lg border hover:border-foreground/20 transition-all"
                     >
                       <div className="flex items-start gap-3">
                         {/* PDF View Button */}
                         <button
                           onClick={(e) => handlePDFView(citation.bill_number, citation.title, e)}
-                          className="flex-shrink-0 w-10 h-10 rounded-md bg-muted hover:bg-muted/80 border hover:border-primary transition-colors flex items-center justify-center"
+                          className="flex-shrink-0 w-10 h-10 rounded-md bg-muted hover:bg-muted/80 border hover:border-foreground/20 transition-colors flex items-center justify-center"
                           title="View Full Text"
                         >
                           <FileText className="h-4 w-4 text-muted-foreground" />
@@ -271,7 +271,7 @@ export function CitationTabsNew({
                   return (
                     <div
                       key={citation.number}
-                      className="p-4 rounded-lg border hover:border-primary/50 transition-colors cursor-pointer"
+                      className="p-4 rounded-lg border hover:border-foreground/20 transition-colors cursor-pointer"
                       onClick={() => onCitationClick?.(citation.number)}
                     >
                       {/* Citation Content */}
