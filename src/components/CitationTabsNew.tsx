@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { FileText, Globe, Link as LinkIcon } from "lucide-react";
+import { FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -69,19 +69,16 @@ export function CitationTabsNew({
     {
       id: "references",
       label: "References",
-      icon: FileText,
       count: bills.length,
     },
     {
       id: "related",
       label: "Related",
-      icon: LinkIcon,
       count: relatedBills.length,
     },
     {
       id: "resources",
       label: "Resources",
-      icon: Globe,
       count: sources.length,
     },
   ];
@@ -101,10 +98,7 @@ export function CitationTabsNew({
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            <span className="flex items-center gap-2">
-              <category.icon className="h-4 w-4" />
-              {category.label} ({category.count})
-            </span>
+            {category.label} ({category.count})
           </button>
         ))}
       </div>
@@ -118,10 +112,7 @@ export function CitationTabsNew({
           <SelectContent>
             {categories.map((category) => (
               <SelectItem key={category.id} value={category.id}>
-                <span className="flex items-center gap-2">
-                  <category.icon className="h-4 w-4" />
-                  {category.label} ({category.count})
-                </span>
+                {category.label} ({category.count})
               </SelectItem>
             ))}
           </SelectContent>
