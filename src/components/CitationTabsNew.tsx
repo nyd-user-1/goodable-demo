@@ -81,9 +81,15 @@ export function CitationTabsNew({
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-muted-foreground hover:text-foreground hover:bg-muted"
-                onClick={() => {
+                className={showCitations
+                  ? "text-foreground bg-muted hover:bg-muted/80"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   setShowCitations(!showCitations);
+                  console.log('Citations clicked, new state:', !showCitations);
                 }}
               >
                 <FileText className="h-4 w-4 mr-2" />
