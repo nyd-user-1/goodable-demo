@@ -97,7 +97,7 @@ export function CitationTabsNew({
             className={cn(
               "relative px-1 pb-4 font-medium transition-colors",
               activeCategory === category.id
-                ? "text-primary border-primary -mb-px border-b-2"
+                ? "text-foreground border-foreground -mb-px border-b-2"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
