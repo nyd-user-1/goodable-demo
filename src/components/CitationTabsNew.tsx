@@ -5,7 +5,7 @@
 
 import { useState, ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { FileText, Share2, FileDown, RefreshCw, ThumbsUp, ThumbsDown, Copy } from "lucide-react";
+import { FileText, FileDown, RefreshCw, ThumbsUp, ThumbsDown, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -56,6 +56,7 @@ export function CitationTabsNew({
   const [pdfOpen, setPdfOpen] = useState(false);
   const [selectedBillNumber, setSelectedBillNumber] = useState<string>("");
   const [selectedBillTitle, setSelectedBillTitle] = useState<string>("");
+  const [showCitations, setShowCitations] = useState(false);
 
   const handlePDFView = (billNumber: string, billTitle: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -82,14 +83,14 @@ export function CitationTabsNew({
                 size="sm"
                 className="text-muted-foreground hover:text-foreground hover:bg-muted"
                 onClick={() => {
-                  console.log('Share clicked');
+                  setShowCitations(!showCitations);
                 }}
               >
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
+                <FileText className="h-4 w-4 mr-2" />
+                Citations
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Share this response</TooltipContent>
+            <TooltipContent>View citations and sources</TooltipContent>
           </Tooltip>
 
           <Tooltip>
@@ -182,8 +183,8 @@ export function CitationTabsNew({
       )}
 
       {/* "More" Section - Accordion with References, Related, Resources */}
-      {!isStreaming && (hasBills || hasRelated || hasSources) && (
-        <div className="pt-4">
+      {!isStreaming && showCitations && (hasBills || hasRelated || hasSources) && (
+        <div className="pt-4 animate-in fade-in duration-300">
           <Accordion type="multiple" className="w-full">
             {/* References Accordion */}
             {hasBills && (
