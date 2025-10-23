@@ -76,28 +76,21 @@ export function CitationTabsNew({
       {/* Action Buttons - Only show when NOT streaming */}
       {!isStreaming && (
         <div className="flex items-center gap-2 pt-4 border-t animate-in fade-in duration-300">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={showCitations
-                  ? "text-foreground bg-muted hover:bg-muted/80"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setShowCitations(!showCitations);
-                  console.log('Citations clicked, new state:', !showCitations);
-                }}
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Citations
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>View citations and sources</TooltipContent>
-          </Tooltip>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={showCitations
+              ? "text-foreground bg-muted hover:bg-muted/80"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            }
+            onClick={() => {
+              setShowCitations(!showCitations);
+              console.log('Citations clicked, new state:', !showCitations);
+            }}
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Citations
+          </Button>
 
           <Tooltip>
             <TooltipTrigger asChild>
