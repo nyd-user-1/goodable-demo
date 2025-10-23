@@ -739,9 +739,10 @@ const NewChat = () => {
                       </div>
                     )}
 
-                    {/* Perplexity-style Tabbed Interface for completed assistant messages */}
-                    {!message.isStreaming && message.role === 'assistant' && (
+                    {/* Perplexity-style Tabbed Interface for all assistant messages */}
+                    {message.role === 'assistant' && (
                       <CitationTabsNew
+                        isStreaming={message.isStreaming}
                         messageContent={
                           message.isPerplexityResponse && message.perplexityCitations ? (
                             <ReactMarkdown
