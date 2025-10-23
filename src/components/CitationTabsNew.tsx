@@ -189,20 +189,20 @@ export function CitationTabsNew({
             More
           </h3>
 
-          <Accordion type="multiple" className="w-full space-y-2">
+          <Accordion type="multiple" className="w-full">
             {/* References Accordion */}
             {hasBills && (
-              <AccordionItem value="references" className="border rounded-lg px-4">
-                <AccordionTrigger className="hover:no-underline py-3">
+              <AccordionItem value="references" className="border-b">
+                <AccordionTrigger className="hover:no-underline py-4">
                   <span className="text-sm font-medium">References ({bills.length})</span>
                 </AccordionTrigger>
-                <AccordionContent className="pb-4">
+                <AccordionContent className="pb-4 pt-2">
                   <div className="space-y-3">
                     {bills.map((citation, idx) => (
                       <div key={idx} className="group">
                         <Link
                           to={`/bills/${citation.bill_number}`}
-                          className="block p-4 rounded-lg border hover:border-foreground/20 transition-all"
+                          className="block p-4 rounded-lg hover:bg-muted/50 transition-all"
                         >
                           <div className="flex items-start gap-3">
                             {/* PDF View Button */}
@@ -256,17 +256,17 @@ export function CitationTabsNew({
 
             {/* Related Bills Accordion */}
             {hasRelated && (
-              <AccordionItem value="related" className="border rounded-lg px-4">
-                <AccordionTrigger className="hover:no-underline py-3">
+              <AccordionItem value="related" className="border-b">
+                <AccordionTrigger className="hover:no-underline py-4">
                   <span className="text-sm font-medium">Related ({relatedBills.length})</span>
                 </AccordionTrigger>
-                <AccordionContent className="pb-4">
+                <AccordionContent className="pb-4 pt-2">
                   <div className="space-y-3">
                     {relatedBills.map((citation, idx) => (
                       <div key={idx} className="group">
                         <Link
                           to={`/bills/${citation.bill_number}`}
-                          className="block p-4 rounded-lg border hover:border-foreground/20 transition-all"
+                          className="block p-4 rounded-lg hover:bg-muted/50 transition-all"
                         >
                           <div className="flex items-start gap-3">
                             {/* PDF View Button */}
@@ -320,11 +320,11 @@ export function CitationTabsNew({
 
             {/* Resources Accordion */}
             {hasSources && (
-              <AccordionItem value="resources" className="border rounded-lg px-4">
-                <AccordionTrigger className="hover:no-underline py-3">
+              <AccordionItem value="resources" className="border-b">
+                <AccordionTrigger className="hover:no-underline py-4">
                   <span className="text-sm font-medium">Resources ({sources.length})</span>
                 </AccordionTrigger>
-                <AccordionContent className="pb-4">
+                <AccordionContent className="pb-4 pt-2">
                   <div className="space-y-3">
                     {sources.map((citation) => {
                       const domain = extractDomain(citation.url);
@@ -332,7 +332,7 @@ export function CitationTabsNew({
                       return (
                         <div
                           key={citation.number}
-                          className="p-4 rounded-lg border hover:border-foreground/20 transition-colors cursor-pointer"
+                          className="p-4 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
                           onClick={() => onCitationClick?.(citation.number)}
                         >
                           {/* Citation Content */}
