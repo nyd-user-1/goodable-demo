@@ -154,7 +154,7 @@ export function CitationTabsNew({
                         {/* Bill Content */}
                         <div className="flex-1 space-y-2">
                           {/* Bill Number */}
-                          <h3 className="font-semibold text-base text-primary group-hover:underline">
+                          <h3 className="font-semibold text-base text-foreground group-hover:underline">
                             {citation.bill_number}
                           </h3>
 
@@ -219,7 +219,7 @@ export function CitationTabsNew({
                         {/* Bill Content */}
                         <div className="flex-1 space-y-2">
                           {/* Bill Number */}
-                          <h3 className="font-semibold text-base text-primary group-hover:underline">
+                          <h3 className="font-semibold text-base text-foreground group-hover:underline">
                             {citation.bill_number}
                           </h3>
 
