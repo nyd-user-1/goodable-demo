@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Paperclip, ArrowUp, Square, Search as SearchIcon, FileText, Users, Building2, X, Share2, FileDown, RefreshCw, ThumbsUp, ThumbsDown, Copy } from "lucide-react";
+import { Paperclip, ArrowUp, Square, Search as SearchIcon, FileText, Users, Building2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -650,9 +650,10 @@ const NewChat = () => {
                       </Accordion>
                     )}
 
-                    {/* AI Response */}
-                    <div className="prose prose-sm max-w-none dark:prose-invert">
-                      {message.isPerplexityResponse && message.perplexityCitations ? (
+                    {/* For streaming messages, show content directly */}
+                    {message.isStreaming && (
+                      <div className="prose prose-sm max-w-none dark:prose-invert">
+                        {message.isPerplexityResponse && message.perplexityCitations ? (
                         // Render Perplexity response with inline citation badges
                         <ReactMarkdown
                           components={{
@@ -734,126 +735,95 @@ const NewChat = () => {
                           {message.isStreaming ? message.streamedContent || '' : message.content}
                         </ReactMarkdown>
                       )}
-                      {message.isStreaming && (
                         <span className="inline-block w-1.5 h-4 bg-current animate-pulse ml-0.5">|</span>
-                      )}
-                    </div>
-
-                    {/* Action Buttons */}
-                    {!message.isStreaming && message.role === 'assistant' && (
-                      <div className="flex items-center gap-2 mt-4 pt-4 border-t">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-muted-foreground hover:text-foreground hover:bg-muted"
-                              onClick={() => {
-                                // TODO: Implement share functionality
-                                console.log('Share clicked');
-                              }}
-                            >
-                              <Share2 className="h-4 w-4 mr-2" />
-                              Share
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Share this response</TooltipContent>
-                        </Tooltip>
-
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-muted-foreground hover:text-foreground hover:bg-muted"
-                              onClick={() => {
-                                // TODO: Implement export functionality
-                                console.log('Export clicked');
-                              }}
-                            >
-                              <FileDown className="h-4 w-4 mr-2" />
-                              Export
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Export answer</TooltipContent>
-                        </Tooltip>
-
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-muted-foreground hover:text-foreground hover:bg-muted"
-                              onClick={() => {
-                                // TODO: Implement rewrite functionality
-                                console.log('Rewrite clicked');
-                              }}
-                            >
-                              <RefreshCw className="h-4 w-4 mr-2" />
-                              Rewrite
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Rewrite this answer</TooltipContent>
-                        </Tooltip>
-
-                        <div className="ml-auto flex items-center gap-1">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
-                                onClick={() => {
-                                  // TODO: Implement thumbs up
-                                  console.log('Thumbs up clicked');
-                                }}
-                              >
-                                <ThumbsUp className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Good response</TooltipContent>
-                          </Tooltip>
-
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
-                                onClick={() => {
-                                  // TODO: Implement thumbs down
-                                  console.log('Thumbs down clicked');
-                                }}
-                              >
-                                <ThumbsDown className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Bad response</TooltipContent>
-                          </Tooltip>
-
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
-                                onClick={() => {
-                                  navigator.clipboard.writeText(message.content);
-                                  console.log('Copied to clipboard');
-                                }}
-                              >
-                                <Copy className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Copy answer</TooltipContent>
-                          </Tooltip>
-                        </div>
                       </div>
                     )}
 
-                    {/* Tabbed Citations (References + Related + Resources) with Default Sources */}
-                    {!message.isStreaming && (message.citations || message.perplexityCitations) && (
+                    {/* Perplexity-style Tabbed Interface for completed assistant messages */}
+                    {!message.isStreaming && message.role === 'assistant' && (
                       <CitationTabsNew
+                        messageContent={
+                          message.isPerplexityResponse && message.perplexityCitations ? (
+                            <ReactMarkdown
+                              components={{
+                                p: ({ children }) => {
+                                  const textContent = String(children);
+                                  return (
+                                    <p className="mb-3 leading-relaxed text-foreground">
+                                      <CitationText
+                                        text={textContent}
+                                        citations={message.perplexityCitations || []}
+                                        onCitationClick={(num) => {
+                                          console.log('Citation clicked:', num);
+                                        }}
+                                      />
+                                    </p>
+                                  );
+                                },
+                                strong: ({ children }) => (
+                                  <strong className="font-semibold text-foreground">
+                                    {children}
+                                  </strong>
+                                ),
+                                h1: ({ children }) => (
+                                  <h1 className="text-xl font-semibold mb-3 text-foreground">
+                                    {children}
+                                  </h1>
+                                ),
+                                h2: ({ children }) => (
+                                  <h2 className="text-lg font-semibold mb-2 text-foreground">
+                                    {children}
+                                  </h2>
+                                ),
+                                ul: ({ children }) => (
+                                  <ul className="list-disc pl-5 mb-3 space-y-1">
+                                    {children}
+                                  </ul>
+                                ),
+                                li: ({ children }) => (
+                                  <li className="text-foreground text-sm">{children}</li>
+                                ),
+                              }}
+                            >
+                              {message.content}
+                            </ReactMarkdown>
+                          ) : (
+                            <ReactMarkdown
+                              components={{
+                                p: ({ children }) => (
+                                  <p className="mb-3 leading-relaxed text-foreground">
+                                    {children}
+                                  </p>
+                                ),
+                                strong: ({ children }) => (
+                                  <strong className="font-semibold text-foreground">
+                                    {children}
+                                  </strong>
+                                ),
+                                h1: ({ children }) => (
+                                  <h1 className="text-xl font-semibold mb-3 text-foreground">
+                                    {children}
+                                  </h1>
+                                ),
+                                h2: ({ children }) => (
+                                  <h2 className="text-lg font-semibold mb-2 text-foreground">
+                                    {children}
+                                  </h2>
+                                ),
+                                ul: ({ children }) => (
+                                  <ul className="list-disc pl-5 mb-3 space-y-1">
+                                    {children}
+                                  </ul>
+                                ),
+                                li: ({ children }) => (
+                                  <li className="text-foreground text-sm">{children}</li>
+                                ),
+                              }}
+                            >
+                              {message.content}
+                            </ReactMarkdown>
+                          )
+                        }
                         bills={message.citations || []}
                         relatedBills={message.relatedBills || []}
                         sources={[

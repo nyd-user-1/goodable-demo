@@ -1,11 +1,11 @@
 /**
  * CitationTabsNew Component
- * Modern tabbed interface inspired by shadcn FAQ blocks for References, Related Bills, and Research Sources
+ * Perplexity-style tabbed interface with Answer, References, Related Bills, and Research Sources
  */
 
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { FileText } from "lucide-react";
+import { FileText, Share2, FileDown, RefreshCw, ThumbsUp, ThumbsDown, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -14,6 +14,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { PerplexityCitation } from "@/utils/citationParser";
 import { extractDomain } from "@/config/domainFilters";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +35,7 @@ interface BillCitation {
 }
 
 interface CitationTabsNewProps {
+  messageContent: ReactNode;
   bills: BillCitation[];
   sources: PerplexityCitation[];
   relatedBills?: BillCitation[];
@@ -36,6 +43,7 @@ interface CitationTabsNewProps {
 }
 
 export function CitationTabsNew({
+  messageContent,
   bills,
   sources,
   relatedBills = [],
@@ -49,13 +57,8 @@ export function CitationTabsNew({
   const [selectedBillNumber, setSelectedBillNumber] = useState<string>("");
   const [selectedBillTitle, setSelectedBillTitle] = useState<string>("");
 
-  // Determine initial active tab based on available content
-  const initialTab = hasBills ? "references" : hasRelated ? "related" : "resources";
-  const [activeCategory, setActiveCategory] = useState(initialTab);
-
-  if (!hasBills && !hasSources && !hasRelated) {
-    return null;
-  }
+  // Always start with "answer" tab
+  const [activeCategory, setActiveCategory] = useState("answer");
 
   const handlePDFView = (billNumber: string, billTitle: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -66,6 +69,11 @@ export function CitationTabsNew({
   };
 
   const categories = [
+    {
+      id: "answer",
+      label: "Answer",
+      count: null,
+    },
     {
       id: "references",
       label: "References",
@@ -98,7 +106,7 @@ export function CitationTabsNew({
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            {category.label} ({category.count})
+            {category.label}{category.count !== null && ` (${category.count})`}
           </button>
         ))}
       </div>
@@ -112,7 +120,7 @@ export function CitationTabsNew({
           <SelectContent>
             {categories.map((category) => (
               <SelectItem key={category.id} value={category.id}>
-                {category.label} ({category.count})
+                {category.label}{category.count !== null && ` (${category.count})`}
               </SelectItem>
             ))}
           </SelectContent>
@@ -121,9 +129,126 @@ export function CitationTabsNew({
 
       {/* Content Area */}
       <div className="space-y-4">
+        {/* Answer Tab Content */}
+        {activeCategory === "answer" && (
+          <div className="animate-in fade-in duration-300">
+            {/* Message Content */}
+            <div className="prose prose-sm max-w-none">
+              {messageContent}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2 mt-6 pt-6 border-t">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted"
+                    onClick={() => {
+                      console.log('Share clicked');
+                    }}
+                  >
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Share
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Share this response</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted"
+                    onClick={() => {
+                      console.log('Export clicked');
+                    }}
+                  >
+                    <FileDown className="h-4 w-4 mr-2" />
+                    Export
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Export answer</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted"
+                    onClick={() => {
+                      console.log('Rewrite clicked');
+                    }}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Rewrite
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Rewrite this answer</TooltipContent>
+              </Tooltip>
+
+              <div className="ml-auto flex items-center gap-1">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+                      onClick={() => {
+                        console.log('Thumbs up clicked');
+                      }}
+                    >
+                      <ThumbsUp className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Good response</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+                      onClick={() => {
+                        console.log('Thumbs down clicked');
+                      }}
+                    >
+                      <ThumbsDown className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Bad response</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+                      onClick={() => {
+                        // Copy messageContent text
+                        const text = typeof messageContent === 'string' ? messageContent : '';
+                        navigator.clipboard.writeText(text);
+                        console.log('Copied to clipboard');
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Copy answer</TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* References Content */}
         {activeCategory === "references" && (
-          <>
+          <div className="animate-in fade-in duration-300">
             {hasBills ? (
               <div className="space-y-4">
                 {bills.map((citation, idx) => (
@@ -183,12 +308,12 @@ export function CitationTabsNew({
                 No bills referenced in this response.
               </p>
             )}
-          </>
+          </div>
         )}
 
         {/* Related Bills Content */}
         {activeCategory === "related" && (
-          <>
+          <div className="animate-in fade-in duration-300">
             {hasRelated ? (
               <div className="space-y-4">
                 {relatedBills.map((citation, idx) => (
@@ -248,12 +373,12 @@ export function CitationTabsNew({
                 No related bills found for this response.
               </p>
             )}
-          </>
+          </div>
         )}
 
         {/* Resources Content */}
         {activeCategory === "resources" && (
-          <>
+          <div className="animate-in fade-in duration-300">
             {hasSources ? (
               <div className="space-y-4">
                 {sources.map((citation) => {
@@ -286,7 +411,7 @@ export function CitationTabsNew({
                             href={citation.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm text-primary hover:underline inline-flex items-center gap-1 mt-2"
+                            className="text-sm text-foreground hover:underline inline-flex items-center gap-1 mt-2"
                             onClick={(e) => e.stopPropagation()}
                           >
                             View source →
@@ -302,7 +427,7 @@ export function CitationTabsNew({
                 No research sources available for this response.
               </p>
             )}
-          </>
+          </div>
         )}
       </div>
 
