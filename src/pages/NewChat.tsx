@@ -30,6 +30,47 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+// Rotating "Thinking" text component with fade animations
+const RotatingThinkingText = () => {
+  const phrases = [
+    "Thinking…",
+    "Reflecting…",
+    "Considering…",
+    "Processing…",
+    "Drafting a thought…",
+    "Formulating a response…",
+    "Gathering context…"
+  ];
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Fade out
+      setIsVisible(false);
+
+      // Wait for fade out, then change text and fade in
+      setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % phrases.length);
+        setIsVisible(true);
+      }, 300); // Half of transition duration
+
+    }, 2500); // Change phrase every 2.5 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <span
+      className="transition-opacity duration-500 inline-block"
+      style={{ opacity: isVisible ? 1 : 0 }}
+    >
+      {phrases[currentIndex]}
+    </span>
+  );
+};
+
 // Featuring real bills from our database
 const samplePrompts = [
   {
@@ -658,7 +699,7 @@ const NewChat = () => {
                           <div className="relative p-0.5">
                             <AccordionTrigger className="hover:no-underline px-4 py-2.5 rounded-t-lg text-xs font-medium">
                               <div className="flex items-center gap-2 text-muted-foreground">
-                                <span>Thinking...</span>
+                                <RotatingThinkingText />
                               </div>
                             </AccordionTrigger>
                             <AccordionContent className="px-4 pb-3 space-y-2">
