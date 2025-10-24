@@ -3,7 +3,7 @@
  * Perplexity-style layout with content, action buttons, and "More" accordion section
  */
 
-import { useState, ReactNode } from "react";
+import { useState, ReactNode, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FileText, FileDown, RefreshCw, ThumbsUp, ThumbsDown, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -57,6 +57,7 @@ export function CitationTabsNew({
   const [selectedBillNumber, setSelectedBillNumber] = useState<string>("");
   const [selectedBillTitle, setSelectedBillTitle] = useState<string>("");
   const [showCitations, setShowCitations] = useState(false);
+  const accordionRef = useRef<HTMLDivElement>(null);
 
   const handlePDFView = (billNumber: string, billTitle: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -65,6 +66,18 @@ export function CitationTabsNew({
     setSelectedBillTitle(billTitle);
     setPdfOpen(true);
   };
+
+  // Auto-scroll to accordion when Citations is toggled on
+  useEffect(() => {
+    if (showCitations && accordionRef.current) {
+      setTimeout(() => {
+        accordionRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }, 100);
+    }
+  }, [showCitations]);
 
   return (
     <div className="space-y-6">
@@ -183,7 +196,7 @@ export function CitationTabsNew({
 
       {/* "More" Section - Accordion with References, Related, Resources */}
       {!isStreaming && showCitations && (hasBills || hasRelated || hasSources) && (
-        <div className="pt-4 animate-in fade-in duration-300">
+        <div ref={accordionRef} className="pt-4 animate-in fade-in duration-300">
           <Accordion type="multiple" className="w-full">
             {/* References Accordion */}
             {hasBills && (
