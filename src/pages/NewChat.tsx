@@ -297,10 +297,44 @@ const NewChat = () => {
     fileInputRef.current?.click();
   };
 
+  const readFileAsText = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target?.result as string);
+      reader.onerror = (e) => reject(e);
+      reader.readAsText(file);
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent | null, promptText?: string) => {
     if (e) e.preventDefault();
 
     let userQuery = promptText || query.trim();
+
+    // Process attached files
+    let fileContext = '';
+    if (attachedFiles.length > 0) {
+      fileContext = '\n\n--- Attached Files ---\n';
+      for (const file of attachedFiles) {
+        try {
+          // Only read text files, PDFs and images need special handling
+          if (file.type.startsWith('text/') || file.name.endsWith('.txt')) {
+            const content = await readFileAsText(file);
+            fileContext += `\nFile: ${file.name}\nContent:\n${content}\n---\n`;
+          } else {
+            // For other file types, just mention them
+            fileContext += `\nFile: ${file.name} (${file.type}, ${(file.size / 1024).toFixed(1)} KB)\n`;
+            fileContext += `Note: This file type requires processing. Please describe what you'd like to know about this file.\n---\n`;
+          }
+        } catch (error) {
+          console.error(`Error reading file ${file.name}:`, error);
+          fileContext += `\nFile: ${file.name} (Could not read file)\n---\n`;
+        }
+      }
+
+      // Append file context to user query
+      userQuery += fileContext;
+    }
 
     // Auto-generate prompt if no text but items are selected
     if (!userQuery && (selectedMembers.length > 0 || selectedBills.length > 0 || selectedCommittees.length > 0)) {
