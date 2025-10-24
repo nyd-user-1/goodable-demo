@@ -219,7 +219,7 @@ export function CitationTabsNew({
 
                         <Link
                           to={`/bills/${citation.bill_number}`}
-                          className="block p-4 pr-12 rounded-lg border border-transparent hover:border-muted-foreground/20 transition-all group"
+                          className="block p-4 pr-12 rounded-lg group"
                         >
                           {/* Bill Content */}
                           <div className="space-y-2">
@@ -274,7 +274,7 @@ export function CitationTabsNew({
 
                         <Link
                           to={`/bills/${citation.bill_number}`}
-                          className="block p-4 pr-12 rounded-lg border border-transparent hover:border-muted-foreground/20 transition-all group"
+                          className="block p-4 pr-12 rounded-lg group"
                         >
                           {/* Bill Content */}
                           <div className="space-y-2">
