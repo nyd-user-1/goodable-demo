@@ -563,8 +563,8 @@ const NewChat = () => {
                   key={index}
                   className={cn(
                     "p-5 cursor-pointer transition-all duration-200 border",
-                    "hover:border-primary hover:shadow-md",
-                    hoveredCard === index && "border-primary shadow-md"
+                    "hover:border-foreground hover:shadow-md",
+                    hoveredCard === index && "border-foreground shadow-md"
                   )}
                   onClick={() => handlePromptClick(prompt.title)}
                   onMouseEnter={() => setHoveredCard(index)}
