@@ -211,7 +211,7 @@ export function CitationTabsNew({
                         {/* PDF View Button - Top Right */}
                         <button
                           onClick={(e) => handlePDFView(citation.bill_number, citation.title, e)}
-                          className="absolute top-2 right-2 h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors z-10"
+                          className="absolute top-2 right-2 h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors z-10"
                           title="View Full Text"
                         >
                           <FileText className="h-4 w-4" />
@@ -273,7 +273,7 @@ export function CitationTabsNew({
                         {/* PDF View Button - Top Right */}
                         <button
                           onClick={(e) => handlePDFView(citation.bill_number, citation.title, e)}
-                          className="absolute top-2 right-2 h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors z-10"
+                          className="absolute top-2 right-2 h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors z-10"
                           title="View Full Text"
                         >
                           <FileText className="h-4 w-4" />
