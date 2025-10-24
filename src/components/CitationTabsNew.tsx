@@ -228,6 +228,11 @@ export function CitationTabsNew({
                                 {citation.bill_number}
                               </h3>
 
+                              {/* Bill Title */}
+                              <p className="text-sm text-foreground leading-snug">
+                                {citation.title}
+                              </p>
+
                               {/* Metadata */}
                               <div className="flex items-center flex-wrap gap-2 text-xs text-muted-foreground">
                                 {citation.status_desc && (
@@ -239,13 +244,6 @@ export function CitationTabsNew({
                                   <span>Committee: {citation.committee}</span>
                                 )}
                               </div>
-
-                            {/* Description */}
-                            {citation.description && (
-                              <p className="text-sm text-foreground leading-relaxed line-clamp-2">
-                                {citation.description}
-                              </p>
-                            )}
                           </div>
                         </Link>
                       </div>
@@ -285,6 +283,11 @@ export function CitationTabsNew({
                                 {citation.bill_number}
                               </h3>
 
+                              {/* Bill Title */}
+                              <p className="text-sm text-foreground leading-snug">
+                                {citation.title}
+                              </p>
+
                               {/* Metadata */}
                               <div className="flex items-center flex-wrap gap-2 text-xs text-muted-foreground">
                                 {citation.status_desc && (
@@ -296,13 +299,6 @@ export function CitationTabsNew({
                                   <span>Committee: {citation.committee}</span>
                                 )}
                               </div>
-
-                            {/* Description */}
-                            {citation.description && (
-                              <p className="text-sm text-foreground leading-relaxed line-clamp-2">
-                                {citation.description}
-                              </p>
-                            )}
                           </div>
                         </Link>
                       </div>
