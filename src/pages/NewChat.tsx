@@ -750,8 +750,7 @@ const NewChat = () => {
                             // Find the last user message before this assistant message
                             for (let i = currentIndex - 1; i >= 0; i--) {
                               if (messages[i].role === 'user') {
-                                // Remove the current assistant message and resubmit the user query
-                                setMessages(prev => prev.filter(m => m.id !== message.id));
+                                // Keep the original Q&A, just add a new response below
                                 handleSubmit(null, messages[i].content);
                                 break;
                               }
