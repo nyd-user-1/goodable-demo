@@ -5,7 +5,7 @@
 
 import { useState, ReactNode, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FileText, FileDown, RefreshCw, ThumbsUp, ThumbsDown, Copy } from "lucide-react";
+import { FileText, FileDown, RefreshCw, ThumbsUp, ThumbsDown, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -22,6 +22,7 @@ import { PerplexityCitation } from "@/utils/citationParser";
 import { extractDomain } from "@/config/domainFilters";
 import { Badge } from "@/components/ui/badge";
 import { BillPDFSheet } from "@/components/features/bills/BillPDFSheet";
+import { useToast } from "@/hooks/use-toast";
 
 interface BillCitation {
   bill_number: string;
@@ -52,11 +53,15 @@ export function CitationTabsNew({
   const hasBills = bills && bills.length > 0;
   const hasSources = sources && sources.length > 0;
   const hasRelated = relatedBills && relatedBills.length > 0;
+  const { toast } = useToast();
 
   const [pdfOpen, setPdfOpen] = useState(false);
   const [selectedBillNumber, setSelectedBillNumber] = useState<string>("");
   const [selectedBillTitle, setSelectedBillTitle] = useState<string>("");
   const [showCitations, setShowCitations] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [thumbsUpActive, setThumbsUpActive] = useState(false);
+  const [thumbsDownActive, setThumbsDownActive] = useState(false);
   const accordionRef = useRef<HTMLDivElement>(null);
 
   const handlePDFView = (billNumber: string, billTitle: string, e: React.MouseEvent) => {
@@ -65,6 +70,87 @@ export function CitationTabsNew({
     setSelectedBillNumber(billNumber);
     setSelectedBillTitle(billTitle);
     setPdfOpen(true);
+  };
+
+  const handleExport = () => {
+    // Extract text content from ReactNode
+    const extractText = (node: ReactNode): string => {
+      if (typeof node === 'string') return node;
+      if (typeof node === 'number') return String(node);
+      if (Array.isArray(node)) return node.map(extractText).join('');
+      if (node && typeof node === 'object' && 'props' in node) {
+        return extractText(node.props.children);
+      }
+      return '';
+    };
+
+    const text = extractText(messageContent);
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `response-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Exported successfully",
+      description: "Response has been downloaded as a text file",
+    });
+  };
+
+  const handleRewrite = () => {
+    toast({
+      title: "Rewrite requested",
+      description: "This feature will regenerate the response with a different approach",
+    });
+    // TODO: Implement actual rewrite functionality
+  };
+
+  const handleCopy = async () => {
+    const extractText = (node: ReactNode): string => {
+      if (typeof node === 'string') return node;
+      if (typeof node === 'number') return String(node);
+      if (Array.isArray(node)) return node.map(extractText).join('');
+      if (node && typeof node === 'object' && 'props' in node) {
+        return extractText(node.props.children);
+      }
+      return '';
+    };
+
+    const text = extractText(messageContent);
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+
+    toast({
+      title: "Copied to clipboard",
+      description: "Response text has been copied",
+    });
+  };
+
+  const handleThumbsUp = () => {
+    setThumbsUpActive(!thumbsUpActive);
+    setThumbsDownActive(false);
+
+    toast({
+      title: thumbsUpActive ? "Feedback removed" : "Thanks for your feedback!",
+      description: thumbsUpActive ? "" : "Marked as helpful response",
+    });
+    // TODO: Send feedback to backend
+  };
+
+  const handleThumbsDown = () => {
+    setThumbsDownActive(!thumbsDownActive);
+    setThumbsUpActive(false);
+
+    toast({
+      title: thumbsDownActive ? "Feedback removed" : "Thanks for your feedback!",
+      description: thumbsDownActive ? "" : "Marked as not helpful",
+    });
+    // TODO: Send feedback to backend
   };
 
   // Auto-scroll to accordion when Citations is toggled on
@@ -111,9 +197,7 @@ export function CitationTabsNew({
                 variant="ghost"
                 size="sm"
                 className="text-muted-foreground hover:text-foreground hover:bg-muted"
-                onClick={() => {
-                  console.log('Export clicked');
-                }}
+                onClick={handleExport}
               >
                 <FileDown className="h-4 w-4 mr-2" />
                 Export
@@ -128,9 +212,7 @@ export function CitationTabsNew({
                 variant="ghost"
                 size="sm"
                 className="text-muted-foreground hover:text-foreground hover:bg-muted"
-                onClick={() => {
-                  console.log('Rewrite clicked');
-                }}
+                onClick={handleRewrite}
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Rewrite
@@ -145,12 +227,14 @@ export function CitationTabsNew({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
-                  onClick={() => {
-                    console.log('Thumbs up clicked');
-                  }}
+                  className={`h-8 w-8 hover:bg-muted ${
+                    thumbsUpActive
+                      ? "text-green-600 hover:text-green-700"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  onClick={handleThumbsUp}
                 >
-                  <ThumbsUp className="h-4 w-4" />
+                  <ThumbsUp className={`h-4 w-4 ${thumbsUpActive ? "fill-current" : ""}`} />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Good response</TooltipContent>
@@ -161,12 +245,14 @@ export function CitationTabsNew({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
-                  onClick={() => {
-                    console.log('Thumbs down clicked');
-                  }}
+                  className={`h-8 w-8 hover:bg-muted ${
+                    thumbsDownActive
+                      ? "text-red-600 hover:text-red-700"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  onClick={handleThumbsDown}
                 >
-                  <ThumbsDown className="h-4 w-4" />
+                  <ThumbsDown className={`h-4 w-4 ${thumbsDownActive ? "fill-current" : ""}`} />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Bad response</TooltipContent>
@@ -178,17 +264,12 @@ export function CitationTabsNew({
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
-                  onClick={() => {
-                    // Copy messageContent text
-                    const text = typeof messageContent === 'string' ? messageContent : '';
-                    navigator.clipboard.writeText(text);
-                    console.log('Copied to clipboard');
-                  }}
+                  onClick={handleCopy}
                 >
-                  <Copy className="h-4 w-4" />
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Copy answer</TooltipContent>
+              <TooltipContent>{copied ? "Copied!" : "Copy answer"}</TooltipContent>
             </Tooltip>
           </div>
         </div>
