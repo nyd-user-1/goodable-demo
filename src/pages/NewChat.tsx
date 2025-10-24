@@ -80,6 +80,8 @@ const NewChat = () => {
   const [selectedBills, setSelectedBills] = useState<BillCitation[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<any[]>([]);
   const [selectedCommittees, setSelectedCommittees] = useState<any[]>([]);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Dialog state
   const [billsDialogOpen, setBillsDialogOpen] = useState(false);
@@ -278,6 +280,23 @@ const NewChat = () => {
     handleSubmit(null, prompt);
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setAttachedFiles(prev => [...prev, ...files]);
+    // Reset input so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAttachClick = () => {
+    fileInputRef.current?.click();
+  };
+
   const handleSubmit = async (e: React.FormEvent | null, promptText?: string) => {
     if (e) e.preventDefault();
 
@@ -323,6 +342,7 @@ const NewChat = () => {
     setSelectedMembers([]);
     setSelectedBills([]);
     setSelectedCommittees([]);
+    setAttachedFiles([]);
     setIsTyping(true);
 
     // INSTANT FEEDBACK: Create and show assistant message immediately (0ms delay)
@@ -951,6 +971,33 @@ const NewChat = () => {
                   </div>
                 )}
 
+                {/* Attached Files Display */}
+                {attachedFiles.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {attachedFiles.map((file, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg text-sm"
+                      >
+                        <Paperclip className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-foreground max-w-[200px] truncate">
+                          {file.name}
+                        </span>
+                        <span className="text-muted-foreground text-xs">
+                          ({(file.size / 1024).toFixed(1)} KB)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFile(index)}
+                          className="ml-1 hover:bg-muted-foreground/20 rounded p-0.5 transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {/* Text Input */}
                 <Textarea
                   value={query}
@@ -974,6 +1021,7 @@ const NewChat = () => {
                       <TooltipTrigger asChild>
                         <button
                           type="button"
+                          onClick={handleAttachClick}
                           className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent transition-colors"
                         >
                           <Paperclip className="h-4 w-4" />
@@ -983,6 +1031,15 @@ const NewChat = () => {
                         <p>Attach files</p>
                       </TooltipContent>
                     </Tooltip>
+                    {/* Hidden file input */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      className="hidden"
+                      onChange={handleFileSelect}
+                      accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.csv,.xlsx"
+                    />
 
                     <Dialog open={membersDialogOpen} onOpenChange={setMembersDialogOpen}>
                       <Tooltip>
