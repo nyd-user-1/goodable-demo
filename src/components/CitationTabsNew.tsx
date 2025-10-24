@@ -80,7 +80,7 @@ export function CitationTabsNew({
             variant="ghost"
             size="sm"
             className={showCitations
-              ? "text-foreground bg-muted hover:bg-muted/80"
+              ? "text-foreground bg-muted hover:bg-muted/80 hover:text-foreground"
               : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }
             onClick={() => {
