@@ -642,7 +642,7 @@ const NewChat = () => {
               <div
                 key={message.id}
                 className={`space-y-3 ${
-                  message.role === "user" && index > 0 ? "mt-16" : ""
+                  message.role === "user" && index > 0 ? "mt-20" : ""
                 }`}
               >
                 {message.role === "user" ? (
