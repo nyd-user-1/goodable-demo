@@ -207,23 +207,22 @@ export function CitationTabsNew({
                 <AccordionContent className="pb-4 pt-2">
                   <div className="space-y-3">
                     {bills.map((citation, idx) => (
-                      <div key={idx} className="group">
+                      <div key={idx} className="group relative">
+                        {/* PDF View Button - Top Right */}
+                        <button
+                          onClick={(e) => handlePDFView(citation.bill_number, citation.title, e)}
+                          className="absolute top-2 right-2 h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors z-10"
+                          title="View Full Text"
+                        >
+                          <FileText className="h-4 w-4" />
+                        </button>
+
                         <Link
                           to={`/bills/${citation.bill_number}`}
-                          className="block p-4 rounded-lg hover:bg-muted/50 transition-all"
+                          className="block p-4 pr-12 rounded-lg hover:bg-muted/50 transition-all"
                         >
-                          <div className="flex items-start gap-3">
-                            {/* PDF View Button */}
-                            <button
-                              onClick={(e) => handlePDFView(citation.bill_number, citation.title, e)}
-                              className="flex-shrink-0 w-10 h-10 rounded-md bg-muted hover:bg-muted/80 border hover:border-foreground/20 transition-colors flex items-center justify-center"
-                              title="View Full Text"
-                            >
-                              <FileText className="h-4 w-4 text-muted-foreground" />
-                            </button>
-
-                            {/* Bill Content */}
-                            <div className="flex-1 space-y-2">
+                          {/* Bill Content */}
+                          <div className="space-y-2">
                               {/* Bill Number */}
                               <h3 className="font-semibold text-base text-foreground group-hover:underline">
                                 {citation.bill_number}
@@ -246,13 +245,12 @@ export function CitationTabsNew({
                                 )}
                               </div>
 
-                              {/* Description */}
-                              {citation.description && (
-                                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
-                                  {citation.description}
-                                </p>
-                              )}
-                            </div>
+                            {/* Description */}
+                            {citation.description && (
+                              <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                                {citation.description}
+                              </p>
+                            )}
                           </div>
                         </Link>
                       </div>
@@ -271,23 +269,22 @@ export function CitationTabsNew({
                 <AccordionContent className="pb-4 pt-2">
                   <div className="space-y-3">
                     {relatedBills.map((citation, idx) => (
-                      <div key={idx} className="group">
+                      <div key={idx} className="group relative">
+                        {/* PDF View Button - Top Right */}
+                        <button
+                          onClick={(e) => handlePDFView(citation.bill_number, citation.title, e)}
+                          className="absolute top-2 right-2 h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors z-10"
+                          title="View Full Text"
+                        >
+                          <FileText className="h-4 w-4" />
+                        </button>
+
                         <Link
                           to={`/bills/${citation.bill_number}`}
-                          className="block p-4 rounded-lg hover:bg-muted/50 transition-all"
+                          className="block p-4 pr-12 rounded-lg hover:bg-muted/50 transition-all"
                         >
-                          <div className="flex items-start gap-3">
-                            {/* PDF View Button */}
-                            <button
-                              onClick={(e) => handlePDFView(citation.bill_number, citation.title, e)}
-                              className="flex-shrink-0 w-10 h-10 rounded-md bg-muted hover:bg-muted/80 border hover:border-foreground/20 transition-colors flex items-center justify-center"
-                              title="View Full Text"
-                            >
-                              <FileText className="h-4 w-4 text-muted-foreground" />
-                            </button>
-
-                            {/* Bill Content */}
-                            <div className="flex-1 space-y-2">
+                          {/* Bill Content */}
+                          <div className="space-y-2">
                               {/* Bill Number */}
                               <h3 className="font-semibold text-base text-foreground group-hover:underline">
                                 {citation.bill_number}
@@ -310,13 +307,12 @@ export function CitationTabsNew({
                                 )}
                               </div>
 
-                              {/* Description */}
-                              {citation.description && (
-                                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
-                                  {citation.description}
-                                </p>
-                              )}
-                            </div>
+                            {/* Description */}
+                            {citation.description && (
+                              <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                                {citation.description}
+                              </p>
+                            )}
                           </div>
                         </Link>
                       </div>
