@@ -637,12 +637,14 @@ const NewChat = () => {
         ) : (
           /* Chat State - Messages */
           <div className="pt-8 pb-16 px-4">
-            <div className="w-full max-w-[720px] mx-auto space-y-6">
+            <div className="w-full max-w-[720px] mx-auto">
             {messages.map((message, index) => (
               <div
                 key={message.id}
                 className={`space-y-3 ${
-                  message.role === "user" && index > 0 ? "mt-20" : ""
+                  index > 0
+                    ? (message.role === "user" ? "mt-20" : "mt-6")
+                    : ""
                 }`}
               >
                 {message.role === "user" ? (
