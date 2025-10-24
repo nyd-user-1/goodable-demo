@@ -39,6 +39,7 @@ interface CitationTabsNewProps {
   sources: PerplexityCitation[];
   relatedBills?: BillCitation[];
   onCitationClick?: (citationNumber: number) => void;
+  onRewrite?: () => void;
   isStreaming?: boolean;
 }
 
@@ -48,6 +49,7 @@ export function CitationTabsNew({
   sources,
   relatedBills = [],
   onCitationClick,
+  onRewrite,
   isStreaming = false
 }: CitationTabsNewProps) {
   const hasBills = bills && bills.length > 0;
@@ -102,11 +104,14 @@ export function CitationTabsNew({
   };
 
   const handleRewrite = () => {
-    toast({
-      title: "Rewrite requested",
-      description: "This feature will regenerate the response with a different approach",
-    });
-    // TODO: Implement actual rewrite functionality
+    if (onRewrite) {
+      onRewrite();
+    } else {
+      toast({
+        title: "Rewrite not available",
+        description: "This message cannot be rewritten",
+      });
+    }
   };
 
   const handleCopy = async () => {

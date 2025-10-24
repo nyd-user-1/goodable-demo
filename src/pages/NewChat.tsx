@@ -743,6 +743,21 @@ const NewChat = () => {
                     {message.role === 'assistant' && (
                       <CitationTabsNew
                         isStreaming={message.isStreaming}
+                        onRewrite={() => {
+                          // Find the previous user message
+                          const currentIndex = messages.findIndex(m => m.id === message.id);
+                          if (currentIndex > 0) {
+                            // Find the last user message before this assistant message
+                            for (let i = currentIndex - 1; i >= 0; i--) {
+                              if (messages[i].role === 'user') {
+                                // Remove the current assistant message and resubmit the user query
+                                setMessages(prev => prev.filter(m => m.id !== message.id));
+                                handleSubmit(null, messages[i].content);
+                                break;
+                              }
+                            }
+                          }
+                        }}
                         messageContent={
                           message.isPerplexityResponse && message.perplexityCitations ? (
                             <ReactMarkdown
