@@ -207,11 +207,11 @@ export function CitationTabsNew({
                 <AccordionContent className="pb-4 pt-2">
                   <div className="space-y-3">
                     {bills.map((citation, idx) => (
-                      <div key={idx} className="group relative">
+                      <div key={idx} className="relative">
                         {/* PDF View Button - Top Right */}
                         <button
                           onClick={(e) => handlePDFView(citation.bill_number, citation.title, e)}
-                          className="absolute top-2 right-2 h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground group-hover:text-foreground transition-colors z-10 pointer-events-auto"
+                          className="absolute top-2 right-2 h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors z-10"
                           title="View Full Text"
                         >
                           <FileText className="h-4 w-4" />
@@ -219,7 +219,7 @@ export function CitationTabsNew({
 
                         <Link
                           to={`/bills/${citation.bill_number}`}
-                          className="block p-4 pr-12 rounded-lg border border-transparent hover:border-muted-foreground/20 transition-all"
+                          className="block p-4 pr-12 rounded-lg border border-transparent hover:border-muted-foreground/20 transition-all group"
                         >
                           {/* Bill Content */}
                           <div className="space-y-2">
@@ -262,11 +262,11 @@ export function CitationTabsNew({
                 <AccordionContent className="pb-4 pt-2">
                   <div className="space-y-3">
                     {relatedBills.map((citation, idx) => (
-                      <div key={idx} className="group relative">
+                      <div key={idx} className="relative">
                         {/* PDF View Button - Top Right */}
                         <button
                           onClick={(e) => handlePDFView(citation.bill_number, citation.title, e)}
-                          className="absolute top-2 right-2 h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground group-hover:text-foreground transition-colors z-10 pointer-events-auto"
+                          className="absolute top-2 right-2 h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors z-10"
                           title="View Full Text"
                         >
                           <FileText className="h-4 w-4" />
@@ -274,7 +274,7 @@ export function CitationTabsNew({
 
                         <Link
                           to={`/bills/${citation.bill_number}`}
-                          className="block p-4 pr-12 rounded-lg border border-transparent hover:border-muted-foreground/20 transition-all"
+                          className="block p-4 pr-12 rounded-lg border border-transparent hover:border-muted-foreground/20 transition-all group"
                         >
                           {/* Bill Content */}
                           <div className="space-y-2">
