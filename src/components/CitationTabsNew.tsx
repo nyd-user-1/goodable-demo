@@ -320,40 +320,21 @@ export function CitationTabsNew({
                       const domain = extractDomain(citation.url);
 
                       return (
-                        <div
+                        <a
                           key={citation.number}
-                          className="p-4 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                          onClick={() => onCitationClick?.(citation.number)}
+                          href={citation.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block p-3 rounded-lg hover:bg-muted/50 transition-colors"
                         >
                           {/* Citation Content */}
-                          <div className="space-y-2">
-                            <h3 className="font-semibold text-base leading-tight">
+                          <div className="space-y-1">
+                            <h3 className="font-semibold text-sm leading-tight">
                               {citation.title || domain}
                             </h3>
-
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-muted-foreground">{domain}</span>
-                            </div>
-
-                            {citation.excerpt && (
-                              <p className="text-sm text-muted-foreground leading-relaxed">
-                                {citation.excerpt}
-                              </p>
-                            )}
-
-                            {citation.url && (
-                              <a
-                                href={citation.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-sm text-foreground hover:underline inline-flex items-center gap-1 mt-2"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                View source →
-                              </a>
-                            )}
+                            <p className="text-xs text-muted-foreground">{domain}</p>
                           </div>
-                        </div>
+                        </a>
                       );
                     })}
                   </div>
