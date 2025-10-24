@@ -211,7 +211,7 @@ export function CitationTabsNew({
                         {/* PDF View Button - Top Right */}
                         <button
                           onClick={(e) => handlePDFView(citation.bill_number, citation.title, e)}
-                          className="absolute top-2 right-2 h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors z-10"
+                          className="absolute top-2 right-2 h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground group-hover:text-foreground transition-colors z-10 pointer-events-auto"
                           title="View Full Text"
                         >
                           <FileText className="h-4 w-4" />
@@ -228,11 +228,6 @@ export function CitationTabsNew({
                                 {citation.bill_number}
                               </h3>
 
-                              {/* Bill Title */}
-                              <p className="font-medium text-sm text-foreground leading-snug">
-                                {citation.title}
-                              </p>
-
                               {/* Metadata */}
                               <div className="flex items-center flex-wrap gap-2 text-xs text-muted-foreground">
                                 {citation.status_desc && (
@@ -247,7 +242,7 @@ export function CitationTabsNew({
 
                             {/* Description */}
                             {citation.description && (
-                              <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                              <p className="text-sm text-foreground leading-relaxed line-clamp-2">
                                 {citation.description}
                               </p>
                             )}
@@ -273,7 +268,7 @@ export function CitationTabsNew({
                         {/* PDF View Button - Top Right */}
                         <button
                           onClick={(e) => handlePDFView(citation.bill_number, citation.title, e)}
-                          className="absolute top-2 right-2 h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors z-10"
+                          className="absolute top-2 right-2 h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground group-hover:text-foreground transition-colors z-10 pointer-events-auto"
                           title="View Full Text"
                         >
                           <FileText className="h-4 w-4" />
@@ -290,11 +285,6 @@ export function CitationTabsNew({
                                 {citation.bill_number}
                               </h3>
 
-                              {/* Bill Title */}
-                              <p className="font-medium text-sm text-foreground leading-snug">
-                                {citation.title}
-                              </p>
-
                               {/* Metadata */}
                               <div className="flex items-center flex-wrap gap-2 text-xs text-muted-foreground">
                                 {citation.status_desc && (
@@ -309,7 +299,7 @@ export function CitationTabsNew({
 
                             {/* Description */}
                             {citation.description && (
-                              <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                              <p className="text-sm text-foreground leading-relaxed line-clamp-2">
                                 {citation.description}
                               </p>
                             )}
