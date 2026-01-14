@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Confetti, type ConfettiRef } from '@/components/magicui/confetti';
 import ReactMarkdown from 'react-markdown';
 import { useModel } from '@/contexts/ModelContext';
+import { incrementChatCount } from '@/components/BetaAccessModal';
 
 interface Message {
   id: string;
@@ -256,6 +257,9 @@ Ready to explore actionable steps for addressing these root causes in the Policy
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
 
+    // Track chat input for beta access modal
+    incrementChatCount();
+
     // Add user message
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -326,6 +330,9 @@ Ready to explore actionable steps for addressing these root causes in the Policy
   };
 
   const handleYesNoClick = (response: 'yes' | 'no') => {
+    // Track chat input for beta access modal
+    incrementChatCount();
+
     // Add user message
     const userMessage: Message = {
       id: `user-${Date.now()}`,

@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,6 +8,7 @@ import { DashboardTabsSection } from "@/components/features/dashboard/DashboardT
 import { Tables } from "@/integrations/supabase/types";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { BetaAccessModal } from "@/components/BetaAccessModal";
 
 type Bill = Tables<"Bills"> & {
   sponsors?: Array<{
@@ -250,6 +250,9 @@ export const Dashboard = () => {
           <DashboardTabsSection bills={recentBills} />
         </div>
       </div>
+
+      {/* Beta Access Modal - triggers after 2 chat inputs */}
+      <BetaAccessModal />
     </div>
   );
 };

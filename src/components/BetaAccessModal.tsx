@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,26 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
+// Constants for chat tracking
+const CHAT_COUNT_KEY = 'betaAccessChatCount';
+const MODAL_SHOWN_KEY = 'betaAccessModalShown';
+const TRIGGER_COUNT = 2;
+
+// Utility function to increment chat count - export for use in chat components
+export const incrementChatCount = (): number => {
+  const currentCount = parseInt(sessionStorage.getItem(CHAT_COUNT_KEY) || '0', 10);
+  const newCount = currentCount + 1;
+  sessionStorage.setItem(CHAT_COUNT_KEY, newCount.toString());
+  // Dispatch custom event so modal can listen for changes
+  window.dispatchEvent(new CustomEvent('chatCountUpdated', { detail: newCount }));
+  return newCount;
+};
+
+// Utility to get current chat count
+export const getChatCount = (): number => {
+  return parseInt(sessionStorage.getItem(CHAT_COUNT_KEY) || '0', 10);
+};
+
 interface BetaAccessModalProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -20,20 +40,31 @@ export function BetaAccessModal({ open, onOpenChange }: BetaAccessModalProps) {
   const { isAdmin } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    // Check if modal has been shown in this session or if user is admin
-    const hasShownModal = sessionStorage.getItem('betaAccessModalShown');
-    
-    if (!hasShownModal && !isAdmin) {
-      // Show modal after a short delay to ensure smooth page load
-      const timer = setTimeout(() => {
-        setIsOpen(true);
-        sessionStorage.setItem('betaAccessModalShown', 'true');
-      }, 1500);
-      
-      return () => clearTimeout(timer);
+  const checkAndShowModal = useCallback((count: number) => {
+    const hasShownModal = sessionStorage.getItem(MODAL_SHOWN_KEY);
+
+    if (!hasShownModal && !isAdmin && count >= TRIGGER_COUNT) {
+      setIsOpen(true);
+      sessionStorage.setItem(MODAL_SHOWN_KEY, 'true');
     }
   }, [isAdmin]);
+
+  useEffect(() => {
+    // Check initial count on mount (in case user already sent messages)
+    const initialCount = getChatCount();
+    checkAndShowModal(initialCount);
+
+    // Listen for chat count updates
+    const handleChatCountUpdate = (event: CustomEvent<number>) => {
+      checkAndShowModal(event.detail);
+    };
+
+    window.addEventListener('chatCountUpdated', handleChatCountUpdate as EventListener);
+
+    return () => {
+      window.removeEventListener('chatCountUpdated', handleChatCountUpdate as EventListener);
+    };
+  }, [checkAndShowModal]);
 
   const handleOpenChange = (newOpen: boolean) => {
     setIsOpen(newOpen);
