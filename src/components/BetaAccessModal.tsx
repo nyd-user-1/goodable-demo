@@ -11,51 +11,45 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 // Constants for chat tracking
-const CHAT_COUNT_KEY = 'betaAccessChatCount';
-const MODAL_SHOWN_KEY = 'betaAccessModalShown';
-const CHAT_BLOCKED_KEY = 'betaAccessChatBlocked';
-const SESSION_INITIALIZED_KEY = 'betaAccessSessionInit';
 const TRIGGER_COUNT = 2;
 
-// Reset all beta access state on page load (called once per page load)
-export const resetBetaAccessState = (): void => {
-  // Use a flag to track if we've already initialized this page load
-  // This prevents resetting during React re-renders but resets on actual page refresh
-  if (!window.__betaAccessInitialized) {
-    window.__betaAccessInitialized = true;
-    sessionStorage.removeItem(CHAT_COUNT_KEY);
-    sessionStorage.removeItem(MODAL_SHOWN_KEY);
-    sessionStorage.removeItem(CHAT_BLOCKED_KEY);
-    console.log('[BetaAccessModal] Reset state for new page load');
-  }
-};
-
-// Extend Window interface for our flag
-declare global {
-  interface Window {
-    __betaAccessInitialized?: boolean;
-  }
-}
+// Module-level state (resets on page refresh)
+let chatCount = 0;
+let modalShown = false;
+let chatBlocked = false;
 
 // Utility function to increment chat count - export for use in chat components
 export const incrementChatCount = (): number => {
-  const currentCount = parseInt(sessionStorage.getItem(CHAT_COUNT_KEY) || '0', 10);
-  const newCount = currentCount + 1;
-  sessionStorage.setItem(CHAT_COUNT_KEY, newCount.toString());
-  console.log('[BetaAccessModal] Chat count incremented to:', newCount);
+  chatCount += 1;
+  console.log('[BetaAccessModal] Chat count incremented to:', chatCount);
   // Dispatch custom event so modal can listen for changes
-  window.dispatchEvent(new CustomEvent('chatCountUpdated', { detail: newCount }));
-  return newCount;
+  window.dispatchEvent(new CustomEvent('chatCountUpdated', { detail: chatCount }));
+  return chatCount;
 };
 
 // Utility to get current chat count
 export const getChatCount = (): number => {
-  return parseInt(sessionStorage.getItem(CHAT_COUNT_KEY) || '0', 10);
+  return chatCount;
 };
 
 // Check if chat input should be blocked (modal is active)
 export const isChatBlocked = (): boolean => {
-  return sessionStorage.getItem(CHAT_BLOCKED_KEY) === 'true';
+  return chatBlocked;
+};
+
+// Set chat blocked state
+export const setChatBlocked = (blocked: boolean): void => {
+  chatBlocked = blocked;
+};
+
+// Check if modal has been shown
+export const hasModalBeenShown = (): boolean => {
+  return modalShown;
+};
+
+// Mark modal as shown
+export const setModalShown = (shown: boolean): void => {
+  modalShown = shown;
 };
 
 // Trigger the modal to reopen (for when user tries to chat while blocked)
@@ -74,15 +68,13 @@ export function BetaAccessModal({ open, onOpenChange }: BetaAccessModalProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const checkAndShowModal = useCallback((count: number) => {
-    const hasShownModal = sessionStorage.getItem(MODAL_SHOWN_KEY);
-    console.log('[BetaAccessModal] checkAndShowModal called:', { count, hasShownModal, isAdmin, TRIGGER_COUNT });
+    console.log('[BetaAccessModal] checkAndShowModal called:', { count, modalShown: hasModalBeenShown(), isAdmin, TRIGGER_COUNT });
 
-    if (!hasShownModal && !isAdmin && count >= TRIGGER_COUNT) {
+    if (!hasModalBeenShown() && !isAdmin && count >= TRIGGER_COUNT) {
       console.log('[BetaAccessModal] Showing modal!');
       setIsOpen(true);
-      sessionStorage.setItem(MODAL_SHOWN_KEY, 'true');
-      // Block further chat input until user makes a choice
-      sessionStorage.setItem(CHAT_BLOCKED_KEY, 'true');
+      setModalShown(true);
+      setChatBlocked(true);
     }
   }, [isAdmin]);
 
