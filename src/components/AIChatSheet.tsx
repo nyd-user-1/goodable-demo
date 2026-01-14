@@ -14,6 +14,7 @@ import { ChatInput } from "./features/chat/ChatInput";
 import { ChatContainer } from "./features/chat/ChatContainer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { incrementChatCount } from "@/components/BetaAccessModal";
 
 type Bill = Tables<"Bills">;
 type Member = {
@@ -265,6 +266,9 @@ After your analysis, would you like me to dive deeper into any specific aspect o
   // Send message function with fast streaming
   const sendMessage = async (message: string) => {
     if (!message.trim()) return;
+
+    // Track chat input for beta access modal
+    incrementChatCount();
 
     const userMessage = {
       id: `user-${Date.now()}`,

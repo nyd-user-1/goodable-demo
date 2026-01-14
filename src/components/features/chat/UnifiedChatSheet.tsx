@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
+import { incrementChatCount } from '@/components/BetaAccessModal';
 
 interface Message {
   id: string;
@@ -177,6 +178,9 @@ export default function UnifiedChatSheet({
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || !chatSessionId) return;
+
+    // Track chat input for beta access modal
+    incrementChatCount();
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
