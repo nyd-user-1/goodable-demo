@@ -66,29 +66,46 @@ export function ChatHeader({ onNewChat }: ChatHeaderProps) {
 
         {/* Right side - Controls */}
         <div className="flex items-center gap-2">
-          <ThemeToggle />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <ThemeToggle />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Toggle theme
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                className="hidden md:inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                onClick={() => {
+                  const event = new KeyboardEvent('keydown', {
+                    key: 'k',
+                    metaKey: true,
+                    ctrlKey: true,
+                    bubbles: true
+                  });
+                  document.dispatchEvent(event);
+                }}
+              >
+                <Command className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Command menu
+            </TooltipContent>
+          </Tooltip>
           <button
-            className="hidden md:inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            onClick={() => {
-              const event = new KeyboardEvent('keydown', {
-                key: 'k',
-                metaKey: true,
-                ctrlKey: true,
-                bubbles: true
-              });
-              document.dispatchEvent(event);
-            }}
-          >
-            <Command className="h-4 w-4" />
-          </button>
-          <button
-            className="inline-flex items-center justify-center h-9 rounded-md px-3 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className="inline-flex items-center justify-center h-9 rounded-md px-3 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors font-medium"
             onClick={() => navigate('/auth')}
           >
             Log In
           </button>
           <Button
             onClick={() => navigate('/auth-2')}
+            className="bg-foreground text-background hover:bg-foreground/90"
           >
             Sign Up
           </Button>
