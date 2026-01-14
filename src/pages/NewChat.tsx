@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from 'react-markdown';
 import { useModel } from "@/contexts/ModelContext";
 import { Textarea } from "@/components/ui/textarea";
+import { BetaAccessModal, incrementChatCount } from "@/components/BetaAccessModal";
 import {
   Dialog,
   DialogContent,
@@ -380,6 +381,9 @@ const NewChat = () => {
     }
 
     if (!userQuery) return;
+
+    // Track chat input for beta access modal
+    incrementChatCount();
 
     // Start chat interface
     setChatStarted(true);
@@ -1465,6 +1469,9 @@ const NewChat = () => {
           </div>
         </div>
       </div>
+
+      {/* Beta Access Modal - triggers after 2 chat inputs */}
+      <BetaAccessModal />
     </div>
   );
 };
