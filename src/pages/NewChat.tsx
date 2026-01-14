@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Paperclip, ArrowUp, Square, Search as SearchIcon, FileText, Users, Building2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,6 +99,10 @@ const NewChat = () => {
   const abortControllerRef = useRef<AbortController | null>(null);
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
   const { selectedModel } = useModel();
+  const location = useLocation();
+
+  // Only show ChatHeader on root page (public), not on /new-chat (authenticated)
+  const isPublicPage = location.pathname === "/";
 
   // Selected items state
   const [selectedBills, setSelectedBills] = useState<BillCitation[]>([]);
@@ -660,11 +665,11 @@ const NewChat = () => {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      {/* Header */}
-      <ChatHeader onNewChat={handleNewChat} />
+      {/* Header - only show on public root page */}
+      {isPublicPage && <ChatHeader onNewChat={handleNewChat} />}
 
-      {/* Main Content Area - add top padding for fixed header */}
-      <div className="flex-1 overflow-y-auto pb-32 pt-14">
+      {/* Main Content Area - add top padding only when header is shown */}
+      <div className={cn("flex-1 overflow-y-auto pb-32", isPublicPage && "pt-14")}>
         {!chatStarted ? (
           /* Initial State - Prompt Cards */
           <div className="flex flex-col items-center justify-center min-h-full px-4">
