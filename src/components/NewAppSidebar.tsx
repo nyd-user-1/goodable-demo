@@ -30,13 +30,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-const legislationItems = [
-  { title: "Bills", url: "/bills", icon: FileText },
-  { title: "Committees", url: "/committees", icon: Building2 },
-  { title: "Members", url: "/members", icon: Users },
-  { title: "Dashboard", url: "/dashboard", icon: TrendingUp },
-];
-
 const developmentItems = [
   { title: "Explore", url: "/home", icon: Home },
   { title: "The 100", url: "/problems", icon: Target },
@@ -165,43 +158,68 @@ export function NewAppSidebar() {
                 </TooltipContent>
               </Tooltip>
             </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <SidebarMenuButton asChild isActive={isActive("/bills")}>
+                    <NavLink to="/bills">
+                      <FileText />
+                      <span>Bills</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Bills</p>
+                </TooltipContent>
+              </Tooltip>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <SidebarMenuButton asChild isActive={isActive("/committees")}>
+                    <NavLink to="/committees">
+                      <Building2 />
+                      <span>Committees</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Committees</p>
+                </TooltipContent>
+              </Tooltip>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <SidebarMenuButton asChild isActive={isActive("/members")}>
+                    <NavLink to="/members">
+                      <Users />
+                      <span>Members</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Members</p>
+                </TooltipContent>
+              </Tooltip>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <SidebarMenuButton asChild isActive={isActive("/dashboard")}>
+                    <NavLink to="/dashboard">
+                      <TrendingUp />
+                      <span>Dashboard</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Dashboard</p>
+                </TooltipContent>
+              </Tooltip>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
-
-        {/* Legislation */}
-        <Collapsible defaultOpen className="group/collapsible">
-          <SidebarGroup>
-            <SidebarGroupLabel asChild>
-              <CollapsibleTrigger>
-                Legislation
-                <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
-              </CollapsibleTrigger>
-            </SidebarGroupLabel>
-            <CollapsibleContent>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {legislationItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                            <NavLink to={item.url}>
-                              <item.icon />
-                              <span>{item.title}</span>
-                            </NavLink>
-                          </SidebarMenuButton>
-                        </TooltipTrigger>
-                        <TooltipContent side="right">
-                          <p>{item.title}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </CollapsibleContent>
-          </SidebarGroup>
-        </Collapsible>
 
         {/* Your Chats */}
         {recentChats.length > 0 && (
