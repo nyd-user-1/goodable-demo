@@ -664,7 +664,7 @@ const NewChat = () => {
       <ChatHeader onNewChat={handleNewChat} />
 
       {/* Main Content Area - add top padding for fixed header */}
-      <div className="flex-1 overflow-y-auto pb-32 pt-16">
+      <div className="flex-1 overflow-y-auto pb-32 pt-14">
         {!chatStarted ? (
           /* Initial State - Prompt Cards */
           <div className="flex flex-col items-center justify-center min-h-full px-4">

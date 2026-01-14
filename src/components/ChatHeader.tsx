@@ -27,8 +27,8 @@ export function ChatHeader({ onNewChat }: ChatHeaderProps) {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 py-3 bg-background/80 backdrop-blur-sm border-b">
-      <div className="mx-auto max-w-7xl flex items-center justify-between">
+    <nav className="fixed top-0 left-0 right-0 z-50 p-2 bg-background/80 backdrop-blur-sm border-b">
+      <div className="flex items-center justify-between">
         {/* Left side - Logo with New Chat on hover */}
         <div
           className="flex items-center space-x-2 cursor-pointer group"
