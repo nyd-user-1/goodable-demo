@@ -14,7 +14,28 @@ import { useAuth } from "@/contexts/AuthContext";
 const CHAT_COUNT_KEY = 'betaAccessChatCount';
 const MODAL_SHOWN_KEY = 'betaAccessModalShown';
 const CHAT_BLOCKED_KEY = 'betaAccessChatBlocked';
+const SESSION_INITIALIZED_KEY = 'betaAccessSessionInit';
 const TRIGGER_COUNT = 2;
+
+// Reset all beta access state on page load (called once per page load)
+export const resetBetaAccessState = (): void => {
+  // Use a flag to track if we've already initialized this page load
+  // This prevents resetting during React re-renders but resets on actual page refresh
+  if (!window.__betaAccessInitialized) {
+    window.__betaAccessInitialized = true;
+    sessionStorage.removeItem(CHAT_COUNT_KEY);
+    sessionStorage.removeItem(MODAL_SHOWN_KEY);
+    sessionStorage.removeItem(CHAT_BLOCKED_KEY);
+    console.log('[BetaAccessModal] Reset state for new page load');
+  }
+};
+
+// Extend Window interface for our flag
+declare global {
+  interface Window {
+    __betaAccessInitialized?: boolean;
+  }
+}
 
 // Utility function to increment chat count - export for use in chat components
 export const incrementChatCount = (): number => {

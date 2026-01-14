@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from 'react-markdown';
 import { useModel } from "@/contexts/ModelContext";
 import { Textarea } from "@/components/ui/textarea";
-import { BetaAccessModal, incrementChatCount, isChatBlocked, triggerModalReopen } from "@/components/BetaAccessModal";
+import { BetaAccessModal, incrementChatCount, isChatBlocked, triggerModalReopen, resetBetaAccessState } from "@/components/BetaAccessModal";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +30,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
+// Reset beta access state on page load (before component renders)
+resetBetaAccessState();
 
 // Thinking phrases that rotate per message instance
 const thinkingPhrases = [
