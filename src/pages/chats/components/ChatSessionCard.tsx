@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Trash2, Heart } from "lucide-react";
+import { Trash2, Heart, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import { ChatSession } from "../types";
 import { ConversationView } from "./ConversationView";
 import { parseMessages } from "../utils/messageParser";
@@ -26,6 +27,7 @@ export const ChatSessionCard = ({
   const messages = parseMessages(session.messages);
   const messageCount = messages.length;
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Initialize favorites hook
   const { favoriteBillIds, toggleFavorite } = useFavorites();
@@ -96,14 +98,26 @@ export const ChatSessionCard = ({
               {chamberInfo && <span>{chamberInfo}</span>}
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onDelete(session.id)}
-            className="hover:bg-destructive hover:text-destructive-foreground"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(`/c/${session.id}`)}
+              className="hover:bg-accent"
+              title="Continue conversation"
+            >
+              <MessageSquare className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(session.id)}
+              className="hover:bg-destructive hover:text-destructive-foreground"
+              title="Delete chat"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </CardHeader>
 

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChatPersistence } from "@/hooks/useChatPersistence";
 import { Paperclip, ArrowUp, Square, Search as SearchIcon, FileText, Users, Building2, X } from "lucide-react";
@@ -103,6 +103,8 @@ const NewChat = () => {
   const { selectedModel } = useModel();
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { sessionId: routeSessionId } = useParams<{ sessionId: string }>();
   const { user } = useAuth();
   const {
     currentSessionId,
@@ -148,9 +150,11 @@ const NewChat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  // Load existing session from URL param (e.g., /new-chat?session=abc123)
+  // Load existing session from URL (e.g., /c/abc123 or /new-chat?session=abc123)
   useEffect(() => {
-    const sessionId = searchParams.get('session');
+    // Prefer route param (/c/:sessionId), fallback to query param (?session=)
+    const sessionId = routeSessionId || searchParams.get('session');
+    console.log('[NewChat] Session load check - sessionId:', sessionId, 'shouldPersist:', shouldPersist, 'currentSessionId:', currentSessionId);
     if (sessionId && shouldPersist && !currentSessionId) {
       loadSession(sessionId).then((sessionData) => {
         if (sessionData && sessionData.messages.length > 0) {
@@ -166,7 +170,7 @@ const NewChat = () => {
         }
       });
     }
-  }, [searchParams, shouldPersist, currentSessionId, loadSession]);
+  }, [routeSessionId, searchParams, shouldPersist, currentSessionId, loadSession]);
 
   // Handle new chat - reset all state
   const handleNewChat = () => {
@@ -481,6 +485,7 @@ const NewChat = () => {
 
     // Persistence: Create session on first message (authenticated only)
     let sessionId = currentSessionId;
+    console.log('[NewChat] Persistence check - shouldPersist:', shouldPersist, 'currentSessionId:', currentSessionId, 'user:', !!user);
     if (shouldPersist && !sessionId) {
       // Generate title from first user message (truncate to ~50 chars)
       const title = userQuery.length > 50
@@ -494,6 +499,11 @@ const NewChat = () => {
         timestamp: new Date().toISOString(),
       }]);
       console.log('[NewChat] Created new session:', sessionId);
+
+      // Update URL to include session ID (like ChatGPT's /c/id pattern)
+      if (sessionId) {
+        navigate(`/c/${sessionId}`, { replace: true });
+      }
     } else if (shouldPersist && sessionId) {
       // Update existing session with new user message
       const allMessages = [...messages, userMessage];
