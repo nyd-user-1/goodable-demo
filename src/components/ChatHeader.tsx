@@ -68,9 +68,9 @@ export function ChatHeader({ onNewChat }: ChatHeaderProps) {
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
-            className="hidden md:inline-flex items-center justify-center h-9 w-9"
+            className="hidden md:inline-flex items-center justify-center h-9 w-9 hover:bg-muted"
             onClick={() => {
               const event = new KeyboardEvent('keydown', {
                 key: 'k',
