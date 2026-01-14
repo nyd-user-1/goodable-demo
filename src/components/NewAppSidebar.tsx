@@ -38,7 +38,7 @@ const legislationItems = [
 const developmentItems = [
   { title: "Explore", url: "/home", icon: Home },
   { title: "The 100", url: "/problems", icon: Target },
-  { title: "Chats", url: "/chats", icon: MessageSquare },
+  { title: "Chat History", url: "/chats", icon: MessageSquare },
   { title: "Favorites", url: "/favorites", icon: Heart },
   { title: "Playground", url: "/playground", icon: Gamepad2, adminOnly: true },
   { title: "Lab", url: "/policy-portal", icon: Factory, adminOnly: true },

@@ -49,7 +49,7 @@ const Chats = () => {
     <div className="container mx-auto px-4 sm:px-6 py-6">
       <div className="space-y-6">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Chats</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Chat History</h1>
           <p className="text-muted-foreground">
             {totalChats === 0 
               ? "No saved chats yet" 
