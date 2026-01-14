@@ -1,6 +1,8 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { NavLink, useLocation, useParams } from "react-router-dom";
 import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, ChevronRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
   SidebarContent,
@@ -54,12 +56,41 @@ const adminItems = [
   { title: "Image System", url: "/image-system", icon: ImageIcon },
 ];
 
+interface ChatSession {
+  id: string;
+  title: string;
+  updated_at: string;
+}
+
 export function NewAppSidebar() {
   const location = useLocation();
-  const { isAdmin } = useAuth();
+  const { sessionId } = useParams<{ sessionId: string }>();
+  const { isAdmin, user } = useAuth();
   const { toggleSidebar } = useSidebar();
+  const [recentChats, setRecentChats] = useState<ChatSession[]>([]);
+
+  // Fetch recent chats for the sidebar
+  useEffect(() => {
+    const fetchRecentChats = async () => {
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("chat_sessions")
+        .select("id, title, updated_at")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false })
+        .limit(20);
+
+      if (!error && data) {
+        setRecentChats(data);
+      }
+    };
+
+    fetchRecentChats();
+  }, [user]);
 
   const isActive = (url: string) => location.pathname === url;
+  const isChatActive = (chatId: string) => location.pathname === `/c/${chatId}` || sessionId === chatId;
 
   const handleWhitespaceClick = (e: React.MouseEvent) => {
     // Only toggle if clicking on the whitespace itself, not on buttons or links
@@ -171,6 +202,39 @@ export function NewAppSidebar() {
             </CollapsibleContent>
           </SidebarGroup>
         </Collapsible>
+
+        {/* Your Chats */}
+        {recentChats.length > 0 && (
+          <Collapsible defaultOpen className="group/collapsible">
+            <SidebarGroup>
+              <SidebarGroupLabel asChild>
+                <CollapsibleTrigger>
+                  Your chats
+                  <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                </CollapsibleTrigger>
+              </SidebarGroupLabel>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {recentChats.map((chat) => (
+                      <SidebarMenuItem key={chat.id}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isChatActive(chat.id)}
+                          className="truncate"
+                        >
+                          <NavLink to={`/c/${chat.id}`}>
+                            <span className="truncate">{chat.title}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </SidebarGroup>
+          </Collapsible>
+        )}
 
       </SidebarContent>
 
