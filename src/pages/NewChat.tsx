@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useChatPersistence } from "@/hooks/useChatPersistence";
 import { Paperclip, ArrowUp, Square, Search as SearchIcon, FileText, Users, Building2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -100,9 +102,23 @@ const NewChat = () => {
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
   const { selectedModel } = useModel();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const { user } = useAuth();
+  const {
+    currentSessionId,
+    isSaving,
+    createSession,
+    updateMessages,
+    loadSession,
+    clearSession,
+    setCurrentSessionId,
+  } = useChatPersistence();
 
   // Only show ChatHeader on root page (public), not on /new-chat (authenticated)
   const isPublicPage = location.pathname === "/";
+
+  // Check if we should persist (authenticated users on /new-chat only)
+  const shouldPersist = !isPublicPage && !!user;
 
   // Selected items state
   const [selectedBills, setSelectedBills] = useState<BillCitation[]>([]);
@@ -132,6 +148,26 @@ const NewChat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
+  // Load existing session from URL param (e.g., /new-chat?session=abc123)
+  useEffect(() => {
+    const sessionId = searchParams.get('session');
+    if (sessionId && shouldPersist && !currentSessionId) {
+      loadSession(sessionId).then((sessionData) => {
+        if (sessionData && sessionData.messages.length > 0) {
+          // Convert persisted messages to our Message format
+          const loadedMessages: Message[] = sessionData.messages.map(msg => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+          }));
+          setMessages(loadedMessages);
+          setChatStarted(true);
+          console.log('[NewChat] Loaded session with', loadedMessages.length, 'messages');
+        }
+      });
+    }
+  }, [searchParams, shouldPersist, currentSessionId, loadSession]);
+
   // Handle new chat - reset all state
   const handleNewChat = () => {
     // Stop any ongoing streaming
@@ -153,6 +189,8 @@ const NewChat = () => {
     setSelectedMembers([]);
     setSelectedCommittees([]);
     setAttachedFiles([]);
+    // Clear persisted session so new messages create a new session
+    clearSession();
   };
 
   // Stop streaming function
@@ -441,6 +479,33 @@ const NewChat = () => {
     setAttachedFiles([]);
     setIsTyping(true);
 
+    // Persistence: Create session on first message (authenticated only)
+    let sessionId = currentSessionId;
+    if (shouldPersist && !sessionId) {
+      // Generate title from first user message (truncate to ~50 chars)
+      const title = userQuery.length > 50
+        ? userQuery.substring(0, 50) + '...'
+        : userQuery;
+
+      sessionId = await createSession(title, [{
+        id: userMessage.id,
+        role: userMessage.role,
+        content: userMessage.content,
+        timestamp: new Date().toISOString(),
+      }]);
+      console.log('[NewChat] Created new session:', sessionId);
+    } else if (shouldPersist && sessionId) {
+      // Update existing session with new user message
+      const allMessages = [...messages, userMessage];
+      const persistedMessages = allMessages.map(m => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        timestamp: new Date().toISOString(),
+      }));
+      await updateMessages(sessionId, persistedMessages);
+    }
+
     // INSTANT FEEDBACK: Create and show assistant message immediately (0ms delay)
     const messageId = `assistant-${Date.now()}`;
     const streamingMessage: Message = {
@@ -642,6 +707,24 @@ const NewChat = () => {
       setIsTyping(false);
       abortControllerRef.current = null;
       readerRef.current = null;
+
+      // Persistence: Save assistant response (authenticated only)
+      if (shouldPersist && sessionId && aiResponse) {
+        // Get all messages including the new assistant response
+        const allMessages = [...messages, userMessage, {
+          id: messageId,
+          role: "assistant" as const,
+          content: aiResponse,
+        }];
+        const persistedMessages = allMessages.map(m => ({
+          id: m.id,
+          role: m.role,
+          content: m.content,
+          timestamp: new Date().toISOString(),
+        }));
+        await updateMessages(sessionId, persistedMessages);
+        console.log('[NewChat] Saved assistant response to session:', sessionId);
+      }
 
     } catch (error: any) {
       console.error('Error generating response:', error);
