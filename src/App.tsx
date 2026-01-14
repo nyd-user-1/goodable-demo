@@ -72,7 +72,7 @@ const AppLayout = () => {
               <Routes>
               <Route path="/home" element={<Home />} />
               <Route path="/home-2" element={<Home2 />} />
-              {/* <Route path="/new-chat" element={<NewChat />} /> */}
+              <Route path="/new-chat" element={<NewChat />} />
               <Route path="/new-chat-2" element={<NewChat2 />} />
               <Route path="/chats" element={<Chats />} />
               <Route path="/favorites" element={<Favorites />} />
