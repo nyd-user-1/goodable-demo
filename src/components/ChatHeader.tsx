@@ -78,7 +78,7 @@ export function ChatHeader({ onNewChat }: ChatHeaderProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                className="hidden md:inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                className="hidden md:inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 onClick={() => {
                   const event = new KeyboardEvent('keydown', {
                     key: 'k',
@@ -97,7 +97,7 @@ export function ChatHeader({ onNewChat }: ChatHeaderProps) {
             </TooltipContent>
           </Tooltip>
           <button
-            className="inline-flex items-center justify-center h-9 rounded-md px-3 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors font-medium"
+            className="inline-flex items-center justify-center h-9 rounded-md px-3 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-medium"
             onClick={() => navigate('/auth')}
           >
             Log In
