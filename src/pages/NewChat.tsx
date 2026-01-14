@@ -9,6 +9,7 @@ import ReactMarkdown from 'react-markdown';
 import { useModel } from "@/contexts/ModelContext";
 import { Textarea } from "@/components/ui/textarea";
 import { BetaAccessModal, incrementChatCount, isChatBlocked, triggerModalReopen } from "@/components/BetaAccessModal";
+import { ChatHeader } from "@/components/ChatHeader";
 import {
   Dialog,
   DialogContent,
@@ -125,6 +126,29 @@ const NewChat = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
+
+  // Handle new chat - reset all state
+  const handleNewChat = () => {
+    // Stop any ongoing streaming
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    if (readerRef.current) {
+      readerRef.current.cancel();
+      readerRef.current = null;
+    }
+    // Reset chat state
+    setMessages([]);
+    setQuery("");
+    setChatStarted(false);
+    setIsTyping(false);
+    // Reset selected items
+    setSelectedBills([]);
+    setSelectedMembers([]);
+    setSelectedCommittees([]);
+    setAttachedFiles([]);
+  };
 
   // Stop streaming function
   const stopStream = () => {
@@ -636,8 +660,11 @@ const NewChat = () => {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto pb-32">
+      {/* Header */}
+      <ChatHeader onNewChat={handleNewChat} />
+
+      {/* Main Content Area - add top padding for fixed header */}
+      <div className="flex-1 overflow-y-auto pb-32 pt-16">
         {!chatStarted ? (
           /* Initial State - Prompt Cards */
           <div className="flex flex-col items-center justify-center min-h-full px-4">
