@@ -37,6 +37,11 @@ export const isChatBlocked = (): boolean => {
   return sessionStorage.getItem(CHAT_BLOCKED_KEY) === 'true';
 };
 
+// Trigger the modal to reopen (for when user tries to chat while blocked)
+export const triggerModalReopen = (): void => {
+  window.dispatchEvent(new CustomEvent('betaModalReopen'));
+};
+
 interface BetaAccessModalProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -72,11 +77,19 @@ export function BetaAccessModal({ open, onOpenChange }: BetaAccessModalProps) {
       checkAndShowModal(event.detail);
     };
 
+    // Listen for modal reopen requests (when user tries to chat while blocked)
+    const handleModalReopen = () => {
+      console.log('[BetaAccessModal] Received reopen request');
+      setIsOpen(true);
+    };
+
     window.addEventListener('chatCountUpdated', handleChatCountUpdate as EventListener);
+    window.addEventListener('betaModalReopen', handleModalReopen);
 
     return () => {
       console.log('[BetaAccessModal] Component unmounting, removing event listener');
       window.removeEventListener('chatCountUpdated', handleChatCountUpdate as EventListener);
+      window.removeEventListener('betaModalReopen', handleModalReopen);
     };
   }, [checkAndShowModal]);
 

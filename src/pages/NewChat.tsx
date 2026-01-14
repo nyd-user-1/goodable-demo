@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from 'react-markdown';
 import { useModel } from "@/contexts/ModelContext";
 import { Textarea } from "@/components/ui/textarea";
-import { BetaAccessModal, incrementChatCount, isChatBlocked } from "@/components/BetaAccessModal";
+import { BetaAccessModal, incrementChatCount, isChatBlocked, triggerModalReopen } from "@/components/BetaAccessModal";
 import {
   Dialog,
   DialogContent,
@@ -331,9 +331,10 @@ const NewChat = () => {
   const handleSubmit = async (e: React.FormEvent | null, promptText?: string) => {
     if (e) e.preventDefault();
 
-    // Block chat input if modal is active
+    // Block chat input if modal is active - show modal again
     if (isChatBlocked()) {
-      console.log('[NewChat] Chat is blocked - modal is active');
+      console.log('[NewChat] Chat is blocked - reopening modal');
+      triggerModalReopen();
       return;
     }
 
