@@ -38,7 +38,6 @@ const legislationItems = [
 const developmentItems = [
   { title: "Explore", url: "/home", icon: Home },
   { title: "The 100", url: "/problems", icon: Target },
-  { title: "Favorites", url: "/favorites", icon: Heart },
   { title: "Playground", url: "/playground", icon: Gamepad2, adminOnly: true },
   { title: "Lab", url: "/policy-portal", icon: Factory, adminOnly: true },
 ];
@@ -117,6 +116,21 @@ export function NewAppSidebar() {
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p>Chat History</p>
+                </TooltipContent>
+              </Tooltip>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <SidebarMenuButton asChild isActive={isActive("/favorites")}>
+                    <NavLink to="/favorites">
+                      <Heart />
+                      <span>Favorites</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Favorites</p>
                 </TooltipContent>
               </Tooltip>
             </SidebarMenuItem>
