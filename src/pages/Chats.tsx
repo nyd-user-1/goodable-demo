@@ -14,23 +14,21 @@ const Chats = () => {
     return <ChatsLoadingSkeleton />;
   }
 
-  // Categorize chat sessions based on their titles and content
-  const billChats = chatSessions.filter(session => 
-    session.bill_id || 
-    session.title.toLowerCase().includes('analysis:') ||
-    session.title.toLowerCase().includes('bill')
+  // Categorize chat sessions based on their entity associations (bill_id, member_id, committee_id)
+  // Only use ID-based categorization to avoid false positives from keyword matching
+  const billChats = chatSessions.filter(session =>
+    session.bill_id ||
+    session.title.toLowerCase().startsWith('analysis:')
   );
 
-  const memberChats = chatSessions.filter(session => 
-    session.member_id || 
-    session.title.toLowerCase().includes('member:') ||
-    session.title.toLowerCase().includes('member ')
+  const memberChats = chatSessions.filter(session =>
+    session.member_id ||
+    session.title.toLowerCase().startsWith('member:')
   );
 
-  const committeeChats = chatSessions.filter(session => 
-    session.committee_id || 
-    session.title.toLowerCase().includes('committee:') ||
-    session.title.toLowerCase().includes('committee ')
+  const committeeChats = chatSessions.filter(session =>
+    session.committee_id ||
+    session.title.toLowerCase().startsWith('committee:')
   );
 
   // Get remaining chats that don't fit into the above categories
