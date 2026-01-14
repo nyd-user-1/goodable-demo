@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 // Constants for chat tracking
 const CHAT_COUNT_KEY = 'betaAccessChatCount';
 const MODAL_SHOWN_KEY = 'betaAccessModalShown';
+const CHAT_BLOCKED_KEY = 'betaAccessChatBlocked';
 const TRIGGER_COUNT = 2;
 
 // Utility function to increment chat count - export for use in chat components
@@ -29,6 +30,11 @@ export const incrementChatCount = (): number => {
 // Utility to get current chat count
 export const getChatCount = (): number => {
   return parseInt(sessionStorage.getItem(CHAT_COUNT_KEY) || '0', 10);
+};
+
+// Check if chat input should be blocked (modal is active)
+export const isChatBlocked = (): boolean => {
+  return sessionStorage.getItem(CHAT_BLOCKED_KEY) === 'true';
 };
 
 interface BetaAccessModalProps {
@@ -49,6 +55,8 @@ export function BetaAccessModal({ open, onOpenChange }: BetaAccessModalProps) {
       console.log('[BetaAccessModal] Showing modal!');
       setIsOpen(true);
       sessionStorage.setItem(MODAL_SHOWN_KEY, 'true');
+      // Block further chat input until user makes a choice
+      sessionStorage.setItem(CHAT_BLOCKED_KEY, 'true');
     }
   }, [isAdmin]);
 
@@ -77,17 +85,14 @@ export function BetaAccessModal({ open, onOpenChange }: BetaAccessModalProps) {
     onOpenChange?.(newOpen);
   };
 
-  const handleJoinWaitlist = () => {
+  const handleJoinMovement = () => {
     handleOpenChange(false);
-    // Scroll to waitlist section smoothly
-    const waitlistSection = document.getElementById('waitlist');
-    if (waitlistSection) {
-      waitlistSection.scrollIntoView({ behavior: 'smooth' });
-    }
+    navigate("/auth-2");
   };
 
-  const handleClose = () => {
+  const handleExploreVision = () => {
     handleOpenChange(false);
+    navigate("/marketing");
   };
 
   return (
@@ -114,16 +119,16 @@ export function BetaAccessModal({ open, onOpenChange }: BetaAccessModalProps) {
         </DialogHeader>
         
         <div className="flex flex-col gap-3 pt-4">
-          <Button 
-            onClick={handleJoinWaitlist}
+          <Button
+            onClick={handleJoinMovement}
             size="lg"
             className="w-full"
           >
-            Join the Waitlist
+            Join the movement.
           </Button>
-          
-          <Button 
-            onClick={handleClose}
+
+          <Button
+            onClick={handleExploreVision}
             variant="ghost"
             size="lg"
             className="w-full border border-border"
