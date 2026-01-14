@@ -71,7 +71,7 @@ const AppLayout = () => {
               <Routes>
               <Route path="/home" element={<Home />} />
               <Route path="/home-2" element={<Home2 />} />
-              <Route path="/new-chat" element={<NewChat />} />
+              {/* <Route path="/new-chat" element={<NewChat />} /> */}
               <Route path="/new-chat-2" element={<NewChat2 />} />
               <Route path="/chats" element={<Chats />} />
               <Route path="/favorites" element={<Favorites />} />
@@ -129,8 +129,8 @@ const App = () => {
               <CommandPalette />
               <PageTransition>
                 <Routes>
-                  <Route path="/" element={<LandingPageWaitlist />} />
-                  <Route path="/alt" element={<Landing />} />
+            <Route path="/" element={<NewChat />} />                  <Route path="/alt" element={<Landing />} />
+                              <Route path="/marketing" element={<LandingPageWaitlist />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/auth-2" element={<Auth2 />} />
                   <Route path="/problems/:problemSlug" element={<ProblemPage />} />
