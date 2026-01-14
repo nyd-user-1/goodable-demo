@@ -67,10 +67,8 @@ export function ChatHeader({ onNewChat }: ChatHeaderProps) {
         {/* Right side - Controls */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hidden md:inline-flex items-center justify-center h-9 w-9 hover:bg-muted"
+          <button
+            className="hidden md:inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             onClick={() => {
               const event = new KeyboardEvent('keydown', {
                 key: 'k',
@@ -82,13 +80,13 @@ export function ChatHeader({ onNewChat }: ChatHeaderProps) {
             }}
           >
             <Command className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
+          </button>
+          <button
+            className="inline-flex items-center justify-center h-9 rounded-md px-3 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             onClick={() => navigate('/auth')}
           >
             Log In
-          </Button>
+          </button>
           <Button
             onClick={() => navigate('/auth-2')}
           >
