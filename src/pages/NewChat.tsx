@@ -383,6 +383,7 @@ const NewChat = () => {
     if (!userQuery) return;
 
     // Track chat input for beta access modal
+    console.log('[NewChat] Calling incrementChatCount');
     incrementChatCount();
 
     // Start chat interface

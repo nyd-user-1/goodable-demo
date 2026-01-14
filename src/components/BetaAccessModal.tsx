@@ -20,6 +20,7 @@ export const incrementChatCount = (): number => {
   const currentCount = parseInt(sessionStorage.getItem(CHAT_COUNT_KEY) || '0', 10);
   const newCount = currentCount + 1;
   sessionStorage.setItem(CHAT_COUNT_KEY, newCount.toString());
+  console.log('[BetaAccessModal] Chat count incremented to:', newCount);
   // Dispatch custom event so modal can listen for changes
   window.dispatchEvent(new CustomEvent('chatCountUpdated', { detail: newCount }));
   return newCount;
@@ -42,26 +43,31 @@ export function BetaAccessModal({ open, onOpenChange }: BetaAccessModalProps) {
 
   const checkAndShowModal = useCallback((count: number) => {
     const hasShownModal = sessionStorage.getItem(MODAL_SHOWN_KEY);
+    console.log('[BetaAccessModal] checkAndShowModal called:', { count, hasShownModal, isAdmin, TRIGGER_COUNT });
 
     if (!hasShownModal && !isAdmin && count >= TRIGGER_COUNT) {
+      console.log('[BetaAccessModal] Showing modal!');
       setIsOpen(true);
       sessionStorage.setItem(MODAL_SHOWN_KEY, 'true');
     }
   }, [isAdmin]);
 
   useEffect(() => {
+    console.log('[BetaAccessModal] Component mounted, setting up event listener');
     // Check initial count on mount (in case user already sent messages)
     const initialCount = getChatCount();
     checkAndShowModal(initialCount);
 
     // Listen for chat count updates
     const handleChatCountUpdate = (event: CustomEvent<number>) => {
+      console.log('[BetaAccessModal] Received chatCountUpdated event:', event.detail);
       checkAndShowModal(event.detail);
     };
 
     window.addEventListener('chatCountUpdated', handleChatCountUpdate as EventListener);
 
     return () => {
+      console.log('[BetaAccessModal] Component unmounting, removing event listener');
       window.removeEventListener('chatCountUpdated', handleChatCountUpdate as EventListener);
     };
   }, [checkAndShowModal]);
