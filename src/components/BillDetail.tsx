@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, User } from "lucide-react";
+import { ArrowLeft, User, ThumbsUp, ThumbsDown, Minus, StickyNote, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
-import { BillSummary, BillKeyInformation, BillText } from "./features/bills";
+import { BillSummary, BillKeyInformation, BillText, BillPDFSheet } from "./features/bills";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useBillReviews } from "@/hooks/useBillReviews";
 
@@ -30,6 +31,7 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
   const [rollCalls, setRollCalls] = useState<(RollCall & { votes?: (Vote & { person?: Person })[] })[]>([]);
   const [loading, setLoading] = useState(true);
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
+  const [pdfSheetOpen, setPdfSheetOpen] = useState(false);
 
   const { favoriteBillIds, toggleFavorite } = useFavorites();
   const { getReviewForBill } = useBillReviews();
@@ -182,6 +184,61 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
             reviewStatus={billReview?.review_status}
             reviewNote={billReview?.note}
           />
+
+          {/* Your Review Section - Only shown when review exists */}
+          {(billReview?.review_status || billReview?.note) && (
+            <Card className="bg-card rounded-xl shadow-sm border">
+              <CardHeader className="px-6 py-4 border-b">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <StickyNote className="h-5 w-5 text-yellow-600" />
+                    Your Review
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPdfSheetOpen(true)}
+                    className="gap-2"
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Edit Review
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  {billReview?.review_status && (
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-muted-foreground">Status:</span>
+                      <Badge
+                        variant="outline"
+                        className={`gap-1 ${
+                          billReview.review_status === 'support'
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                            : billReview.review_status === 'oppose'
+                            ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                            : 'bg-gray-100 text-gray-700 dark:bg-gray-800/50 dark:text-gray-400'
+                        }`}
+                      >
+                        {billReview.review_status === 'support' && <ThumbsUp className="h-3 w-3" />}
+                        {billReview.review_status === 'oppose' && <ThumbsDown className="h-3 w-3" />}
+                        {billReview.review_status === 'neutral' && <Minus className="h-3 w-3" />}
+                        {billReview.review_status.charAt(0).toUpperCase() + billReview.review_status.slice(1)}
+                      </Badge>
+                    </div>
+                  )}
+                  {billReview?.note && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground block mb-2">Notes:</span>
+                      <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-wrap">
+                        {billReview.note}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Bill Tabs Section */}
           <section>
@@ -501,6 +558,15 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
           </section>
         </div>
       </div>
+
+      {/* PDF Sheet for editing reviews */}
+      <BillPDFSheet
+        isOpen={pdfSheetOpen}
+        onClose={() => setPdfSheetOpen(false)}
+        billNumber={bill.bill_number || ''}
+        billTitle={bill.title || ''}
+        bill={bill}
+      />
     </div>
   );
 };

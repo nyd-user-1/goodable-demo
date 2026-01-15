@@ -8,3 +8,4 @@ export { BillsErrorState } from './BillsErrorState';
 export { BillSummary } from './BillSummary';
 export { BillKeyInformation } from './BillKeyInformation';
 export { BillText } from './BillText';
+export { BillPDFSheet } from './BillPDFSheet';

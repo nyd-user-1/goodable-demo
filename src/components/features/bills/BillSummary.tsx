@@ -7,6 +7,12 @@ import { Tables } from "@/integrations/supabase/types";
 import { generateMemberSlug } from "@/utils/memberSlug";
 import { ThumbsUp, ThumbsDown, Minus, StickyNote } from "lucide-react";
 import { ReviewStatus } from "@/hooks/useBillReviews";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type Bill = Tables<"Bills">;
 type Sponsor = Tables<"Sponsors"> & {
@@ -126,10 +132,19 @@ export const BillSummary = ({
               </CardTitle>
               {getReviewBadge()}
               {reviewNote && (
-                <Badge variant="outline" className="gap-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
-                  <StickyNote className="h-3 w-3" />
-                  Has Note
-                </Badge>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge variant="outline" className="gap-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 cursor-pointer">
+                        <StickyNote className="h-3 w-3" />
+                        Has Note
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-[300px]">
+                      <p className="text-sm whitespace-pre-wrap">{reviewNote}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
           </div>
