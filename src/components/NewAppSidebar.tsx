@@ -101,9 +101,13 @@ export function NewAppSidebar() {
             <TooltipTrigger asChild>
               <button
                 onClick={isCollapsed ? toggleSidebar : undefined}
-                className={`flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground ${isCollapsed ? 'cursor-pointer hover:opacity-80' : ''}`}
+                className={`flex items-center justify-center ${
+                  isCollapsed
+                    ? 'cursor-pointer hover:opacity-70'
+                    : 'aspect-square size-8 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground'
+                }`}
               >
-                <span className="text-lg font-bold">G</span>
+                <span className={`font-bold ${isCollapsed ? 'text-xl text-foreground' : 'text-lg'}`}>G</span>
               </button>
             </TooltipTrigger>
             {isCollapsed && (
