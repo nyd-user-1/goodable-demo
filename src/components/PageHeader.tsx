@@ -12,15 +12,17 @@ import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Routes where the model selector should be hidden
-const HIDDEN_ROUTES = ["/plans", "/dashboard", "/chats"];
+const HIDDEN_ROUTES = ["/plans", "/dashboard", "/chats", "/bills"];
 
 export function PageHeader() {
   const location = useLocation();
   const { selectedModel, setSelectedModel } = useModel();
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // Hide model selector on certain routes
-  const hideModelSelector = HIDDEN_ROUTES.includes(location.pathname);
+  // Hide model selector on certain routes (including sub-routes)
+  const hideModelSelector = HIDDEN_ROUTES.some(route =>
+    location.pathname === route || location.pathname.startsWith(route + '/')
+  );
 
   useEffect(() => {
     const handleScroll = () => {
