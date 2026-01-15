@@ -126,20 +126,20 @@ export function EmailLetterSheet({
   const primarySponsor = sponsors.find(s => s.position === 1);
   const coSponsors = sponsors.filter(s => s.position > 1 && s.person?.email);
 
-  // Generate mailto link
+  // Generate mailto link (using encodeURIComponent to avoid + for spaces)
   const generateMailtoLink = () => {
     const to = primarySponsor?.person?.email || "";
     const cc = ccCoSponsors
       ? coSponsors.map(s => s.person?.email).filter(Boolean).join(",")
       : "";
 
-    const mailtoParams = new URLSearchParams();
-    if (cc) mailtoParams.set("cc", cc);
-    mailtoParams.set("subject", subject);
-    mailtoParams.set("body", letterBody);
+    const params: string[] = [];
+    if (cc) params.push(`cc=${encodeURIComponent(cc)}`);
+    params.push(`subject=${encodeURIComponent(subject)}`);
+    params.push(`body=${encodeURIComponent(letterBody)}`);
 
-    const queryString = mailtoParams.toString();
-    return `mailto:${to}${queryString ? `?${queryString}` : ""}`;
+    const queryString = params.join("&");
+    return `mailto:${to}?${queryString}`;
   };
 
   const handleOpenEmailClient = () => {
