@@ -40,6 +40,7 @@ interface CitationTabsNewProps {
   relatedBills?: BillCitation[];
   onCitationClick?: (citationNumber: number) => void;
   isStreaming?: boolean;
+  onSendMessage?: (message: string) => void;
 }
 
 export function CitationTabsNew({
@@ -48,7 +49,8 @@ export function CitationTabsNew({
   sources,
   relatedBills = [],
   onCitationClick,
-  isStreaming = false
+  isStreaming = false,
+  onSendMessage
 }: CitationTabsNewProps) {
   const hasBills = bills && bills.length > 0;
   const hasSources = sources && sources.length > 0;
@@ -60,8 +62,6 @@ export function CitationTabsNew({
   const [selectedBillTitle, setSelectedBillTitle] = useState<string>("");
   const [showCitations, setShowCitations] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [thumbsUpActive, setThumbsUpActive] = useState(false);
-  const [thumbsDownActive, setThumbsDownActive] = useState(false);
   const accordionRef = useRef<HTMLDivElement>(null);
 
   const handlePDFView = (billNumber: string, billTitle: string, e: React.MouseEvent) => {
@@ -123,26 +123,18 @@ export function CitationTabsNew({
     });
   };
 
-  const handleThumbsUp = () => {
-    setThumbsUpActive(!thumbsUpActive);
-    setThumbsDownActive(false);
-
-    toast({
-      title: thumbsUpActive ? "Feedback removed" : "Thanks for your feedback!",
-      description: thumbsUpActive ? "" : "Marked as helpful response",
-    });
-    // TODO: Send feedback to backend
+  const handleSupportLetter = () => {
+    if (onSendMessage && hasBills) {
+      const billNumber = bills[0].bill_number;
+      onSendMessage(`Can you help me write a letter in support of ${billNumber}?`);
+    }
   };
 
-  const handleThumbsDown = () => {
-    setThumbsDownActive(!thumbsDownActive);
-    setThumbsUpActive(false);
-
-    toast({
-      title: thumbsDownActive ? "Feedback removed" : "Thanks for your feedback!",
-      description: thumbsDownActive ? "" : "Marked as not helpful",
-    });
-    // TODO: Send feedback to backend
+  const handleOppositionLetter = () => {
+    if (onSendMessage && hasBills) {
+      const billNumber = bills[0].bill_number;
+      onSendMessage(`Can you help me write a letter opposing ${billNumber}?`);
+    }
   };
 
   // Auto-scroll to accordion when Citations is toggled on
@@ -216,41 +208,37 @@ export function CitationTabsNew({
           )}
 
           <div className="ml-auto flex items-center gap-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={`h-8 w-8 hover:bg-muted ${
-                    thumbsUpActive
-                      ? "text-green-600 hover:text-green-700"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  onClick={handleThumbsUp}
-                >
-                  <ThumbsUp className={`h-4 w-4 ${thumbsUpActive ? "fill-current" : ""}`} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Good response</TooltipContent>
-            </Tooltip>
+            {hasBills && onSendMessage && (
+              <>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 hover:bg-muted text-muted-foreground hover:text-green-600"
+                      onClick={handleSupportLetter}
+                    >
+                      <ThumbsUp className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Write support letter</TooltipContent>
+                </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={`h-8 w-8 hover:bg-muted ${
-                    thumbsDownActive
-                      ? "text-red-600 hover:text-red-700"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  onClick={handleThumbsDown}
-                >
-                  <ThumbsDown className={`h-4 w-4 ${thumbsDownActive ? "fill-current" : ""}`} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Bad response</TooltipContent>
-            </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 hover:bg-muted text-muted-foreground hover:text-red-600"
+                      onClick={handleOppositionLetter}
+                    >
+                      <ThumbsDown className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Write opposition letter</TooltipContent>
+                </Tooltip>
+              </>
+            )}
 
             <Tooltip>
               <TooltipTrigger asChild>
