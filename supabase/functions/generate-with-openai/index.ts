@@ -399,6 +399,21 @@ function formatGoodableBillsForContext(bills: any[]) {
   return contextText;
 }
 
+// Format conversation history for OpenAI messages array
+// This helper can be reused across OpenAI, Claude, and Perplexity edge functions
+function formatConversationHistory(previousMessages: any[]): { role: string; content: string }[] {
+  if (!previousMessages || !Array.isArray(previousMessages) || previousMessages.length === 0) {
+    return [];
+  }
+
+  return previousMessages
+    .filter(msg => msg && msg.role && msg.content)
+    .map(msg => ({
+      role: msg.role === 'user' ? 'user' : 'assistant',
+      content: msg.content
+    }));
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -516,6 +531,23 @@ Member Count: ${entityContext.committee.member_count || 'Unknown'}`;
       `${prompt}\n\n[IMPORTANT: Use the comprehensive legislative database information provided in your system context to give specific, detailed answers with exact bill numbers, names, and current information. You have access to the complete Goodable database containing all NYS bills, plus live NYS API data.]` :
       prompt;
 
+    // Build conversation history from previous messages
+    // The frontend sends previousMessages in context.previousMessages
+    const conversationHistory = formatConversationHistory(context?.previousMessages || []);
+    console.log(`Including ${conversationHistory.length} previous messages for context`);
+
+    // Build the complete messages array with conversation history
+    const messages = [
+      {
+        role: 'system',
+        content: systemPrompt
+      },
+      // Include previous conversation for context (if any)
+      ...conversationHistory,
+      // Current user message
+      { role: 'user', content: enhancedPrompt }
+    ];
+
     // Call OpenAI API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -525,13 +557,7 @@ Member Count: ${entityContext.committee.member_count || 'Unknown'}`;
       },
       body: JSON.stringify({
         model: model,
-        messages: [
-          {
-            role: 'system',
-            content: systemPrompt
-          },
-          { role: 'user', content: enhancedPrompt }
-        ],
+        messages: messages,
         temperature: 0.7,
         max_tokens: 2000,
         stream: stream,
