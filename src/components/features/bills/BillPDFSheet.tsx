@@ -13,6 +13,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Tables } from "@/integrations/supabase/types";
 import { useBillReviews, ReviewStatus } from "@/hooks/useBillReviews";
+import { useToast } from "@/hooks/use-toast";
 
 type Bill = Tables<"Bills">;
 
@@ -43,10 +44,19 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
   const [sheetWidth, setSheetWidth] = useState(900);
   const [isResizing, setIsResizing] = useState(false);
   const resizeRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   // Bill reviews hook
   const { getReviewForBill, setReviewStatus, saveReview } = useBillReviews();
   const currentReview = bill?.bill_id ? getReviewForBill(bill.bill_id) : undefined;
+
+  // Debug: Log bill data when sheet opens
+  useEffect(() => {
+    if (isOpen) {
+      console.log('BillPDFSheet opened with bill:', bill);
+      console.log('Bill ID:', bill?.bill_id);
+    }
+  }, [isOpen, bill]);
 
   // Initialize note and status from existing review when dialog opens
   useEffect(() => {
@@ -103,17 +113,28 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
   };
 
   const handleQuickReview = (action: 'support' | 'oppose' | 'neutral' | 'note') => {
+    console.log('handleQuickReview called with action:', action, 'bill:', bill);
+
     if (action === 'note') {
       setQuickReviewOpen(false);
       setNoteDialogOpen(true);
-    } else {
-      if (bill?.bill_id) {
-        setReviewStatus(bill.bill_id, action);
-      } else {
-        console.warn('Quick Review: bill_id not available yet');
-      }
-      setQuickReviewOpen(false);
+      return;
     }
+
+    if (!bill?.bill_id) {
+      console.warn('Quick Review: bill_id not available');
+      toast({
+        title: "Unable to save review",
+        description: "Bill data is still loading. Please try again.",
+        variant: "destructive",
+      });
+      setQuickReviewOpen(false);
+      return;
+    }
+
+    // Save the review
+    setReviewStatus(bill.bill_id, action);
+    setQuickReviewOpen(false);
   };
 
   const handleSaveNote = () => {
@@ -178,54 +199,50 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
               </PopoverTrigger>
               <PopoverContent side="bottom" align="end" className="w-auto p-2 z-[100]">
                 <div className="flex flex-col gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="justify-start gap-2 hover:bg-muted w-full"
+                  <button
+                    type="button"
+                    className="flex items-center justify-start gap-2 hover:bg-muted w-full px-3 py-2 rounded-md text-sm cursor-pointer transition-colors"
                     onClick={() => handleQuickReview('support')}
                   >
                     <ThumbsUp className="h-4 w-4 text-green-600" />
-                    Support
+                    <span>Support</span>
                     {currentReview?.review_status === 'support' && (
                       <Check className="h-4 w-4 ml-auto text-green-600" />
                     )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="justify-start gap-2 hover:bg-muted w-full"
+                  </button>
+                  <button
+                    type="button"
+                    className="flex items-center justify-start gap-2 hover:bg-muted w-full px-3 py-2 rounded-md text-sm cursor-pointer transition-colors"
                     onClick={() => handleQuickReview('oppose')}
                   >
                     <ThumbsDown className="h-4 w-4 text-red-600" />
-                    Oppose
+                    <span>Oppose</span>
                     {currentReview?.review_status === 'oppose' && (
                       <Check className="h-4 w-4 ml-auto text-red-600" />
                     )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="justify-start gap-2 hover:bg-muted w-full"
+                  </button>
+                  <button
+                    type="button"
+                    className="flex items-center justify-start gap-2 hover:bg-muted w-full px-3 py-2 rounded-md text-sm cursor-pointer transition-colors"
                     onClick={() => handleQuickReview('neutral')}
                   >
                     <Minus className="h-4 w-4 text-gray-600" />
-                    Neutral
+                    <span>Neutral</span>
                     {currentReview?.review_status === 'neutral' && (
                       <Check className="h-4 w-4 ml-auto text-gray-600" />
                     )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="justify-start gap-2 hover:bg-muted w-full"
+                  </button>
+                  <button
+                    type="button"
+                    className="flex items-center justify-start gap-2 hover:bg-muted w-full px-3 py-2 rounded-md text-sm cursor-pointer transition-colors"
                     onClick={() => handleQuickReview('note')}
                   >
                     <StickyNote className="h-4 w-4 text-yellow-600" />
-                    {currentReview?.note ? 'Edit Note' : 'Add Note'}
+                    <span>{currentReview?.note ? 'Edit Note' : 'Add Note'}</span>
                     {currentReview?.note && (
                       <Check className="h-4 w-4 ml-auto text-yellow-600" />
                     )}
-                  </Button>
+                  </button>
                 </div>
               </PopoverContent>
             </Popover>
