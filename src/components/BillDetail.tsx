@@ -6,11 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, User, ThumbsUp, ThumbsDown, Minus, StickyNote, Pencil, X } from "lucide-react";
+import { ArrowLeft, User, StickyNote, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
-import { BillSummary, BillKeyInformation, BillText } from "./features/bills";
+import { BillSummary, BillKeyInformation, BillText, QuickReviewNoteDialog } from "./features/bills";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useBillReviews, ReviewStatus } from "@/hooks/useBillReviews";
 
@@ -33,29 +32,15 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
   const [loading, setLoading] = useState(true);
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
-  const [noteText, setNoteText] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<ReviewStatus>(null);
 
   const { favoriteBillIds, toggleFavorite } = useFavorites();
   const { getReviewForBill, saveReview } = useBillReviews();
   const billReview = getReviewForBill(bill.bill_id);
 
-  // Initialize note dialog with current review data
-  useEffect(() => {
-    if (noteDialogOpen && billReview) {
-      setNoteText(billReview.note || '');
-      setSelectedStatus(billReview.review_status);
-    } else if (noteDialogOpen) {
-      setNoteText('');
-      setSelectedStatus(null);
-    }
-  }, [noteDialogOpen, billReview]);
-
-  const handleSaveNote = () => {
+  const handleSaveReview = (status: ReviewStatus, note: string) => {
     if (bill?.bill_id) {
-      saveReview(bill.bill_id, selectedStatus, noteText);
+      saveReview(bill.bill_id, status, note);
     }
-    setNoteDialogOpen(false);
   };
 
   useEffect(() => {
@@ -554,75 +539,13 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
       </div>
 
       {/* Quick Review Note Dialog */}
-      {noteDialogOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-start justify-center pt-20"
-          onClick={() => setNoteDialogOpen(false)}
-        >
-          <div
-            className="bg-background border rounded-lg shadow-lg sm:max-w-[525px] w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Quick Review Note</h2>
-                <button
-                  onClick={() => setNoteDialogOpen(false)}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              <div className="flex gap-2">
-                <Button
-                  variant={selectedStatus === 'support' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedStatus('support')}
-                  className={selectedStatus === 'support' ? 'bg-green-600 hover:bg-green-700' : ''}
-                >
-                  <ThumbsUp className="h-3 w-3 mr-1" />
-                  Support
-                </Button>
-                <Button
-                  variant={selectedStatus === 'oppose' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedStatus('oppose')}
-                  className={selectedStatus === 'oppose' ? 'bg-red-600 hover:bg-red-700' : ''}
-                >
-                  <ThumbsDown className="h-3 w-3 mr-1" />
-                  Oppose
-                </Button>
-                <Button
-                  variant={selectedStatus === 'neutral' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedStatus('neutral')}
-                  className={selectedStatus === 'neutral' ? 'bg-gray-600 hover:bg-gray-700' : ''}
-                >
-                  <Minus className="h-3 w-3 mr-1" />
-                  Neutral
-                </Button>
-              </div>
-
-              <Textarea
-                placeholder="Add your notes about this bill..."
-                value={noteText}
-                onChange={(e) => setNoteText(e.target.value)}
-                className="min-h-[120px] font-mono text-sm"
-              />
-
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setNoteDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button variant="default" onClick={handleSaveNote}>
-                  Save Review
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <QuickReviewNoteDialog
+        isOpen={noteDialogOpen}
+        onClose={() => setNoteDialogOpen(false)}
+        onSave={handleSaveReview}
+        initialStatus={billReview?.review_status}
+        initialNote={billReview?.note || ''}
+      />
     </div>
   );
 };

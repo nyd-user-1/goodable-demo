@@ -1,4 +1,4 @@
-import { Download, FileText, Loader2, MessageSquare, ThumbsUp, ThumbsDown, Minus, StickyNote, X, Check } from "lucide-react";
+import { Download, FileText, Loader2, MessageSquare, ThumbsUp, ThumbsDown, Minus, StickyNote, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
 import {
@@ -11,10 +11,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Textarea } from "@/components/ui/textarea";
 import { Tables } from "@/integrations/supabase/types";
 import { useBillReviews, ReviewStatus } from "@/hooks/useBillReviews";
 import { useToast } from "@/hooks/use-toast";
+import { QuickReviewNoteDialog } from "./QuickReviewNoteDialog";
 
 type Bill = Tables<"Bills">;
 
@@ -40,8 +40,6 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
   const [error, setError] = useState<string>('');
   const [quickReviewOpen, setQuickReviewOpen] = useState(false);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
-  const [noteText, setNoteText] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<ReviewStatus>(null);
   const [sheetWidth, setSheetWidth] = useState(900);
   const [isResizing, setIsResizing] = useState(false);
   const resizeRef = useRef<HTMLDivElement>(null);
@@ -59,16 +57,6 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
     }
   }, [isOpen, bill]);
 
-  // Initialize note and status from existing review when dialog opens
-  useEffect(() => {
-    if (noteDialogOpen && currentReview) {
-      setNoteText(currentReview.note || '');
-      setSelectedStatus(currentReview.review_status);
-    } else if (noteDialogOpen) {
-      setNoteText('');
-      setSelectedStatus(null);
-    }
-  }, [noteDialogOpen, currentReview]);
 
   // Fetch PDF through CORS proxy when sheet opens
   useEffect(() => {
@@ -138,13 +126,10 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
     setQuickReviewOpen(false);
   };
 
-  const handleSaveNote = () => {
+  const handleSaveNote = (status: ReviewStatus, note: string) => {
     if (bill?.bill_id) {
-      saveReview(bill.bill_id, selectedStatus, noteText);
+      saveReview(bill.bill_id, status, note);
     }
-    setNoteDialogOpen(false);
-    setNoteText('');
-    setSelectedStatus(null);
   };
 
   // Handle panel resizing
@@ -288,96 +273,14 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
       </SheetContent>
 
       {/* Quick Review Note Dialog - Draggable without overlay */}
-      {noteDialogOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-start justify-center pt-20 pointer-events-none"
-        >
-          <div
-            className="bg-background border rounded-lg shadow-lg sm:max-w-[525px] w-full mx-4 pointer-events-auto"
-            style={{
-              cursor: 'move',
-            }}
-            onMouseDown={(e) => {
-              const dialog = e.currentTarget;
-              const startX = e.clientX - dialog.offsetLeft;
-              const startY = e.clientY - dialog.offsetTop;
-
-              const handleMouseMove = (e: MouseEvent) => {
-                dialog.style.position = 'fixed';
-                dialog.style.left = `${e.clientX - startX}px`;
-                dialog.style.top = `${e.clientY - startY}px`;
-                dialog.style.transform = 'none';
-              };
-
-              const handleMouseUp = () => {
-                document.removeEventListener('mousemove', handleMouseMove);
-                document.removeEventListener('mouseup', handleMouseUp);
-              };
-
-              document.addEventListener('mousemove', handleMouseMove);
-              document.addEventListener('mouseup', handleMouseUp);
-            }}
-          >
-            <div className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Quick Review Note</h2>
-                <button
-                  onClick={() => setNoteDialogOpen(false)}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              <div className="flex gap-2">
-                <Button
-                  variant={selectedStatus === 'support' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedStatus('support')}
-                  className={selectedStatus === 'support' ? 'bg-green-600 hover:bg-green-700' : ''}
-                >
-                  <ThumbsUp className="h-3 w-3 mr-1" />
-                  Support
-                </Button>
-                <Button
-                  variant={selectedStatus === 'oppose' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedStatus('oppose')}
-                  className={selectedStatus === 'oppose' ? 'bg-red-600 hover:bg-red-700' : ''}
-                >
-                  <ThumbsDown className="h-3 w-3 mr-1" />
-                  Oppose
-                </Button>
-                <Button
-                  variant={selectedStatus === 'neutral' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedStatus('neutral')}
-                  className={selectedStatus === 'neutral' ? 'bg-gray-600 hover:bg-gray-700' : ''}
-                >
-                  <Minus className="h-3 w-3 mr-1" />
-                  Neutral
-                </Button>
-              </div>
-
-              <Textarea
-                placeholder="No fiscal impact identified. Aligns with national initiatives. Check for similar past resolutions."
-                value={noteText}
-                onChange={(e) => setNoteText(e.target.value)}
-                className="min-h-[120px] font-mono text-sm"
-              />
-
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setNoteDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button variant="default" onClick={handleSaveNote}>
-                  Save Review
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <QuickReviewNoteDialog
+        isOpen={noteDialogOpen}
+        onClose={() => setNoteDialogOpen(false)}
+        onSave={handleSaveNote}
+        initialStatus={currentReview?.review_status}
+        initialNote={currentReview?.note || ''}
+        draggable
+      />
     </Sheet>
   );
 };

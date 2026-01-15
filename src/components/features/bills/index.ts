@@ -9,3 +9,4 @@ export { BillSummary } from './BillSummary';
 export { BillKeyInformation } from './BillKeyInformation';
 export { BillText } from './BillText';
 export { BillPDFSheet } from './BillPDFSheet';
+export { QuickReviewNoteDialog } from './QuickReviewNoteDialog';
