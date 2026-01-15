@@ -206,14 +206,14 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
             reviewNote={billReview?.note}
           />
 
-          {/* Your Review Section - Only shown when review exists */}
-          {(billReview?.review_status || billReview?.note) && (
+          {/* Your Notes Section - Only shown when note exists */}
+          {billReview?.note && (
             <Card className="bg-card rounded-xl shadow-sm border">
               <CardHeader className="px-6 py-4 border-b">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg font-semibold flex items-center gap-2">
                     <StickyNote className="h-5 w-5 text-yellow-600" />
-                    Your Review
+                    Your Notes
                   </CardTitle>
                   <Button
                     variant="outline"
@@ -227,35 +227,8 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
                 </div>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="space-y-4">
-                  {billReview?.review_status && (
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium text-muted-foreground">Status:</span>
-                      <Badge
-                        variant="outline"
-                        className={`gap-1 ${
-                          billReview.review_status === 'support'
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                            : billReview.review_status === 'oppose'
-                            ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                            : 'bg-gray-100 text-gray-700 dark:bg-gray-800/50 dark:text-gray-400'
-                        }`}
-                      >
-                        {billReview.review_status === 'support' && <ThumbsUp className="h-3 w-3" />}
-                        {billReview.review_status === 'oppose' && <ThumbsDown className="h-3 w-3" />}
-                        {billReview.review_status === 'neutral' && <Minus className="h-3 w-3" />}
-                        {billReview.review_status.charAt(0).toUpperCase() + billReview.review_status.slice(1)}
-                      </Badge>
-                    </div>
-                  )}
-                  {billReview?.note && (
-                    <div>
-                      <span className="text-sm font-medium text-muted-foreground block mb-2">Notes:</span>
-                      <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-wrap">
-                        {billReview.note}
-                      </div>
-                    </div>
-                  )}
+                <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-wrap">
+                  {billReview.note}
                 </div>
               </CardContent>
             </Card>
