@@ -1,4 +1,4 @@
-import { Download, FileText, Loader2, MessageSquare, ThumbsUp, ThumbsDown, Minus, StickyNote, X } from "lucide-react";
+import { Download, FileText, Loader2, MessageSquare, ThumbsUp, ThumbsDown, Minus, StickyNote, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
 import {
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { Tables } from "@/integrations/supabase/types";
+import { useBillReviews, ReviewStatus } from "@/hooks/useBillReviews";
 
 type Bill = Tables<"Bills">;
 
@@ -38,9 +39,25 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
   const [quickReviewOpen, setQuickReviewOpen] = useState(false);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [noteText, setNoteText] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState<ReviewStatus>(null);
   const [sheetWidth, setSheetWidth] = useState(900);
   const [isResizing, setIsResizing] = useState(false);
   const resizeRef = useRef<HTMLDivElement>(null);
+
+  // Bill reviews hook
+  const { getReviewForBill, setReviewStatus, saveReview } = useBillReviews();
+  const currentReview = bill?.bill_id ? getReviewForBill(bill.bill_id) : undefined;
+
+  // Initialize note and status from existing review when dialog opens
+  useEffect(() => {
+    if (noteDialogOpen && currentReview) {
+      setNoteText(currentReview.note || '');
+      setSelectedStatus(currentReview.review_status);
+    } else if (noteDialogOpen) {
+      setNoteText('');
+      setSelectedStatus(null);
+    }
+  }, [noteDialogOpen, currentReview]);
 
   // Fetch PDF through CORS proxy when sheet opens
   useEffect(() => {
@@ -90,17 +107,20 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
       setQuickReviewOpen(false);
       setNoteDialogOpen(true);
     } else {
-      console.log(`Quick review action: ${action} for bill ${billNumber}`);
-      // TODO: Save to favorites module
+      if (bill?.bill_id) {
+        setReviewStatus(bill.bill_id, action);
+      }
       setQuickReviewOpen(false);
     }
   };
 
   const handleSaveNote = () => {
-    console.log(`Saving note for bill ${billNumber}:`, noteText);
-    // TODO: Save note to database
+    if (bill?.bill_id) {
+      saveReview(bill.bill_id, selectedStatus, noteText);
+    }
     setNoteDialogOpen(false);
     setNoteText('');
+    setSelectedStatus(null);
   };
 
   // Handle panel resizing
@@ -164,6 +184,9 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
                   >
                     <ThumbsUp className="h-4 w-4 text-green-600" />
                     Support
+                    {currentReview?.review_status === 'support' && (
+                      <Check className="h-4 w-4 ml-auto text-green-600" />
+                    )}
                   </Button>
                   <Button
                     variant="ghost"
@@ -173,6 +196,9 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
                   >
                     <ThumbsDown className="h-4 w-4 text-red-600" />
                     Oppose
+                    {currentReview?.review_status === 'oppose' && (
+                      <Check className="h-4 w-4 ml-auto text-red-600" />
+                    )}
                   </Button>
                   <Button
                     variant="ghost"
@@ -182,6 +208,9 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
                   >
                     <Minus className="h-4 w-4 text-gray-600" />
                     Neutral
+                    {currentReview?.review_status === 'neutral' && (
+                      <Check className="h-4 w-4 ml-auto text-gray-600" />
+                    )}
                   </Button>
                   <Button
                     variant="ghost"
@@ -190,7 +219,10 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
                     onClick={() => handleQuickReview('note')}
                   >
                     <StickyNote className="h-4 w-4 text-yellow-600" />
-                    Add Note
+                    {currentReview?.note ? 'Edit Note' : 'Add Note'}
+                    {currentReview?.note && (
+                      <Check className="h-4 w-4 ml-auto text-yellow-600" />
+                    )}
                   </Button>
                 </div>
               </PopoverContent>
@@ -285,41 +317,31 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
 
               <div className="flex gap-2">
                 <Button
-                  variant="outline"
+                  variant={selectedStatus === 'support' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => {
-                    handleQuickReview('support');
-                    setNoteDialogOpen(false);
-                  }}
+                  onClick={() => setSelectedStatus('support')}
+                  className={selectedStatus === 'support' ? 'bg-green-600 hover:bg-green-700' : ''}
                 >
+                  <ThumbsUp className="h-3 w-3 mr-1" />
                   Support
                 </Button>
                 <Button
-                  variant="outline"
+                  variant={selectedStatus === 'oppose' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => {
-                    handleQuickReview('oppose');
-                    setNoteDialogOpen(false);
-                  }}
+                  onClick={() => setSelectedStatus('oppose')}
+                  className={selectedStatus === 'oppose' ? 'bg-red-600 hover:bg-red-700' : ''}
                 >
+                  <ThumbsDown className="h-3 w-3 mr-1" />
                   Oppose
                 </Button>
                 <Button
-                  variant="outline"
+                  variant={selectedStatus === 'neutral' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => {
-                    handleQuickReview('neutral');
-                    setNoteDialogOpen(false);
-                  }}
+                  onClick={() => setSelectedStatus('neutral')}
+                  className={selectedStatus === 'neutral' ? 'bg-gray-600 hover:bg-gray-700' : ''}
                 >
+                  <Minus className="h-3 w-3 mr-1" />
                   Neutral
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="ml-auto"
-                >
-                  More Info
                 </Button>
               </div>
 

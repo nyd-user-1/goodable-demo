@@ -5,6 +5,8 @@ import { BillStatusBadge } from "@/components/BillStatusBadge";
 import { CardActionButtons } from "@/components/ui/CardActionButtons";
 import { Tables } from "@/integrations/supabase/types";
 import { generateMemberSlug } from "@/utils/memberSlug";
+import { ThumbsUp, ThumbsDown, Minus, StickyNote } from "lucide-react";
+import { ReviewStatus } from "@/hooks/useBillReviews";
 
 type Bill = Tables<"Bills">;
 type Sponsor = Tables<"Sponsors"> & {
@@ -18,6 +20,8 @@ interface BillSummaryProps {
   onAIAnalysis?: (e: React.MouseEvent) => void;
   isFavorited?: boolean;
   hasAIChat?: boolean;
+  reviewStatus?: ReviewStatus;
+  reviewNote?: string | null;
 }
 
 export const BillSummary = ({
@@ -26,7 +30,9 @@ export const BillSummary = ({
   onFavorite,
   onAIAnalysis,
   isFavorited = false,
-  hasAIChat = false
+  hasAIChat = false,
+  reviewStatus,
+  reviewNote
 }: BillSummaryProps) => {
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "No date";
@@ -77,14 +83,55 @@ export const BillSummary = ({
   const memberSlug = primarySponsor?.person ? generateMemberSlug(primarySponsor.person) : null;
   const committeeSlug = generateCommitteeSlugFromName(bill.committee);
 
+  // Get review status badge
+  const getReviewBadge = () => {
+    if (!reviewStatus) return null;
+
+    const config = {
+      support: {
+        icon: ThumbsUp,
+        label: 'Support',
+        className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+      },
+      oppose: {
+        icon: ThumbsDown,
+        label: 'Oppose',
+        className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+      },
+      neutral: {
+        icon: Minus,
+        label: 'Neutral',
+        className: 'bg-gray-100 text-gray-700 dark:bg-gray-800/50 dark:text-gray-400'
+      }
+    };
+
+    const { icon: Icon, label, className } = config[reviewStatus];
+
+    return (
+      <Badge variant="outline" className={`gap-1 ${className}`}>
+        <Icon className="h-3 w-3" />
+        {label}
+      </Badge>
+    );
+  };
+
   return (
     <Card className="card bg-card rounded-xl shadow-sm border overflow-hidden">
       <CardHeader className="card-header px-6 py-4 border-b">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <CardTitle className="text-xl font-semibold mb-2">
-              {bill.bill_number || "Unknown Bill Number"}
-            </CardTitle>
+            <div className="flex items-center gap-3 mb-2">
+              <CardTitle className="text-xl font-semibold">
+                {bill.bill_number || "Unknown Bill Number"}
+              </CardTitle>
+              {getReviewBadge()}
+              {reviewNote && (
+                <Badge variant="outline" className="gap-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
+                  <StickyNote className="h-3 w-3" />
+                  Has Note
+                </Badge>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <CardActionButtons

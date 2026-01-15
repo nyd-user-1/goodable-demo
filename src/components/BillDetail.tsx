@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { BillSummary, BillKeyInformation, BillText } from "./features/bills";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useBillReviews } from "@/hooks/useBillReviews";
 
 type Bill = Tables<"Bills">;
 type HistoryEntry = Tables<"History Table">;
@@ -31,6 +32,8 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
 
   const { favoriteBillIds, toggleFavorite } = useFavorites();
+  const { getReviewForBill } = useBillReviews();
+  const billReview = getReviewForBill(bill.bill_id);
 
   useEffect(() => {
     fetchBillDetails();
@@ -169,13 +172,15 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
           </Button>
 
           {/* Bill Summary Section - Full Width */}
-          <BillSummary 
-            bill={bill} 
+          <BillSummary
+            bill={bill}
             sponsors={sponsors}
             onFavorite={handleFavorite}
             onAIAnalysis={handleAIAnalysis}
             isFavorited={favoriteBillIds.has(bill.bill_id)}
             hasAIChat={false}
+            reviewStatus={billReview?.review_status}
+            reviewNote={billReview?.note}
           />
 
           {/* Bill Tabs Section */}
