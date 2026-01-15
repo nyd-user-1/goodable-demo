@@ -12,7 +12,7 @@ import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Routes where the model selector should be hidden
-const HIDDEN_ROUTES = ["/plans"];
+const HIDDEN_ROUTES = ["/plans", "/dashboard"];
 
 export function PageHeader() {
   const location = useLocation();
