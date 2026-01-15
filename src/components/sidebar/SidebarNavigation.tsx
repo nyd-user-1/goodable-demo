@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, ChevronDown, Search, Shield, Palette, Image, Moon, Sun } from "lucide-react";
+import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, ChevronDown, Search, Shield, Palette, Image, Moon, Sun, MoreHorizontal, Pin, Trash2 } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -12,6 +12,12 @@ import {
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecentChats } from "@/hooks/useRecentChats";
@@ -48,7 +54,7 @@ interface SidebarNavigationProps {
 export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNavigationProps) {
   const { getNavClassName } = useNavigation();
   const { isAdmin } = useAuth();
-  const { recentChats, loading: chatsLoading } = useRecentChats(10);
+  const { recentChats, loading: chatsLoading, deleteChat, togglePinChat } = useRecentChats(10);
 
   const [isLegislationOpen, setIsLegislationOpen] = useState(true);
   const [isDevelopmentOpen, setIsDevelopmentOpen] = useState(true);
@@ -192,13 +198,42 @@ export function SidebarNavigation({ collapsed, hasSearchResults }: SidebarNaviga
                     ))
                   ) : recentChats.length > 0 ? (
                     recentChats.map((chat) => (
-                      <SidebarMenuItem key={chat.id}>
-                        <SidebarMenuButton asChild>
-                          <NavLink to="/chats" className={getNavClassName}>
-                            <MessageSquare className="h-4 w-4" />
+                      <SidebarMenuItem key={chat.id} className="group/chat relative">
+                        <SidebarMenuButton asChild className="pr-8">
+                          <NavLink to={`/chats/${chat.id}`} className={getNavClassName}>
+                            {chat.isPinned ? (
+                              <Pin className="h-4 w-4 text-primary" />
+                            ) : (
+                              <MessageSquare className="h-4 w-4" />
+                            )}
                             <span className="truncate">{chat.title || "Untitled Chat"}</span>
                           </NavLink>
                         </SidebarMenuButton>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover/chat:opacity-100 transition-opacity"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" side="right">
+                            <DropdownMenuItem onClick={() => togglePinChat(chat.id)}>
+                              <Pin className="h-4 w-4 mr-2" />
+                              {chat.isPinned ? "Unpin Chat" : "Pin Chat"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => deleteChat(chat.id)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </SidebarMenuItem>
                     ))
                   ) : (
