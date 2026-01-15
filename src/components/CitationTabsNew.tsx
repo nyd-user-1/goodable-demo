@@ -5,7 +5,7 @@
 
 import { useState, ReactNode, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FileText, FileDown, ThumbsUp, ThumbsDown, Copy, Check } from "lucide-react";
+import { FileText, FileDown, ThumbsUp, ThumbsDown, Copy, Check, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -22,6 +22,7 @@ import { PerplexityCitation } from "@/utils/citationParser";
 import { extractDomain } from "@/config/domainFilters";
 import { Badge } from "@/components/ui/badge";
 import { BillPDFSheet } from "@/components/features/bills/BillPDFSheet";
+import { EmailLetterSheet } from "@/components/features/bills/EmailLetterSheet";
 import { useToast } from "@/hooks/use-toast";
 
 interface BillCitation {
@@ -62,6 +63,7 @@ export function CitationTabsNew({
   const [selectedBillTitle, setSelectedBillTitle] = useState<string>("");
   const [showCitations, setShowCitations] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [emailSheetOpen, setEmailSheetOpen] = useState(false);
   const accordionRef = useRef<HTMLDivElement>(null);
 
   const handlePDFView = (billNumber: string, billTitle: string, e: React.MouseEvent) => {
@@ -240,6 +242,22 @@ export function CitationTabsNew({
               </>
             )}
 
+            {hasBills && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 hover:bg-muted text-muted-foreground hover:text-primary"
+                    onClick={() => setEmailSheetOpen(true)}
+                  >
+                    <Mail className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Email to sponsor</TooltipContent>
+              </Tooltip>
+            )}
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -416,6 +434,17 @@ export function CitationTabsNew({
         billTitle={selectedBillTitle}
         bill={null}
       />
+
+      {/* Email Letter Sheet */}
+      {hasBills && (
+        <EmailLetterSheet
+          isOpen={emailSheetOpen}
+          onClose={() => setEmailSheetOpen(false)}
+          billNumber={bills[0].bill_number}
+          billTitle={bills[0].title}
+          messageContent={messageContent}
+        />
+      )}
     </div>
   );
 }
