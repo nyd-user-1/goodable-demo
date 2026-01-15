@@ -5,7 +5,7 @@
 
 import { useState, ReactNode, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FileText, FileDown, ThumbsUp, ThumbsDown, Copy, Check, Mail } from "lucide-react";
+import { FileText, ThumbsUp, ThumbsDown, Copy, Check, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -72,35 +72,6 @@ export function CitationTabsNew({
     setSelectedBillNumber(billNumber);
     setSelectedBillTitle(billTitle);
     setPdfOpen(true);
-  };
-
-  const handleExport = () => {
-    // Extract text content from ReactNode
-    const extractText = (node: ReactNode): string => {
-      if (typeof node === 'string') return node;
-      if (typeof node === 'number') return String(node);
-      if (Array.isArray(node)) return node.map(extractText).join('');
-      if (node && typeof node === 'object' && 'props' in node) {
-        return extractText(node.props.children);
-      }
-      return '';
-    };
-
-    const text = extractText(messageContent);
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `response-${Date.now()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    toast({
-      title: "Exported successfully",
-      description: "Response has been downloaded as a text file",
-    });
   };
 
   const handleCopy = async () => {
@@ -176,21 +147,6 @@ export function CitationTabsNew({
             <FileText className="h-4 w-4 mr-2" />
             Citations
           </Button>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-foreground hover:bg-muted"
-                onClick={handleExport}
-              >
-                <FileDown className="h-4 w-4 mr-2" />
-                Export
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Export answer</TooltipContent>
-          </Tooltip>
 
           {hasBills && (
             <Tooltip>
