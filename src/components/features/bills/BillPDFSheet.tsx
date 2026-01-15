@@ -109,6 +109,8 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
     } else {
       if (bill?.bill_id) {
         setReviewStatus(bill.bill_id, action);
+      } else {
+        console.warn('Quick Review: bill_id not available yet');
       }
       setQuickReviewOpen(false);
     }
@@ -174,7 +176,7 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
                   Quick Review
                 </Button>
               </PopoverTrigger>
-              <PopoverContent side="bottom" align="end" className="w-auto p-2">
+              <PopoverContent side="bottom" align="end" className="w-auto p-2 z-[100]">
                 <div className="flex flex-col gap-1">
                   <Button
                     variant="ghost"

@@ -83,9 +83,8 @@ export function CitationTabsNew({
     e.stopPropagation();
     setSelectedBillNumber(billNumber);
     setSelectedBillTitle(billTitle);
-    setPdfOpen(true);
 
-    // Fetch the bill data for Quick Review functionality
+    // Fetch the bill data BEFORE opening the sheet for Quick Review functionality
     try {
       const { data } = await supabase
         .from("Bills")
@@ -99,6 +98,9 @@ export function CitationTabsNew({
     } catch (error) {
       console.error("Error fetching bill:", error);
     }
+
+    // Open the sheet after bill is fetched
+    setPdfOpen(true);
   };
 
   const handleCopy = async () => {
