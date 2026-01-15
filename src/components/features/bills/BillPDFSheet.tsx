@@ -179,7 +179,7 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="justify-start gap-2"
+                    className="justify-start gap-2 hover:bg-muted w-full"
                     onClick={() => handleQuickReview('support')}
                   >
                     <ThumbsUp className="h-4 w-4 text-green-600" />
@@ -191,7 +191,7 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="justify-start gap-2"
+                    className="justify-start gap-2 hover:bg-muted w-full"
                     onClick={() => handleQuickReview('oppose')}
                   >
                     <ThumbsDown className="h-4 w-4 text-red-600" />
@@ -203,7 +203,7 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="justify-start gap-2"
+                    className="justify-start gap-2 hover:bg-muted w-full"
                     onClick={() => handleQuickReview('neutral')}
                   >
                     <Minus className="h-4 w-4 text-gray-600" />
@@ -215,7 +215,7 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="justify-start gap-2"
+                    className="justify-start gap-2 hover:bg-muted w-full"
                     onClick={() => handleQuickReview('note')}
                   >
                     <StickyNote className="h-4 w-4 text-yellow-600" />

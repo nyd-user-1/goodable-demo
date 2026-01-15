@@ -31,6 +31,10 @@ import { BillPDFSheet } from "@/components/features/bills/BillPDFSheet";
 import { EmailLetterSheet } from "@/components/features/bills/EmailLetterSheet";
 import { useToast } from "@/hooks/use-toast";
 import { jsPDF } from "jspdf";
+import { supabase } from "@/integrations/supabase/client";
+import { Tables } from "@/integrations/supabase/types";
+
+type Bill = Tables<"Bills">;
 
 interface BillCitation {
   bill_number: string;
@@ -68,17 +72,33 @@ export function CitationTabsNew({
   const [pdfOpen, setPdfOpen] = useState(false);
   const [selectedBillNumber, setSelectedBillNumber] = useState<string>("");
   const [selectedBillTitle, setSelectedBillTitle] = useState<string>("");
+  const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
   const [showCitations, setShowCitations] = useState(false);
   const [copied, setCopied] = useState(false);
   const [emailSheetOpen, setEmailSheetOpen] = useState(false);
   const accordionRef = useRef<HTMLDivElement>(null);
 
-  const handlePDFView = (billNumber: string, billTitle: string, e: React.MouseEvent) => {
+  const handlePDFView = async (billNumber: string, billTitle: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setSelectedBillNumber(billNumber);
     setSelectedBillTitle(billTitle);
     setPdfOpen(true);
+
+    // Fetch the bill data for Quick Review functionality
+    try {
+      const { data } = await supabase
+        .from("Bills")
+        .select("*")
+        .ilike("bill_number", billNumber)
+        .single();
+
+      if (data) {
+        setSelectedBill(data);
+      }
+    } catch (error) {
+      console.error("Error fetching bill:", error);
+    }
   };
 
   const handleCopy = async () => {
@@ -574,10 +594,13 @@ export function CitationTabsNew({
       {/* PDF Viewer Sheet */}
       <BillPDFSheet
         isOpen={pdfOpen}
-        onClose={() => setPdfOpen(false)}
+        onClose={() => {
+          setPdfOpen(false);
+          setSelectedBill(null);
+        }}
         billNumber={selectedBillNumber}
         billTitle={selectedBillTitle}
-        bill={null}
+        bill={selectedBill}
       />
 
       {/* Email Letter Sheet */}
