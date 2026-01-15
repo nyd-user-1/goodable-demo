@@ -5,7 +5,7 @@
 
 import { useState, ReactNode, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FileText, FileDown, RefreshCw, ThumbsUp, ThumbsDown, Copy, Check } from "lucide-react";
+import { FileText, FileDown, ThumbsUp, ThumbsDown, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -39,7 +39,6 @@ interface CitationTabsNewProps {
   sources: PerplexityCitation[];
   relatedBills?: BillCitation[];
   onCitationClick?: (citationNumber: number) => void;
-  onRewrite?: () => void;
   isStreaming?: boolean;
 }
 
@@ -49,7 +48,6 @@ export function CitationTabsNew({
   sources,
   relatedBills = [],
   onCitationClick,
-  onRewrite,
   isStreaming = false
 }: CitationTabsNewProps) {
   const hasBills = bills && bills.length > 0;
@@ -101,17 +99,6 @@ export function CitationTabsNew({
       title: "Exported successfully",
       description: "Response has been downloaded as a text file",
     });
-  };
-
-  const handleRewrite = () => {
-    if (onRewrite) {
-      onRewrite();
-    } else {
-      toast({
-        title: "Rewrite not available",
-        description: "This message cannot be rewritten",
-      });
-    }
   };
 
   const handleCopy = async () => {
@@ -211,20 +198,22 @@ export function CitationTabsNew({
             <TooltipContent>Export answer</TooltipContent>
           </Tooltip>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-foreground hover:bg-muted"
-                onClick={handleRewrite}
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Rewrite
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Rewrite this answer</TooltipContent>
-          </Tooltip>
+          {hasBills && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-foreground hover:bg-muted"
+                  onClick={(e) => handlePDFView(bills[0].bill_number, bills[0].title, e)}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Bill
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>View bill</TooltipContent>
+            </Tooltip>
+          )}
 
           <div className="ml-auto flex items-center gap-1">
             <Tooltip>
