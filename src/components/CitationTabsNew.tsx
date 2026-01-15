@@ -5,13 +5,19 @@
 
 import { useState, ReactNode, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FileText, ThumbsUp, ThumbsDown, Copy, Check, Mail } from "lucide-react";
+import { FileText, ThumbsUp, ThumbsDown, Copy, Check, Mail, BookOpenCheck, MoreHorizontal, Star, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Accordion,
   AccordionContent,
@@ -96,6 +102,42 @@ export function CitationTabsNew({
     });
   };
 
+  const handleExport = () => {
+    const extractText = (node: ReactNode): string => {
+      if (typeof node === 'string') return node;
+      if (typeof node === 'number') return String(node);
+      if (Array.isArray(node)) return node.map(extractText).join('');
+      if (node && typeof node === 'object' && 'props' in node) {
+        return extractText(node.props.children);
+      }
+      return '';
+    };
+
+    const text = extractText(messageContent);
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `response-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Exported successfully",
+      description: "Response has been downloaded as a text file",
+    });
+  };
+
+  const handleFavorite = () => {
+    toast({
+      title: "Added to favorites",
+      description: "This response has been saved to your favorites",
+    });
+    // TODO: Implement actual favorite functionality
+  };
+
   const handleSupportLetter = () => {
     if (onSendMessage && hasBills) {
       const billNumber = bills[0].bill_number;
@@ -131,103 +173,124 @@ export function CitationTabsNew({
 
       {/* Action Buttons - Only show when NOT streaming */}
       {!isStreaming && (
-        <div className="flex items-center gap-2 pt-4 border-t animate-in fade-in duration-300">
-          <Button
-            variant="ghost"
-            size="sm"
-            className={showCitations
-              ? "text-foreground bg-muted hover:bg-muted/80 hover:text-foreground"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            }
-            onClick={() => {
-              setShowCitations(!showCitations);
-              console.log('Citations clicked, new state:', !showCitations);
-            }}
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Citations
-          </Button>
+        <div className="flex items-center gap-3 pt-4 border-t animate-in fade-in duration-300">
+          {/* Citations Toggle */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`h-8 w-8 ${showCitations
+                  ? "text-foreground bg-muted hover:bg-muted/80"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+                onClick={() => setShowCitations(!showCitations)}
+              >
+                <BookOpenCheck className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Citations</TooltipContent>
+          </Tooltip>
 
+          {/* View Bill */}
           {hasBills && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground hover:text-foreground hover:bg-muted"
-                  onClick={(e) => handlePDFView(bills[0].bill_number, bills[0].title, e)}
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Bill
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>View bill</TooltipContent>
-            </Tooltip>
-          )}
-
-          <div className="ml-auto flex items-center gap-1">
-            {hasBills && onSendMessage && (
-              <>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 hover:bg-muted text-muted-foreground hover:text-green-600"
-                      onClick={handleSupportLetter}
-                    >
-                      <ThumbsUp className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Write support letter</TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 hover:bg-muted text-muted-foreground hover:text-red-600"
-                      onClick={handleOppositionLetter}
-                    >
-                      <ThumbsDown className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Write opposition letter</TooltipContent>
-                </Tooltip>
-              </>
-            )}
-
-            {hasBills && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 hover:bg-muted text-muted-foreground hover:text-primary"
-                    onClick={() => setEmailSheetOpen(true)}
-                  >
-                    <Mail className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Email to sponsor</TooltipContent>
-              </Tooltip>
-            )}
-
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
-                  onClick={handleCopy}
+                  onClick={(e) => handlePDFView(bills[0].bill_number, bills[0].title, e)}
                 >
-                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  <FileText className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>{copied ? "Copied!" : "Copy answer"}</TooltipContent>
+              <TooltipContent>View bill</TooltipContent>
             </Tooltip>
-          </div>
+          )}
+
+          {/* Write Support Letter */}
+          {hasBills && onSendMessage && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-green-600 hover:bg-muted"
+                  onClick={handleSupportLetter}
+                >
+                  <ThumbsUp className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Write support letter</TooltipContent>
+            </Tooltip>
+          )}
+
+          {/* Write Opposition Letter */}
+          {hasBills && onSendMessage && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-muted"
+                  onClick={handleOppositionLetter}
+                >
+                  <ThumbsDown className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Write opposition letter</TooltipContent>
+            </Tooltip>
+          )}
+
+          {/* Email to Sponsor */}
+          {hasBills && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-muted"
+                  onClick={() => setEmailSheetOpen(true)}
+                >
+                  <Mail className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Email to sponsor</TooltipContent>
+            </Tooltip>
+          )}
+
+          {/* More Actions Dropdown */}
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>More actions</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem onClick={handleCopy}>
+                {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                {copied ? "Copied!" : "Copy"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleFavorite}>
+                <Star className="h-4 w-4 mr-2" />
+                Favorite
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExport}>
+                <FileDown className="h-4 w-4 mr-2" />
+                Export
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )}
 
