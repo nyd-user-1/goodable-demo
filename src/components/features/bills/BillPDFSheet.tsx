@@ -6,10 +6,11 @@ import {
   SheetContent,
 } from "@/components/ui/sheet";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { Tables } from "@/integrations/supabase/types";
 import { useBillReviews, ReviewStatus } from "@/hooks/useBillReviews";
@@ -190,62 +191,56 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
             {billNumber}
           </h2>
           <div className="flex items-center gap-2">
-            <Popover open={quickReviewOpen} onOpenChange={setQuickReviewOpen}>
-              <PopoverTrigger asChild>
+            <DropdownMenu open={quickReviewOpen} onOpenChange={setQuickReviewOpen}>
+              <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
                   <MessageSquare className="h-4 w-4" />
                   Quick Review
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent side="bottom" align="end" className="w-auto p-2 z-[100]">
-                <div className="flex flex-col gap-1">
-                  <button
-                    type="button"
-                    className="flex items-center justify-start gap-2 hover:bg-muted w-full px-3 py-2 rounded-md text-sm cursor-pointer transition-colors"
-                    onClick={() => handleQuickReview('support')}
-                  >
-                    <ThumbsUp className="h-4 w-4 text-green-600" />
-                    <span>Support</span>
-                    {currentReview?.review_status === 'support' && (
-                      <Check className="h-4 w-4 ml-auto text-green-600" />
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    className="flex items-center justify-start gap-2 hover:bg-muted w-full px-3 py-2 rounded-md text-sm cursor-pointer transition-colors"
-                    onClick={() => handleQuickReview('oppose')}
-                  >
-                    <ThumbsDown className="h-4 w-4 text-red-600" />
-                    <span>Oppose</span>
-                    {currentReview?.review_status === 'oppose' && (
-                      <Check className="h-4 w-4 ml-auto text-red-600" />
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    className="flex items-center justify-start gap-2 hover:bg-muted w-full px-3 py-2 rounded-md text-sm cursor-pointer transition-colors"
-                    onClick={() => handleQuickReview('neutral')}
-                  >
-                    <Minus className="h-4 w-4 text-gray-600" />
-                    <span>Neutral</span>
-                    {currentReview?.review_status === 'neutral' && (
-                      <Check className="h-4 w-4 ml-auto text-gray-600" />
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    className="flex items-center justify-start gap-2 hover:bg-muted w-full px-3 py-2 rounded-md text-sm cursor-pointer transition-colors"
-                    onClick={() => handleQuickReview('note')}
-                  >
-                    <StickyNote className="h-4 w-4 text-yellow-600" />
-                    <span>{currentReview?.note ? 'Edit Note' : 'Add Note'}</span>
-                    {currentReview?.note && (
-                      <Check className="h-4 w-4 ml-auto text-yellow-600" />
-                    )}
-                  </button>
-                </div>
-              </PopoverContent>
-            </Popover>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => handleQuickReview('support')}
+                >
+                  <ThumbsUp className="h-4 w-4 mr-2 text-green-600" />
+                  <span>Support</span>
+                  {currentReview?.review_status === 'support' && (
+                    <Check className="h-4 w-4 ml-auto text-green-600" />
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => handleQuickReview('oppose')}
+                >
+                  <ThumbsDown className="h-4 w-4 mr-2 text-red-600" />
+                  <span>Oppose</span>
+                  {currentReview?.review_status === 'oppose' && (
+                    <Check className="h-4 w-4 ml-auto text-red-600" />
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => handleQuickReview('neutral')}
+                >
+                  <Minus className="h-4 w-4 mr-2 text-gray-600" />
+                  <span>Neutral</span>
+                  {currentReview?.review_status === 'neutral' && (
+                    <Check className="h-4 w-4 ml-auto text-gray-600" />
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => handleQuickReview('note')}
+                >
+                  <StickyNote className="h-4 w-4 mr-2 text-yellow-600" />
+                  <span>{currentReview?.note ? 'Edit Note' : 'Add Note'}</span>
+                  {currentReview?.note && (
+                    <Check className="h-4 w-4 ml-auto text-yellow-600" />
+                  )}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
