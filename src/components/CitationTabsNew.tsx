@@ -30,6 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { BillPDFSheet } from "@/components/features/bills/BillPDFSheet";
 import { EmailLetterSheet } from "@/components/features/bills/EmailLetterSheet";
 import { useToast } from "@/hooks/use-toast";
+import { jsPDF } from "jspdf";
 
 interface BillCitation {
   bill_number: string;
@@ -114,19 +115,48 @@ export function CitationTabsNew({
     };
 
     const text = extractText(messageContent);
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `response-${Date.now()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+
+    // Create PDF
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const margin = 20;
+    const maxWidth = pageWidth - margin * 2;
+
+    // Add title
+    pdf.setFontSize(16);
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Goodable Response", margin, margin);
+
+    // Add date
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "normal");
+    pdf.setTextColor(128, 128, 128);
+    pdf.text(new Date().toLocaleDateString(), margin, margin + 8);
+
+    // Add content
+    pdf.setFontSize(11);
+    pdf.setTextColor(0, 0, 0);
+    const lines = pdf.splitTextToSize(text, maxWidth);
+
+    let yPosition = margin + 20;
+    const lineHeight = 6;
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    for (const line of lines) {
+      if (yPosition + lineHeight > pageHeight - margin) {
+        pdf.addPage();
+        yPosition = margin;
+      }
+      pdf.text(line, margin, yPosition);
+      yPosition += lineHeight;
+    }
+
+    // Save PDF
+    pdf.save(`goodable-response-${Date.now()}.pdf`);
 
     toast({
       title: "Exported successfully",
-      description: "Response has been downloaded as a text file",
+      description: "Response has been downloaded as a PDF",
     });
   };
 
