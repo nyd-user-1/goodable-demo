@@ -121,9 +121,10 @@ export function CitationTabsNew({
     const pageWidth = pdf.internal.pageSize.getWidth();
     const margin = 20;
     const maxWidth = pageWidth - margin * 2;
+    const pageHeight = pdf.internal.pageSize.getHeight();
 
     // Add title
-    pdf.setFontSize(16);
+    pdf.setFontSize(18);
     pdf.setFont("helvetica", "bold");
     pdf.text("Goodable Response", margin, margin);
 
@@ -132,23 +133,118 @@ export function CitationTabsNew({
     pdf.setFont("helvetica", "normal");
     pdf.setTextColor(128, 128, 128);
     pdf.text(new Date().toLocaleDateString(), margin, margin + 8);
-
-    // Add content
-    pdf.setFontSize(11);
     pdf.setTextColor(0, 0, 0);
-    const lines = pdf.splitTextToSize(text, maxWidth);
 
     let yPosition = margin + 20;
-    const lineHeight = 6;
-    const pageHeight = pdf.internal.pageSize.getHeight();
 
-    for (const line of lines) {
-      if (yPosition + lineHeight > pageHeight - margin) {
+    // Helper to check/add new page
+    const checkNewPage = (neededHeight: number) => {
+      if (yPosition + neededHeight > pageHeight - margin) {
         pdf.addPage();
         yPosition = margin;
       }
-      pdf.text(line, margin, yPosition);
-      yPosition += lineHeight;
+    };
+
+    // Helper to render text with inline bold support
+    const renderTextWithBold = (line: string, x: number, fontSize: number) => {
+      pdf.setFontSize(fontSize);
+      const parts = line.split(/(\*\*[^*]+\*\*)/g);
+      let currentX = x;
+
+      for (const part of parts) {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          // Bold text
+          const boldText = part.slice(2, -2);
+          pdf.setFont("helvetica", "bold");
+          pdf.text(boldText, currentX, yPosition);
+          currentX += pdf.getTextWidth(boldText);
+        } else if (part) {
+          // Normal text
+          pdf.setFont("helvetica", "normal");
+          pdf.text(part, currentX, yPosition);
+          currentX += pdf.getTextWidth(part);
+        }
+      }
+    };
+
+    // Process content line by line
+    const rawLines = text.split('\n');
+
+    for (const rawLine of rawLines) {
+      const trimmedLine = rawLine.trim();
+
+      // Skip empty lines but add spacing
+      if (!trimmedLine) {
+        yPosition += 4;
+        continue;
+      }
+
+      // Handle headers (### Header)
+      if (trimmedLine.startsWith('### ')) {
+        checkNewPage(12);
+        yPosition += 6; // Extra space before header
+        pdf.setFontSize(14);
+        pdf.setFont("helvetica", "bold");
+        const headerText = trimmedLine.replace(/^###\s*/, '').replace(/\*\*/g, '');
+        pdf.text(headerText, margin, yPosition);
+        yPosition += 8;
+        continue;
+      }
+
+      // Handle H2 headers (## Header)
+      if (trimmedLine.startsWith('## ')) {
+        checkNewPage(14);
+        yPosition += 8;
+        pdf.setFontSize(15);
+        pdf.setFont("helvetica", "bold");
+        const headerText = trimmedLine.replace(/^##\s*/, '').replace(/\*\*/g, '');
+        pdf.text(headerText, margin, yPosition);
+        yPosition += 10;
+        continue;
+      }
+
+      // Handle list items (- item)
+      if (trimmedLine.startsWith('- ')) {
+        const listContent = trimmedLine.slice(2);
+        const listMaxWidth = maxWidth - 10;
+
+        // Split for word wrap
+        pdf.setFontSize(11);
+        pdf.setFont("helvetica", "normal");
+        const wrappedLines = pdf.splitTextToSize(listContent.replace(/\*\*/g, ''), listMaxWidth);
+
+        for (let i = 0; i < wrappedLines.length; i++) {
+          checkNewPage(6);
+          if (i === 0) {
+            pdf.text("•", margin, yPosition);
+          }
+          // Check if original line had bold markers and render accordingly
+          if (listContent.includes('**')) {
+            renderTextWithBold(wrappedLines[i], margin + 8, 11);
+          } else {
+            pdf.text(wrappedLines[i], margin + 8, yPosition);
+          }
+          yPosition += 6;
+        }
+        continue;
+      }
+
+      // Regular paragraph - handle word wrap and bold
+      pdf.setFontSize(11);
+      const cleanLine = trimmedLine.replace(/\*\*/g, '');
+      const wrappedLines = pdf.splitTextToSize(cleanLine, maxWidth);
+
+      for (const wrappedLine of wrappedLines) {
+        checkNewPage(6);
+        // If original has bold markers, render with bold support
+        if (trimmedLine.includes('**')) {
+          renderTextWithBold(wrappedLine, margin, 11);
+        } else {
+          pdf.setFont("helvetica", "normal");
+          pdf.text(wrappedLine, margin, yPosition);
+        }
+        yPosition += 6;
+      }
     }
 
     // Save PDF
