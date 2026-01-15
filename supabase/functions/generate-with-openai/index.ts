@@ -367,6 +367,46 @@ async function searchGoodableDatabase(query: string, sessionYear?: number) {
       }
     }
 
+    // Fetch sponsors for found bills
+    if (billsData.length > 0) {
+      const billIds = billsData.map(b => b.bill_id);
+
+      // Get sponsors with people info
+      const { data: sponsorsData } = await supabase
+        .from('Sponsors')
+        .select('bill_id, position, people_id')
+        .in('bill_id', billIds)
+        .order('position');
+
+      if (sponsorsData && sponsorsData.length > 0) {
+        // Get people info for sponsors
+        const peopleIds = [...new Set(sponsorsData.map(s => s.people_id).filter(Boolean))];
+        const { data: peopleData } = await supabase
+          .from('People')
+          .select('people_id, name, party, chamber')
+          .in('people_id', peopleIds);
+
+        // Create lookup map for people
+        const peopleMap = new Map();
+        if (peopleData) {
+          peopleData.forEach(p => peopleMap.set(p.people_id, p));
+        }
+
+        // Attach sponsor info to bills
+        billsData = billsData.map(bill => {
+          const billSponsors = sponsorsData.filter(s => s.bill_id === bill.bill_id);
+          const primarySponsor = billSponsors.find(s => s.position === 1);
+          const coSponsors = billSponsors.filter(s => s.position > 1);
+
+          return {
+            ...bill,
+            primarySponsor: primarySponsor ? peopleMap.get(primarySponsor.people_id) : null,
+            coSponsorCount: coSponsors.length
+          };
+        });
+      }
+    }
+
     return billsData.length > 0 ? billsData : null;
   } catch (error) {
     console.error('Error searching Goodable database:', error);
@@ -384,6 +424,14 @@ function formatGoodableBillsForContext(bills: any[]) {
     contextText += `${index + 1}. BILL ${bill.bill_number}: ${bill.title || 'No title'}\n`;
     contextText += `   Session: ${bill.session_id || 'Unknown'}\n`;
     contextText += `   Status: ${bill.status_desc || 'Unknown'}\n`;
+    // Primary Sponsor (position 1) - this is THE sponsor who introduced the bill
+    if (bill.primarySponsor) {
+      contextText += `   Primary Sponsor: ${bill.primarySponsor.name} (${bill.primarySponsor.party || 'Unknown Party'}, ${bill.primarySponsor.chamber || 'Unknown Chamber'})\n`;
+    }
+    // Co-Sponsors (position 2+) - legislators who added their support
+    if (bill.coSponsorCount > 0) {
+      contextText += `   Co-Sponsors: ${bill.coSponsorCount} additional legislator${bill.coSponsorCount > 1 ? 's' : ''}\n`;
+    }
     if (bill.committee) {
       contextText += `   Committee: ${bill.committee}\n`;
     }
