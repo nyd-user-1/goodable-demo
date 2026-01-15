@@ -561,7 +561,13 @@ const NewChat = () => {
           prompt: userQuery,
           type: 'chat',
           stream: true,
-          model: selectedModel
+          model: selectedModel,
+          context: {
+            previousMessages: messages.slice(-10).map(m => ({
+              role: m.role,
+              content: m.content
+            }))
+          }
         }),
         signal: abortControllerRef.current.signal
       });
