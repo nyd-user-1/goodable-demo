@@ -142,7 +142,7 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
           <div className="w-1 h-full bg-border group-hover:bg-primary rounded-full transition-colors" />
         </div>
 
-        <div className="px-4 sm:pl-6 sm:pr-14 py-3 sm:py-4 border-b flex-shrink-0 flex items-center justify-between">
+        <div className="pl-4 pr-12 sm:pl-6 sm:pr-14 py-3 sm:py-4 border-b flex-shrink-0 flex items-center justify-between">
           <h2 className="text-lg sm:text-xl font-semibold">
             {billNumber}
           </h2>
