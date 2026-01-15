@@ -1,4 +1,4 @@
-import { Download, FileText, Loader2, MessageSquare, ThumbsUp, ThumbsDown, Minus, StickyNote, GripVertical, X } from "lucide-react";
+import { Download, FileText, Loader2, MessageSquare, ThumbsUp, ThumbsDown, Minus, StickyNote, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
 import {
@@ -11,7 +11,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { AIChatSheet } from "@/components/AIChatSheet";
 import { Tables } from "@/integrations/supabase/types";
 
 type Bill = Tables<"Bills">;
@@ -39,7 +38,6 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
   const [quickReviewOpen, setQuickReviewOpen] = useState(false);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [noteText, setNoteText] = useState('');
-  const [chatOpen, setChatOpen] = useState(false);
   const [sheetWidth, setSheetWidth] = useState(900);
   const [isResizing, setIsResizing] = useState(false);
   const resizeRef = useRef<HTMLDivElement>(null);
@@ -144,21 +142,11 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
           <div className="w-1 h-full bg-border group-hover:bg-primary rounded-full transition-colors" />
         </div>
 
-        <div className="pl-6 pr-14 py-4 border-b flex-shrink-0 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">
-            Bill {billNumber} - Full Text
+        <div className="px-4 sm:pl-6 sm:pr-14 py-3 sm:py-4 border-b flex-shrink-0 flex items-center justify-between">
+          <h2 className="text-lg sm:text-xl font-semibold">
+            {billNumber}
           </h2>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setChatOpen(true)}
-              className="gap-2"
-            >
-              <MessageSquare className="h-4 w-4" />
-              Ask Chat
-            </Button>
-
             <Popover open={quickReviewOpen} onOpenChange={setQuickReviewOpen}>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
@@ -211,7 +199,7 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
         </div>
 
         {/* PDF Viewer */}
-        <div className="flex-1 overflow-hidden relative">
+        <div className="flex-1 overflow-auto relative">
           {loading && (
             <div className="absolute inset-0 flex items-center justify-center bg-background">
               <div className="flex flex-col items-center gap-3">
@@ -237,13 +225,18 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
           )}
 
           {pdfBlobUrl && !loading && !error && (
-            <iframe
-              id="pdf-iframe"
-              src={pdfBlobUrl}
-              className="w-full h-full"
-              title={`Bill ${billNumber} PDF`}
-              style={{ border: 'none' }}
-            />
+            <div className="w-full h-full flex items-start justify-center">
+              <iframe
+                id="pdf-iframe"
+                src={pdfBlobUrl}
+                className="w-full h-full max-w-full"
+                title={`${billNumber} PDF`}
+                style={{
+                  border: 'none',
+                  minHeight: '100%',
+                }}
+              />
+            </div>
           )}
         </div>
       </SheetContent>
@@ -349,13 +342,6 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
           </div>
         </div>
       )}
-
-      {/* AI Chat Sheet */}
-      <AIChatSheet
-        open={chatOpen}
-        onOpenChange={setChatOpen}
-        bill={bill}
-      />
     </Sheet>
   );
 };
