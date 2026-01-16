@@ -2,8 +2,7 @@
 
 import * as React from "react"
 import { Check, ChevronDown } from "lucide-react"
-import { useModel } from "@/contexts/ModelContext"
-import { ModelType } from "@/components/ModelSelector"
+import { useModel, ModelType } from "@/contexts/ModelContext"
 import {
   DropdownMenu,
   DropdownMenuContent,
