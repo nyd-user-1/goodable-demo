@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { NavLink, useLocation, useParams } from "react-router-dom";
-import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, ChevronRight, PanelLeftClose, PanelLeft, MoreHorizontal, Pin, Trash2 } from "lucide-react";
+import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, ChevronRight, PanelLeftClose, PanelLeft, MoreHorizontal, Pin, Trash2, PenSquare } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -88,6 +88,7 @@ export function NewAppSidebar() {
   const isCollapsed = state === "collapsed";
   const [recentChats, setRecentChats] = useState<ChatSession[]>([]);
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(getPinnedChatIds());
+  const [newChatHover, setNewChatHover] = useState(false);
 
   // Fetch recent chats for the sidebar
   useEffect(() => {
@@ -192,25 +193,16 @@ export function NewAppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader onClick={handleWhitespaceClick}>
         <div className="flex items-center justify-between w-full px-2 py-1">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={isCollapsed ? toggleSidebar : undefined}
-                className={`flex items-center justify-center ${
-                  isCollapsed
-                    ? 'cursor-pointer hover:opacity-70'
-                    : 'aspect-square size-8 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground'
-                }`}
-              >
-                <span className={`font-bold ${isCollapsed ? 'text-xl text-foreground' : 'text-lg'}`}>G</span>
-              </button>
-            </TooltipTrigger>
-            {isCollapsed && (
-              <TooltipContent side="right">
-                <p>Open sidebar</p>
-              </TooltipContent>
-            )}
-          </Tooltip>
+          <button
+            onClick={isCollapsed ? toggleSidebar : undefined}
+            className={`flex items-center justify-center ${
+              isCollapsed
+                ? 'cursor-pointer hover:opacity-70'
+                : 'aspect-square size-8 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground'
+            }`}
+          >
+            <span className={`font-bold ${isCollapsed ? 'text-xl text-foreground' : 'text-lg'}`}>G</span>
+          </button>
           {!isCollapsed && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -234,12 +226,18 @@ export function NewAppSidebar() {
         {/* New Chat & Chat History */}
         <SidebarGroup>
           <SidebarMenu>
-            <SidebarMenuItem>
+            <SidebarMenuItem
+              onMouseEnter={() => setNewChatHover(true)}
+              onMouseLeave={() => setNewChatHover(false)}
+            >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <SidebarMenuButton asChild isActive={isActive("/new-chat")}>
                     <NavLink to="/new-chat">
-                      <MessageSquare />
+                      <div className="relative w-4 h-4">
+                        <MessageSquare className={`absolute inset-0 transition-opacity duration-200 ${newChatHover ? 'opacity-0' : 'opacity-100'}`} />
+                        <PenSquare className={`absolute inset-0 transition-opacity duration-200 ${newChatHover ? 'opacity-100' : 'opacity-0'}`} />
+                      </div>
                       <span>New chat</span>
                     </NavLink>
                   </SidebarMenuButton>
