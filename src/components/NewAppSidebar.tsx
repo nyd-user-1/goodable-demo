@@ -127,6 +127,15 @@ export function NewAppSidebar() {
     fetchRecentChats();
   }, [fetchRecentChats]);
 
+  // Listen for refresh event from other components (e.g., NewChat)
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchRecentChats();
+    };
+    window.addEventListener('refresh-sidebar-chats', handleRefresh);
+    return () => window.removeEventListener('refresh-sidebar-chats', handleRefresh);
+  }, [fetchRecentChats]);
+
   const deleteChat = async (chatId: string) => {
     const { error } = await supabase
       .from("chat_sessions")
