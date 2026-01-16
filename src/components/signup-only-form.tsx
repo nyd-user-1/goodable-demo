@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SignupOnlyFormProps extends React.ComponentProps<"div"> {}
 
@@ -24,8 +25,19 @@ export function SignupOnlyForm({ className, ...props }: SignupOnlyFormProps) {
     setError(null);
 
     try {
-      await signUp(email, password);
-      navigate('/new-chat');
+      const { error } = await signUp(email, password);
+      if (error) {
+        setError(error.message || 'Signup failed');
+        return;
+      }
+      // Check if user is now logged in (email confirmation might be disabled)
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/new-chat');
+      } else {
+        // Email confirmation required - show message
+        setError('Please check your email to confirm your account, then log in.');
+      }
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
     } finally {
