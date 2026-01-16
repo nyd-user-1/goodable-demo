@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Command, PenSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -113,12 +112,12 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
             </TooltipContent>
           </Tooltip>
           {/* Log In button - routes to auth-2 (sign up page with login link) */}
-          <Button
+          <button
+            className="inline-flex items-center justify-center h-9 rounded-md px-3 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-medium"
             onClick={() => navigate('/auth-2')}
-            className="bg-foreground text-background hover:bg-foreground/90"
           >
             Log In
-          </Button>
+          </button>
         </div>
       </div>
     </nav>
