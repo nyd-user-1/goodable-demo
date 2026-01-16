@@ -234,9 +234,9 @@ export function NewAppSidebar() {
                 <TooltipTrigger asChild>
                   <SidebarMenuButton asChild isActive={isActive("/new-chat")}>
                     <NavLink to="/new-chat">
-                      <div className="relative w-4 h-4">
-                        <MessageSquare className={`absolute inset-0 transition-opacity duration-200 ${newChatHover ? 'opacity-0' : 'opacity-100'}`} />
-                        <PenSquare className={`absolute inset-0 transition-opacity duration-200 ${newChatHover ? 'opacity-100' : 'opacity-0'}`} />
+                      <div className="relative w-4 h-4 flex-shrink-0">
+                        <MessageSquare className={`absolute inset-0 w-4 h-4 transition-opacity duration-200 ${newChatHover ? 'opacity-0' : 'opacity-100'}`} />
+                        <PenSquare className={`absolute inset-0 w-4 h-4 transition-opacity duration-200 ${newChatHover ? 'opacity-100' : 'opacity-0'}`} />
                       </div>
                       <span>New chat</span>
                     </NavLink>
