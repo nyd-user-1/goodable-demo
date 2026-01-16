@@ -38,10 +38,10 @@ export function SignupOnlyForm({ className, ...props }: SignupOnlyFormProps) {
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">
-            You've lived it.
+            It has meaning.
           </CardTitle>
           <CardDescription>
-            Now we fix it.
+            If you give it meaning.
           </CardDescription>
         </CardHeader>
         <CardContent>
