@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +8,7 @@ import { Tables } from "@/integrations/supabase/types";
 import { generateMemberSlug } from "@/utils/memberSlug";
 import { ThumbsUp, ThumbsDown, Minus, StickyNote } from "lucide-react";
 import { ReviewStatus } from "@/hooks/useBillReviews";
+import { BillPDFSheet } from "./BillPDFSheet";
 import {
   Tooltip,
   TooltipContent,
@@ -40,6 +42,13 @@ export const BillSummary = ({
   reviewStatus,
   reviewNote
 }: BillSummaryProps) => {
+  const [pdfSheetOpen, setPdfSheetOpen] = useState(false);
+
+  const handlePDFView = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPdfSheetOpen(true);
+  };
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "No date";
     try {
@@ -152,6 +161,7 @@ export const BillSummary = ({
             <CardActionButtons
               onFavorite={onFavorite}
               onAIAnalysis={onAIAnalysis}
+              onPDFView={handlePDFView}
               isFavorited={isFavorited}
               hasAIChat={hasAIChat}
               showFavorite={!!onFavorite}
@@ -216,6 +226,15 @@ export const BillSummary = ({
           </div>
         )}
       </CardContent>
+
+      {/* PDF Viewer Sheet */}
+      <BillPDFSheet
+        isOpen={pdfSheetOpen}
+        onClose={() => setPdfSheetOpen(false)}
+        billNumber={bill.bill_number || ""}
+        billTitle={bill.title || ""}
+        bill={bill}
+      />
     </Card>
   );
 };
