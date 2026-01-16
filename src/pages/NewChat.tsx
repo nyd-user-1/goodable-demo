@@ -215,6 +215,9 @@ const NewChat = () => {
   // Track if we've already auto-submitted the prompt
   const hasAutoSubmittedRef = useRef(false);
 
+  // Track if the current message is a "What is Goodable.dev?" prompt (for disclaimer)
+  const isGoodablePromptRef = useRef(false);
+
   // Track previous session ID to detect navigation to /new-chat
   const prevSessionIdRef = useRef<string | undefined>(routeSessionId);
 
@@ -339,6 +342,18 @@ const NewChat = () => {
     setAttachedFiles([]);
     // Clear persisted session so new messages create a new session
     clearSession();
+  };
+
+  // Handle "What is Goodable.dev?" prompt from heart icon click
+  const handleWhatIsGoodable = () => {
+    // Reset state first (like starting a new chat)
+    handleNewChat();
+    // Mark this as a special Goodable prompt so we can append the disclaimer
+    isGoodablePromptRef.current = true;
+    // Small delay to ensure state is reset, then submit the prompt
+    setTimeout(() => {
+      handleSubmit(null, "What is Goodable.dev?");
+    }, 100);
   };
 
   // Stop streaming function
@@ -776,6 +791,12 @@ const NewChat = () => {
         aiResponse = 'I apologize, but I encountered an error. Please try again.';
       }
 
+      // Append disclaimer for "What is Goodable.dev?" prompt
+      if (isGoodablePromptRef.current && aiResponse) {
+        aiResponse += '\n\n*Answers will vary by user. 😉';
+        isGoodablePromptRef.current = false; // Reset for next message
+      }
+
       // Extract Perplexity citations if this is a Perplexity response
       let perplexityCitations: PerplexityCitation[] = [];
       if (isPerplexityModel && aiResponse) {
@@ -920,7 +941,7 @@ const NewChat = () => {
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Header - only show on public root page */}
-      {isPublicPage && <ChatHeader onNewChat={handleNewChat} />}
+      {isPublicPage && <ChatHeader onNewChat={handleNewChat} onWhatIsGoodable={handleWhatIsGoodable} />}
 
       {/* Main Content Area - add top padding only when header is shown */}
       <div
