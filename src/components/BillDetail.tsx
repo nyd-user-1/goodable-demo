@@ -221,33 +221,31 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
             reviewNote={billReview?.note}
           />
 
-          {/* Your Notes Section - Only shown when note exists */}
-          {billReview?.note && (
-            <Card className="bg-card rounded-xl shadow-sm border">
-              <CardHeader className="px-6 py-4 border-b">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                    <StickyNote className="h-5 w-5 text-yellow-600" />
-                    Your Notes
-                  </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setNoteDialogOpen(true)}
-                    className="gap-2"
-                  >
-                    <Pencil className="h-4 w-4" />
-                    Edit Review
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-wrap">
-                  {billReview.note}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Your Notes Section - Always shown */}
+          <Card className="bg-card rounded-xl shadow-sm border">
+            <CardHeader className="px-6 py-4 border-b">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <StickyNote className="h-5 w-5 text-yellow-600" />
+                  Your Notes
+                </CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setNoteDialogOpen(true)}
+                  className="gap-2"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Edit
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-wrap">
+                {billReview?.note || <span className="text-muted-foreground italic">Add your notes here.</span>}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Bill Tabs Section */}
           <section>
