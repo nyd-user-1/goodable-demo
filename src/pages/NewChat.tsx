@@ -155,6 +155,44 @@ const NewChat = () => {
   // Track if we've already auto-submitted the prompt
   const hasAutoSubmittedRef = useRef(false);
 
+  // Track previous session ID to detect navigation to /new-chat
+  const prevSessionIdRef = useRef<string | undefined>(routeSessionId);
+
+  // Reset state when navigating from a chat to /new-chat
+  useEffect(() => {
+    const prevSessionId = prevSessionIdRef.current;
+    prevSessionIdRef.current = routeSessionId;
+
+    // If we had a session ID before and now we don't (navigated to /new-chat)
+    // AND we have chat content to clear, reset the state
+    if (prevSessionId && !routeSessionId && chatStarted) {
+      console.log('[NewChat] Detected navigation to /new-chat, resetting state');
+      // Stop any ongoing streaming
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+      if (readerRef.current) {
+        readerRef.current.cancel();
+        readerRef.current = null;
+      }
+      // Reset chat state
+      setMessages([]);
+      setQuery("");
+      setChatStarted(false);
+      setIsTyping(false);
+      // Reset selected items
+      setSelectedBills([]);
+      setSelectedMembers([]);
+      setSelectedCommittees([]);
+      setAttachedFiles([]);
+      // Clear persisted session
+      clearSession();
+      // Reset auto-submit ref so new prompts can trigger
+      hasAutoSubmittedRef.current = false;
+    }
+  }, [routeSessionId, chatStarted, clearSession]);
+
   // Load existing session from URL (e.g., /c/abc123 or /new-chat?session=abc123)
   useEffect(() => {
     // Prefer route param (/c/:sessionId), fallback to query param (?session=)
