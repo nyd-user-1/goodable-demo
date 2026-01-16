@@ -150,13 +150,14 @@ const NewChat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
+  // Track if we've already auto-submitted the prompt
+  const hasAutoSubmittedRef = useRef(false);
+
   // Load existing session from URL (e.g., /c/abc123 or /new-chat?session=abc123)
   useEffect(() => {
     // Prefer route param (/c/:sessionId), fallback to query param (?session=)
     const sessionId = routeSessionId || searchParams.get('session');
-    const promptParam = searchParams.get('prompt');
-    console.log('[NewChat] Session load check - sessionId:', sessionId, 'shouldPersist:', shouldPersist, 'currentSessionId:', currentSessionId, 'promptParam:', promptParam);
-
+    console.log('[NewChat] Session load check - sessionId:', sessionId, 'shouldPersist:', shouldPersist, 'currentSessionId:', currentSessionId);
     if (sessionId && shouldPersist && !currentSessionId) {
       loadSession(sessionId).then((sessionData) => {
         if (sessionData && sessionData.messages.length > 0) {
@@ -169,25 +170,34 @@ const NewChat = () => {
           setMessages(loadedMessages);
           setChatStarted(true);
           console.log('[NewChat] Loaded session with', loadedMessages.length, 'messages');
-        } else if (promptParam) {
-          // Session exists but is empty - auto-submit the prompt parameter
-          console.log('[NewChat] Empty session with prompt param, auto-submitting:', promptParam);
-          // Set the session ID first so handleSubmit updates the existing session
-          setCurrentSessionId(sessionId);
-          // Use setTimeout to ensure state is updated before submitting
-          setTimeout(() => {
-            handleSubmit(null, promptParam);
-          }, 100);
         }
       });
-    } else if (promptParam && !currentSessionId && !chatStarted) {
-      // No session but has prompt param - auto-submit (will create new session)
-      console.log('[NewChat] No session with prompt param, auto-submitting:', promptParam);
-      setTimeout(() => {
-        handleSubmit(null, promptParam);
-      }, 100);
     }
   }, [routeSessionId, searchParams, shouldPersist, currentSessionId, loadSession]);
+
+  // Auto-submit prompt from URL parameter
+  useEffect(() => {
+    const promptParam = searchParams.get('prompt');
+    const sessionId = routeSessionId || searchParams.get('session');
+
+    // Only auto-submit once, and only if we have a prompt and haven't started a chat yet
+    if (promptParam && !hasAutoSubmittedRef.current && !chatStarted && !isTyping) {
+      console.log('[NewChat] Auto-submitting prompt:', promptParam);
+      hasAutoSubmittedRef.current = true;
+
+      // If we have a session ID, set it first
+      if (sessionId) {
+        setCurrentSessionId(sessionId);
+      }
+
+      // Small delay to ensure everything is ready
+      setTimeout(() => {
+        handleSubmit(null, promptParam);
+        // Clear the prompt from URL to prevent re-submission on refresh
+        navigate(location.pathname, { replace: true });
+      }, 200);
+    }
+  }, [searchParams, chatStarted, isTyping, routeSessionId]);
 
   // Handle new chat - reset all state
   const handleNewChat = () => {
