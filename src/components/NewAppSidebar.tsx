@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, createContext, useContext } from "react";
 import { NavLink, useLocation, useParams } from "react-router-dom";
 import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, ChevronRight, PanelLeftClose, PanelLeft, MoreHorizontal, Pin, Trash2, PenSquare } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -79,6 +79,11 @@ const savePinnedChatIds = (ids: Set<string>) => {
   localStorage.setItem(PINNED_CHATS_KEY, JSON.stringify([...ids]));
 };
 
+// Context for refreshing sidebar chats from other components
+export const SidebarRefreshContext = createContext<{ refreshChats: () => void } | null>(null);
+
+export const useSidebarRefresh = () => useContext(SidebarRefreshContext);
+
 export function NewAppSidebar() {
   const location = useLocation();
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -90,36 +95,37 @@ export function NewAppSidebar() {
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(getPinnedChatIds());
   const [newChatHover, setNewChatHover] = useState(false);
 
-  // Fetch recent chats for the sidebar
-  useEffect(() => {
-    const fetchRecentChats = async () => {
-      if (!user) return;
+  // Fetch recent chats - extracted to useCallback so it can be called externally
+  const fetchRecentChats = useCallback(async () => {
+    if (!user) return;
 
-      const { data, error } = await supabase
-        .from("chat_sessions")
-        .select("id, title, updated_at")
-        .eq("user_id", user.id)
-        .order("updated_at", { ascending: false })
-        .limit(20);
+    const { data, error } = await supabase
+      .from("chat_sessions")
+      .select("id, title, updated_at")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false })
+      .limit(20);
 
-      if (!error && data) {
-        const currentPinnedIds = getPinnedChatIds();
-        const chatsWithPinned = data.map(chat => ({
-          ...chat,
-          isPinned: currentPinnedIds.has(chat.id),
-        }));
-        // Sort: pinned first, then by updated_at
-        chatsWithPinned.sort((a, b) => {
-          if (a.isPinned && !b.isPinned) return -1;
-          if (!a.isPinned && b.isPinned) return 1;
-          return 0;
-        });
-        setRecentChats(chatsWithPinned);
-      }
-    };
-
-    fetchRecentChats();
+    if (!error && data) {
+      const currentPinnedIds = getPinnedChatIds();
+      const chatsWithPinned = data.map(chat => ({
+        ...chat,
+        isPinned: currentPinnedIds.has(chat.id),
+      }));
+      // Sort: pinned first, then by updated_at
+      chatsWithPinned.sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return 0;
+      });
+      setRecentChats(chatsWithPinned);
+    }
   }, [user]);
+
+  // Fetch chats on mount
+  useEffect(() => {
+    fetchRecentChats();
+  }, [fetchRecentChats]);
 
   const deleteChat = async (chatId: string) => {
     const { error } = await supabase
@@ -190,6 +196,7 @@ export function NewAppSidebar() {
   };
 
   return (
+    <SidebarRefreshContext.Provider value={{ refreshChats: fetchRecentChats }}>
     <Sidebar collapsible="icon">
       <SidebarHeader onClick={handleWhitespaceClick}>
         <div className="flex items-center justify-between w-full px-2 py-1">
@@ -421,5 +428,6 @@ export function NewAppSidebar() {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
+    </SidebarRefreshContext.Provider>
   );
 }

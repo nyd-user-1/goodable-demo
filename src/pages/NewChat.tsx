@@ -48,6 +48,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { EngineSelection } from "@/components/EngineSelection";
+import { useSidebarRefresh } from "@/components/NewAppSidebar";
 
 // Thinking phrases that rotate per message instance
 const thinkingPhrases = [
@@ -124,6 +125,7 @@ const NewChat = () => {
   const { sessionId: routeSessionId } = useParams<{ sessionId: string }>();
   const { user } = useAuth();
   const { setOpen: setSidebarOpen } = useSidebarSafe();
+  const sidebarRefresh = useSidebarRefresh();
   const {
     currentSessionId,
     isSaving,
@@ -646,6 +648,8 @@ const NewChat = () => {
 
       // Update URL to include session ID (like ChatGPT's /c/id pattern)
       if (sessionId) {
+        // Refresh sidebar to show the new chat
+        sidebarRefresh?.refreshChats();
         navigate(`/c/${sessionId}`, { replace: true });
       }
     } else if (shouldPersist && sessionId) {
