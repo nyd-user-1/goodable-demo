@@ -64,7 +64,7 @@ export const QuickReviewNoteDialog = ({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-start justify-center pt-20 ${draggable ? 'pointer-events-none' : ''}`}
+      className={`fixed inset-0 z-[100] flex items-start justify-center pt-20 ${draggable ? 'pointer-events-none' : ''}`}
       onClick={draggable ? undefined : onClose}
     >
       <div

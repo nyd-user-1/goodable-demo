@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +26,7 @@ interface BillDetailProps {
 }
 
 export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
+  const navigate = useNavigate();
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [sponsors, setSponsors] = useState<(Sponsor & { person?: Person })[]>([]);
   const [rollCalls, setRollCalls] = useState<(RollCall & { votes?: (Vote & { person?: Person })[] })[]>([]);
@@ -160,9 +161,37 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
     toggleFavorite(bill.bill_id);
   };
 
-  const handleAIAnalysis = (e: React.MouseEvent) => {
+  const handleAIAnalysis = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    // TODO: Implement AI analysis functionality
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error("User not authenticated");
+        return;
+      }
+
+      // Create a new chat session for this bill
+      const sessionData = {
+        user_id: user.id,
+        bill_id: bill.bill_id,
+        title: `Chat about ${bill.bill_number || 'Bill'}`,
+        messages: JSON.stringify([])
+      };
+
+      const { data, error } = await supabase
+        .from("chat_sessions")
+        .insert(sessionData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Navigate to the new chat
+      navigate(`/c/${data.id}`);
+    } catch (error) {
+      console.error("Error creating chat session:", error);
+    }
   };
 
   return (
