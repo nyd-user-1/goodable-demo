@@ -251,11 +251,14 @@ const NewChat = () => {
     if (sessionId && shouldPersist && !currentSessionId) {
       loadSession(sessionId).then((sessionData) => {
         if (sessionData && sessionData.messages.length > 0) {
-          // Convert persisted messages to our Message format
+          // Convert persisted messages to our Message format, including citations metadata
           const loadedMessages: Message[] = sessionData.messages.map(msg => ({
             id: msg.id,
             role: msg.role,
             content: msg.content,
+            // Restore citations metadata for assistant messages
+            ...(msg.citations && { citations: msg.citations }),
+            ...(msg.relatedBills && { relatedBills: msg.relatedBills }),
           }));
           setMessages(loadedMessages);
           setChatStarted(true);
@@ -815,13 +818,14 @@ const NewChat = () => {
       ));
 
       // Fetch related bills based on the first cited bill's committee (progressive loading)
+      let relatedBillsResult: typeof responseCitations = [];
       if (responseCitations.length > 0) {
         const firstBill = responseCitations[0];
         if (firstBill.committee) {
           try {
             const { data: relatedBillsData, error: relatedError } = await supabase
               .from('Bills')
-              .select('*')
+              .select('bill_number, title, status_desc, description, committee, session_id')
               .eq('committee', firstBill.committee)
               .neq('bill_number', firstBill.bill_number) // Exclude the cited bill itself
               .order('session_id', { ascending: false })
@@ -829,6 +833,7 @@ const NewChat = () => {
 
             if (!relatedError && relatedBillsData && relatedBillsData.length > 0) {
               console.log(`Found ${relatedBillsData.length} related bills from committee: ${firstBill.committee}`);
+              relatedBillsResult = relatedBillsData;
 
               // Update message with related bills
               setMessages(prev => prev.map(msg =>
@@ -847,19 +852,26 @@ const NewChat = () => {
       abortControllerRef.current = null;
       readerRef.current = null;
 
-      // Persistence: Save assistant response (authenticated only)
+      // Persistence: Save assistant response with citations metadata (authenticated only)
       if (shouldPersist && sessionId && aiResponse) {
-        // Get all messages including the new assistant response
+        // Get all messages including the new assistant response with metadata
         const allMessages = [...messages, userMessage, {
           id: messageId,
           role: "assistant" as const,
           content: aiResponse,
+          citations: responseCitations,
+          relatedBills: relatedBillsResult,
         }];
         const persistedMessages = allMessages.map(m => ({
           id: m.id,
           role: m.role,
           content: m.content,
           timestamp: new Date().toISOString(),
+          // Include citations metadata for assistant messages
+          ...(m.role === 'assistant' && 'citations' in m && {
+            citations: m.citations,
+            relatedBills: m.relatedBills,
+          }),
         }));
         await updateMessages(sessionId, persistedMessages);
         console.log('[NewChat] Saved assistant response to session:', sessionId);

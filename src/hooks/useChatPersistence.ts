@@ -2,11 +2,23 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+interface BillCitation {
+  bill_number: string;
+  title: string;
+  status_desc: string;
+  description?: string;
+  committee?: string;
+  session_id?: number;
+}
+
 interface PersistedMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: string;
+  // Metadata for assistant messages
+  citations?: BillCitation[];
+  relatedBills?: BillCitation[];
 }
 
 interface ChatSessionData {
