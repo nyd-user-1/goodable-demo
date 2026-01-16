@@ -81,6 +81,18 @@ const samplePrompts = [
   }
 ];
 
+// Context for the "What is Goodable.dev?" prompt
+const GOODABLE_CONTEXT = `You are answering "What is Goodable.dev?" for a new user. Goodable is a civic engagement platform focused on New York State legislation. Describe it naturally and highlight these unique features:
+
+- Research any bill and get AI-powered analysis with stakeholder impact, political context, and likelihood of passage
+- Email legislators directly - send letters to bill sponsors and CC all co-sponsors with one click
+- Generate support or opposition letters instantly using AI
+- View official NYS Legislature bill PDFs right in the interface
+- Track your position on bills (Support/Oppose/Neutral) and add personal notes via Quick Review
+- Every response includes References, Related Bills, and Resources sections
+
+Keep the tone helpful and practical, not preachy. Let the features speak for themselves. End with something like: "Every bill analysis includes tools to email sponsors, generate letters, view official documents, and track your positions."`;
+
 interface BillCitation {
   bill_number: string;
   title: string;
@@ -350,9 +362,9 @@ const NewChat = () => {
     handleNewChat();
     // Mark this as a special Goodable prompt so we can append the disclaimer
     isGoodablePromptRef.current = true;
-    // Small delay to ensure state is reset, then submit the prompt
+    // Small delay to ensure state is reset, then submit the prompt with Goodable context
     setTimeout(() => {
-      handleSubmit(null, "What is Goodable.dev?");
+      handleSubmit(null, "What is Goodable.dev?", GOODABLE_CONTEXT);
     }, 100);
   };
 
@@ -558,7 +570,7 @@ const NewChat = () => {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent | null, promptText?: string) => {
+  const handleSubmit = async (e: React.FormEvent | null, promptText?: string, systemContext?: string) => {
     if (e) e.preventDefault();
 
     // Block chat input if modal is active - show modal again
@@ -727,7 +739,8 @@ const NewChat = () => {
             previousMessages: messages.slice(-10).map(m => ({
               role: m.role,
               content: m.content
-            }))
+            })),
+            systemContext: systemContext || undefined
           }
         }),
         signal: abortControllerRef.current.signal

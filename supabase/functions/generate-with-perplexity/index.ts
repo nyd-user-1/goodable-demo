@@ -8,9 +8,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type"
 };
 
-const getSystemPrompt = () => {
+const getSystemPrompt = (customSystemContext?: string) => {
   const today = new Date().toISOString().split("T")[0];
-  return `You are an expert legislative research analyst for New York State.
+  const basePrompt = `You are an expert legislative research analyst for New York State.
 Today's date: ${today}
 
 Your job is to find verified, up-to-date information about NYS legislation
@@ -22,6 +22,13 @@ from authoritative sources. Always cite credible outlets like:
 When given context, cross-reference it with your findings.
 Always cite your sources, date all time-sensitive info,
 and focus on developments from the past 30 days.`;
+
+  // Add custom system context if provided (e.g., for "What is Goodable.dev?" prompt)
+  if (customSystemContext) {
+    return `${customSystemContext}\n\n${basePrompt}`;
+  }
+
+  return basePrompt;
 };
 
 serve(async (req) => {
@@ -42,8 +49,12 @@ serve(async (req) => {
     if (!prompt) throw new Error("Missing required 'prompt' field.");
     if (!perplexityApiKey) throw new Error("Perplexity API key not configured.");
 
-    const userMessage = context
-      ? `# Relevant Legislative Data\n${context}\n\n# Research Request\n${prompt}`
+    // Extract systemContext if context is an object
+    const systemContext = typeof context === 'object' && context?.systemContext ? context.systemContext : undefined;
+    const contextData = typeof context === 'object' ? JSON.stringify(context) : context;
+
+    const userMessage = contextData
+      ? `# Relevant Legislative Data\n${contextData}\n\n# Research Request\n${prompt}`
       : prompt;
 
     const response = await fetch("https://api.perplexity.ai/chat/completions", {
@@ -55,7 +66,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model,
         messages: [
-          { role: "system", content: getSystemPrompt() },
+          { role: "system", content: getSystemPrompt(systemContext) },
           { role: "user", content: userMessage }
         ],
         temperature,

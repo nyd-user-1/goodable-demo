@@ -407,6 +407,13 @@ serve(async (req) => {
 
     // Build the enhanced system prompt with legislative data
     let enhancedSystemPrompt = CLAUDE_SYSTEM_PROMPT;
+
+    // Add custom system context if provided (e.g., for "What is Goodable.dev?" prompt)
+    if (context?.systemContext) {
+      enhancedSystemPrompt = `${context.systemContext}\n\n${enhancedSystemPrompt}`;
+      console.log('Added custom systemContext to prompt');
+    }
+
     if (legislativeContext) {
       enhancedSystemPrompt += `\n\nCURRENT LEGISLATIVE DATA:\n${legislativeContext}\n\nUse this information to provide accurate, up-to-date legislative analysis with specific details.`;
     }

@@ -574,7 +574,14 @@ Member Count: ${entityContext.committee.member_count || 'Unknown'}`;
       combinedContext += `\n\n${contextObj.goodableData}`;
     }
 
-    const systemPrompt = getSystemPrompt(type, combinedContext ? { nysData: combinedContext } : context, entityData);
+    let systemPrompt = getSystemPrompt(type, combinedContext ? { nysData: combinedContext } : context, entityData);
+
+    // Add custom system context if provided (e.g., for "What is Goodable.dev?" prompt)
+    if (context?.systemContext) {
+      systemPrompt = `${context.systemContext}\n\n${systemPrompt}`;
+      console.log('Added custom systemContext to prompt');
+    }
+
     const enhancedPrompt = combinedContext ?
       `${prompt}\n\n[IMPORTANT: Use the comprehensive legislative database information provided in your system context to give specific, detailed answers with exact bill numbers, names, and current information. You have access to the complete Goodable database containing all NYS bills, plus live NYS API data.]` :
       prompt;
