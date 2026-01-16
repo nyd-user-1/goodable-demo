@@ -66,9 +66,9 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
             <TooltipTrigger asChild>
               <button
                 onClick={handleNewChat}
-                className="w-8 h-8 bg-card border rounded-lg flex items-center justify-center hover:bg-muted transition-colors cursor-pointer"
+                className="w-8 h-8 flex items-center justify-center hover:bg-muted rounded-lg transition-colors cursor-pointer"
               >
-                <PenSquare className="h-4 w-4" />
+                <PenSquare className="h-4 w-4 text-muted-foreground" />
               </button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="font-medium">
@@ -79,9 +79,10 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
 
         {/* Right side - Controls */}
         <div className="flex items-center gap-2">
+          {/* Theme toggle - hidden on mobile */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <div>
+              <div className="hidden md:block">
                 <ThemeToggle />
               </div>
             </TooltipTrigger>
@@ -89,6 +90,7 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
               Toggle theme
             </TooltipContent>
           </Tooltip>
+          {/* Command menu - desktop only */}
           <Tooltip>
             <TooltipTrigger asChild>
               <button
@@ -110,17 +112,20 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
               Command menu
             </TooltipContent>
           </Tooltip>
+          {/* Log In - desktop only (text button) */}
           <button
-            className="inline-flex items-center justify-center h-9 rounded-md px-3 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-medium"
-            onClick={() => navigate('/auth')}
+            className="hidden md:inline-flex items-center justify-center h-9 rounded-md px-3 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-medium"
+            onClick={() => navigate('/auth-2')}
           >
             Log In
           </button>
+          {/* Sign Up - desktop: filled button, mobile: replaced by Log In */}
           <Button
             onClick={() => navigate('/auth-2')}
             className="bg-foreground text-background hover:bg-foreground/90"
           >
-            Sign Up
+            <span className="hidden md:inline">Sign Up</span>
+            <span className="md:hidden">Log In</span>
           </Button>
         </div>
       </div>
