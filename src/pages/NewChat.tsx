@@ -154,62 +154,28 @@ const NewChat = () => {
 
   // Track if we've already auto-submitted the prompt
   const hasAutoSubmittedRef = useRef(false);
-  // Track the previous session ID to detect navigation between chats
-  const previousSessionIdRef = useRef<string | null>(null);
 
   // Load existing session from URL (e.g., /c/abc123 or /new-chat?session=abc123)
   useEffect(() => {
     // Prefer route param (/c/:sessionId), fallback to query param (?session=)
     const sessionId = routeSessionId || searchParams.get('session');
-    const promptParam = searchParams.get('prompt');
-
-    console.log('[NewChat] Session load check - sessionId:', sessionId, 'previousSessionId:', previousSessionIdRef.current, 'shouldPersist:', shouldPersist);
-
-    // If session ID changed, reset state and load new session
-    if (sessionId !== previousSessionIdRef.current) {
-      console.log('[NewChat] Session ID changed, resetting state');
-      previousSessionIdRef.current = sessionId || null;
-
-      // Reset auto-submit ref when navigating to a different chat
-      hasAutoSubmittedRef.current = false;
-
-      // If no session ID (navigating to /new-chat), reset to initial state
-      if (!sessionId) {
-        setMessages([]);
-        setChatStarted(false);
-        clearSession();
-        return;
-      }
-
-      // Load the session if it exists and we should persist
-      if (sessionId && shouldPersist) {
-        loadSession(sessionId).then((sessionData) => {
-          if (sessionData && sessionData.messages.length > 0) {
-            // Convert persisted messages to our Message format
-            // Add empty citation arrays for assistant messages so CitationTabs renders
-            const loadedMessages: Message[] = sessionData.messages.map(msg => ({
-              id: msg.id,
-              role: msg.role,
-              content: msg.content,
-              // For assistant messages, add empty arrays so citation tabs show
-              ...(msg.role === 'assistant' ? {
-                citations: [],
-                relatedBills: [],
-                isStreaming: false,
-              } : {}),
-            }));
-            setMessages(loadedMessages);
-            setChatStarted(true);
-            console.log('[NewChat] Loaded session with', loadedMessages.length, 'messages');
-          } else if (!promptParam) {
-            // Empty session with no prompt - show initial state
-            setMessages([]);
-            setChatStarted(false);
-          }
-        });
-      }
+    console.log('[NewChat] Session load check - sessionId:', sessionId, 'shouldPersist:', shouldPersist, 'currentSessionId:', currentSessionId);
+    if (sessionId && shouldPersist && !currentSessionId) {
+      loadSession(sessionId).then((sessionData) => {
+        if (sessionData && sessionData.messages.length > 0) {
+          // Convert persisted messages to our Message format
+          const loadedMessages: Message[] = sessionData.messages.map(msg => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+          }));
+          setMessages(loadedMessages);
+          setChatStarted(true);
+          console.log('[NewChat] Loaded session with', loadedMessages.length, 'messages');
+        }
+      });
     }
-  }, [routeSessionId, searchParams, shouldPersist, loadSession, clearSession]);
+  }, [routeSessionId, searchParams, shouldPersist, currentSessionId, loadSession]);
 
   // Auto-submit prompt from URL parameter
   useEffect(() => {
