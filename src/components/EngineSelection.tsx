@@ -74,7 +74,7 @@ export const EngineSelection = () => {
               setSelectedModel(model.value)
               setOpen(false)
             }}
-            className="flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer hover:bg-muted focus:bg-muted"
+            className="flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer hover:bg-muted focus:bg-muted hover:text-foreground focus:text-foreground"
           >
             <div className="flex flex-col">
               <span className="font-medium">{model.label}</span>
