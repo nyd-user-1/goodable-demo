@@ -154,7 +154,9 @@ const NewChat = () => {
   useEffect(() => {
     // Prefer route param (/c/:sessionId), fallback to query param (?session=)
     const sessionId = routeSessionId || searchParams.get('session');
-    console.log('[NewChat] Session load check - sessionId:', sessionId, 'shouldPersist:', shouldPersist, 'currentSessionId:', currentSessionId);
+    const promptParam = searchParams.get('prompt');
+    console.log('[NewChat] Session load check - sessionId:', sessionId, 'shouldPersist:', shouldPersist, 'currentSessionId:', currentSessionId, 'promptParam:', promptParam);
+
     if (sessionId && shouldPersist && !currentSessionId) {
       loadSession(sessionId).then((sessionData) => {
         if (sessionData && sessionData.messages.length > 0) {
@@ -167,8 +169,23 @@ const NewChat = () => {
           setMessages(loadedMessages);
           setChatStarted(true);
           console.log('[NewChat] Loaded session with', loadedMessages.length, 'messages');
+        } else if (promptParam) {
+          // Session exists but is empty - auto-submit the prompt parameter
+          console.log('[NewChat] Empty session with prompt param, auto-submitting:', promptParam);
+          // Set the session ID first so handleSubmit updates the existing session
+          setCurrentSessionId(sessionId);
+          // Use setTimeout to ensure state is updated before submitting
+          setTimeout(() => {
+            handleSubmit(null, promptParam);
+          }, 100);
         }
       });
+    } else if (promptParam && !currentSessionId && !chatStarted) {
+      // No session but has prompt param - auto-submit (will create new session)
+      console.log('[NewChat] No session with prompt param, auto-submitting:', promptParam);
+      setTimeout(() => {
+        handleSubmit(null, promptParam);
+      }, 100);
     }
   }, [routeSessionId, searchParams, shouldPersist, currentSessionId, loadSession]);
 

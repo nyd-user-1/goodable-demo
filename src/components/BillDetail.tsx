@@ -187,8 +187,9 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
 
       if (error) throw error;
 
-      // Navigate to the new chat
-      navigate(`/c/${data.id}`);
+      // Navigate to the new chat with the initial prompt
+      const initialPrompt = `Tell me about bill ${bill.bill_number}`;
+      navigate(`/c/${data.id}?prompt=${encodeURIComponent(initialPrompt)}`);
     } catch (error) {
       console.error("Error creating chat session:", error);
     }
