@@ -88,7 +88,7 @@ export function NewAppSidebar() {
   const location = useLocation();
   const { sessionId } = useParams<{ sessionId: string }>();
   const { isAdmin, user } = useAuth();
-  const { toggleSidebar, state } = useSidebar();
+  const { toggleSidebar, state, isMobile } = useSidebar();
   const { toast } = useToast();
   const isCollapsed = state === "collapsed";
   const [recentChats, setRecentChats] = useState<ChatSession[]>([]);
@@ -356,8 +356,8 @@ export function NewAppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
 
-        {/* Your Chats - only show when sidebar is expanded */}
-        {!isCollapsed && recentChats.length > 0 && (
+        {/* Your Chats - show on mobile or when sidebar is expanded on desktop */}
+        {(isMobile || !isCollapsed) && recentChats.length > 0 && (
           <Collapsible defaultOpen className="group/collapsible">
             <SidebarGroup>
               <SidebarGroupLabel asChild>

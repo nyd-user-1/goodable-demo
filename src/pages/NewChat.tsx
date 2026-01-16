@@ -927,9 +927,9 @@ const NewChat = () => {
         ref={scrollContainerRef}
         className={cn("flex-1 overflow-y-auto pb-32", isPublicPage && "pt-14")}
       >
-        {/* Engine Selection - ChatGPT style top-left */}
+        {/* Engine Selection - ChatGPT style top-left (desktop only, mobile uses PageHeader) */}
         {!isPublicPage && (
-          <div className="sticky top-0 z-10 bg-background pt-4 pb-2 px-8">
+          <div className="hidden md:block sticky top-0 z-10 bg-background pt-4 pb-2 px-8">
             <EngineSelection />
           </div>
         )}
