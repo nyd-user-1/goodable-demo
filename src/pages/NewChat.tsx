@@ -261,7 +261,12 @@ const NewChat = () => {
     // Prefer route param (/c/:sessionId), fallback to query param (?session=)
     const sessionId = routeSessionId || searchParams.get('session');
     console.log('[NewChat] Session load check - sessionId:', sessionId, 'shouldPersist:', shouldPersist, 'currentSessionId:', currentSessionId);
-    if (sessionId && shouldPersist && !currentSessionId) {
+    if (sessionId && shouldPersist && sessionId !== currentSessionId) {
+      // Reset state before loading new session
+      setMessages([]);
+      setChatStarted(false);
+      setIsTyping(false);
+
       loadSession(sessionId).then((sessionData) => {
         if (sessionData && sessionData.messages.length > 0) {
           // Convert persisted messages to our Message format, including citations metadata
