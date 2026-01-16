@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { Check, ChevronDown } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { useModel } from "@/contexts/ModelContext"
 import { ModelType } from "@/components/ModelSelector"
 import {
@@ -55,10 +54,7 @@ export const EngineSelection = () => {
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <button
-          className={cn(
-            "flex items-center gap-1 px-3 py-2 rounded-lg text-left transition-colors",
-            "hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          )}
+          className="flex items-center gap-1 px-3 py-2 rounded-lg text-left transition-colors hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <span className="text-lg font-semibold text-foreground">
             {currentModel?.label || "Select model"}
@@ -78,10 +74,7 @@ export const EngineSelection = () => {
               setSelectedModel(model.value)
               setOpen(false)
             }}
-            className={cn(
-              "flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer",
-              selectedModel === model.value && "bg-muted"
-            )}
+            className="flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer hover:bg-muted focus:bg-muted"
           >
             <div className="flex flex-col">
               <span className="font-medium">{model.label}</span>
