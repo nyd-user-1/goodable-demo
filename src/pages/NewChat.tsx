@@ -186,10 +186,17 @@ const NewChat = () => {
         loadSession(sessionId).then((sessionData) => {
           if (sessionData && sessionData.messages.length > 0) {
             // Convert persisted messages to our Message format
+            // Add empty citation arrays for assistant messages so CitationTabs renders
             const loadedMessages: Message[] = sessionData.messages.map(msg => ({
               id: msg.id,
               role: msg.role,
               content: msg.content,
+              // For assistant messages, add empty arrays so citation tabs show
+              ...(msg.role === 'assistant' ? {
+                citations: [],
+                relatedBills: [],
+                isStreaming: false,
+              } : {}),
             }));
             setMessages(loadedMessages);
             setChatStarted(true);
