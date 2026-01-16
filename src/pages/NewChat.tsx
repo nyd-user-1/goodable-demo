@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useSidebar } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from 'react-markdown';
 import { useModel } from "@/contexts/ModelContext";
@@ -106,6 +107,7 @@ const NewChat = () => {
   const navigate = useNavigate();
   const { sessionId: routeSessionId } = useParams<{ sessionId: string }>();
   const { user } = useAuth();
+  const { setOpen: setSidebarOpen } = useSidebar();
   const {
     currentSessionId,
     isSaving,
@@ -185,6 +187,9 @@ const NewChat = () => {
       console.log('[NewChat] Auto-submitting prompt:', promptParam);
       hasAutoSubmittedRef.current = true;
 
+      // Collapse the sidebar when auto-submitting from AI Chat button
+      setSidebarOpen(false);
+
       // If we have a session ID, set it first
       if (sessionId) {
         setCurrentSessionId(sessionId);
@@ -197,7 +202,7 @@ const NewChat = () => {
         navigate(location.pathname, { replace: true });
       }, 200);
     }
-  }, [searchParams, chatStarted, isTyping, routeSessionId]);
+  }, [searchParams, chatStarted, isTyping, routeSessionId, setSidebarOpen]);
 
   // Handle new chat - reset all state
   const handleNewChat = () => {
