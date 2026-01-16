@@ -112,20 +112,12 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
               Command menu
             </TooltipContent>
           </Tooltip>
-          {/* Log In - desktop only (text button) */}
-          <button
-            className="hidden md:inline-flex items-center justify-center h-9 rounded-md px-3 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-medium"
-            onClick={() => navigate('/auth-2')}
-          >
-            Log In
-          </button>
-          {/* Sign Up - desktop: filled button, mobile: replaced by Log In */}
+          {/* Log In button - routes to auth-2 (sign up page with login link) */}
           <Button
             onClick={() => navigate('/auth-2')}
             className="bg-foreground text-background hover:bg-foreground/90"
           >
-            <span className="hidden md:inline">Sign Up</span>
-            <span className="md:hidden">Log In</span>
+            Log In
           </Button>
         </div>
       </div>
