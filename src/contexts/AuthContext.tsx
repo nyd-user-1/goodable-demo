@@ -1,14 +1,13 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { isAdmin, isAllowedUser } from '@/utils/adminHelpers';
+import { isAdmin } from '@/utils/adminHelpers';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
-  isAllowedUser: boolean;
   signUp: (email: string, password: string, username?: string, displayName?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -64,13 +63,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const signUp = async (email: string, password: string, username?: string, displayName?: string) => {
-    // Check if user is allowed before attempting signup
-    if (!isAllowedUser(email)) {
-      return { error: { message: 'Account creation is currently by invitation only. Please join the waitlist.' } };
-    }
-    
     const redirectUrl = `${window.location.origin}/`;
-    
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -86,11 +80,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    // Check if user is allowed before attempting sign in
-    if (!isAllowedUser(email)) {
-      return { error: { message: 'Access restricted. Please join the waitlist.' } };
-    }
-    
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -107,7 +96,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     session,
     loading,
     isAdmin: isAdmin(user?.email),
-    isAllowedUser: isAllowedUser(user?.email),
     signUp,
     signIn,
     signOut,
