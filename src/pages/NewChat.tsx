@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChatPersistence } from "@/hooks/useChatPersistence";
-import { Paperclip, ArrowUp, Square, Search as SearchIcon, FileText, Users, Building2, X } from "lucide-react";
+import { Paperclip, ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -98,7 +98,10 @@ const NewChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [chatStarted, setChatStarted] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const userScrolledRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
   const { selectedModel } = useModel();
@@ -147,10 +150,54 @@ const NewChat = () => {
   const [availableCommittees, setAvailableCommittees] = useState<any[]>([]);
   const [committeesLoading, setCommitteesLoading] = useState(false);
 
-  // Auto-scroll to bottom
+  // Check if user is at the bottom of scroll container
+  const checkIfAtBottom = () => {
+    const container = scrollContainerRef.current;
+    if (!container) return true;
+
+    const threshold = 100; // pixels from bottom to consider "at bottom"
+    const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+    return isAtBottom;
+  };
+
+  // Handle scroll events to show/hide scroll button
   useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const isAtBottom = checkIfAtBottom();
+      setShowScrollButton(!isAtBottom);
+
+      // Track if user manually scrolled up (not at bottom during streaming)
+      if (!isAtBottom && isTyping) {
+        userScrolledRef.current = true;
+      }
+
+      // Reset user scrolled flag when they reach bottom
+      if (isAtBottom) {
+        userScrolledRef.current = false;
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [isTyping]);
+
+  // Auto-scroll to bottom (only if user hasn't scrolled up)
+  useEffect(() => {
+    // Don't auto-scroll if user has manually scrolled up
+    if (userScrolledRef.current) return;
+
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
+
+  // Scroll to bottom function for the button
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    userScrolledRef.current = false;
+    setShowScrollButton(false);
+  };
 
   // Track if we've already auto-submitted the prompt
   const hasAutoSubmittedRef = useRef(false);
@@ -181,6 +228,9 @@ const NewChat = () => {
       setQuery("");
       setChatStarted(false);
       setIsTyping(false);
+      // Reset scroll state
+      setShowScrollButton(false);
+      userScrolledRef.current = false;
       // Reset selected items
       setSelectedBills([]);
       setSelectedMembers([]);
@@ -258,6 +308,9 @@ const NewChat = () => {
     setQuery("");
     setChatStarted(false);
     setIsTyping(false);
+    // Reset scroll state
+    setShowScrollButton(false);
+    userScrolledRef.current = false;
     // Reset selected items
     setSelectedBills([]);
     setSelectedMembers([]);
@@ -838,7 +891,10 @@ const NewChat = () => {
       {isPublicPage && <ChatHeader onNewChat={handleNewChat} />}
 
       {/* Main Content Area - add top padding only when header is shown */}
-      <div className={cn("flex-1 overflow-y-auto pb-32", isPublicPage && "pt-14")}>
+      <div
+        ref={scrollContainerRef}
+        className={cn("flex-1 overflow-y-auto pb-32", isPublicPage && "pt-14")}
+      >
         {!chatStarted ? (
           /* Initial State - Prompt Cards */
           <div className="flex flex-col items-center justify-center min-h-full px-4">
@@ -1167,6 +1223,17 @@ const NewChat = () => {
           </div>
         )}
       </div>
+
+      {/* Floating Scroll to Bottom Button - ChatGPT style */}
+      {showScrollButton && chatStarted && (
+        <button
+          onClick={scrollToBottom}
+          className="fixed left-1/2 -translate-x-1/2 bottom-36 z-10 bg-background border border-border rounded-full p-2 shadow-lg hover:bg-muted transition-all duration-200 hover:shadow-xl"
+          aria-label="Scroll to bottom"
+        >
+          <ArrowDown className="h-4 w-4 text-muted-foreground" />
+        </button>
+      )}
 
       {/* Fixed Bottom Input Area - Always Visible */}
       <div className="fixed bottom-0 left-0 right-0 bg-background z-[5]">
