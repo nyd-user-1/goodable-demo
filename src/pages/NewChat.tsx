@@ -1228,7 +1228,7 @@ const NewChat = () => {
       {showScrollButton && chatStarted && (
         <button
           onClick={scrollToBottom}
-          className="fixed left-1/2 -translate-x-1/2 bottom-36 z-10 bg-background border border-border rounded-full p-2 shadow-lg hover:bg-muted transition-all duration-200 hover:shadow-xl"
+          className="fixed left-1/2 -translate-x-1/2 bottom-44 z-10 bg-background border border-border rounded-full p-2 shadow-lg hover:bg-muted transition-all duration-200 hover:shadow-xl"
           aria-label="Scroll to bottom"
         >
           <ArrowDown className="h-4 w-4 text-muted-foreground" />
