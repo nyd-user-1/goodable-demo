@@ -47,6 +47,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { EngineSelection } from "@/components/EngineSelection";
 
 // Thinking phrases that rotate per message instance
 const thinkingPhrases = [
@@ -919,6 +920,13 @@ const NewChat = () => {
         ref={scrollContainerRef}
         className={cn("flex-1 overflow-y-auto pb-32", isPublicPage && "pt-14")}
       >
+        {/* Engine Selection - ChatGPT style top-left */}
+        {!isPublicPage && (
+          <div className="sticky top-0 z-10 bg-background pt-4 pb-2 px-8">
+            <EngineSelection />
+          </div>
+        )}
+
         {!chatStarted ? (
           /* Initial State - Prompt Cards */
           <div className="flex flex-col items-center justify-center min-h-full px-4">
