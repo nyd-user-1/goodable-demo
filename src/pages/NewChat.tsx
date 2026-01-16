@@ -806,7 +806,7 @@ const NewChat = () => {
 
       // Append disclaimer for "What is Goodable.dev?" prompt
       if (isGoodablePromptRef.current && aiResponse) {
-        aiResponse += '\n\n*Answers will vary by user. 😉';
+        aiResponse += '\n\nEvery bill analysis includes tools to email sponsors, generate letters, view official documents, and track your positions.\n\n*Answers will vary by user. 😉';
         isGoodablePromptRef.current = false; // Reset for next message
       }
 
