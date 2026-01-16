@@ -7,7 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { useSidebar } from "@/components/ui/sidebar";
+// Safe sidebar hook that doesn't throw on public pages without SidebarProvider
+import { createContext, useContext } from "react";
+
+// Try to get sidebar context safely
+const useSidebarSafe = () => {
+  try {
+    // Dynamic import to avoid the throw
+    const { useSidebar } = require("@/components/ui/sidebar");
+    return useSidebar();
+  } catch {
+    return { setOpen: () => {} };
+  }
+};
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from 'react-markdown';
 import { useModel } from "@/contexts/ModelContext";
@@ -110,7 +122,7 @@ const NewChat = () => {
   const navigate = useNavigate();
   const { sessionId: routeSessionId } = useParams<{ sessionId: string }>();
   const { user } = useAuth();
-  const { setOpen: setSidebarOpen } = useSidebar();
+  const { setOpen: setSidebarOpen } = useSidebarSafe();
   const {
     currentSessionId,
     isSaving,
