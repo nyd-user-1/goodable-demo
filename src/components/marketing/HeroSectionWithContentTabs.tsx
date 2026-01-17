@@ -13,7 +13,7 @@ export default function HeroSectionWithContentTabs() {
         title: 'Every bill at your fingertips',
         description:
           'Access the full NYS legislative database with live updates. Browse bills by session, view full texts, track status changes, and see committee assignments—all in one place.',
-        image: '/legislative%20research.png',
+        image: '/goodable-analytics-demo.png',
         stats: [
           { label: 'Active Bills', value: '15K+' },
           { label: 'Sessions', value: '10+' },
@@ -29,7 +29,7 @@ export default function HeroSectionWithContentTabs() {
         title: 'Know your representatives',
         description:
           'Detailed profiles for every legislator including party affiliations, districts, voting patterns, and committee memberships. Plus comprehensive committee data with leadership roles and jurisdictions.',
-        image: '/goodable-analytics-demo.png',
+        image: '/legislative%20research.png',
         stats: [
           { label: 'Legislators', value: '213' },
           { label: 'Committees', value: '70+' },
@@ -45,7 +45,7 @@ export default function HeroSectionWithContentTabs() {
         title: 'Turn insight into action',
         description:
           'Every bill analysis includes tools to email sponsors directly, generate personalized letters, view official documents, and track your positions. Make your voice heard with one click.',
-        image: '/goodable-analytics-demo.png',
+        image: '/legislative%20research.png',
         stats: [
           { label: 'Email Templates', value: '50+' },
           { label: 'Letter Formats', value: '12' },
