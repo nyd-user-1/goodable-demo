@@ -55,13 +55,13 @@ export function CommandPalette() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch all members
+      // Fetch all members (sorted by first name A-Z)
       const { data: membersData } = await supabase
         .from('People')
         .select('people_id, name, first_name, last_name, party, chamber')
         .not('chamber', 'is', null)
         .not('name', 'is', null)
-        .order('last_name', { ascending: true });
+        .order('first_name', { ascending: true });
 
       if (membersData) {
         setMembers(membersData);
@@ -124,19 +124,19 @@ export function CommandPalette() {
             onSelect={() => runCommand(() => navigate('/bills'))}
           >
             <FileText className="mr-2 h-4 w-4" />
-            <span>Bills</span>
+            <span>All Bills</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => navigate('/members'))}
           >
             <Users className="mr-2 h-4 w-4" />
-            <span>Members</span>
+            <span>All Members</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => navigate('/committees'))}
           >
             <Building className="mr-2 h-4 w-4" />
-            <span>Committees</span>
+            <span>All Committees</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => navigate('/chats'))}
@@ -154,8 +154,8 @@ export function CommandPalette() {
 
         <CommandSeparator />
 
-        {/* Members */}
-        <CommandGroup heading="Members">
+        {/* Member Pages */}
+        <CommandGroup heading="Member Pages">
           {loading ? (
             <CommandItem disabled>Loading members...</CommandItem>
           ) : (
@@ -176,8 +176,8 @@ export function CommandPalette() {
 
         <CommandSeparator />
 
-        {/* Committees */}
-        <CommandGroup heading="Committees">
+        {/* Committee Pages */}
+        <CommandGroup heading="Committee Pages">
           {loading ? (
             <CommandItem disabled>Loading committees...</CommandItem>
           ) : (
