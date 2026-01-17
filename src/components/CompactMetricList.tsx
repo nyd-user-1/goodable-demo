@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ArrowRight, FileText, ExternalLink, Loader2, Menu } from "lucide-react";
+import { ArrowRight, FileText, ExternalLink, Loader2, Menu, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -39,18 +39,21 @@ const statusOptions = [
   { id: 'passed', label: 'Passed' },
 ];
 
+const BILLS_PER_PAGE = 10;
+
 export default function CompactMetricList() {
   const [chamber, setChamber] = useState("both");
   const [status, setStatus] = useState("any");
+  const [page, setPage] = useState(1);
   const [bills, setBills] = useState<Record<string, LegislativeBill[]>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [lastUpdated, setLastUpdated] = useState<string>('');
 
-  // Build cache key from filters
-  const getCacheKey = (chamberVal: string, statusVal: string) => `${chamberVal}-${statusVal}`;
+  // Build cache key from filters and page
+  const getCacheKey = (chamberVal: string, statusVal: string, pageNum: number) => `${chamberVal}-${statusVal}-${pageNum}`;
 
-  // Build LegiScan URL from filters
-  const buildUrl = (chamberVal: string, statusVal: string): string => {
+  // Build LegiScan URL from filters and page
+  const buildUrl = (chamberVal: string, statusVal: string, pageNum: number): string => {
     const baseUrl = 'https://legiscan.com/NY/legislation';
     const params = new URLSearchParams();
 
@@ -60,6 +63,10 @@ export default function CompactMetricList() {
 
     if (chamberVal !== 'both') {
       params.append('chamber', chamberVal);
+    }
+
+    if (pageNum > 1) {
+      params.append('page', pageNum.toString());
     }
 
     const queryString = params.toString();
@@ -140,22 +147,27 @@ export default function CompactMetricList() {
       }
     });
 
-    return parsedBills.slice(0, 10); // Limit to 10 bills
+    return parsedBills.slice(0, BILLS_PER_PAGE);
   };
 
   // Fetch data from LegiScan
-  const fetchData = useCallback(async (chamberVal: string, statusVal: string) => {
-    const cacheKey = getCacheKey(chamberVal, statusVal);
+  const fetchData = useCallback(async (chamberVal: string, statusVal: string, pageNum: number, forceRefresh = false) => {
+    const cacheKey = getCacheKey(chamberVal, statusVal, pageNum);
 
-    // Show mock data immediately for instant feedback
-    if (!bills[cacheKey]) {
+    // Show mock data immediately for instant feedback (only for page 1)
+    if (!bills[cacheKey] && pageNum === 1) {
       setBills(prev => ({ ...prev, [cacheKey]: getMockBills(chamberVal, statusVal) }));
+    }
+
+    // Skip if already cached and not forcing refresh
+    if (bills[cacheKey] && !forceRefresh) {
+      return;
     }
 
     setLoading(prev => ({ ...prev, [cacheKey]: true }));
 
     try {
-      const url = buildUrl(chamberVal, statusVal);
+      const url = buildUrl(chamberVal, statusVal, pageNum);
       // Use a CORS proxy for client-side fetching
       const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
       const response = await fetch(proxyUrl);
@@ -185,138 +197,124 @@ export default function CompactMetricList() {
     }
   }, [bills]);
 
-  // Mock data fallback - context-aware based on filters
+  // Mock data fallback - context-aware based on filters (expanded to 10 bills)
   const getMockBills = (chamberVal: string, statusVal: string): LegislativeBill[] => {
     const senateBills: LegislativeBill[] = [
-      {
-        id: 's1',
-        billNumber: 'S04448',
-        title: 'Authorizes the county of Clinton to employ retired former members of the division of state police as special patrol officers.',
-        status: 'Engross 50%',
-        lastAction: 'To Senate Civil Service Committee',
-        lastActionDate: 'Jan 16, 2026',
-        link: 'https://legiscan.com/NY/bill/S04448',
-      },
-      {
-        id: 's2',
-        billNumber: 'S02505',
-        title: 'Establishes a task force to conduct a comprehensive study on the presence of educator diversity in the state.',
-        status: 'Engross 50%',
-        lastAction: 'To Senate Education Committee',
-        lastActionDate: 'Jan 16, 2026',
-        link: 'https://legiscan.com/NY/bill/S02505',
-      },
-      {
-        id: 's3',
-        billNumber: 'S00620',
-        title: 'Relates to the practice of professional geology.',
-        status: 'Engross 50%',
-        lastAction: 'To Senate Higher Education Committee',
-        lastActionDate: 'Jan 15, 2026',
-        link: 'https://legiscan.com/NY/bill/S00620',
-      },
+      { id: 's1', billNumber: 'S04448', title: 'Authorizes the county of Clinton to employ retired former members of the division of state police as special patrol officers.', status: 'Engross 50%', lastAction: 'To Senate Civil Service Committee', lastActionDate: 'Jan 16, 2026', link: 'https://legiscan.com/NY/bill/S04448' },
+      { id: 's2', billNumber: 'S02505', title: 'Establishes a task force to conduct a comprehensive study on the presence of educator diversity in the state.', status: 'Engross 50%', lastAction: 'To Senate Education Committee', lastActionDate: 'Jan 16, 2026', link: 'https://legiscan.com/NY/bill/S02505' },
+      { id: 's3', billNumber: 'S00620', title: 'Relates to the practice of professional geology.', status: 'Engross 50%', lastAction: 'To Senate Higher Education Committee', lastActionDate: 'Jan 15, 2026', link: 'https://legiscan.com/NY/bill/S00620' },
+      { id: 's4', billNumber: 'S05553', title: 'Enacts the "rate hike notice act" which requires utilities to provide notice of a proposed rate hike.', status: 'Engross 50%', lastAction: 'To Senate Energy Committee', lastActionDate: 'Jan 15, 2026', link: 'https://legiscan.com/NY/bill/S05553' },
+      { id: 's5', billNumber: 'S08762', title: 'Allows the removal of criminal actions to a mental health court in an adjoining county.', status: 'Intro 25%', lastAction: 'To Senate Codes Committee', lastActionDate: 'Jan 14, 2026', link: 'https://legiscan.com/NY/bill/S08762' },
+      { id: 's6', billNumber: 'S08824', title: 'Clarifies standards for glass repair and calibration of advanced driver assistance systems.', status: 'Intro 25%', lastAction: 'To Senate Transportation Committee', lastActionDate: 'Jan 14, 2026', link: 'https://legiscan.com/NY/bill/S08824' },
+      { id: 's7', billNumber: 'S09123', title: 'Relates to the use of automated lending decision-making tools by banks.', status: 'Intro 25%', lastAction: 'To Senate Banks Committee', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/S09123' },
+      { id: 's8', billNumber: 'S07891', title: 'Establishes the New York state climate adaptation fund.', status: 'Intro 25%', lastAction: 'To Senate Environmental Conservation Committee', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/S07891' },
+      { id: 's9', billNumber: 'S06543', title: 'Relates to expanding access to affordable housing programs in urban areas.', status: 'Intro 25%', lastAction: 'To Senate Housing Committee', lastActionDate: 'Jan 12, 2026', link: 'https://legiscan.com/NY/bill/S06543' },
+      { id: 's10', billNumber: 'S05432', title: 'Amends the education law to require financial literacy instruction in high schools.', status: 'Intro 25%', lastAction: 'To Senate Education Committee', lastActionDate: 'Jan 12, 2026', link: 'https://legiscan.com/NY/bill/S05432' },
     ];
 
     const assemblyBills: LegislativeBill[] = [
-      {
-        id: 'a1',
-        billNumber: 'A08022',
-        title: 'Requires an operator of a covered platform with at least one million users to ensure that its covered platform provides a process to allow law enforcement agencies to contact such covered platform.',
-        status: 'Intro 25%',
-        lastAction: 'To Assembly Codes Committee',
-        lastActionDate: 'Jan 16, 2026',
-        link: 'https://legiscan.com/NY/bill/A08022',
-      },
-      {
-        id: 'a2',
-        billNumber: 'A09316',
-        title: 'Limits the circumstances under which the case of an adolescent offender may be removed to family court.',
-        status: 'Intro 25%',
-        lastAction: 'To Assembly Codes Committee',
-        lastActionDate: 'Jan 15, 2026',
-        link: 'https://legiscan.com/NY/bill/A09316',
-      },
-      {
-        id: 'a3',
-        billNumber: 'A08235',
-        title: 'Designates dog control officers of the village of Holley as peace officers.',
-        status: 'Engross 50%',
-        lastAction: 'To Assembly Codes Committee',
-        lastActionDate: 'Jan 15, 2026',
-        link: 'https://legiscan.com/NY/bill/A08235',
-      },
+      { id: 'a1', billNumber: 'A08022', title: 'Requires an operator of a covered platform with at least one million users to provide a process for law enforcement agencies.', status: 'Intro 25%', lastAction: 'To Assembly Codes Committee', lastActionDate: 'Jan 16, 2026', link: 'https://legiscan.com/NY/bill/A08022' },
+      { id: 'a2', billNumber: 'A09316', title: 'Limits the circumstances under which the case of an adolescent offender may be removed to family court.', status: 'Intro 25%', lastAction: 'To Assembly Codes Committee', lastActionDate: 'Jan 15, 2026', link: 'https://legiscan.com/NY/bill/A09316' },
+      { id: 'a3', billNumber: 'A08235', title: 'Designates dog control officers of the village of Holley as peace officers.', status: 'Engross 50%', lastAction: 'To Assembly Codes Committee', lastActionDate: 'Jan 15, 2026', link: 'https://legiscan.com/NY/bill/A08235' },
+      { id: 'a4', billNumber: 'A07654', title: 'Relates to the regulation of short-term rental properties in residential zones.', status: 'Intro 25%', lastAction: 'To Assembly Housing Committee', lastActionDate: 'Jan 14, 2026', link: 'https://legiscan.com/NY/bill/A07654' },
+      { id: 'a5', billNumber: 'A06543', title: 'Establishes guidelines for the use of artificial intelligence in state agencies.', status: 'Intro 25%', lastAction: 'To Assembly Governmental Operations Committee', lastActionDate: 'Jan 14, 2026', link: 'https://legiscan.com/NY/bill/A06543' },
+      { id: 'a6', billNumber: 'A05432', title: 'Provides for the establishment of a statewide broadband infrastructure program.', status: 'Intro 25%', lastAction: 'To Assembly Energy Committee', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/A05432' },
+      { id: 'a7', billNumber: 'A04321', title: 'Amends the vehicle and traffic law relating to electric vehicle charging stations.', status: 'Intro 25%', lastAction: 'To Assembly Transportation Committee', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/A04321' },
+      { id: 'a8', billNumber: 'A03210', title: 'Relates to the establishment of community solar programs for low-income residents.', status: 'Intro 25%', lastAction: 'To Assembly Energy Committee', lastActionDate: 'Jan 12, 2026', link: 'https://legiscan.com/NY/bill/A03210' },
+      { id: 'a9', billNumber: 'A02109', title: 'Provides for enhanced penalties for wage theft violations by employers.', status: 'Intro 25%', lastAction: 'To Assembly Labor Committee', lastActionDate: 'Jan 12, 2026', link: 'https://legiscan.com/NY/bill/A02109' },
+      { id: 'a10', billNumber: 'A01098', title: 'Establishes a task force to study the impact of remote work on commercial real estate.', status: 'Intro 25%', lastAction: 'To Assembly Economic Development Committee', lastActionDate: 'Jan 11, 2026', link: 'https://legiscan.com/NY/bill/A01098' },
     ];
 
     const passedBills: LegislativeBill[] = [
-      {
-        id: 'p1',
-        billNumber: 'J01343',
-        title: 'Memorializing Governor Kathy Hochul to proclaim May 10-16, 2026, as Police Week in the State of New York.',
-        status: 'Pass',
-        lastAction: 'ADOPTED',
-        lastActionDate: 'Jan 13, 2026',
-        link: 'https://legiscan.com/NY/bill/J01343',
-      },
-      {
-        id: 'p2',
-        billNumber: 'J01289',
-        title: 'Commending Johnathan Rudat upon the occasion of his designation as recipient of a Liberty Medal.',
-        status: 'Pass',
-        lastAction: 'ADOPTED',
-        lastActionDate: 'Jan 13, 2026',
-        link: 'https://legiscan.com/NY/bill/J01289',
-      },
+      { id: 'p1', billNumber: 'J01343', title: 'Memorializing Governor Kathy Hochul to proclaim May 10-16, 2026, as Police Week in the State of New York.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/J01343' },
+      { id: 'p2', billNumber: 'J01289', title: 'Commending Johnathan Rudat upon the occasion of his designation as recipient of a Liberty Medal.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/J01289' },
+      { id: 'p3', billNumber: 'J01291', title: 'Commending Danielle Johnson upon the occasion of her designation as recipient of a Liberty Medal.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/J01291' },
+      { id: 'p4', billNumber: 'J01304', title: 'Congratulating Ava Walia upon the occasion of being crowned the 2025 National All-American Miss Preteen.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/J01304' },
+      { id: 'p5', billNumber: 'J01292', title: 'Commending Brandon Orlikowski upon the occasion of his designation as recipient of a Liberty Medal.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/J01292' },
+      { id: 'p6', billNumber: 'J01337', title: 'Memorializing Governor Kathy Hochul to proclaim February 14, 2026, as Snowmobile Ride Day.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/J01337' },
+      { id: 'p7', billNumber: 'J01316', title: 'Congratulating the Burnt Hills-Ballston Lake Field Hockey Team upon capturing the 2025 Class B Championship.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/J01316' },
+      { id: 'p8', billNumber: 'J01261', title: 'Commending Salvatore J. Costanze posthumously upon his designation as recipient of a Liberty Medal.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/J01261' },
+      { id: 'p9', billNumber: 'J01245', title: 'Honoring the New York State Volunteer Firefighters Association on its 150th anniversary.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 12, 2026', link: 'https://legiscan.com/NY/bill/J01245' },
+      { id: 'p10', billNumber: 'J01198', title: 'Commending the City of Buffalo upon the occasion of its bicentennial celebration.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 12, 2026', link: 'https://legiscan.com/NY/bill/J01198' },
     ];
 
     const enrolledBills: LegislativeBill[] = [
-      {
-        id: 'e1',
-        billNumber: 'S07234',
-        title: 'Establishes the New York state climate adaptation fund to provide financial assistance for climate resilience projects.',
-        status: 'Enrolled',
-        lastAction: 'Sent to Governor',
-        lastActionDate: 'Jan 10, 2026',
-        link: 'https://legiscan.com/NY/bill/S07234',
-      },
-      {
-        id: 'e2',
-        billNumber: 'A05123',
-        title: 'Relates to expanding access to affordable housing programs in urban areas.',
-        status: 'Enrolled',
-        lastAction: 'Sent to Governor',
-        lastActionDate: 'Jan 9, 2026',
-        link: 'https://legiscan.com/NY/bill/A05123',
-      },
+      { id: 'e1', billNumber: 'S07234', title: 'Establishes the New York state climate adaptation fund to provide financial assistance for climate resilience projects.', status: 'Enrolled', lastAction: 'Sent to Governor', lastActionDate: 'Jan 10, 2026', link: 'https://legiscan.com/NY/bill/S07234' },
+      { id: 'e2', billNumber: 'A05123', title: 'Relates to expanding access to affordable housing programs in urban areas.', status: 'Enrolled', lastAction: 'Sent to Governor', lastActionDate: 'Jan 9, 2026', link: 'https://legiscan.com/NY/bill/A05123' },
     ];
 
-    // Filter based on status
+    const engrossedBills: LegislativeBill[] = [
+      { id: 'eg1', billNumber: 'S04448', title: 'Authorizes the county of Clinton to employ retired former members of the division of state police.', status: 'Engross 50%', lastAction: 'To Senate Civil Service Committee', lastActionDate: 'Jan 16, 2026', link: 'https://legiscan.com/NY/bill/S04448' },
+      { id: 'eg2', billNumber: 'S02505', title: 'Establishes a task force to conduct a comprehensive study on educator diversity.', status: 'Engross 50%', lastAction: 'To Senate Education Committee', lastActionDate: 'Jan 16, 2026', link: 'https://legiscan.com/NY/bill/S02505' },
+      { id: 'eg3', billNumber: 'S00620', title: 'Relates to the practice of professional geology.', status: 'Engross 50%', lastAction: 'To Senate Higher Education Committee', lastActionDate: 'Jan 15, 2026', link: 'https://legiscan.com/NY/bill/S00620' },
+      { id: 'eg4', billNumber: 'S05553', title: 'Enacts the "rate hike notice act" for utilities.', status: 'Engross 50%', lastAction: 'To Senate Energy Committee', lastActionDate: 'Jan 15, 2026', link: 'https://legiscan.com/NY/bill/S05553' },
+      { id: 'eg5', billNumber: 'A08235', title: 'Designates dog control officers of the village of Holley as peace officers.', status: 'Engross 50%', lastAction: 'To Assembly Codes Committee', lastActionDate: 'Jan 15, 2026', link: 'https://legiscan.com/NY/bill/A08235' },
+    ];
+
+    const introducedBills: LegislativeBill[] = [
+      { id: 'i1', billNumber: 'A08022', title: 'Requires an operator of a covered platform with at least one million users to provide a process for law enforcement.', status: 'Intro 25%', lastAction: 'To Assembly Codes Committee', lastActionDate: 'Jan 16, 2026', link: 'https://legiscan.com/NY/bill/A08022' },
+      { id: 'i2', billNumber: 'A09316', title: 'Limits the circumstances under which an adolescent offender may be removed to family court.', status: 'Intro 25%', lastAction: 'To Assembly Codes Committee', lastActionDate: 'Jan 15, 2026', link: 'https://legiscan.com/NY/bill/A09316' },
+      { id: 'i3', billNumber: 'S08762', title: 'Allows the removal of criminal actions to a mental health court in an adjoining county.', status: 'Intro 25%', lastAction: 'To Senate Codes Committee', lastActionDate: 'Jan 14, 2026', link: 'https://legiscan.com/NY/bill/S08762' },
+      { id: 'i4', billNumber: 'S08824', title: 'Clarifies standards for glass repair and calibration of advanced driver assistance systems.', status: 'Intro 25%', lastAction: 'To Senate Transportation Committee', lastActionDate: 'Jan 14, 2026', link: 'https://legiscan.com/NY/bill/S08824' },
+      { id: 'i5', billNumber: 'A07654', title: 'Relates to the regulation of short-term rental properties in residential zones.', status: 'Intro 25%', lastAction: 'To Assembly Housing Committee', lastActionDate: 'Jan 14, 2026', link: 'https://legiscan.com/NY/bill/A07654' },
+      { id: 'i6', billNumber: 'S09123', title: 'Relates to the use of automated lending decision-making tools by banks.', status: 'Intro 25%', lastAction: 'To Senate Banks Committee', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/S09123' },
+      { id: 'i7', billNumber: 'A06543', title: 'Establishes guidelines for the use of artificial intelligence in state agencies.', status: 'Intro 25%', lastAction: 'To Assembly Governmental Operations Committee', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/A06543' },
+      { id: 'i8', billNumber: 'S07891', title: 'Establishes the New York state climate adaptation fund.', status: 'Intro 25%', lastAction: 'To Senate Environmental Conservation Committee', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/S07891' },
+      { id: 'i9', billNumber: 'A05432', title: 'Provides for the establishment of a statewide broadband infrastructure program.', status: 'Intro 25%', lastAction: 'To Assembly Energy Committee', lastActionDate: 'Jan 12, 2026', link: 'https://legiscan.com/NY/bill/A05432' },
+      { id: 'i10', billNumber: 'A04321', title: 'Amends the vehicle and traffic law relating to electric vehicle charging stations.', status: 'Intro 25%', lastAction: 'To Assembly Transportation Committee', lastActionDate: 'Jan 12, 2026', link: 'https://legiscan.com/NY/bill/A04321' },
+    ];
+
+    // Filter based on status first
     if (statusVal === 'passed') return passedBills;
     if (statusVal === 'enrolled') return enrolledBills;
+    if (statusVal === 'engrossed') return engrossedBills;
+    if (statusVal === 'introduced') return introducedBills;
 
     // Filter based on chamber
     if (chamberVal === 'senate') return senateBills;
     if (chamberVal === 'house') return assemblyBills;
 
-    // Both chambers - combine
-    return [...senateBills.slice(0, 2), ...assemblyBills.slice(0, 2)];
+    // Both chambers, any status - interleave
+    const combined: LegislativeBill[] = [];
+    for (let i = 0; i < Math.max(senateBills.length, assemblyBills.length); i++) {
+      if (senateBills[i]) combined.push(senateBills[i]);
+      if (assemblyBills[i]) combined.push(assemblyBills[i]);
+    }
+    return combined.slice(0, 10);
   };
 
-  // Fetch data when filters change
+  // Reset page when filters change
+  const handleChamberChange = (newChamber: string) => {
+    setChamber(newChamber);
+    setPage(1);
+  };
+
+  const handleStatusChange = (newStatus: string) => {
+    setStatus(newStatus);
+    setPage(1);
+  };
+
+  // Refresh current data
+  const handleRefresh = () => {
+    fetchData(chamber, status, page, true);
+  };
+
+  // Fetch data when filters or page change
   useEffect(() => {
-    const cacheKey = getCacheKey(chamber, status);
-    if (!bills[cacheKey]) {
-      fetchData(chamber, status);
-    }
-  }, [chamber, status, fetchData]);
+    fetchData(chamber, status, page);
+  }, [chamber, status, page, fetchData]);
 
   // Initial fetch
   useEffect(() => {
-    fetchData('both', 'any');
+    fetchData('both', 'any', 1);
   }, []);
 
-  const cacheKey = getCacheKey(chamber, status);
+  const cacheKey = getCacheKey(chamber, status, page);
   const currentBills = bills[cacheKey] || [];
   const isLoading = loading[cacheKey];
+
+  // Check if there might be more pages (if we got a full page of results)
+  const hasMorePages = currentBills.length === BILLS_PER_PAGE;
 
   return (
     <section className="bg-background w-full py-12 md:py-24">
@@ -341,7 +339,7 @@ export default function CompactMetricList() {
                   {chamberOptions.map(opt => (
                     <button
                       key={opt.id}
-                      onClick={() => setChamber(opt.id)}
+                      onClick={() => handleChamberChange(opt.id)}
                       className={cn(
                         "inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 rounded-none",
                         chamber === opt.id
@@ -357,7 +355,7 @@ export default function CompactMetricList() {
                   {statusOptions.map(opt => (
                     <button
                       key={opt.id}
-                      onClick={() => setStatus(opt.id)}
+                      onClick={() => handleStatusChange(opt.id)}
                       className={cn(
                         "inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 rounded-none",
                         status === opt.id
@@ -368,15 +366,39 @@ export default function CompactMetricList() {
                       {opt.label}
                     </button>
                   ))}
+
+                  {/* Pagination Chevrons */}
+                  <div className="flex items-center ml-2">
+                    {page > 1 && (
+                      <button
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted/50 transition-colors"
+                        aria-label="Previous page"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </button>
+                    )}
+                    {hasMorePages && (
+                      <button
+                        onClick={() => setPage(p => p + 1)}
+                        className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted/50 transition-colors"
+                        aria-label="Next page"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
-                {/* Refresh indicator */}
-                {isLoading && (
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    <span>Refreshing...</span>
-                  </div>
-                )}
+                {/* Refresh button */}
+                <button
+                  onClick={handleRefresh}
+                  disabled={isLoading}
+                  className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted/50 transition-colors text-muted-foreground"
+                  aria-label="Refresh"
+                >
+                  <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+                </button>
               </div>
             </div>
 
@@ -395,21 +417,43 @@ export default function CompactMetricList() {
                   <DropdownMenuContent align="start" className="w-[200px]">
                     <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Chamber</div>
                     {chamberOptions.map(opt => (
-                      <DropdownMenuItem key={opt.id} onClick={() => setChamber(opt.id)}>
+                      <DropdownMenuItem key={opt.id} onClick={() => handleChamberChange(opt.id)}>
                         {opt.label}
                       </DropdownMenuItem>
                     ))}
                     <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">Status</div>
                     {statusOptions.map(opt => (
-                      <DropdownMenuItem key={opt.id} onClick={() => setStatus(opt.id)}>
+                      <DropdownMenuItem key={opt.id} onClick={() => handleStatusChange(opt.id)}>
                         {opt.label}
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
-                {isLoading && (
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                )}
+                <div className="flex items-center gap-1">
+                  {page > 1 && (
+                    <button
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      className="inline-flex items-center justify-center h-9 w-9 rounded-md border hover:bg-muted/50 transition-colors"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                  )}
+                  {hasMorePages && (
+                    <button
+                      onClick={() => setPage(p => p + 1)}
+                      className="inline-flex items-center justify-center h-9 w-9 rounded-md border hover:bg-muted/50 transition-colors"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  )}
+                  <button
+                    onClick={handleRefresh}
+                    disabled={isLoading}
+                    className="inline-flex items-center justify-center h-9 w-9 rounded-md border hover:bg-muted/50 transition-colors text-muted-foreground"
+                  >
+                    <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+                  </button>
+                </div>
               </div>
             </div>
 
