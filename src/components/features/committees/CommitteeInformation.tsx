@@ -61,38 +61,11 @@ export const CommitteeInformation = ({ committee }: CommitteeInformationProps) =
     toggleFavorite(committee.committee_id);
   };
 
-  const handleAIAnalysis = async (e: React.MouseEvent) => {
+  const handleAIAnalysis = (e: React.MouseEvent) => {
     e.stopPropagation();
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.error("User not authenticated");
-        return;
-      }
-
-      // Create a new chat session for this committee
-      const sessionData = {
-        user_id: user.id,
-        committee_id: committee.committee_id,
-        title: `Chat about ${committee.name || 'Committee'}`,
-        messages: JSON.stringify([])
-      };
-
-      const { data, error } = await supabase
-        .from("chat_sessions")
-        .insert(sessionData)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Navigate to the new chat with the initial prompt
-      const initialPrompt = `Tell me about the ${committee.chamber} ${committee.name} committee`;
-      navigate(`/c/${data.id}?prompt=${encodeURIComponent(initialPrompt)}`);
-    } catch (error) {
-      console.error("Error creating chat session:", error);
-    }
+    // Navigate to chat with prompt - the chat page will create the session
+    const initialPrompt = `Tell me about the ${committee.chamber} ${committee.name} committee`;
+    navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
   };
 
   return (

@@ -208,39 +208,15 @@ const Members = () => {
     await toggleFavorite(member.people_id);
   };
 
-  const handleAIAnalysis = async (member: any, e: React.MouseEvent) => {
+  const handleAIAnalysis = (member: any, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!user) {
       navigate('/auth-2');
       return;
     }
-
-    try {
-      // Create a new chat session for this member
-      const sessionData = {
-        user_id: user.id,
-        member_id: member.people_id,
-        title: `Chat about ${member.name || 'Member'}`,
-        messages: JSON.stringify([])
-      };
-
-      const { data, error } = await supabase
-        .from("chat_sessions")
-        .insert(sessionData)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Navigate to the new chat with the initial prompt
-      const initialPrompt = `Tell me about ${member.name}`;
-      navigate(`/c/${data.id}?prompt=${encodeURIComponent(initialPrompt)}`);
-
-      // Add this member to the set of members with AI chat
-      setMembersWithAIChat(prev => new Set([...prev, member.people_id]));
-    } catch (error) {
-      console.error("Error creating chat session:", error);
-    }
+    // Navigate to chat with prompt - the chat page will create the session
+    const initialPrompt = `Tell me about ${member.name}`;
+    navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
   };
 
   const handleFiltersChange = (newFilters: {

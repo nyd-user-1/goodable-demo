@@ -69,38 +69,11 @@ export const DashboardBillsTable = () => {
     navigate(`/bills?selected=${bill.bill_id}`);
   };
 
-  const handleAIAnalysis = async (bill: any, e: React.MouseEvent) => {
+  const handleAIAnalysis = (bill: any, e: React.MouseEvent) => {
     e.stopPropagation();
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.error("User not authenticated");
-        return;
-      }
-
-      // Create a new chat session for this bill
-      const sessionData = {
-        user_id: user.id,
-        bill_id: bill.bill_id,
-        title: `Chat about ${bill.bill_number || 'Bill'}`,
-        messages: JSON.stringify([])
-      };
-
-      const { data, error } = await supabase
-        .from("chat_sessions")
-        .insert(sessionData)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Navigate to the new chat with the initial prompt
-      const initialPrompt = `Tell me about bill ${bill.bill_number}`;
-      navigate(`/c/${data.id}?prompt=${encodeURIComponent(initialPrompt)}`);
-    } catch (error) {
-      console.error("Error creating chat session:", error);
-    }
+    // Navigate to chat with prompt - the chat page will create the session
+    const initialPrompt = `Tell me about bill ${bill.bill_number}`;
+    navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
   };
 
   const handleFavorite = async (bill: any, e: React.MouseEvent) => {
