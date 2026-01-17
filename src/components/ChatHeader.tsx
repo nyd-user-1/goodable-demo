@@ -1,12 +1,21 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Command, PenSquare } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import confetti from "canvas-confetti";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
+// Marketing navigation items for public page
+const marketingNavItems = [
+  { label: "About", href: "/about" },
+  { label: "Features", href: "/features" },
+  { label: "Use Cases", href: "/use-cases" },
+  { label: "Non Profits", href: "/non-profits" },
+  { label: "Pricing", href: "/pricing" },
+];
 
 interface ChatHeaderProps {
   onNewChat?: () => void;
@@ -75,6 +84,19 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
             </TooltipContent>
           </Tooltip>
         </div>
+
+        {/* Center - Marketing Navigation (desktop only) */}
+        <nav className="hidden md:flex items-center gap-6">
+          {marketingNavItems.map((item) => (
+            <Link
+              key={item.href}
+              to={item.href}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
 
         {/* Right side - Controls */}
         <div className="flex items-center gap-2">
