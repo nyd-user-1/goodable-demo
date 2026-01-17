@@ -111,7 +111,7 @@ export default function HeroSectionWithContentTabs() {
                     <TabsTrigger
                       key={feature.id}
                       value={feature.id}
-                      className="group bg-accent data-[state=active]:bg-foreground data-[state=active]:text-background h-full rounded-xl"
+                      className="group bg-muted data-[state=active]:bg-foreground data-[state=active]:text-background h-full rounded-xl"
                     >
                       <div className="p-2 text-left whitespace-normal">
                         <p className="font-semibold">{feature.title}</p>

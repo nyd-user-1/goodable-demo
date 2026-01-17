@@ -15,11 +15,11 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const benefits = [
-  'Setup in under 3 minutes',
-  'No credit card required',
-  'Free 30-day trial included',
-  '24/7 customer support',
-  'Cancel anytime, no questions asked',
+  'Track legislation that matters to you',
+  'AI-powered policy analysis in plain language',
+  'Connect directly with your representatives',
+  'Collaborate on community-driven solutions',
+  'Real-time alerts on bills and votes',
 ];
 
 const socialProof = [
@@ -33,8 +33,8 @@ export default function MultiStepCTAHero() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
     email: '',
-    companySize: '',
-    useCase: '',
+    role: '',
+    interests: '',
     name: '',
   });
 
@@ -45,9 +45,9 @@ export default function MultiStepCTAHero() {
       fields: ['email'],
     },
     {
-      title: 'About Your Company',
-      description: 'Help us customize your experience',
-      fields: ['companySize', 'useCase'],
+      title: 'Your Background',
+      description: 'Help us personalize your experience',
+      fields: ['role', 'interests'],
     },
     {
       title: 'Personal Details',
@@ -89,12 +89,12 @@ export default function MultiStepCTAHero() {
                 ✨ Free 30-day trial
               </Badge>
               <h1 className="text-foreground max-w-4xl text-4xl leading-tight font-semibold tracking-tight text-balance lg:leading-[1.1] lg:font-semibold xl:text-5xl xl:tracking-tighter">
-                Transform your workflow in minutes, not months
+                Make your voice heard in democracy
               </h1>
               <p className="text-muted-foreground max-w-4xl text-base text-balance sm:text-lg">
-                Join 25,000+ teams who&apos;ve streamlined their processes with
-                our intelligent automation platform. Get started in under 3
-                minutes.
+                Join thousands of engaged citizens using AI-powered tools to track legislation,
+                understand policy impact, and take meaningful civic action. Democracy works better
+                when you&apos;re involved.
               </p>
             </div>
 
@@ -139,9 +139,9 @@ export default function MultiStepCTAHero() {
                 ))}
               </div>
               <div className="text-sm">
-                <div className="font-semibold">2,500+ this week</div>
+                <div className="font-semibold">10,000+ active citizens</div>
                 <div className="text-muted-foreground">
-                  People joined our platform
+                  Making democracy work better
                 </div>
               </div>
             </div>
@@ -178,11 +178,11 @@ export default function MultiStepCTAHero() {
                 {currentStep === 0 && (
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="email">Work Email</Label>
+                      <Label htmlFor="email">Email Address</Label>
                       <Input
                         id="email"
                         type="email"
-                        placeholder="you@company.com"
+                        placeholder="you@example.com"
                         value={formData.email}
                         onChange={(e) =>
                           setFormData({ ...formData, email: e.target.value })
@@ -191,64 +191,54 @@ export default function MultiStepCTAHero() {
                       />
                     </div>
                     <div className="text-muted-foreground text-xs">
-                      We&apos;ll use this to set up your account and send you
-                      updates.
+                      We&apos;ll send you updates on legislation you care about.
                     </div>
                   </div>
                 )}
 
-                {/* Step 1: Company Info */}
+                {/* Step 1: Background */}
                 {currentStep === 1 && (
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="companySize">Company Size</Label>
+                      <Label htmlFor="role">I am a...</Label>
                       <Select
-                        value={formData.companySize}
+                        value={formData.role}
                         onValueChange={(value) =>
-                          setFormData({ ...formData, companySize: value })
+                          setFormData({ ...formData, role: value })
                         }
                       >
                         <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select company size" />
+                          <SelectValue placeholder="Select your role" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1-10">1-10 employees</SelectItem>
-                          <SelectItem value="11-50">11-50 employees</SelectItem>
-                          <SelectItem value="51-200">
-                            51-200 employees
-                          </SelectItem>
-                          <SelectItem value="201-1000">
-                            201-1000 employees
-                          </SelectItem>
-                          <SelectItem value="1000+">1000+ employees</SelectItem>
+                          <SelectItem value="citizen">Engaged Citizen</SelectItem>
+                          <SelectItem value="advocate">Policy Advocate</SelectItem>
+                          <SelectItem value="researcher">Researcher / Academic</SelectItem>
+                          <SelectItem value="nonprofit">Non-Profit Professional</SelectItem>
+                          <SelectItem value="staffer">Legislative Staffer</SelectItem>
+                          <SelectItem value="journalist">Journalist</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="useCase">Primary Use Case</Label>
+                      <Label htmlFor="interests">Policy Interests</Label>
                       <Select
-                        value={formData.useCase}
+                        value={formData.interests}
                         onValueChange={(value) =>
-                          setFormData({ ...formData, useCase: value })
+                          setFormData({ ...formData, interests: value })
                         }
                       >
                         <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="What will you use this for?" />
+                          <SelectValue placeholder="What issues matter to you?" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="project-management">
-                            Project Management
-                          </SelectItem>
-                          <SelectItem value="team-collaboration">
-                            Team Collaboration
-                          </SelectItem>
-                          <SelectItem value="workflow-automation">
-                            Workflow Automation
-                          </SelectItem>
-                          <SelectItem value="data-analysis">
-                            Data Analysis
-                          </SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="environment">Environment & Climate</SelectItem>
+                          <SelectItem value="healthcare">Healthcare</SelectItem>
+                          <SelectItem value="education">Education</SelectItem>
+                          <SelectItem value="economy">Economy & Jobs</SelectItem>
+                          <SelectItem value="justice">Criminal Justice</SelectItem>
+                          <SelectItem value="housing">Housing</SelectItem>
+                          <SelectItem value="all">All Policy Areas</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -263,7 +253,7 @@ export default function MultiStepCTAHero() {
                       <Input
                         id="name"
                         type="text"
-                        placeholder="John Doe"
+                        placeholder="Jane Smith"
                         value={formData.name}
                         onChange={(e) =>
                           setFormData({ ...formData, name: e.target.value })
@@ -272,7 +262,7 @@ export default function MultiStepCTAHero() {
                       />
                     </div>
                     <div className="text-muted-foreground text-xs">
-                      This helps us personalize your experience.
+                      This helps us personalize your civic engagement experience.
                     </div>
                   </div>
                 )}
@@ -298,10 +288,10 @@ export default function MultiStepCTAHero() {
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold">
-                        Welcome aboard, {formData.name}!
+                        Welcome to Goodable, {formData.name}!
                       </h3>
                       <p className="text-muted-foreground text-sm">
-                        Check your email for next steps to access your account.
+                        Check your email to start tracking legislation and making your voice heard.
                       </p>
                     </div>
                   </div>
@@ -323,12 +313,12 @@ export default function MultiStepCTAHero() {
                       onClick={handleNext}
                       className="flex-1 bg-foreground text-background hover:bg-foreground/90"
                     >
-                      {currentStep === 2 ? 'Complete Setup' : 'Continue'}
+                      {currentStep === 2 ? 'Start My Trial' : 'Continue'}
                     </Button>
                   )}
                   {currentStep === 3 && (
                     <Button className="w-full bg-foreground text-background hover:bg-foreground/90">
-                      Access Dashboard
+                      Explore the Platform
                     </Button>
                   )}
                 </div>

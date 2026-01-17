@@ -190,7 +190,7 @@ export default function CompactMetricList() {
     <section className="bg-background w-full py-12 md:py-24">
       <div className="container mx-auto px-4 md:px-6 2xl:max-w-[1400px]">
         <div className="mb-8 flex flex-col items-center justify-center space-y-4 text-center">
-          <Badge className="px-3.5 py-1.5">System Metrics</Badge>
+          <Badge className="px-3.5 py-1.5 bg-foreground text-background hover:bg-foreground/90">System Metrics</Badge>
           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
             Platform Health & Performance
           </h2>
