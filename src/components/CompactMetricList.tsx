@@ -46,6 +46,26 @@ const tabConfigs: TabConfig[] = [
     label: 'Assembly',
     feedUrl: 'https://legiscan.com/gaits/feed/17608aebc160d8aa0e1d7df491f4fc08.rss',
   },
+  {
+    id: 'introduced',
+    label: 'Introduced',
+    feedUrl: 'https://legiscan.com/gaits/feed/17608aebc160d8aa0e1d7df491f4fc08.rss',
+  },
+  {
+    id: 'enrolled',
+    label: 'Enrolled',
+    feedUrl: 'https://legiscan.com/gaits/feed/17608aebc160d8aa0e1d7df491f4fc08.rss',
+  },
+  {
+    id: 'engrossed',
+    label: 'Engrossed',
+    feedUrl: 'https://legiscan.com/gaits/feed/17608aebc160d8aa0e1d7df491f4fc08.rss',
+  },
+  {
+    id: 'passed',
+    label: 'Passed',
+    feedUrl: 'https://legiscan.com/gaits/feed/17608aebc160d8aa0e1d7df491f4fc08.rss',
+  },
 ];
 
 export default function CompactMetricList() {
@@ -201,8 +221,69 @@ export default function CompactMetricList() {
       },
     ];
 
+    const introducedBills: LegislativeBill[] = [
+      {
+        id: '7',
+        billNumber: 'A00773',
+        title: 'Relates to the use of automated lending decision-making tools by banks for the purposes of making lending decisions; allows loan applicants to consent to or opt out of such use.',
+        status: 'Intro 25%',
+        lastAction: 'To Assembly Codes Committee',
+        lastActionDate: 'Jan 15, 2026',
+        link: '#',
+      },
+      {
+        id: '8',
+        billNumber: 'A09558',
+        title: 'Provides that certain crimes of child abuse may be amended to give the plaintiff until they reach 55 years of age.',
+        status: 'Intro 25%',
+        lastAction: 'To Assembly Codes Committee',
+        lastActionDate: 'Jan 14, 2026',
+        link: '#',
+      },
+    ];
+
+    const engrossedBills: LegislativeBill[] = [
+      {
+        id: '9',
+        billNumber: 'A04385',
+        title: 'Designates the uniformed court officers of the town of Busti, in the county of Chautauqua, as peace officers.',
+        status: 'Engross 50%',
+        lastAction: 'To Assembly Codes Committee',
+        lastActionDate: 'Jan 15, 2026',
+        link: '#',
+      },
+    ];
+
+    const enrolledBills: LegislativeBill[] = [
+      {
+        id: '10',
+        billNumber: 'S07234',
+        title: 'Establishes the New York state climate adaptation fund to provide financial assistance for climate resilience projects.',
+        status: 'Enrolled',
+        lastAction: 'Sent to Governor',
+        lastActionDate: 'Jan 10, 2026',
+        link: '#',
+      },
+    ];
+
+    const passedBills: LegislativeBill[] = [
+      {
+        id: '11',
+        billNumber: 'A05678',
+        title: 'Amends the education law to require financial literacy instruction in high schools.',
+        status: 'Passed',
+        lastAction: 'Signed by Governor',
+        lastActionDate: 'Jan 8, 2026',
+        link: '#',
+      },
+    ];
+
     if (tabId === 'assembly') return assemblyBills;
     if (tabId === 'senate') return senateBills;
+    if (tabId === 'introduced') return introducedBills;
+    if (tabId === 'engrossed') return engrossedBills;
+    if (tabId === 'enrolled') return enrolledBills;
+    if (tabId === 'passed') return passedBills;
     return [...assemblyBills, ...senateBills]; // 'both'
   };
 
