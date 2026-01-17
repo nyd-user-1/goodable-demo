@@ -150,18 +150,33 @@ export default function CompactMetricList() {
     return parsedBills.slice(0, BILLS_PER_PAGE);
   };
 
+  // Track if we've reached the end of results
+  const [endOfResults, setEndOfResults] = useState<Record<string, boolean>>({});
+
   // Fetch data from LegiScan
   const fetchData = useCallback(async (chamberVal: string, statusVal: string, pageNum: number, forceRefresh = false) => {
     const cacheKey = getCacheKey(chamberVal, statusVal, pageNum);
 
-    // Show mock data immediately for instant feedback (only for page 1)
-    if (!bills[cacheKey] && pageNum === 1) {
-      setBills(prev => ({ ...prev, [cacheKey]: getMockBills(chamberVal, statusVal) }));
+    // Check if already cached (use functional check to avoid stale closure)
+    const alreadyCached = await new Promise<boolean>(resolve => {
+      setBills(prev => {
+        resolve(!!prev[cacheKey] && !forceRefresh);
+        return prev;
+      });
+    });
+
+    if (alreadyCached) {
+      return;
     }
 
-    // Skip if already cached and not forcing refresh
-    if (bills[cacheKey] && !forceRefresh) {
-      return;
+    // Show mock data immediately for instant feedback (only for page 1)
+    if (pageNum === 1) {
+      setBills(prev => {
+        if (!prev[cacheKey]) {
+          return { ...prev, [cacheKey]: getMockBills(chamberVal, statusVal) };
+        }
+        return prev;
+      });
     }
 
     setLoading(prev => ({ ...prev, [cacheKey]: true }));
@@ -179,9 +194,16 @@ export default function CompactMetricList() {
       const htmlText = await response.text();
       const parsedBills = parseHTMLPage(htmlText);
 
-      // Only update if we got valid data
       if (parsedBills.length > 0) {
         setBills(prev => ({ ...prev, [cacheKey]: parsedBills }));
+        setEndOfResults(prev => ({ ...prev, [cacheKey]: parsedBills.length < BILLS_PER_PAGE }));
+      } else {
+        // No results for this page - mark as end of results
+        setEndOfResults(prev => ({ ...prev, [cacheKey]: true }));
+        // If page > 1 and no results, auto-revert to page 1
+        if (pageNum > 1) {
+          setPage(1);
+        }
       }
 
       setLastUpdated(new Date().toLocaleTimeString('en-US', {
@@ -191,11 +213,14 @@ export default function CompactMetricList() {
       }));
     } catch (err) {
       console.error(`Error fetching data for ${cacheKey}:`, err);
-      // Keep mock data on error
+      // On error for page > 1, revert to page 1
+      if (pageNum > 1) {
+        setPage(1);
+      }
     } finally {
       setLoading(prev => ({ ...prev, [cacheKey]: false }));
     }
-  }, [bills]);
+  }, []);
 
   // Mock data fallback - context-aware based on filters (expanded to 10 bills)
   const getMockBills = (chamberVal: string, statusVal: string): LegislativeBill[] => {
@@ -312,9 +337,10 @@ export default function CompactMetricList() {
   const cacheKey = getCacheKey(chamber, status, page);
   const currentBills = bills[cacheKey] || [];
   const isLoading = loading[cacheKey];
+  const isEndOfResults = endOfResults[cacheKey];
 
-  // Check if there might be more pages (if we got a full page of results)
-  const hasMorePages = currentBills.length === BILLS_PER_PAGE;
+  // Check if there might be more pages (full page and not marked as end)
+  const hasMorePages = currentBills.length === BILLS_PER_PAGE && !isEndOfResults;
 
   return (
     <section className="bg-background w-full py-12 md:py-24">
