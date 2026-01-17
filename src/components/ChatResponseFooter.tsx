@@ -5,7 +5,7 @@
 
 import { useState, ReactNode, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FileText, ThumbsUp, ThumbsDown, Copy, Check, Mail, BookOpenCheck, MoreHorizontal, Star, FileDown } from "lucide-react";
+import { FileText, ThumbsUp, ThumbsDown, Copy, Check, Mail, BookOpenCheck, MoreHorizontal, Star, FileDown, CornerDownRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -53,6 +53,7 @@ interface ChatResponseFooterProps {
   onCitationClick?: (citationNumber: number) => void;
   isStreaming?: boolean;
   onSendMessage?: (message: string) => void;
+  suggestedPrompts?: string[];  // AI-provided overrides for follow-up suggestions
 }
 
 export function ChatResponseFooter({
@@ -62,12 +63,29 @@ export function ChatResponseFooter({
   relatedBills = [],
   onCitationClick,
   isStreaming = false,
-  onSendMessage
+  onSendMessage,
+  suggestedPrompts
 }: ChatResponseFooterProps) {
   const hasBills = bills && bills.length > 0;
   const hasSources = sources && sources.length > 0;
   const hasRelated = relatedBills && relatedBills.length > 0;
   const { toast } = useToast();
+
+  // Generate context-based follow-up suggestions
+  const getDefaultSuggestions = (): string[] => {
+    if (hasBills) {
+      return [
+        "What is this bill's current status?",
+        "Who sponsors this bill?",
+        "What are related bills on this topic?",
+        "Explain this bill in simpler terms"
+      ];
+    }
+    // Generic suggestions when no specific context
+    return [];
+  };
+
+  const followUpPrompts = suggestedPrompts?.length ? suggestedPrompts : getDefaultSuggestions();
 
   const [pdfOpen, setPdfOpen] = useState(false);
   const [selectedBillNumber, setSelectedBillNumber] = useState<string>("");
@@ -407,6 +425,25 @@ export function ChatResponseFooter({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+        </div>
+      )}
+
+      {/* Related Follow-up Prompts */}
+      {!isStreaming && followUpPrompts.length > 0 && onSendMessage && (
+        <div className="pt-4 animate-in fade-in duration-300">
+          <h4 className="text-sm font-medium mb-3">Related</h4>
+          <div className="space-y-1">
+            {followUpPrompts.slice(0, 4).map((prompt, idx) => (
+              <button
+                key={idx}
+                onClick={() => onSendMessage(prompt)}
+                className="flex items-center gap-3 w-full text-left text-muted-foreground hover:text-foreground transition-colors py-2"
+              >
+                <CornerDownRight className="h-4 w-4 flex-shrink-0" />
+                <span className="text-sm">{prompt}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
