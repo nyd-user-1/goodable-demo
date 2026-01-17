@@ -23,10 +23,11 @@ const benefits = [
 ];
 
 const socialProof = [
-  'https://cdn.pixabay.com/photo/2019/11/03/20/11/portrait-4599553_1280.jpg?w=150&h=150&fit=crop&crop=face',
-  'https://cdn.pixabay.com/photo/2016/11/21/12/42/beard-1845166_1280.jpg?w=150&h=150&fit=crop&crop=face',
-  'https://cdn.pixabay.com/photo/2017/02/16/23/10/smile-2072907_1280.jpg?w=150&h=150&fit=crop&crop=face',
-  'https://cdn.pixabay.com/photo/2018/01/21/14/16/woman-3096664_1280.jpg?w=150&h=150&fit=crop&crop=face',
+  '/claude-ai-icon-65aa.png',
+  '/OAI LOGO.png',
+  '/PPLX LOGO.png',
+  '/nys-assembly-seal.png',
+  '/nys-senate-seal.png',
 ];
 
 export default function MultiStepCTAHero() {
@@ -139,9 +140,9 @@ export default function MultiStepCTAHero() {
                 ))}
               </div>
               <div className="text-sm">
-                <div className="font-semibold">10,000+ active citizens</div>
+                <div className="font-semibold">Leveraging AI & APIs</div>
                 <div className="text-muted-foreground">
-                  Making democracy work better
+                  To make democracy work
                 </div>
               </div>
             </div>
