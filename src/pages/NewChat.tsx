@@ -1273,6 +1273,13 @@ const NewChat = () => {
                           console.log('Citation clicked:', num);
                         }}
                         onSendMessage={(message) => handleSubmit(null, message)}
+                        // Excerpt creation props
+                        userMessage={
+                          // Find the preceding user message for this assistant message
+                          messages.slice(0, index).reverse().find(m => m.role === 'user')?.content
+                        }
+                        assistantMessageText={message.content}
+                        parentSessionId={currentSessionId || undefined}
                       />
                     )}
                   </div>

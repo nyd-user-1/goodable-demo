@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, createContext, useContext } from "react";
 import { NavLink, useLocation, useParams } from "react-router-dom";
-import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, ChevronRight, PanelLeftClose, PanelLeft, MoreHorizontal, Pin, Trash2, PenSquare } from "lucide-react";
+import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, ChevronRight, PanelLeftClose, PanelLeft, MoreHorizontal, Pin, Trash2, PenSquare, TextQuote } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -64,6 +64,12 @@ interface ChatSession {
   isPinned?: boolean;
 }
 
+interface Excerpt {
+  id: string;
+  title: string;
+  created_at: string;
+}
+
 const PINNED_CHATS_KEY = "goodable_pinned_chats";
 
 const getPinnedChatIds = (): Set<string> => {
@@ -92,6 +98,7 @@ export function NewAppSidebar() {
   const { toast } = useToast();
   const isCollapsed = state === "collapsed";
   const [recentChats, setRecentChats] = useState<ChatSession[]>([]);
+  const [recentExcerpts, setRecentExcerpts] = useState<Excerpt[]>([]);
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(getPinnedChatIds());
   const [newChatHover, setNewChatHover] = useState(false);
 
@@ -122,10 +129,27 @@ export function NewAppSidebar() {
     }
   }, [user]);
 
-  // Fetch chats on mount
+  // Fetch recent excerpts
+  const fetchRecentExcerpts = useCallback(async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("chat_excerpts")
+      .select("id, title, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(10);
+
+    if (!error && data) {
+      setRecentExcerpts(data);
+    }
+  }, [user]);
+
+  // Fetch chats and excerpts on mount
   useEffect(() => {
     fetchRecentChats();
-  }, [fetchRecentChats]);
+    fetchRecentExcerpts();
+  }, [fetchRecentChats, fetchRecentExcerpts]);
 
   // Listen for refresh event from other components (e.g., NewChat)
   useEffect(() => {
@@ -135,6 +159,15 @@ export function NewAppSidebar() {
     window.addEventListener('refresh-sidebar-chats', handleRefresh);
     return () => window.removeEventListener('refresh-sidebar-chats', handleRefresh);
   }, [fetchRecentChats]);
+
+  // Listen for excerpts refresh event
+  useEffect(() => {
+    const handleExcerptsRefresh = () => {
+      fetchRecentExcerpts();
+    };
+    window.addEventListener('refresh-sidebar-excerpts', handleExcerptsRefresh);
+    return () => window.removeEventListener('refresh-sidebar-excerpts', handleExcerptsRefresh);
+  }, [fetchRecentExcerpts]);
 
   const deleteChat = async (chatId: string) => {
     const { error } = await supabase
@@ -406,6 +439,40 @@ export function NewAppSidebar() {
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </SidebarGroup>
+          </Collapsible>
+        )}
+
+        {/* Your Excerpts - show on mobile or when sidebar is expanded on desktop */}
+        {(isMobile || !isCollapsed) && recentExcerpts.length > 0 && (
+          <Collapsible defaultOpen className="group/collapsible">
+            <SidebarGroup>
+              <SidebarGroupLabel asChild>
+                <CollapsibleTrigger>
+                  Your excerpts
+                  <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                </CollapsibleTrigger>
+              </SidebarGroupLabel>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {recentExcerpts.map((excerpt) => (
+                      <SidebarMenuItem key={excerpt.id}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={location.pathname === `/e/${excerpt.id}`}
+                          className="truncate"
+                        >
+                          <NavLink to={`/e/${excerpt.id}`}>
+                            <TextQuote className="h-4 w-4 flex-shrink-0" />
+                            <span className="truncate">{excerpt.title}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
                       </SidebarMenuItem>
                     ))}
                   </SidebarMenu>

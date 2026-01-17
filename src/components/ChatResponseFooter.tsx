@@ -5,7 +5,8 @@
 
 import { useState, ReactNode, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FileText, ThumbsUp, ThumbsDown, Copy, Check, Mail, BookOpenCheck, MoreHorizontal, Star, FileDown, CornerDownRight, ScrollText, TextQuote } from "lucide-react";
+import { FileText, ThumbsUp, ThumbsDown, Copy, Check, Mail, BookOpenCheck, MoreHorizontal, Star, FileDown, CornerDownRight, ScrollText, TextQuote, Loader2 } from "lucide-react";
+import { useExcerptPersistence } from "@/hooks/useExcerptPersistence";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -54,6 +55,12 @@ interface ChatResponseFooterProps {
   isStreaming?: boolean;
   onSendMessage?: (message: string) => void;
   suggestedPrompts?: string[];  // AI-provided overrides for follow-up suggestions
+  // Props for excerpt creation
+  userMessage?: string;
+  assistantMessageText?: string;
+  parentSessionId?: string;
+  hideCreateExcerpt?: boolean;
+  onExcerptCreated?: () => void;
 }
 
 export function ChatResponseFooter({
@@ -64,12 +71,19 @@ export function ChatResponseFooter({
   onCitationClick,
   isStreaming = false,
   onSendMessage,
-  suggestedPrompts
+  suggestedPrompts,
+  userMessage,
+  assistantMessageText,
+  parentSessionId,
+  hideCreateExcerpt = false,
+  onExcerptCreated
 }: ChatResponseFooterProps) {
   const hasBills = bills && bills.length > 0;
   const hasSources = sources && sources.length > 0;
   const hasRelated = relatedBills && relatedBills.length > 0;
   const { toast } = useToast();
+  const { createExcerpt, loading: excerptLoading } = useExcerptPersistence();
+  const [excerptSaved, setExcerptSaved] = useState(false);
 
   // Generate context-based follow-up suggestions
   const getDefaultSuggestions = (): string[] => {
@@ -318,6 +332,49 @@ export function ChatResponseFooter({
     }
   };
 
+  const handleCreateExcerpt = async () => {
+    if (!userMessage || !assistantMessageText) {
+      toast({
+        title: "Cannot create excerpt",
+        description: "Missing message content",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Generate title from user message (truncate to ~50 chars)
+    const title = userMessage.length > 50
+      ? userMessage.substring(0, 50) + '...'
+      : userMessage;
+
+    const excerpt = await createExcerpt({
+      parentSessionId,
+      title,
+      userMessage,
+      assistantMessage: assistantMessageText,
+      billId: hasBills ? bills[0].session_id : undefined, // Note: using session_id which maps to bill_id in our schema
+    });
+
+    if (excerpt) {
+      setExcerptSaved(true);
+      toast({
+        title: "Excerpt saved",
+        description: "This Q&A has been saved to your excerpts",
+      });
+      // Refresh sidebar
+      window.dispatchEvent(new CustomEvent('refresh-sidebar-excerpts'));
+      onExcerptCreated?.();
+      // Reset saved state after a delay
+      setTimeout(() => setExcerptSaved(false), 3000);
+    } else {
+      toast({
+        title: "Failed to save excerpt",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Auto-scroll to accordion when Citations is toggled on
   useEffect(() => {
     if (showCitations && accordionRef.current) {
@@ -376,18 +433,31 @@ export function ChatResponseFooter({
           )}
 
           {/* Create Excerpt */}
-          {hasBills && (
+          {!hideCreateExcerpt && userMessage && assistantMessageText && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+                  className={`h-8 w-8 ${excerptSaved
+                    ? "text-green-600 hover:text-green-600 hover:bg-green-50"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                  onClick={handleCreateExcerpt}
+                  disabled={excerptLoading || excerptSaved}
                 >
-                  <TextQuote className="h-4 w-4" />
+                  {excerptLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : excerptSaved ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <TextQuote className="h-4 w-4" />
+                  )}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Create Excerpt</TooltipContent>
+              <TooltipContent>
+                {excerptSaved ? "Excerpt saved" : "Create Excerpt"}
+              </TooltipContent>
             </Tooltip>
           )}
 

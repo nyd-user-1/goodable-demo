@@ -116,6 +116,63 @@ export type Database = {
           },
         ]
       }
+      chat_excerpts: {
+        Row: {
+          id: string
+          user_id: string
+          parent_session_id: string | null
+          title: string
+          user_message: string
+          assistant_message: string
+          bill_id: number | null
+          member_id: number | null
+          committee_id: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          parent_session_id?: string | null
+          title: string
+          user_message: string
+          assistant_message: string
+          bill_id?: number | null
+          member_id?: number | null
+          committee_id?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          parent_session_id?: string | null
+          title?: string
+          user_message?: string
+          assistant_message?: string
+          bill_id?: number | null
+          member_id?: number | null
+          committee_id?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_excerpts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_excerpts_parent_session_id_fkey"
+            columns: ["parent_session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       co_authors: {
         Row: {
           accepted_at: string | null

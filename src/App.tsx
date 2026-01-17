@@ -57,6 +57,7 @@ import Customerstory from "./pages/Customerstory";
 import DataPopulator from "./pages/DataPopulator";
 import RealABCPopulator from "./pages/RealABCPopulator";
 import FixABCStructure from "./pages/FixABCStructure";
+import ExcerptView from "./pages/ExcerptView";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,7 @@ const AppLayout = () => {
               <Route path="/home-2" element={<Home2 />} />
               <Route path="/new-chat" element={<NewChat />} />
               <Route path="/c/:sessionId" element={<NewChat />} />
+              <Route path="/e/:excerptId" element={<ExcerptView />} />
               <Route path="/new-chat-2" element={<NewChat2 />} />
               <Route path="/chats" element={<Chats />} />
               <Route path="/favorites" element={<Favorites />} />

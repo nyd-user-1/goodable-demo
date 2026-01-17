@@ -1,0 +1,254 @@
+import { useEffect, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { useExcerptPersistence } from "@/hooks/useExcerptPersistence";
+import { Tables } from "@/integrations/supabase/types";
+import { ArrowLeft, Trash2, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import ReactMarkdown from "react-markdown";
+import { ChatResponseFooter } from "@/components/ChatResponseFooter";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+
+type Excerpt = Tables<"chat_excerpts">;
+
+interface BillCitation {
+  bill_number: string;
+  title: string;
+  status_desc: string;
+  description?: string;
+  committee?: string;
+  session_id?: number;
+}
+
+const ExcerptView = () => {
+  const { excerptId } = useParams<{ excerptId: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { fetchExcerptById, deleteExcerpt } = useExcerptPersistence();
+  const [excerpt, setExcerpt] = useState<Excerpt | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [bill, setBill] = useState<BillCitation | null>(null);
+
+  useEffect(() => {
+    const loadExcerpt = async () => {
+      if (!excerptId) return;
+
+      setLoading(true);
+      const data = await fetchExcerptById(excerptId);
+      setExcerpt(data);
+
+      // Fetch associated bill if exists
+      if (data?.bill_id) {
+        const { data: billData } = await supabase
+          .from("Bills")
+          .select("bill_number, title, status_desc, description, committee, session_id")
+          .eq("bill_id", data.bill_id)
+          .single();
+
+        if (billData) {
+          setBill(billData);
+        }
+      }
+
+      setLoading(false);
+    };
+
+    loadExcerpt();
+  }, [excerptId, fetchExcerptById]);
+
+  const handleDelete = async () => {
+    if (!excerptId) return;
+
+    const success = await deleteExcerpt(excerptId);
+    if (success) {
+      toast({
+        title: "Excerpt deleted",
+        description: "The excerpt has been removed.",
+      });
+      // Refresh sidebar
+      window.dispatchEvent(new CustomEvent("refresh-sidebar-excerpts"));
+      navigate("/new-chat");
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to delete excerpt.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-muted-foreground">Loading excerpt...</div>
+      </div>
+    );
+  }
+
+  if (!excerpt) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <div className="text-muted-foreground">Excerpt not found</div>
+        <Button variant="outline" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Go back
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen bg-background">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-background border-b px-4 py-3">
+        <div className="max-w-[720px] mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate(-1)}
+              className="h-8 w-8"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="font-medium text-sm truncate max-w-[300px]">
+                {excerpt.title}
+              </h1>
+              <p className="text-xs text-muted-foreground">
+                Saved {new Date(excerpt.created_at || "").toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {excerpt.parent_session_id && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(`/c/${excerpt.parent_session_id}`)}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                View full chat
+              </Button>
+            )}
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete excerpt?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete this saved excerpt.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto py-8 px-4">
+        <div className="max-w-[720px] mx-auto space-y-6">
+          {/* User Message */}
+          <div className="flex justify-end">
+            <div className="bg-muted/40 rounded-lg p-4 max-w-[70%]">
+              <p className="text-base leading-relaxed">{excerpt.user_message}</p>
+            </div>
+          </div>
+
+          {/* Assistant Message with ChatResponseFooter */}
+          <div className="space-y-3">
+            <ChatResponseFooter
+              isStreaming={false}
+              messageContent={
+                <ReactMarkdown
+                  components={{
+                    p: ({ children }) => (
+                      <p className="mb-3 leading-relaxed text-foreground">
+                        {children}
+                      </p>
+                    ),
+                    strong: ({ children }) => (
+                      <strong className="font-semibold text-foreground">
+                        {children}
+                      </strong>
+                    ),
+                    h1: ({ children }) => (
+                      <h1 className="text-xl font-semibold mb-3 text-foreground">
+                        {children}
+                      </h1>
+                    ),
+                    h2: ({ children }) => (
+                      <h2 className="text-lg font-semibold mb-2 text-foreground">
+                        {children}
+                      </h2>
+                    ),
+                    ul: ({ children }) => (
+                      <ul className="list-disc pl-5 mb-3 space-y-1">
+                        {children}
+                      </ul>
+                    ),
+                    li: ({ children }) => (
+                      <li className="text-foreground text-sm">{children}</li>
+                    ),
+                  }}
+                >
+                  {excerpt.assistant_message}
+                </ReactMarkdown>
+              }
+              bills={bill ? [bill] : []}
+              relatedBills={[]}
+              sources={[
+                {
+                  number: 1,
+                  url: "https://www.goodable.dev",
+                  title: "Goodable - Legislative Policy Platform",
+                  excerpt: "AI-powered legislative research and policy analysis platform.",
+                },
+                {
+                  number: 2,
+                  url: "https://nyassembly.gov/",
+                  title: "New York State Assembly",
+                  excerpt: "Official website of the New York State Assembly.",
+                },
+                {
+                  number: 3,
+                  url: "https://www.nysenate.gov/",
+                  title: "New York State Senate",
+                  excerpt: "Official website of the New York State Senate.",
+                },
+              ]}
+              onCitationClick={(num) => console.log("Citation clicked:", num)}
+              hideCreateExcerpt
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ExcerptView;
