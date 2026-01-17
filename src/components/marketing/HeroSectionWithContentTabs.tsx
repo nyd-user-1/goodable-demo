@@ -148,7 +148,7 @@ export default function HeroSectionWithContentTabs() {
                           </div>
                         </div>
                         <div className="relative">
-                          <div className="aspect-[4/3] overflow-hidden rounded-lg">
+                          <div className="aspect-[4/3] overflow-hidden rounded-2xl border border-border shadow-md">
                             <img
                               src={feature.content.image}
                               alt={feature.title}
