@@ -18,18 +18,70 @@ import {
   MessageSquare,
   Heart,
   User,
-  Search,
-  PlusCircle,
-  Lightbulb,
-  CreditCard,
-  LogOut,
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { generateMemberSlug } from '@/utils/memberSlug';
+
+interface Member {
+  people_id: number;
+  name: string;
+  first_name: string;
+  last_name: string;
+  party: string;
+  chamber: string;
+}
+
+interface Committee {
+  committee_id: number;
+  committee_name: string;
+  chamber: string;
+  slug: string;
+}
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [committees, setCommittees] = useState<Committee[]>([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+
+  // Fetch data when palette opens
+  useEffect(() => {
+    if (open && members.length === 0) {
+      fetchData();
+    }
+  }, [open]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // Fetch all members
+      const { data: membersData } = await supabase
+        .from('People')
+        .select('people_id, name, first_name, last_name, party, chamber')
+        .not('chamber', 'is', null)
+        .not('name', 'is', null)
+        .order('last_name', { ascending: true });
+
+      if (membersData) {
+        setMembers(membersData);
+      }
+
+      // Fetch all committees
+      const { data: committeesData } = await supabase
+        .from('Committees')
+        .select('committee_id, committee_name, chamber, slug')
+        .order('committee_name', { ascending: true });
+
+      if (committeesData) {
+        setCommittees(committeesData);
+      }
+    } catch (error) {
+      console.error('Error fetching command palette data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -102,105 +154,46 @@ export function CommandPalette() {
 
         <CommandSeparator />
 
-        {/* Actions */}
-        <CommandGroup heading="Actions">
-          <CommandItem
-            onSelect={() => runCommand(() => {
-              const event = new CustomEvent('open-problem-chat');
-              window.dispatchEvent(event);
-            })}
-          >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            <span>New Problem Statement</span>
-          </CommandItem>
-          <CommandItem
-            onSelect={() => runCommand(() => navigate('/playground'))}
-          >
-            <Lightbulb className="mr-2 h-4 w-4" />
-            <span>AI Playground</span>
-          </CommandItem>
-          <CommandItem
-            onSelect={() => runCommand(() => navigate('/policy-portal'))}
-          >
-            <FileText className="mr-2 h-4 w-4" />
-            <span>Policy Portal</span>
-          </CommandItem>
-        </CommandGroup>
-
-        <CommandSeparator />
-
-        {/* User */}
-        <CommandGroup heading="User">
-          {user ? (
-            <>
+        {/* Members */}
+        <CommandGroup heading="Members">
+          {loading ? (
+            <CommandItem disabled>Loading members...</CommandItem>
+          ) : (
+            members.map((member) => (
               <CommandItem
-                onSelect={() => runCommand(() => navigate('/profile'))}
+                key={member.people_id}
+                onSelect={() => runCommand(() => navigate(`/members/${generateMemberSlug(member)}`))}
               >
                 <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
+                <span>{member.name}</span>
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {member.party} - {member.chamber}
+                </span>
               </CommandItem>
-              <CommandItem
-                onSelect={() => runCommand(() => navigate('/plans'))}
-              >
-                <CreditCard className="mr-2 h-4 w-4" />
-                <span>Subscription Plans</span>
-              </CommandItem>
-              <CommandItem
-                onSelect={() => runCommand(() => signOut())}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Sign Out</span>
-              </CommandItem>
-            </>
-          ) : (
-            <CommandItem
-              onSelect={() => runCommand(() => navigate('/auth-2'))}
-            >
-              <User className="mr-2 h-4 w-4" />
-              <span>Sign In</span>
-            </CommandItem>
+            ))
           )}
         </CommandGroup>
 
-        {/* Quick Search */}
         <CommandSeparator />
-        <CommandGroup heading="Quick Search">
-          <CommandItem
-            onSelect={() => runCommand(() => {
-              navigate('/bills');
-              setTimeout(() => {
-                const searchInput = document.querySelector('input[placeholder*="Search bills"]') as HTMLInputElement;
-                searchInput?.focus();
-              }, 100);
-            })}
-          >
-            <Search className="mr-2 h-4 w-4" />
-            <span>Search Bills</span>
-          </CommandItem>
-          <CommandItem
-            onSelect={() => runCommand(() => {
-              navigate('/members');
-              setTimeout(() => {
-                const searchInput = document.querySelector('input[placeholder*="Search members"]') as HTMLInputElement;
-                searchInput?.focus();
-              }, 100);
-            })}
-          >
-            <Search className="mr-2 h-4 w-4" />
-            <span>Search Members</span>
-          </CommandItem>
-          <CommandItem
-            onSelect={() => runCommand(() => {
-              navigate('/committees');
-              setTimeout(() => {
-                const searchInput = document.querySelector('input[placeholder*="Search committees"]') as HTMLInputElement;
-                searchInput?.focus();
-              }, 100);
-            })}
-          >
-            <Search className="mr-2 h-4 w-4" />
-            <span>Search Committees</span>
-          </CommandItem>
+
+        {/* Committees */}
+        <CommandGroup heading="Committees">
+          {loading ? (
+            <CommandItem disabled>Loading committees...</CommandItem>
+          ) : (
+            committees.map((committee) => (
+              <CommandItem
+                key={committee.committee_id}
+                onSelect={() => runCommand(() => navigate(`/committees/${committee.slug}`))}
+              >
+                <Building className="mr-2 h-4 w-4" />
+                <span>{committee.committee_name}</span>
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {committee.chamber}
+                </span>
+              </CommandItem>
+            ))
+          )}
         </CommandGroup>
       </CommandList>
     </CommandDialog>
