@@ -195,7 +195,13 @@ export function CommandPalette() {
                 key={committee.committee_id}
                 onSelect={() => runCommand(() => navigate(`/committees/${committee.slug}`))}
               >
-                <Building className="mr-2 h-4 w-4" />
+                <img
+                  src={committee.chamber.toLowerCase().includes('assembly')
+                    ? '/nys-assembly-seal.png'
+                    : '/nys-senate-seal.png'}
+                  alt={committee.chamber}
+                  className="mr-2 h-5 w-5 rounded-full object-cover"
+                />
                 <span>{committee.chamber} {committee.committee_name}</span>
               </CommandItem>
             ))
