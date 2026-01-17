@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, createContext, useContext } from "react";
 import { NavLink, useLocation, useParams } from "react-router-dom";
-import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, ChevronRight, PanelLeftClose, PanelLeft, MoreHorizontal, Pin, Trash2, PenSquare, TextQuote, Landmark } from "lucide-react";
+import { MessageSquare, MessagesSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, ChevronRight, PanelLeftClose, PanelLeft, MoreHorizontal, Pin, Trash2, PenSquare, TextQuote, Landmark } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -425,7 +425,11 @@ export function NewAppSidebar() {
                           className="truncate pr-8"
                         >
                           <NavLink to={`/c/${chat.id}`}>
-                            {chat.isPinned && <Pin className="h-3 w-3 mr-1 flex-shrink-0 text-primary" />}
+                            {chat.isPinned ? (
+                              <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
+                            ) : (
+                              <MessagesSquare className="h-4 w-4 flex-shrink-0" />
+                            )}
                             <span className="truncate">{chat.title}</span>
                           </NavLink>
                         </SidebarMenuButton>
