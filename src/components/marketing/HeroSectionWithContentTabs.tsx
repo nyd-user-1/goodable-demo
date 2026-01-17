@@ -6,50 +6,50 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 export default function HeroSectionWithContentTabs() {
   const features = [
     {
-      id: 'design',
-      title: 'Design',
-      description: 'Beautiful and accessible components',
+      id: 'explore',
+      title: 'Explore',
+      description: 'Complete legislative database',
       content: {
-        title: 'Craft stunning interfaces',
+        title: 'Every bill at your fingertips',
         description:
-          'Our components are designed with accessibility and aesthetics in mind. Create beautiful user interfaces that work for everyone.',
-        image: 'https://placehold.co/800x600.jpeg',
+          'Access the full NYS legislative database with live updates. Browse bills by session, view full texts, track status changes, and see committee assignments—all in one place.',
+        image: '/legislative%20research.png',
         stats: [
-          { label: 'Components', value: '200+' },
-          { label: 'Themes', value: '15+' },
-          { label: 'Templates', value: '50+' },
+          { label: 'Active Bills', value: '15K+' },
+          { label: 'Sessions', value: '10+' },
+          { label: 'Live Updates', value: '24/7' },
         ],
       },
     },
     {
-      id: 'develop',
-      title: 'Develop',
-      description: 'Type-safe development experience',
+      id: 'research',
+      title: 'Research',
+      description: 'Legislators & committees',
       content: {
-        title: 'Build with confidence',
+        title: 'Know your representatives',
         description:
-          'Fully typed components ensure a smooth development experience. Get instant feedback and autocompletion in your IDE.',
-        image: 'https://placehold.co/800x600.jpeg',
+          'Detailed profiles for every legislator including party affiliations, districts, voting patterns, and committee memberships. Plus comprehensive committee data with leadership roles and jurisdictions.',
+        image: '/goodable-analytics-demo.png',
         stats: [
-          { label: 'TypeScript', value: '100%' },
-          { label: 'Test Coverage', value: '95%' },
-          { label: 'Bundle Size', value: '12kb' },
+          { label: 'Legislators', value: '213' },
+          { label: 'Committees', value: '70+' },
+          { label: 'Vote Records', value: '100K+' },
         ],
       },
     },
     {
-      id: 'deploy',
-      title: 'Deploy',
-      description: 'Optimized for production',
+      id: 'act',
+      title: 'Act',
+      description: 'Built-in advocacy tools',
       content: {
-        title: 'Ship faster than ever',
+        title: 'Turn insight into action',
         description:
-          'Zero-config deployments with optimal performance. Your applications are ready for production from day one.',
-        image: 'https://placehold.co/800x600.jpeg',
+          'Every bill analysis includes tools to email sponsors directly, generate personalized letters, view official documents, and track your positions. Make your voice heard with one click.',
+        image: '/goodable-analytics-demo.png',
         stats: [
-          { label: 'Build Time', value: '<1s' },
-          { label: 'Lighthouse', value: '100' },
-          { label: 'Uptime', value: '99.9%' },
+          { label: 'Email Templates', value: '50+' },
+          { label: 'Letter Formats', value: '12' },
+          { label: 'Doc Types', value: '8' },
         ],
       },
     },
@@ -69,18 +69,18 @@ export default function HeroSectionWithContentTabs() {
           <div className="container mx-auto px-4 py-24 md:px-6 lg:py-32 2xl:max-w-[1400px]">
             <div className="mx-auto mb-16 max-w-3xl text-center">
               <Badge variant="outline" className="mb-4">
-                Complete Workflow
+                NYS Legislature API
               </Badge>
               <h1 className="mb-4 scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-                From design to deployment
+                Comprehensive legislative intelligence
               </h1>
               <p className="text-muted-foreground mb-8 text-xl">
-                Everything you need to build modern applications. Design,
-                develop, and deploy with our comprehensive toolkit.
+                Access the complete NYS legislative database with live updates.
+                Translate complex policy into actionable insights.
               </p>
               <div className="flex flex-col justify-center gap-3 sm:flex-row">
                 <Button size="lg" className="bg-foreground text-background hover:bg-foreground/90">
-                  Get Started
+                  Start Exploring
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -98,14 +98,14 @@ export default function HeroSectionWithContentTabs() {
                   </svg>
                 </Button>
                 <Button size="lg" variant="outline">
-                  View Documentation
+                  View Sample Analysis
                 </Button>
               </div>
             </div>
 
             {/* Feature Tabs */}
             <div className="mx-auto max-w-5xl">
-              <Tabs defaultValue="design" className="space-y-8">
+              <Tabs defaultValue="explore" className="space-y-8">
                 <TabsList className="mx-auto grid h-auto w-full max-w-2xl grid-cols-3 gap-4 bg-transparent">
                   {features.map((feature) => (
                     <TabsTrigger
@@ -177,7 +177,7 @@ export default function HeroSectionWithContentTabs() {
                                   <path d="m9 12 2 2 4-4" />
                                 </svg>
                               </div>
-                              <p className="font-medium">Ready to use</p>
+                              <p className="font-medium">Live data</p>
                             </div>
                           </Card>
                         </div>
