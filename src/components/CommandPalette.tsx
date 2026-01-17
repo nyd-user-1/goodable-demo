@@ -187,10 +187,7 @@ export function CommandPalette() {
                 onSelect={() => runCommand(() => navigate(`/committees/${committee.slug}`))}
               >
                 <Building className="mr-2 h-4 w-4" />
-                <span>{committee.committee_name}</span>
-                <span className="ml-auto text-xs text-muted-foreground">
-                  {committee.chamber}
-                </span>
+                <span>{committee.chamber} {committee.committee_name}</span>
               </CommandItem>
             ))
           )}
