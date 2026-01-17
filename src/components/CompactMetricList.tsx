@@ -32,29 +32,24 @@ interface TabConfig {
 
 const tabConfigs: TabConfig[] = [
   {
-    id: 'introduced',
-    label: 'Introduced',
+    id: 'both',
+    label: 'Both',
     feedUrl: 'https://legiscan.com/gaits/feed/17608aebc160d8aa0e1d7df491f4fc08.rss',
   },
   {
-    id: 'enrolled',
-    label: 'Enrolled',
+    id: 'senate',
+    label: 'Senate',
     feedUrl: 'https://legiscan.com/gaits/feed/17608aebc160d8aa0e1d7df491f4fc08.rss',
   },
   {
-    id: 'engrossed',
-    label: 'Engrossed',
-    feedUrl: 'https://legiscan.com/gaits/feed/17608aebc160d8aa0e1d7df491f4fc08.rss',
-  },
-  {
-    id: 'passed',
-    label: 'Passed',
+    id: 'assembly',
+    label: 'Assembly',
     feedUrl: 'https://legiscan.com/gaits/feed/17608aebc160d8aa0e1d7df491f4fc08.rss',
   },
 ];
 
 export default function CompactMetricList() {
-  const [activeTab, setActiveTab] = useState("introduced");
+  const [activeTab, setActiveTab] = useState("both");
   const [bills, setBills] = useState<Record<string, LegislativeBill[]>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<Record<string, string | null>>({});
@@ -146,12 +141,12 @@ export default function CompactMetricList() {
 
   // Mock data fallback
   const getMockBills = (tabId: string): LegislativeBill[] => {
-    const mockBills: LegislativeBill[] = [
+    const assemblyBills: LegislativeBill[] = [
       {
         id: '1',
         billNumber: 'A08022',
         title: 'Requires an operator of a covered platform with at least one million users to ensure that its covered platform provides a process to allow law enforcement agencies to contact such covered platform...',
-        status: tabId === 'introduced' ? 'Intro 25%' : tabId === 'engrossed' ? 'Engross 50%' : tabId === 'enrolled' ? 'Enrolled' : 'Passed',
+        status: 'Intro 25%',
         lastAction: 'To Assembly Codes Committee',
         lastActionDate: 'Jan 16, 2026',
         link: '#',
@@ -160,7 +155,7 @@ export default function CompactMetricList() {
         id: '2',
         billNumber: 'A09316',
         title: 'Limits the circumstances under which the case of an adolescent offender may be removed to family court; limits the jurisdiction of family court with respect to certain repeat adolescent offenders.',
-        status: tabId === 'introduced' ? 'Intro 25%' : tabId === 'engrossed' ? 'Engross 50%' : tabId === 'enrolled' ? 'Enrolled' : 'Passed',
+        status: 'Intro 25%',
         lastAction: 'To Assembly Codes Committee',
         lastActionDate: 'Jan 15, 2026',
         link: '#',
@@ -169,31 +164,46 @@ export default function CompactMetricList() {
         id: '3',
         billNumber: 'A08235',
         title: 'Designates dog control officers of the village of Holley, named by the village board as constables, as peace officers.',
-        status: tabId === 'introduced' ? 'Intro 25%' : tabId === 'engrossed' ? 'Engross 50%' : tabId === 'enrolled' ? 'Enrolled' : 'Passed',
+        status: 'Engross 50%',
         lastAction: 'To Assembly Codes Committee',
         lastActionDate: 'Jan 15, 2026',
         link: '#',
       },
+    ];
+
+    const senateBills: LegislativeBill[] = [
       {
         id: '4',
-        billNumber: 'A00773',
-        title: 'Relates to the use of automated lending decision-making tools by banks for the purposes of making lending decisions; allows loan applicants to consent to or opt out of such use.',
-        status: tabId === 'introduced' ? 'Intro 25%' : tabId === 'engrossed' ? 'Engross 50%' : tabId === 'enrolled' ? 'Enrolled' : 'Passed',
-        lastAction: 'To Assembly Codes Committee',
-        lastActionDate: 'Jan 15, 2026',
+        billNumber: 'S08762',
+        title: 'Allows the removal of criminal actions to a mental health court in an adjoining county and provides for the reversion to the original court of record where the defendant fails to comply with or complete the mental health court program.',
+        status: 'Engross 50%',
+        lastAction: 'To Senate Codes Committee',
+        lastActionDate: 'Jan 13, 2026',
         link: '#',
       },
       {
         id: '5',
-        billNumber: 'S08762',
-        title: 'Allows the removal of criminal actions to a mental health court in an adjoining county and provides for the reversion to the original court of record where the defendant fails to comply with or complete the mental health court program.',
-        status: tabId === 'introduced' ? 'Intro 25%' : tabId === 'engrossed' ? 'Engross 50%' : tabId === 'enrolled' ? 'Enrolled' : 'Passed',
-        lastAction: 'To Assembly Codes Committee',
+        billNumber: 'S08824',
+        title: 'Clarifies standards for glass repair and calibration of advanced driver assistance systems for motor vehicle glass repair facilities.',
+        status: 'Intro 25%',
+        lastAction: 'To Senate Codes Committee',
         lastActionDate: 'Jan 13, 2026',
         link: '#',
       },
+      {
+        id: '6',
+        billNumber: 'S09123',
+        title: 'Relates to the use of automated lending decision-making tools by banks for the purposes of making lending decisions.',
+        status: 'Intro 25%',
+        lastAction: 'To Senate Codes Committee',
+        lastActionDate: 'Jan 12, 2026',
+        link: '#',
+      },
     ];
-    return mockBills;
+
+    if (tabId === 'assembly') return assemblyBills;
+    if (tabId === 'senate') return senateBills;
+    return [...assemblyBills, ...senateBills]; // 'both'
   };
 
   // Fetch data when tab changes
@@ -206,7 +216,7 @@ export default function CompactMetricList() {
 
   // Initial fetch
   useEffect(() => {
-    fetchFeed('introduced', tabConfigs[0].feedUrl);
+    fetchFeed('both', tabConfigs[0].feedUrl);
   }, []);
 
   const currentBills = bills[activeTab] || [];
@@ -219,17 +229,17 @@ export default function CompactMetricList() {
         <div className="mb-8 flex flex-col items-center justify-center space-y-4 text-center">
           <Badge className="px-3.5 py-1.5 bg-foreground text-background hover:bg-foreground/90">Live Feed</Badge>
           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-            NYS Assembly Codes Committee
+            NYS Legislative Activity
           </h2>
           <p className="text-muted-foreground max-w-[700px] md:text-lg">
-            Real-time legislative activity from the New York State Assembly Codes Committee.
+            Real-time bills from the New York State Senate and Assembly.
           </p>
         </div>
 
         <Card className="border p-0 shadow-sm">
           <CardContent className="p-0">
             <Tabs
-              defaultValue="introduced"
+              defaultValue="both"
               value={activeTab}
               onValueChange={setActiveTab}
               className="w-full gap-0"
