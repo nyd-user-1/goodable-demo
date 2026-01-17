@@ -1,6 +1,6 @@
 /**
- * CitationTabsNew Component
- * Perplexity-style layout with content, action buttons, and "More" accordion section
+ * ChatResponseFooter Component
+ * Displays action buttons, bill-specific actions, and citations accordion below AI responses
  */
 
 import { useState, ReactNode, useRef, useEffect } from "react";
@@ -45,7 +45,7 @@ interface BillCitation {
   session_id?: number;
 }
 
-interface CitationTabsNewProps {
+interface ChatResponseFooterProps {
   messageContent: ReactNode;
   bills: BillCitation[];
   sources: PerplexityCitation[];
@@ -55,7 +55,7 @@ interface CitationTabsNewProps {
   onSendMessage?: (message: string) => void;
 }
 
-export function CitationTabsNew({
+export function ChatResponseFooter({
   messageContent,
   bills,
   sources,
@@ -63,7 +63,7 @@ export function CitationTabsNew({
   onCitationClick,
   isStreaming = false,
   onSendMessage
-}: CitationTabsNewProps) {
+}: ChatResponseFooterProps) {
   const hasBills = bills && bills.length > 0;
   const hasSources = sources && sources.length > 0;
   const hasRelated = relatedBills && relatedBills.length > 0;

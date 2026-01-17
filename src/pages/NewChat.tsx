@@ -34,7 +34,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { CitationText } from "@/components/CitationText";
-import { CitationTabsNew } from "@/components/CitationTabsNew";
+import { ChatResponseFooter } from "@/components/ChatResponseFooter";
 import { PerplexityCitation, extractCitationNumbers } from "@/utils/citationParser";
 import {
   Accordion,
@@ -1161,7 +1161,7 @@ const NewChat = () => {
 
                     {/* Perplexity-style Tabbed Interface for all assistant messages */}
                     {message.role === 'assistant' && (
-                      <CitationTabsNew
+                      <ChatResponseFooter
                         isStreaming={message.isStreaming}
                         messageContent={
                           message.isPerplexityResponse && message.perplexityCitations ? (
