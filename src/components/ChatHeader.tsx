@@ -1,5 +1,5 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Command, PenSquare, ChevronDown } from "lucide-react";
+import { Command, PenSquare } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import confetti from "canvas-confetti";
 import {
@@ -91,11 +91,11 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
         </div>
 
         {/* Center - Marketing Navigation (desktop only) */}
-        <nav className="hidden md:flex items-center gap-6">
+        <nav className="hidden md:flex items-center gap-1">
           {/* About - simple link */}
           <Link
             to="/about"
-            className="text-sm font-normal text-muted-foreground hover:text-foreground transition-colors"
+            className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
           >
             About
           </Link>
@@ -103,16 +103,15 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
           {/* Academy - simple link */}
           <Link
             to="/academy"
-            className="text-sm font-normal text-muted-foreground hover:text-foreground transition-colors"
+            className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
           >
             Academy
           </Link>
 
           {/* Features - dropdown */}
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-normal text-muted-foreground hover:text-foreground transition-colors outline-none">
+            <DropdownMenuTrigger className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none">
               Features
-              <ChevronDown className="h-3 w-3" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="min-w-[160px]">
               {dropdownPlaceholders.map((item) => (
@@ -125,9 +124,8 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
 
           {/* Use Cases - dropdown */}
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-normal text-muted-foreground hover:text-foreground transition-colors outline-none">
+            <DropdownMenuTrigger className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none">
               Use Cases
-              <ChevronDown className="h-3 w-3" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="min-w-[160px]">
               {dropdownPlaceholders.map((item) => (
@@ -140,9 +138,8 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
 
           {/* Non Profits - dropdown */}
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-normal text-muted-foreground hover:text-foreground transition-colors outline-none">
+            <DropdownMenuTrigger className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none">
               Non Profits
-              <ChevronDown className="h-3 w-3" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="min-w-[160px]">
               {dropdownPlaceholders.map((item) => (
@@ -156,7 +153,7 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
           {/* Pricing - simple link */}
           <Link
             to="/pricing"
-            className="text-sm font-normal text-muted-foreground hover:text-foreground transition-colors"
+            className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
           >
             Pricing
           </Link>
