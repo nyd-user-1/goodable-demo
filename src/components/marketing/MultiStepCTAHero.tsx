@@ -13,7 +13,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 
 const benefits = [
   'Setup in under 3 minutes',
@@ -85,14 +84,14 @@ export default function MultiStepCTAHero() {
             <div className="space-y-6">
               <Badge
                 variant="outline"
-                className="border-primary/20 bg-primary/10 text-primary"
+                className="border-border bg-muted text-foreground"
               >
                 ✨ Free 30-day trial
               </Badge>
-              <h1 className="text-primary max-w-4xl text-4xl leading-tight font-semibold tracking-tight text-balance lg:leading-[1.1] lg:font-semibold xl:text-5xl xl:tracking-tighter">
+              <h1 className="text-foreground max-w-4xl text-4xl leading-tight font-semibold tracking-tight text-balance lg:leading-[1.1] lg:font-semibold xl:text-5xl xl:tracking-tighter">
                 Transform your workflow in minutes, not months
               </h1>
-              <p className="text-foreground max-w-4xl text-base text-balance sm:text-lg">
+              <p className="text-muted-foreground max-w-4xl text-base text-balance sm:text-lg">
                 Join 25,000+ teams who&apos;ve streamlined their processes with
                 our intelligent automation platform. Get started in under 3
                 minutes.
@@ -103,7 +102,7 @@ export default function MultiStepCTAHero() {
             <div className="space-y-4">
               {benefits.map((benefit, index) => (
                 <div key={index} className="flex items-center gap-3">
-                  <div className="bg-primary/10 text-primary flex h-8 w-8 items-center justify-center rounded-full">
+                  <div className="bg-muted text-foreground flex h-8 w-8 items-center justify-center rounded-full">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
@@ -150,10 +149,16 @@ export default function MultiStepCTAHero() {
 
           {/* Right Side - Multi-Step Form */}
           <div className="mx-auto w-full max-w-md">
-            <Card className="border-primary/20 shadow-xl">
+            <Card className="shadow-xl">
               <CardHeader className="pb-4">
                 <div className="mb-4 space-y-2">
-                  <Progress value={progress} className="h-2" />
+                  {/* Custom Progress Bar - Black */}
+                  <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-foreground transition-all duration-300 ease-out"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
                   <div className="text-muted-foreground flex justify-between text-xs">
                     <span>
                       Step {currentStep + 1} of {steps.length}
@@ -275,7 +280,7 @@ export default function MultiStepCTAHero() {
                 {/* Step 3: Complete */}
                 {currentStep === 3 && (
                   <div className="space-y-4 text-center">
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-green-600">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="32"
@@ -314,12 +319,17 @@ export default function MultiStepCTAHero() {
                     </Button>
                   )}
                   {currentStep < 3 && (
-                    <Button onClick={handleNext} className="flex-1">
+                    <Button
+                      onClick={handleNext}
+                      className="flex-1 bg-foreground text-background hover:bg-foreground/90"
+                    >
                       {currentStep === 2 ? 'Complete Setup' : 'Continue'}
                     </Button>
                   )}
                   {currentStep === 3 && (
-                    <Button className="w-full">Access Dashboard</Button>
+                    <Button className="w-full bg-foreground text-background hover:bg-foreground/90">
+                      Access Dashboard
+                    </Button>
                   )}
                 </div>
 
@@ -327,11 +337,11 @@ export default function MultiStepCTAHero() {
                   <div className="text-center">
                     <p className="text-muted-foreground text-xs">
                       By continuing, you agree to our{' '}
-                      <a href="#" className="text-primary underline">
+                      <a href="#" className="text-foreground underline">
                         Terms of Service
                       </a>{' '}
                       and{' '}
-                      <a href="#" className="text-primary underline">
+                      <a href="#" className="text-foreground underline">
                         Privacy Policy
                       </a>
                     </p>

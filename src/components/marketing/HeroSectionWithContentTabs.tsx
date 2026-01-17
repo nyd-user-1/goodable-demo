@@ -79,7 +79,7 @@ export default function HeroSectionWithContentTabs() {
                 develop, and deploy with our comprehensive toolkit.
               </p>
               <div className="flex flex-col justify-center gap-3 sm:flex-row">
-                <Button size="lg">
+                <Button size="lg" className="bg-foreground text-background hover:bg-foreground/90">
                   Get Started
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -111,11 +111,11 @@ export default function HeroSectionWithContentTabs() {
                     <TabsTrigger
                       key={feature.id}
                       value={feature.id}
-                      className="group bg-accent data-[state=active]:bg-primary data-[state=active]:text-primary-foreground h-full"
+                      className="group bg-accent data-[state=active]:bg-foreground data-[state=active]:text-background h-full rounded-xl"
                     >
                       <div className="p-2 text-left whitespace-normal">
                         <p className="font-semibold">{feature.title}</p>
-                        <p className="group-data-[state=active]:text-muted text-muted-foreground text-sm">
+                        <p className="group-data-[state=active]:text-background/70 text-muted-foreground text-sm">
                           {feature.description}
                         </p>
                       </div>
@@ -160,7 +160,7 @@ export default function HeroSectionWithContentTabs() {
                           {/* Floating Elements */}
                           <Card className="absolute -right-4 -bottom-4 w-48 p-4">
                             <div className="flex items-center gap-3">
-                              <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
+                              <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-full">
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width="16"
@@ -171,7 +171,7 @@ export default function HeroSectionWithContentTabs() {
                                   strokeWidth="2"
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
-                                  className="text-primary"
+                                  className="text-foreground"
                                 >
                                   <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
                                   <path d="m9 12 2 2 4-4" />

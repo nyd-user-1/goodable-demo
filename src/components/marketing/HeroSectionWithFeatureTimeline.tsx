@@ -21,7 +21,7 @@ export default function HeroSectionWithFeatureTimeline() {
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-primary"
+          className="text-foreground"
         >
           <path d="m18.5 5.5-8.5 8.5-4-4" />
           <path d="M18.5 5.5h-4v-4" />
@@ -46,7 +46,7 @@ export default function HeroSectionWithFeatureTimeline() {
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-primary"
+          className="text-foreground"
         >
           <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
           <path d="M6 12h12" />
@@ -71,7 +71,7 @@ export default function HeroSectionWithFeatureTimeline() {
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-primary"
+          className="text-foreground"
         >
           <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
           <path d="M12 6v6l4 2" />
@@ -95,7 +95,7 @@ export default function HeroSectionWithFeatureTimeline() {
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-primary"
+          className="text-foreground"
         >
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
         </svg>
@@ -126,7 +126,7 @@ export default function HeroSectionWithFeatureTimeline() {
                 we&apos;re building and what&apos;s coming next.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-3">
-                <Button size="lg">
+                <Button size="lg" className="bg-foreground text-background hover:bg-foreground/90">
                   View Full Roadmap
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -160,9 +160,9 @@ export default function HeroSectionWithFeatureTimeline() {
                       <div
                         className={`absolute left-6 top-12 h-full w-0.5 ${
                           milestone.status === "Released"
-                            ? "bg-primary"
+                            ? "bg-foreground"
                             : milestone.status === "In Progress"
-                            ? "bg-gradient-to-b from-primary to-muted"
+                            ? "bg-gradient-to-b from-foreground to-muted"
                             : "bg-muted"
                         }`}
                       ></div>
@@ -171,13 +171,7 @@ export default function HeroSectionWithFeatureTimeline() {
                     <Card className="relative flex gap-6 p-6 hover:shadow-lg transition-all duration-300">
                       {/* Icon */}
                       <div
-                        className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                          milestone.status === "Released"
-                            ? "bg-primary/10"
-                            : milestone.status === "In Progress"
-                            ? "bg-primary/5"
-                            : "bg-muted"
-                        }`}
+                        className={`w-12 h-12 rounded-full flex items-center justify-center bg-muted`}
                       >
                         {milestone.icon}
                       </div>
@@ -191,6 +185,11 @@ export default function HeroSectionWithFeatureTimeline() {
                                 : milestone.status === "In Progress"
                                 ? "secondary"
                                 : "outline"
+                            }
+                            className={
+                              milestone.status === "Released"
+                                ? "bg-foreground text-background hover:bg-foreground/90"
+                                : ""
                             }
                           >
                             {milestone.status}
