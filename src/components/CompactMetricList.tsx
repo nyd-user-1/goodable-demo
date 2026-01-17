@@ -26,7 +26,7 @@ const chamberOptions = [
 ];
 
 const statusOptions = [
-  { id: 'any', label: 'Any' },
+  { id: 'any', label: 'All' },
   { id: 'introduced', label: 'Introduced' },
   { id: 'engrossed', label: 'Engrossed' },
   { id: 'enrolled', label: 'Enrolled' },
@@ -327,12 +327,11 @@ export default function CompactMetricList() {
 
         <Card className="border p-0 shadow-sm">
           <CardContent className="p-0">
-            {/* Filter Controls */}
-            <div className="border-b px-4 py-3 space-y-3">
-              {/* Chamber Filter Row */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-medium text-muted-foreground min-w-[60px]">Chamber:</span>
-                <div className="flex gap-1 flex-wrap">
+            {/* Filter Controls - Single Row */}
+            <div className="border-b px-4 py-3">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-1 flex-wrap">
+                  {/* Chamber Filters */}
                   {chamberOptions.map(opt => (
                     <button
                       key={opt.id}
@@ -347,13 +346,11 @@ export default function CompactMetricList() {
                       {opt.label}
                     </button>
                   ))}
-                </div>
-              </div>
 
-              {/* Status Filter Row */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-medium text-muted-foreground min-w-[60px]">Status:</span>
-                <div className="flex gap-1 flex-wrap">
+                  {/* Divider */}
+                  <div className="w-px h-6 bg-border mx-2" />
+
+                  {/* Status Filters */}
                   {statusOptions.map(opt => (
                     <button
                       key={opt.id}
@@ -369,11 +366,19 @@ export default function CompactMetricList() {
                     </button>
                   ))}
                 </div>
+
+                {/* Refresh indicator in filter row */}
+                {isLoading && (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span>Refreshing...</span>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Bills List */}
-            <div className="relative">
+            <div>
               {currentBills.length === 0 && isLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -384,15 +389,7 @@ export default function CompactMetricList() {
                   No bills found for the selected filters.
                 </div>
               ) : (
-                <>
-                  {/* Subtle refresh indicator */}
-                  {isLoading && currentBills.length > 0 && (
-                    <div className="absolute top-2 right-4 flex items-center gap-1.5 text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded-full z-10">
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      <span>Refreshing...</span>
-                    </div>
-                  )}
-                  <div className="grid grid-cols-1 divide-y">
+                <div className="grid grid-cols-1 divide-y">
                     {currentBills.map((bill) => (
                       <div
                         key={bill.id}
@@ -436,8 +433,7 @@ export default function CompactMetricList() {
                         </div>
                       </div>
                     ))}
-                  </div>
-                </>
+                </div>
               )}
             </div>
           </CardContent>
