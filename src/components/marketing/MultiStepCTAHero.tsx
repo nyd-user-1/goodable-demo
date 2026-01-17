@@ -24,8 +24,8 @@ const benefits = [
 
 const socialProof = [
   '/claude-ai-icon-65aa.png',
-  '/OAI LOGO.png',
-  '/PPLX LOGO.png',
+  '/OAI%20LOGO.png',
+  '/PPLX%20LOGO.png',
   '/nys-assembly-seal.png',
   '/nys-senate-seal.png',
 ];
