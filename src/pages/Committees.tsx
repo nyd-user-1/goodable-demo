@@ -10,7 +10,6 @@ import { CommitteesEmptyState } from "@/components/features/committees/Committee
 import { CommitteesLoadingSkeleton } from "@/components/features/committees/CommitteesLoadingSkeleton";
 import { CommitteesErrorState } from "@/components/features/committees/CommitteesErrorState";
 import { CommitteeDetail } from "@/components/CommitteeDetail";
-import { AIChatSheet } from "@/components/AIChatSheet";
 import { supabase } from "@/integrations/supabase/client";
 
 type Committee = {
@@ -36,8 +35,6 @@ const Committees = () => {
   const navigate = useNavigate();
   const [selectedCommittee, setSelectedCommittee] = useState<Committee | null>(null);
   const [loadingSlug, setLoadingSlug] = useState(!!committeeSlug); // True if we have a slug to resolve
-  const [chatOpen, setChatOpen] = useState(false);
-  const [selectedCommitteeForChat, setSelectedCommitteeForChat] = useState<Committee | null>(null);
   const [committeesWithAIChat, setCommitteesWithAIChat] = useState<Set<number>>(new Set());
 
   const { favoriteCommitteeIds, toggleFavorite } = useCommitteeFavorites();
@@ -177,13 +174,41 @@ const Committees = () => {
     await toggleFavorite(committee.committee_id);
   };
 
-  const handleAIAnalysis = (committee: Committee, e: React.MouseEvent) => {
+  const handleAIAnalysis = async (committee: Committee, e: React.MouseEvent) => {
     e.stopPropagation();
-    setSelectedCommitteeForChat(committee);
-    setChatOpen(true);
-    
-    // Add this committee to the set of committees with AI chat
-    setCommitteesWithAIChat(prev => new Set([...prev, committee.committee_id]));
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error("User not authenticated");
+        return;
+      }
+
+      // Create a new chat session for this committee
+      const sessionData = {
+        user_id: user.id,
+        committee_id: committee.committee_id,
+        title: `Chat about ${committee.name || 'Committee'}`,
+        messages: JSON.stringify([])
+      };
+
+      const { data, error } = await supabase
+        .from("chat_sessions")
+        .insert(sessionData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Navigate to the new chat with the initial prompt
+      const initialPrompt = `Tell me about the ${committee.chamber} ${committee.name} committee`;
+      navigate(`/c/${data.id}?prompt=${encodeURIComponent(initialPrompt)}`);
+
+      // Add this committee to the set of committees with AI chat
+      setCommitteesWithAIChat(prev => new Set([...prev, committee.committee_id]));
+    } catch (error) {
+      console.error("Error creating chat session:", error);
+    }
   };
 
   if (loading || loadingSlug) {
@@ -260,12 +285,6 @@ const Committees = () => {
           )}
         </div>
       </div>
-
-      <AIChatSheet
-        open={chatOpen}
-        onOpenChange={setChatOpen}
-        committee={selectedCommitteeForChat}
-      />
     </>
   );
 };

@@ -8,10 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CardActionButtons } from "@/components/ui/CardActionButtons";
-import { AIChatSheet } from "@/components/AIChatSheet";
 import { ArrowUpDown, ArrowUp, ArrowDown, Search, HelpCircle } from "lucide-react";
 import { useFavorites } from "@/hooks/useFavorites";
-import { useBillChatSessions } from "@/hooks/useBillChatSessions";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { formatDate } from "@/utils/dateUtils";
@@ -30,14 +28,11 @@ export const DashboardBillsTable = () => {
   const [bills, setBills] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [chatOpen, setChatOpen] = useState(false);
-  const [selectedBill, setSelectedBill] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
-  
+
   const { favoriteBillIds, toggleFavorite } = useFavorites();
-  const { createOrGetChatSession, loading: chatLoading } = useBillChatSessions();
 
   // Fetch all bills
   useEffect(() => {
@@ -76,11 +71,35 @@ export const DashboardBillsTable = () => {
 
   const handleAIAnalysis = async (bill: any, e: React.MouseEvent) => {
     e.stopPropagation();
-    
-    const session = await createOrGetChatSession(bill);
-    if (session) {
-      setSelectedBill(bill);
-      setChatOpen(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error("User not authenticated");
+        return;
+      }
+
+      // Create a new chat session for this bill
+      const sessionData = {
+        user_id: user.id,
+        bill_id: bill.bill_id,
+        title: `Chat about ${bill.bill_number || 'Bill'}`,
+        messages: JSON.stringify([])
+      };
+
+      const { data, error } = await supabase
+        .from("chat_sessions")
+        .insert(sessionData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Navigate to the new chat with the initial prompt
+      const initialPrompt = `Tell me about bill ${bill.bill_number}`;
+      navigate(`/c/${data.id}?prompt=${encodeURIComponent(initialPrompt)}`);
+    } catch (error) {
+      console.error("Error creating chat session:", error);
     }
   };
 
@@ -318,12 +337,6 @@ export const DashboardBillsTable = () => {
           </div>
         </div>
       </TooltipProvider>
-
-      <AIChatSheet
-        open={chatOpen}
-        onOpenChange={setChatOpen}
-        bill={selectedBill}
-      />
     </>
   );
 };

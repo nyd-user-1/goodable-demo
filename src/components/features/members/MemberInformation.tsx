@@ -1,8 +1,7 @@
 
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { CardActionButtons } from "@/components/ui/CardActionButtons";
-import { AIChatSheet } from "@/components/AIChatSheet";
-import { 
+import {
   MapPin,
   Phone,
   Mail,
@@ -10,6 +9,7 @@ import {
 } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { useMemberFavorites } from "@/hooks/useMemberFavorites";
+import { supabase } from "@/integrations/supabase/client";
 
 type Member = Tables<"People">;
 
@@ -18,20 +18,49 @@ interface MemberInformationProps {
 }
 
 export const MemberInformation = ({ member }: MemberInformationProps) => {
-  const [chatOpen, setChatOpen] = useState(false);
+  const navigate = useNavigate();
   const { favoriteMemberIds, toggleFavorite } = useMemberFavorites();
   const memberName = member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim() || `Member #${member.people_id}`;
-  
+
   const isFavorited = favoriteMemberIds.has(member.people_id);
-  
+
   const handleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
     toggleFavorite(member.people_id);
   };
 
-  const handleAIAnalysis = (e: React.MouseEvent) => {
+  const handleAIAnalysis = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setChatOpen(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error("User not authenticated");
+        return;
+      }
+
+      // Create a new chat session for this member
+      const sessionData = {
+        user_id: user.id,
+        member_id: member.people_id,
+        title: `Chat about ${memberName}`,
+        messages: JSON.stringify([])
+      };
+
+      const { data, error } = await supabase
+        .from("chat_sessions")
+        .insert(sessionData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Navigate to the new chat with the initial prompt
+      const initialPrompt = `Tell me about ${memberName}`;
+      navigate(`/c/${data.id}?prompt=${encodeURIComponent(initialPrompt)}`);
+    } catch (error) {
+      console.error("Error creating chat session:", error);
+    }
   };
   
   return (
@@ -122,12 +151,6 @@ export const MemberInformation = ({ member }: MemberInformationProps) => {
           </div>
         </div>
       </div>
-
-      <AIChatSheet
-        open={chatOpen}
-        onOpenChange={setChatOpen}
-        member={member}
-      />
     </>
   );
 };

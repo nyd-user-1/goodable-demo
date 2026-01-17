@@ -1,7 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { CardActionButtons } from "@/components/ui/CardActionButtons";
-import { AIChatSheet } from "@/components/AIChatSheet";
 import {
   Building2,
   Users,
@@ -10,6 +8,7 @@ import {
   Globe
 } from "lucide-react";
 import { useCommitteeFavorites } from "@/hooks/useCommitteeFavorites";
+import { supabase } from "@/integrations/supabase/client";
 
 type Committee = {
   committee_id: number;
@@ -33,7 +32,7 @@ interface CommitteeInformationProps {
 }
 
 export const CommitteeInformation = ({ committee }: CommitteeInformationProps) => {
-  const [chatOpen, setChatOpen] = useState(false);
+  const navigate = useNavigate();
   const { favoriteCommitteeIds, toggleFavorite } = useCommitteeFavorites();
 
   const isFavorited = favoriteCommitteeIds.has(committee.committee_id);
@@ -62,9 +61,38 @@ export const CommitteeInformation = ({ committee }: CommitteeInformationProps) =
     toggleFavorite(committee.committee_id);
   };
 
-  const handleAIAnalysis = (e: React.MouseEvent) => {
+  const handleAIAnalysis = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setChatOpen(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error("User not authenticated");
+        return;
+      }
+
+      // Create a new chat session for this committee
+      const sessionData = {
+        user_id: user.id,
+        committee_id: committee.committee_id,
+        title: `Chat about ${committee.name || 'Committee'}`,
+        messages: JSON.stringify([])
+      };
+
+      const { data, error } = await supabase
+        .from("chat_sessions")
+        .insert(sessionData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Navigate to the new chat with the initial prompt
+      const initialPrompt = `Tell me about the ${committee.chamber} ${committee.name} committee`;
+      navigate(`/c/${data.id}?prompt=${encodeURIComponent(initialPrompt)}`);
+    } catch (error) {
+      console.error("Error creating chat session:", error);
+    }
   };
 
   return (
@@ -177,12 +205,6 @@ export const CommitteeInformation = ({ committee }: CommitteeInformationProps) =
           </div>
         </div>
       </div>
-
-      <AIChatSheet
-        open={chatOpen}
-        onOpenChange={setChatOpen}
-        committee={committee}
-      />
     </>
   );
 };

@@ -132,8 +132,39 @@ export const CommitteesTable = ({ limit = 10 }: CommitteesTableProps) => {
 
   const handleAIAnalysis = async (committee: Committee, e: React.MouseEvent) => {
     e.stopPropagation();
-    // This would open AI chat with the committee
-    console.log('AI Analysis for committee:', committee);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error("User not authenticated");
+        return;
+      }
+
+      // Create a new chat session for this committee
+      const sessionData = {
+        user_id: user.id,
+        committee_id: committee.committee_id,
+        title: `Chat about ${committee.name || 'Committee'}`,
+        messages: JSON.stringify([])
+      };
+
+      const { data, error } = await supabase
+        .from("chat_sessions")
+        .insert(sessionData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Navigate to the new chat with the initial prompt
+      const initialPrompt = `Tell me about the ${committee.chamber} ${committee.name} committee`;
+      navigate(`/c/${data.id}?prompt=${encodeURIComponent(initialPrompt)}`);
+
+      // Add this committee to the set of committees with AI chat
+      setCommitteesWithAIChat(prev => new Set([...prev, committee.committee_id]));
+    } catch (error) {
+      console.error("Error creating chat session:", error);
+    }
   };
 
   const handleFavorite = async (committee: Committee, e: React.MouseEvent) => {

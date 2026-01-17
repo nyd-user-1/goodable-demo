@@ -10,7 +10,6 @@ import { MembersEmptyState } from "@/components/features/members/MembersEmptySta
 import { MembersLoadingSkeleton } from "@/components/features/members/MembersLoadingSkeleton";
 import { MembersErrorState } from "@/components/features/members/MembersErrorState";
 import { MemberDetail } from "@/components/MemberDetail";
-import { AIChatSheet } from "@/components/AIChatSheet";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,8 +25,6 @@ const Members = () => {
   const { user } = useAuth();
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [loadingSlug, setLoadingSlug] = useState(!!memberSlug); // True if we have a slug to resolve
-  const [chatOpen, setChatOpen] = useState(false);
-  const [selectedMemberForChat, setSelectedMemberForChat] = useState<Member | null>(null);
   const [membersWithAIChat, setMembersWithAIChat] = useState<Set<number>>(new Set());
 
   const { favoriteMemberIds, toggleFavorite } = useMemberFavorites();
@@ -211,17 +208,39 @@ const Members = () => {
     await toggleFavorite(member.people_id);
   };
 
-  const handleAIAnalysis = (member: any, e: React.MouseEvent) => {
+  const handleAIAnalysis = async (member: any, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!user) {
       navigate('/auth-2');
       return;
     }
-    setSelectedMemberForChat(member);
-    setChatOpen(true);
-    
-    // Add this member to the set of members with AI chat
-    setMembersWithAIChat(prev => new Set([...prev, member.people_id]));
+
+    try {
+      // Create a new chat session for this member
+      const sessionData = {
+        user_id: user.id,
+        member_id: member.people_id,
+        title: `Chat about ${member.name || 'Member'}`,
+        messages: JSON.stringify([])
+      };
+
+      const { data, error } = await supabase
+        .from("chat_sessions")
+        .insert(sessionData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Navigate to the new chat with the initial prompt
+      const initialPrompt = `Tell me about ${member.name}`;
+      navigate(`/c/${data.id}?prompt=${encodeURIComponent(initialPrompt)}`);
+
+      // Add this member to the set of members with AI chat
+      setMembersWithAIChat(prev => new Set([...prev, member.people_id]));
+    } catch (error) {
+      console.error("Error creating chat session:", error);
+    }
   };
 
   const handleFiltersChange = (newFilters: {
@@ -369,14 +388,6 @@ const Members = () => {
           )}
         </div>
       </div>
-
-      {user && (
-        <AIChatSheet
-          open={chatOpen}
-          onOpenChange={setChatOpen}
-          member={selectedMemberForChat}
-        />
-      )}
     </>
   );
 }
