@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, createContext, useContext } from "react";
 import { NavLink, useLocation, useParams } from "react-router-dom";
-import { MessageSquare, MessagesSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, ChevronRight, PanelLeftClose, PanelLeft, MoreHorizontal, Pin, Trash2, PenSquare, TextQuote } from "lucide-react";
+import { MessageSquare, MessagesSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, ChevronRight, PanelLeftClose, PanelLeft, MoreHorizontal, Pin, Trash2, PenSquare, TextQuote, Pencil } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -36,6 +36,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 
 const developmentItems = [
@@ -101,6 +110,9 @@ export function NewAppSidebar() {
   const [recentExcerpts, setRecentExcerpts] = useState<Excerpt[]>([]);
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(getPinnedChatIds());
   const [newChatHover, setNewChatHover] = useState(false);
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [chatToRename, setChatToRename] = useState<ChatSession | null>(null);
+  const [newChatTitle, setNewChatTitle] = useState("");
 
   // Fetch recent chats - extracted to useCallback so it can be called externally
   const fetchRecentChats = useCallback(async () => {
@@ -219,6 +231,47 @@ export function NewAppSidebar() {
     toast({
       title: "Chat deleted",
       description: "The chat has been deleted.",
+    });
+  };
+
+  const openRenameDialog = (chat: ChatSession) => {
+    setChatToRename(chat);
+    setNewChatTitle(chat.title);
+    setRenameDialogOpen(true);
+  };
+
+  const renameChat = async () => {
+    if (!chatToRename || !newChatTitle.trim()) return;
+
+    const { error } = await supabase
+      .from("chat_sessions")
+      .update({ title: newChatTitle.trim() })
+      .eq("id", chatToRename.id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to rename chat.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setRecentChats(prev =>
+      prev.map(chat =>
+        chat.id === chatToRename.id
+          ? { ...chat, title: newChatTitle.trim() }
+          : chat
+      )
+    );
+
+    setRenameDialogOpen(false);
+    setChatToRename(null);
+    setNewChatTitle("");
+
+    toast({
+      title: "Chat renamed",
+      description: "The chat has been renamed.",
     });
   };
 
@@ -447,6 +500,10 @@ export function NewAppSidebar() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" side="right">
+                            <DropdownMenuItem onClick={() => openRenameDialog(chat)}>
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Rename
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => togglePinChat(chat.id)}>
                               <Pin className="h-4 w-4 mr-2" />
                               {chat.isPinned ? "Unpin Chat" : "Pin Chat"}
@@ -525,6 +582,36 @@ export function NewAppSidebar() {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
+
+      {/* Rename Chat Dialog */}
+      <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename chat</DialogTitle>
+            <DialogDescription>
+              Enter a new name for this chat.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={newChatTitle}
+            onChange={(e) => setNewChatTitle(e.target.value)}
+            placeholder="Chat name"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                renameChat();
+              }
+            }}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenameDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={renameChat} disabled={!newChatTitle.trim()}>
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarRefreshContext.Provider>
   );
 }
