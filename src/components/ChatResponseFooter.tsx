@@ -352,7 +352,8 @@ export function ChatResponseFooter({
       title,
       userMessage,
       assistantMessage: assistantMessageText,
-      billId: hasBills ? bills[0].session_id : undefined, // Note: using session_id which maps to bill_id in our schema
+      // Note: bill_id is not available in citations, so we don't pass it
+      // The excerpt will still work, just without the bill link
     });
 
     if (excerpt) {
