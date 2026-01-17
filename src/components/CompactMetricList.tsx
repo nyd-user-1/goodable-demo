@@ -1,18 +1,12 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, Menu, FileText, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowRight, FileText, ExternalLink, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 interface LegislativeBill {
   id: string;
@@ -24,182 +18,152 @@ interface LegislativeBill {
   link: string;
 }
 
-interface TabConfig {
-  id: string;
-  label: string;
-  feedUrl: string;
-}
+// Filter options
+const chamberOptions = [
+  { id: 'both', label: 'Both' },
+  { id: 'senate', label: 'Senate' },
+  { id: 'house', label: 'Assembly' },
+];
 
-const tabConfigs: TabConfig[] = [
-  {
-    id: 'both',
-    label: 'Both',
-    feedUrl: 'https://legiscan.com/gaits/feed/17608aebc160d8aa0e1d7df491f4fc08.rss',
-  },
-  {
-    id: 'senate',
-    label: 'Senate',
-    feedUrl: 'https://legiscan.com/gaits/feed/17608aebc160d8aa0e1d7df491f4fc08.rss',
-  },
-  {
-    id: 'assembly',
-    label: 'Assembly',
-    feedUrl: 'https://legiscan.com/gaits/feed/17608aebc160d8aa0e1d7df491f4fc08.rss',
-  },
-  {
-    id: 'introduced',
-    label: 'Introduced',
-    feedUrl: 'https://legiscan.com/gaits/feed/17608aebc160d8aa0e1d7df491f4fc08.rss',
-  },
-  {
-    id: 'enrolled',
-    label: 'Enrolled',
-    feedUrl: 'https://legiscan.com/gaits/feed/17608aebc160d8aa0e1d7df491f4fc08.rss',
-  },
-  {
-    id: 'engrossed',
-    label: 'Engrossed',
-    feedUrl: 'https://legiscan.com/gaits/feed/17608aebc160d8aa0e1d7df491f4fc08.rss',
-  },
-  {
-    id: 'passed',
-    label: 'Passed',
-    feedUrl: 'https://legiscan.com/gaits/feed/17608aebc160d8aa0e1d7df491f4fc08.rss',
-  },
+const statusOptions = [
+  { id: 'any', label: 'Any' },
+  { id: 'introduced', label: 'Introduced' },
+  { id: 'engrossed', label: 'Engrossed' },
+  { id: 'enrolled', label: 'Enrolled' },
+  { id: 'passed', label: 'Passed' },
 ];
 
 export default function CompactMetricList() {
-  const [activeTab, setActiveTab] = useState("both");
+  const [chamber, setChamber] = useState("both");
+  const [status, setStatus] = useState("any");
   const [bills, setBills] = useState<Record<string, LegislativeBill[]>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
-  const [error, setError] = useState<Record<string, string | null>>({});
   const [lastUpdated, setLastUpdated] = useState<string>('');
 
-  // Parse RSS XML to extract bill data
-  const parseRSSFeed = (xmlText: string): LegislativeBill[] => {
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-    const items = xmlDoc.querySelectorAll('item');
+  // Build cache key from filters
+  const getCacheKey = (chamberVal: string, statusVal: string) => `${chamberVal}-${statusVal}`;
 
-    const parsedBills: LegislativeBill[] = [];
+  // Build LegiScan URL from filters
+  const buildUrl = (chamberVal: string, statusVal: string): string => {
+    const baseUrl = 'https://legiscan.com/NY/legislation';
+    const params = new URLSearchParams();
 
-    items.forEach((item, index) => {
-      const title = item.querySelector('title')?.textContent || '';
-      const link = item.querySelector('link')?.textContent || '';
-      const description = item.querySelector('description')?.textContent || '';
-      const pubDate = item.querySelector('pubDate')?.textContent || '';
-
-      // Parse bill number - try multiple patterns
-      let billNumber = '';
-
-      // Pattern 1: "NY A08022" or "NY S08762" format
-      const nyMatch = title.match(/NY\s+([A-Z]\d+)/i);
-      if (nyMatch) {
-        billNumber = nyMatch[1];
-      }
-
-      // Pattern 2: Bill number at start of title like "J01459" or "A08022" or "S08762"
-      if (!billNumber) {
-        const startMatch = title.match(/^([A-Z]\d{4,6})/i);
-        if (startMatch) {
-          billNumber = startMatch[1];
-        }
-      }
-
-      // Pattern 3: Try to extract from link URL (e.g., /NY/bill/J01459/)
-      if (!billNumber && link) {
-        const linkMatch = link.match(/\/bill\/([A-Z]\d+)/i);
-        if (linkMatch) {
-          billNumber = linkMatch[1];
-        }
-      }
-
-      // Pattern 4: Look for any bill-like pattern in title
-      if (!billNumber) {
-        const anyMatch = title.match(/\b([ASJKR]\d{4,6})\b/i);
-        if (anyMatch) {
-          billNumber = anyMatch[1];
-        }
-      }
-
-      // Fallback: extract from title before first space or use index
-      if (!billNumber) {
-        const firstWord = title.split(/\s+/)[0];
-        if (/^[A-Z]\d+$/i.test(firstWord)) {
-          billNumber = firstWord;
-        } else {
-          billNumber = `Bill ${index + 1}`;
-        }
-      }
-
-      // Extract status from description if available
-      const statusMatch = description.match(/Status:\s*([^<\n]+)/i);
-      const status = statusMatch ? statusMatch[1].trim() : 'Intro 25%';
-
-      // Format the date
-      const date = pubDate ? new Date(pubDate).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      }) : '';
-
-      // Try to extract last action from description
-      const actionMatch = description.match(/To\s+([^<\n]+Committee)/i);
-      const lastAction = actionMatch ? `To ${actionMatch[1]}` : 'To Committee';
-
-      // Clean up description for display - get the main summary
-      let cleanDescription = description
-        .replace(/<[^>]*>/g, '') // Remove HTML tags
-        .replace(/Status:[^\n]+/i, '') // Remove status line
-        .replace(/\[Detail\].*$/i, '') // Remove [Detail] links
-        .trim();
-
-      // If description is mostly the bill number, use title instead
-      if (cleanDescription.length < 20 || cleanDescription.startsWith(billNumber)) {
-        cleanDescription = title.replace(billNumber, '').trim();
-      }
-
-      cleanDescription = cleanDescription.substring(0, 200);
-
-      parsedBills.push({
-        id: `${billNumber}-${index}`,
-        billNumber: billNumber.toUpperCase(),
-        title: cleanDescription || title,
-        status,
-        lastAction,
-        lastActionDate: date,
-        link,
-      });
-    });
-
-    return parsedBills.slice(0, 10); // Limit to 10 bills per tab
-  };
-
-  // Fetch RSS feed for a specific tab
-  const fetchFeed = async (tabId: string, feedUrl: string) => {
-    // Show mock data immediately for instant feedback
-    if (!bills[tabId]) {
-      setBills(prev => ({ ...prev, [tabId]: getMockBills(tabId) }));
+    if (statusVal !== 'any') {
+      params.append('status', statusVal);
     }
 
-    setLoading(prev => ({ ...prev, [tabId]: true }));
-    setError(prev => ({ ...prev, [tabId]: null }));
+    if (chamberVal !== 'both') {
+      params.append('chamber', chamberVal);
+    }
+
+    const queryString = params.toString();
+    return queryString ? `${baseUrl}?${queryString}` : baseUrl;
+  };
+
+  // Parse HTML table to extract bill data
+  const parseHTMLPage = (htmlText: string): LegislativeBill[] => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlText, 'text/html');
+    const parsedBills: LegislativeBill[] = [];
+
+    // Find the table rows - LegiScan uses a table with bill data
+    const rows = doc.querySelectorAll('table tr');
+
+    rows.forEach((row, index) => {
+      // Skip header row
+      if (index === 0 || row.querySelector('th')) return;
+
+      const cells = row.querySelectorAll('td');
+      if (cells.length < 4) return;
+
+      // Extract bill number from first cell (contains link)
+      const billLink = cells[0]?.querySelector('a');
+      const billNumber = billLink?.textContent?.trim() || '';
+      const link = billLink?.getAttribute('href') || '';
+      const fullLink = link.startsWith('/') ? `https://legiscan.com${link}` : link;
+
+      // Extract status from second cell
+      const statusText = cells[1]?.textContent?.trim() || '';
+
+      // Extract title/summary from third cell
+      const titleCell = cells[2];
+      // Get just the text, not the [Detail][Text][Discuss] links
+      let title = '';
+      const titleNodes = titleCell?.childNodes;
+      if (titleNodes) {
+        for (const node of titleNodes) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            title += node.textContent || '';
+          }
+        }
+      }
+      title = title.trim();
+      if (!title) {
+        title = titleCell?.textContent?.replace(/\[Detail\]|\[Text\]|\[Discuss\]/g, '').trim() || '';
+      }
+
+      // Extract last action date from fourth cell
+      const lastActionCell = cells[3];
+      const dateText = lastActionCell?.textContent?.trim() || '';
+      // Parse date - format is "2026-01-16\nTo Committee"
+      const dateParts = dateText.split('\n');
+      const rawDate = dateParts[0]?.trim() || '';
+      const lastAction = dateParts.slice(1).join(' ').trim() || 'To Committee';
+
+      // Format the date
+      let formattedDate = rawDate;
+      if (rawDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const date = new Date(rawDate + 'T00:00:00');
+        formattedDate = date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+      }
+
+      if (billNumber) {
+        parsedBills.push({
+          id: `${billNumber}-${index}`,
+          billNumber: billNumber.toUpperCase(),
+          title: title.substring(0, 200),
+          status: statusText,
+          lastAction,
+          lastActionDate: formattedDate,
+          link: fullLink,
+        });
+      }
+    });
+
+    return parsedBills.slice(0, 10); // Limit to 10 bills
+  };
+
+  // Fetch data from LegiScan
+  const fetchData = useCallback(async (chamberVal: string, statusVal: string) => {
+    const cacheKey = getCacheKey(chamberVal, statusVal);
+
+    // Show mock data immediately for instant feedback
+    if (!bills[cacheKey]) {
+      setBills(prev => ({ ...prev, [cacheKey]: getMockBills(chamberVal, statusVal) }));
+    }
+
+    setLoading(prev => ({ ...prev, [cacheKey]: true }));
 
     try {
-      // Use a CORS proxy for client-side RSS fetching
-      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}`;
+      const url = buildUrl(chamberVal, statusVal);
+      // Use a CORS proxy for client-side fetching
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
       const response = await fetch(proxyUrl);
 
       if (!response.ok) {
-        throw new Error('Failed to fetch feed');
+        throw new Error('Failed to fetch data');
       }
 
-      const xmlText = await response.text();
-      const parsedBills = parseRSSFeed(xmlText);
+      const htmlText = await response.text();
+      const parsedBills = parseHTMLPage(htmlText);
 
       // Only update if we got valid data
       if (parsedBills.length > 0) {
-        setBills(prev => ({ ...prev, [tabId]: parsedBills }));
+        setBills(prev => ({ ...prev, [cacheKey]: parsedBills }));
       }
 
       setLastUpdated(new Date().toLocaleTimeString('en-US', {
@@ -208,158 +172,145 @@ export default function CompactMetricList() {
         timeZoneName: 'short'
       }));
     } catch (err) {
-      console.error(`Error fetching feed for ${tabId}:`, err);
-      // Don't show error since we already have mock data displayed
-      // Just keep the mock data
+      console.error(`Error fetching data for ${cacheKey}:`, err);
+      // Keep mock data on error
     } finally {
-      setLoading(prev => ({ ...prev, [tabId]: false }));
+      setLoading(prev => ({ ...prev, [cacheKey]: false }));
     }
-  };
+  }, [bills]);
 
-  // Mock data fallback
-  const getMockBills = (tabId: string): LegislativeBill[] => {
+  // Mock data fallback - context-aware based on filters
+  const getMockBills = (chamberVal: string, statusVal: string): LegislativeBill[] => {
+    const senateBills: LegislativeBill[] = [
+      {
+        id: 's1',
+        billNumber: 'S04448',
+        title: 'Authorizes the county of Clinton to employ retired former members of the division of state police as special patrol officers.',
+        status: 'Engross 50%',
+        lastAction: 'To Senate Civil Service Committee',
+        lastActionDate: 'Jan 16, 2026',
+        link: 'https://legiscan.com/NY/bill/S04448',
+      },
+      {
+        id: 's2',
+        billNumber: 'S02505',
+        title: 'Establishes a task force to conduct a comprehensive study on the presence of educator diversity in the state.',
+        status: 'Engross 50%',
+        lastAction: 'To Senate Education Committee',
+        lastActionDate: 'Jan 16, 2026',
+        link: 'https://legiscan.com/NY/bill/S02505',
+      },
+      {
+        id: 's3',
+        billNumber: 'S00620',
+        title: 'Relates to the practice of professional geology.',
+        status: 'Engross 50%',
+        lastAction: 'To Senate Higher Education Committee',
+        lastActionDate: 'Jan 15, 2026',
+        link: 'https://legiscan.com/NY/bill/S00620',
+      },
+    ];
+
     const assemblyBills: LegislativeBill[] = [
       {
-        id: '1',
+        id: 'a1',
         billNumber: 'A08022',
-        title: 'Requires an operator of a covered platform with at least one million users to ensure that its covered platform provides a process to allow law enforcement agencies to contact such covered platform...',
+        title: 'Requires an operator of a covered platform with at least one million users to ensure that its covered platform provides a process to allow law enforcement agencies to contact such covered platform.',
         status: 'Intro 25%',
         lastAction: 'To Assembly Codes Committee',
         lastActionDate: 'Jan 16, 2026',
-        link: '#',
+        link: 'https://legiscan.com/NY/bill/A08022',
       },
       {
-        id: '2',
+        id: 'a2',
         billNumber: 'A09316',
-        title: 'Limits the circumstances under which the case of an adolescent offender may be removed to family court; limits the jurisdiction of family court with respect to certain repeat adolescent offenders.',
+        title: 'Limits the circumstances under which the case of an adolescent offender may be removed to family court.',
         status: 'Intro 25%',
         lastAction: 'To Assembly Codes Committee',
         lastActionDate: 'Jan 15, 2026',
-        link: '#',
+        link: 'https://legiscan.com/NY/bill/A09316',
       },
       {
-        id: '3',
+        id: 'a3',
         billNumber: 'A08235',
-        title: 'Designates dog control officers of the village of Holley, named by the village board as constables, as peace officers.',
+        title: 'Designates dog control officers of the village of Holley as peace officers.',
         status: 'Engross 50%',
         lastAction: 'To Assembly Codes Committee',
         lastActionDate: 'Jan 15, 2026',
-        link: '#',
-      },
-    ];
-
-    const senateBills: LegislativeBill[] = [
-      {
-        id: '4',
-        billNumber: 'S08762',
-        title: 'Allows the removal of criminal actions to a mental health court in an adjoining county and provides for the reversion to the original court of record where the defendant fails to comply with or complete the mental health court program.',
-        status: 'Engross 50%',
-        lastAction: 'To Senate Codes Committee',
-        lastActionDate: 'Jan 13, 2026',
-        link: '#',
-      },
-      {
-        id: '5',
-        billNumber: 'S08824',
-        title: 'Clarifies standards for glass repair and calibration of advanced driver assistance systems for motor vehicle glass repair facilities.',
-        status: 'Intro 25%',
-        lastAction: 'To Senate Codes Committee',
-        lastActionDate: 'Jan 13, 2026',
-        link: '#',
-      },
-      {
-        id: '6',
-        billNumber: 'S09123',
-        title: 'Relates to the use of automated lending decision-making tools by banks for the purposes of making lending decisions.',
-        status: 'Intro 25%',
-        lastAction: 'To Senate Codes Committee',
-        lastActionDate: 'Jan 12, 2026',
-        link: '#',
-      },
-    ];
-
-    const introducedBills: LegislativeBill[] = [
-      {
-        id: '7',
-        billNumber: 'A00773',
-        title: 'Relates to the use of automated lending decision-making tools by banks for the purposes of making lending decisions; allows loan applicants to consent to or opt out of such use.',
-        status: 'Intro 25%',
-        lastAction: 'To Assembly Codes Committee',
-        lastActionDate: 'Jan 15, 2026',
-        link: '#',
-      },
-      {
-        id: '8',
-        billNumber: 'A09558',
-        title: 'Provides that certain crimes of child abuse may be amended to give the plaintiff until they reach 55 years of age.',
-        status: 'Intro 25%',
-        lastAction: 'To Assembly Codes Committee',
-        lastActionDate: 'Jan 14, 2026',
-        link: '#',
-      },
-    ];
-
-    const engrossedBills: LegislativeBill[] = [
-      {
-        id: '9',
-        billNumber: 'A04385',
-        title: 'Designates the uniformed court officers of the town of Busti, in the county of Chautauqua, as peace officers.',
-        status: 'Engross 50%',
-        lastAction: 'To Assembly Codes Committee',
-        lastActionDate: 'Jan 15, 2026',
-        link: '#',
-      },
-    ];
-
-    const enrolledBills: LegislativeBill[] = [
-      {
-        id: '10',
-        billNumber: 'S07234',
-        title: 'Establishes the New York state climate adaptation fund to provide financial assistance for climate resilience projects.',
-        status: 'Enrolled',
-        lastAction: 'Sent to Governor',
-        lastActionDate: 'Jan 10, 2026',
-        link: '#',
+        link: 'https://legiscan.com/NY/bill/A08235',
       },
     ];
 
     const passedBills: LegislativeBill[] = [
       {
-        id: '11',
-        billNumber: 'A05678',
-        title: 'Amends the education law to require financial literacy instruction in high schools.',
-        status: 'Passed',
-        lastAction: 'Signed by Governor',
-        lastActionDate: 'Jan 8, 2026',
-        link: '#',
+        id: 'p1',
+        billNumber: 'J01343',
+        title: 'Memorializing Governor Kathy Hochul to proclaim May 10-16, 2026, as Police Week in the State of New York.',
+        status: 'Pass',
+        lastAction: 'ADOPTED',
+        lastActionDate: 'Jan 13, 2026',
+        link: 'https://legiscan.com/NY/bill/J01343',
+      },
+      {
+        id: 'p2',
+        billNumber: 'J01289',
+        title: 'Commending Johnathan Rudat upon the occasion of his designation as recipient of a Liberty Medal.',
+        status: 'Pass',
+        lastAction: 'ADOPTED',
+        lastActionDate: 'Jan 13, 2026',
+        link: 'https://legiscan.com/NY/bill/J01289',
       },
     ];
 
-    if (tabId === 'assembly') return assemblyBills;
-    if (tabId === 'senate') return senateBills;
-    if (tabId === 'introduced') return introducedBills;
-    if (tabId === 'engrossed') return engrossedBills;
-    if (tabId === 'enrolled') return enrolledBills;
-    if (tabId === 'passed') return passedBills;
-    return [...assemblyBills, ...senateBills]; // 'both'
+    const enrolledBills: LegislativeBill[] = [
+      {
+        id: 'e1',
+        billNumber: 'S07234',
+        title: 'Establishes the New York state climate adaptation fund to provide financial assistance for climate resilience projects.',
+        status: 'Enrolled',
+        lastAction: 'Sent to Governor',
+        lastActionDate: 'Jan 10, 2026',
+        link: 'https://legiscan.com/NY/bill/S07234',
+      },
+      {
+        id: 'e2',
+        billNumber: 'A05123',
+        title: 'Relates to expanding access to affordable housing programs in urban areas.',
+        status: 'Enrolled',
+        lastAction: 'Sent to Governor',
+        lastActionDate: 'Jan 9, 2026',
+        link: 'https://legiscan.com/NY/bill/A05123',
+      },
+    ];
+
+    // Filter based on status
+    if (statusVal === 'passed') return passedBills;
+    if (statusVal === 'enrolled') return enrolledBills;
+
+    // Filter based on chamber
+    if (chamberVal === 'senate') return senateBills;
+    if (chamberVal === 'house') return assemblyBills;
+
+    // Both chambers - combine
+    return [...senateBills.slice(0, 2), ...assemblyBills.slice(0, 2)];
   };
 
-  // Fetch data when tab changes
+  // Fetch data when filters change
   useEffect(() => {
-    const config = tabConfigs.find(t => t.id === activeTab);
-    if (config && !bills[activeTab]) {
-      fetchFeed(activeTab, config.feedUrl);
+    const cacheKey = getCacheKey(chamber, status);
+    if (!bills[cacheKey]) {
+      fetchData(chamber, status);
     }
-  }, [activeTab]);
+  }, [chamber, status, fetchData]);
 
   // Initial fetch
   useEffect(() => {
-    fetchFeed('both', tabConfigs[0].feedUrl);
+    fetchData('both', 'any');
   }, []);
 
-  const currentBills = bills[activeTab] || [];
-  const isLoading = loading[activeTab];
-  const currentError = error[activeTab];
+  const cacheKey = getCacheKey(chamber, status);
+  const currentBills = bills[cacheKey] || [];
+  const isLoading = loading[cacheKey];
 
   return (
     <section className="bg-background w-full py-12 md:py-24">
@@ -376,74 +327,72 @@ export default function CompactMetricList() {
 
         <Card className="border p-0 shadow-sm">
           <CardContent className="p-0">
-            <Tabs
-              defaultValue="both"
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="w-full gap-0"
-            >
-              {/* Mobile view: Dropdown for categories */}
-              <div className="border-b p-3 md:hidden">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
+            {/* Filter Controls */}
+            <div className="border-b px-4 py-3 space-y-3">
+              {/* Chamber Filter Row */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-medium text-muted-foreground min-w-[60px]">Chamber:</span>
+                <div className="flex gap-1 flex-wrap">
+                  {chamberOptions.map(opt => (
+                    <button
+                      key={opt.id}
+                      onClick={() => setChamber(opt.id)}
+                      className={cn(
+                        "px-3 py-1.5 text-sm rounded-md transition-colors",
+                        chamber === opt.id
+                          ? "bg-foreground text-background font-medium"
+                          : "bg-muted hover:bg-muted/80 text-foreground"
+                      )}
                     >
-                      <span>
-                        {tabConfigs.find(t => t.id === activeTab)?.label || 'Select'}
-                      </span>
-                      <Menu className="ml-2 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-[200px]">
-                    {tabConfigs.map(tab => (
-                      <DropdownMenuItem
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                      >
-                        {tab.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Desktop view: Horizontal tabs */}
-              <div className="hidden border-b px-4 md:block">
-                <TabsList className="h-12 bg-transparent">
-                  {tabConfigs.map(tab => (
-                    <TabsTrigger
-                      key={tab.id}
-                      value={tab.id}
-                      className="data-[state=active]:bg-muted rounded-none data-[state=active]:shadow-none"
-                    >
-                      {tab.label}
-                    </TabsTrigger>
+                      {opt.label}
+                    </button>
                   ))}
-                </TabsList>
+                </div>
               </div>
 
-              <TabsContent value={activeTab} className="mt-0 p-0">
-                {currentBills.length === 0 && isLoading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                    <span className="ml-2 text-muted-foreground">Loading bills...</span>
-                  </div>
-                ) : currentError && currentBills.length === 0 ? (
-                  <div className="text-muted-foreground py-8 text-center">
-                    {currentError}
-                  </div>
-                ) : (
-                  <div className="relative">
-                    {/* Subtle refresh indicator */}
-                    {isLoading && currentBills.length > 0 && (
-                      <div className="absolute top-2 right-4 flex items-center gap-1.5 text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded-full z-10">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        <span>Refreshing...</span>
-                      </div>
-                    )}
-                    <div className="grid grid-cols-1 divide-y">
+              {/* Status Filter Row */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-medium text-muted-foreground min-w-[60px]">Status:</span>
+                <div className="flex gap-1 flex-wrap">
+                  {statusOptions.map(opt => (
+                    <button
+                      key={opt.id}
+                      onClick={() => setStatus(opt.id)}
+                      className={cn(
+                        "px-3 py-1.5 text-sm rounded-md transition-colors",
+                        status === opt.id
+                          ? "bg-foreground text-background font-medium"
+                          : "bg-muted hover:bg-muted/80 text-foreground"
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Bills List */}
+            <div className="relative">
+              {currentBills.length === 0 && isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  <span className="ml-2 text-muted-foreground">Loading bills...</span>
+                </div>
+              ) : currentBills.length === 0 ? (
+                <div className="text-muted-foreground py-8 text-center">
+                  No bills found for the selected filters.
+                </div>
+              ) : (
+                <>
+                  {/* Subtle refresh indicator */}
+                  {isLoading && currentBills.length > 0 && (
+                    <div className="absolute top-2 right-4 flex items-center gap-1.5 text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded-full z-10">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      <span>Refreshing...</span>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 divide-y">
                     {currentBills.map((bill) => (
                       <div
                         key={bill.id}
@@ -487,11 +436,10 @@ export default function CompactMetricList() {
                         </div>
                       </div>
                     ))}
-                    </div>
                   </div>
-                )}
-              </TabsContent>
-            </Tabs>
+                </>
+              )}
+            </div>
           </CardContent>
         </Card>
 
