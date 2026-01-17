@@ -169,34 +169,30 @@ export function NewAppSidebar() {
     return () => window.removeEventListener('refresh-sidebar-excerpts', handleExcerptsRefresh);
   }, [fetchRecentExcerpts]);
 
-  // Close sidebar when clicking outside (on the main content area)
+  // Close sidebar when clicking on the main content area (SidebarInset)
   useEffect(() => {
     if (isCollapsed) return; // Only listen when sidebar is expanded
 
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOnContent = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      // Check if click is outside the sidebar (in the main content area)
-      const sidebar = document.querySelector('[data-sidebar="sidebar"]');
+      // Only close if clicking inside the main content area (SidebarInset)
+      const mainContent = document.querySelector('[data-sidebar="inset"]') ||
+                          document.querySelector('main') ||
+                          document.querySelector('.flex-1.overflow-auto');
 
-      // Don't close if clicking on dropdown menu elements (they may be portaled outside sidebar)
-      const isDropdownClick = target.closest('[data-radix-popper-content-wrapper]') ||
-                              target.closest('[role="menu"]') ||
-                              target.closest('[data-state="open"]') ||
-                              target.closest('button[data-state]');
-
-      if (sidebar && !sidebar.contains(target) && !isDropdownClick) {
+      if (mainContent && mainContent.contains(target)) {
         toggleSidebar();
       }
     };
 
     // Small delay to avoid closing immediately on the click that opened it
     const timeoutId = setTimeout(() => {
-      document.addEventListener('click', handleClickOutside);
+      document.addEventListener('click', handleClickOnContent);
     }, 100);
 
     return () => {
       clearTimeout(timeoutId);
-      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('click', handleClickOnContent);
     };
   }, [isCollapsed, toggleSidebar]);
 
