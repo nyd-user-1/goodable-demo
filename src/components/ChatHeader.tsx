@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Command, PenSquare } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -29,6 +30,9 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
   const navigate = useNavigate();
+  const [featuresOpen, setFeaturesOpen] = useState(false);
+  const [useCasesOpen, setUseCasesOpen] = useState(false);
+  const [nonProfitsOpen, setNonProfitsOpen] = useState(false);
 
   const handleNewChat = () => {
     if (onNewChat) {
@@ -109,46 +113,61 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
           </Link>
 
           {/* Features - dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none">
-              Features
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="min-w-[160px]">
-              {dropdownPlaceholders.map((item) => (
-                <DropdownMenuItem key={item.label} asChild>
-                  <Link to={item.href}>{item.label}</Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div
+            onMouseEnter={() => setFeaturesOpen(true)}
+            onMouseLeave={() => setFeaturesOpen(false)}
+          >
+            <DropdownMenu open={featuresOpen} onOpenChange={setFeaturesOpen}>
+              <DropdownMenuTrigger className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none">
+                Features
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="min-w-[160px]">
+                {dropdownPlaceholders.map((item) => (
+                  <DropdownMenuItem key={item.label} asChild>
+                    <Link to={item.href}>{item.label}</Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           {/* Use Cases - dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none">
-              Use Cases
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="min-w-[160px]">
-              {dropdownPlaceholders.map((item) => (
-                <DropdownMenuItem key={item.label} asChild>
-                  <Link to={item.href}>{item.label}</Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div
+            onMouseEnter={() => setUseCasesOpen(true)}
+            onMouseLeave={() => setUseCasesOpen(false)}
+          >
+            <DropdownMenu open={useCasesOpen} onOpenChange={setUseCasesOpen}>
+              <DropdownMenuTrigger className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none">
+                Use Cases
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="min-w-[160px]">
+                {dropdownPlaceholders.map((item) => (
+                  <DropdownMenuItem key={item.label} asChild>
+                    <Link to={item.href}>{item.label}</Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           {/* Non Profits - dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none">
-              Non Profits
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="min-w-[160px]">
-              {dropdownPlaceholders.map((item) => (
-                <DropdownMenuItem key={item.label} asChild>
-                  <Link to={item.href}>{item.label}</Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div
+            onMouseEnter={() => setNonProfitsOpen(true)}
+            onMouseLeave={() => setNonProfitsOpen(false)}
+          >
+            <DropdownMenu open={nonProfitsOpen} onOpenChange={setNonProfitsOpen}>
+              <DropdownMenuTrigger className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none">
+                Non Profits
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="min-w-[160px]">
+                {dropdownPlaceholders.map((item) => (
+                  <DropdownMenuItem key={item.label} asChild>
+                    <Link to={item.href}>{item.label}</Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           {/* Pricing - simple link */}
           <Link
