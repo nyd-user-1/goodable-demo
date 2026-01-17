@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { generateMemberSlug } from '@/utils/memberSlug';
+import { generateCommitteeSlug } from '@/utils/committeeSlug';
 
 interface Member {
   people_id: number;
@@ -193,7 +194,7 @@ export function CommandPalette() {
             committees.map((committee) => (
               <CommandItem
                 key={committee.committee_id}
-                onSelect={() => runCommand(() => navigate(`/committees/${committee.slug}`))}
+                onSelect={() => runCommand(() => navigate(`/committees/${generateCommitteeSlug(committee as any)}`))}
               >
                 <img
                   src={committee.chamber.toLowerCase().includes('assembly')
