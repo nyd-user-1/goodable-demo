@@ -4,7 +4,13 @@ import { useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, FileText, ExternalLink, Loader2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArrowRight, FileText, ExternalLink, Loader2, Menu } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -327,28 +333,25 @@ export default function CompactMetricList() {
 
         <Card className="border p-0 shadow-sm">
           <CardContent className="p-0">
-            {/* Filter Controls - Single Row */}
-            <div className="border-b px-4 py-3">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-1 flex-wrap">
+            {/* Filter Controls - Tab Style */}
+            <div className="hidden border-b px-4 md:block">
+              <div className="flex items-center justify-between">
+                <div className="flex h-12 items-center gap-0">
                   {/* Chamber Filters */}
                   {chamberOptions.map(opt => (
                     <button
                       key={opt.id}
                       onClick={() => setChamber(opt.id)}
                       className={cn(
-                        "px-3 py-1.5 text-sm rounded-md transition-colors",
+                        "inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 rounded-none",
                         chamber === opt.id
-                          ? "bg-foreground text-background font-medium"
-                          : "bg-muted hover:bg-muted/80 text-foreground"
+                          ? "bg-muted shadow-none"
+                          : "hover:bg-muted/50"
                       )}
                     >
                       {opt.label}
                     </button>
                   ))}
-
-                  {/* Divider */}
-                  <div className="w-px h-6 bg-border mx-2" />
 
                   {/* Status Filters */}
                   {statusOptions.map(opt => (
@@ -356,10 +359,10 @@ export default function CompactMetricList() {
                       key={opt.id}
                       onClick={() => setStatus(opt.id)}
                       className={cn(
-                        "px-3 py-1.5 text-sm rounded-md transition-colors",
+                        "inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 rounded-none",
                         status === opt.id
-                          ? "bg-foreground text-background font-medium"
-                          : "bg-muted hover:bg-muted/80 text-foreground"
+                          ? "bg-muted shadow-none"
+                          : "hover:bg-muted/50"
                       )}
                     >
                       {opt.label}
@@ -367,12 +370,45 @@ export default function CompactMetricList() {
                   ))}
                 </div>
 
-                {/* Refresh indicator in filter row */}
+                {/* Refresh indicator */}
                 {isLoading && (
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Loader2 className="h-3 w-3 animate-spin" />
                     <span>Refreshing...</span>
                   </div>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile view: Dropdown for filters */}
+            <div className="border-b p-3 md:hidden">
+              <div className="flex items-center justify-between gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="flex-1 justify-between">
+                      <span>
+                        {chamberOptions.find(o => o.id === chamber)?.label} · {statusOptions.find(o => o.id === status)?.label}
+                      </span>
+                      <Menu className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-[200px]">
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Chamber</div>
+                    {chamberOptions.map(opt => (
+                      <DropdownMenuItem key={opt.id} onClick={() => setChamber(opt.id)}>
+                        {opt.label}
+                      </DropdownMenuItem>
+                    ))}
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">Status</div>
+                    {statusOptions.map(opt => (
+                      <DropdownMenuItem key={opt.id} onClick={() => setStatus(opt.id)}>
+                        {opt.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                {isLoading && (
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 )}
               </div>
             </div>
