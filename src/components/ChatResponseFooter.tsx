@@ -5,7 +5,7 @@
 
 import { useState, ReactNode, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FileText, ThumbsUp, ThumbsDown, Copy, Check, Mail, BookOpenCheck, MoreHorizontal, Star, FileDown, CornerDownRight } from "lucide-react";
+import { FileText, ThumbsUp, ThumbsDown, Copy, Check, Mail, BookOpenCheck, MoreHorizontal, Star, FileDown, CornerDownRight, ScrollText, TextQuote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -368,10 +368,26 @@ export function ChatResponseFooter({
                   className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
                   onClick={(e) => handlePDFView(bills[0].bill_number, bills[0].title, e)}
                 >
-                  <FileText className="h-4 w-4" />
+                  <ScrollText className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>View bill</TooltipContent>
+            </Tooltip>
+          )}
+
+          {/* Create Excerpt */}
+          {hasBills && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+                >
+                  <TextQuote className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Create Excerpt</TooltipContent>
             </Tooltip>
           )}
 
