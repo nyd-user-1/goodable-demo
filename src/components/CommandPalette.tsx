@@ -29,6 +29,7 @@ interface Member {
   last_name: string;
   party: string;
   chamber: string;
+  photo_url: string | null;
 }
 
 interface Committee {
@@ -58,7 +59,7 @@ export function CommandPalette() {
       // Fetch all members (sorted by first name A-Z)
       const { data: membersData } = await supabase
         .from('People')
-        .select('people_id, name, first_name, last_name, party, chamber')
+        .select('people_id, name, first_name, last_name, party, chamber, photo_url')
         .not('chamber', 'is', null)
         .not('name', 'is', null)
         .order('first_name', { ascending: true });
@@ -164,7 +165,15 @@ export function CommandPalette() {
                 key={member.people_id}
                 onSelect={() => runCommand(() => navigate(`/members/${generateMemberSlug(member)}`))}
               >
-                <User className="mr-2 h-4 w-4" />
+                {member.photo_url ? (
+                  <img
+                    src={member.photo_url}
+                    alt={member.name}
+                    className="mr-2 h-5 w-5 rounded-full object-cover"
+                  />
+                ) : (
+                  <User className="mr-2 h-5 w-5" />
+                )}
                 <span>{member.name}</span>
                 <span className="ml-auto text-xs text-muted-foreground">
                   {member.party} - {member.chamber}
