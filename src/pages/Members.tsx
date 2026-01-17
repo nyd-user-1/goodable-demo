@@ -25,6 +25,7 @@ const Members = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [loadingSlug, setLoadingSlug] = useState(!!memberSlug); // True if we have a slug to resolve
   const [chatOpen, setChatOpen] = useState(false);
   const [selectedMemberForChat, setSelectedMemberForChat] = useState<Member | null>(null);
   const [membersWithAIChat, setMembersWithAIChat] = useState<Set<number>>(new Set());
@@ -91,6 +92,7 @@ const Members = () => {
   useEffect(() => {
     const fetchMemberBySlug = async () => {
       if (memberSlug) {
+        setLoadingSlug(true);
         try {
           const namePattern = slugToNamePattern(memberSlug);
 
@@ -160,10 +162,13 @@ const Members = () => {
           }
         } catch (error) {
           console.error("Error fetching member:", error);
+        } finally {
+          setLoadingSlug(false);
         }
       } else {
         // If no memberSlug in URL, clear selected member
         setSelectedMember(null);
+        setLoadingSlug(false);
       }
     };
 
@@ -235,7 +240,7 @@ const Members = () => {
     setChamberFilter(newFilters.chamber === "" ? "all" : newFilters.chamber);
   };
 
-  if (loading) {
+  if (loading || loadingSlug) {
     return <MembersLoadingSkeleton />;
   }
 
