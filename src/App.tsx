@@ -58,6 +58,7 @@ import DataPopulator from "./pages/DataPopulator";
 import RealABCPopulator from "./pages/RealABCPopulator";
 import FixABCStructure from "./pages/FixABCStructure";
 import ExcerptView from "./pages/ExcerptView";
+import FreeTrial from "./pages/FreeTrial";
 
 const queryClient = new QueryClient();
 
@@ -137,6 +138,7 @@ const App = () => {
                               <Route path="/marketing" element={<LandingPageWaitlist />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/auth-2" element={<Auth2 />} />
+                  <Route path="/free-trial" element={<FreeTrial />} />
                   <Route path="/problems/:problemSlug" element={<ProblemPage />} />
                   <Route path="*" element={<AppLayout />} />
                 </Routes>
