@@ -1,5 +1,5 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Command, PenSquare } from "lucide-react";
+import { Command, PenSquare, ChevronDown } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import confetti from "canvas-confetti";
 import {
@@ -7,14 +7,19 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-// Marketing navigation items for public page
-const marketingNavItems = [
-  { label: "About", href: "/about" },
-  { label: "Features", href: "/features" },
-  { label: "Use Cases", href: "/use-cases" },
-  { label: "Non Profits", href: "/non-profits" },
-  { label: "Pricing", href: "/pricing" },
+// Dropdown placeholder items
+const dropdownPlaceholders = [
+  { label: "Option 1", href: "#" },
+  { label: "Option 2", href: "#" },
+  { label: "Option 3", href: "#" },
+  { label: "Option 4", href: "#" },
 ];
 
 interface ChatHeaderProps {
@@ -87,15 +92,74 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
 
         {/* Center - Marketing Navigation (desktop only) */}
         <nav className="hidden md:flex items-center gap-6">
-          {marketingNavItems.map((item) => (
-            <Link
-              key={item.href}
-              to={item.href}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {item.label}
-            </Link>
-          ))}
+          {/* About - simple link */}
+          <Link
+            to="/about"
+            className="text-sm font-normal text-muted-foreground hover:text-foreground transition-colors"
+          >
+            About
+          </Link>
+
+          {/* Academy - simple link */}
+          <Link
+            to="/academy"
+            className="text-sm font-normal text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Academy
+          </Link>
+
+          {/* Features - dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-normal text-muted-foreground hover:text-foreground transition-colors outline-none">
+              Features
+              <ChevronDown className="h-3 w-3" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="min-w-[160px]">
+              {dropdownPlaceholders.map((item) => (
+                <DropdownMenuItem key={item.label} asChild>
+                  <Link to={item.href}>{item.label}</Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Use Cases - dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-normal text-muted-foreground hover:text-foreground transition-colors outline-none">
+              Use Cases
+              <ChevronDown className="h-3 w-3" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="min-w-[160px]">
+              {dropdownPlaceholders.map((item) => (
+                <DropdownMenuItem key={item.label} asChild>
+                  <Link to={item.href}>{item.label}</Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Non Profits - dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-normal text-muted-foreground hover:text-foreground transition-colors outline-none">
+              Non Profits
+              <ChevronDown className="h-3 w-3" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="min-w-[160px]">
+              {dropdownPlaceholders.map((item) => (
+                <DropdownMenuItem key={item.label} asChild>
+                  <Link to={item.href}>{item.label}</Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Pricing - simple link */}
+          <Link
+            to="/pricing"
+            className="text-sm font-normal text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Pricing
+          </Link>
         </nav>
 
         {/* Right side - Controls */}
