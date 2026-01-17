@@ -131,6 +131,14 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
             </DropdownMenu>
           </div>
 
+          {/* Free Trial - simple link */}
+          <Link
+            to="/free-trial"
+            className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
+          >
+            Free Trial
+          </Link>
+
           {/* Use Cases - dropdown */}
           <div
             onMouseEnter={() => setUseCasesOpen(true)}
