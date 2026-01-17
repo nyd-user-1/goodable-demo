@@ -357,57 +357,6 @@ export function ChatResponseFooter({
             </Tooltip>
           )}
 
-          {/* Write Support Letter */}
-          {hasBills && onSendMessage && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-green-600 hover:bg-muted"
-                  onClick={handleSupportLetter}
-                >
-                  <ThumbsUp className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Write support letter</TooltipContent>
-            </Tooltip>
-          )}
-
-          {/* Write Opposition Letter */}
-          {hasBills && onSendMessage && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-muted"
-                  onClick={handleOppositionLetter}
-                >
-                  <ThumbsDown className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Write opposition letter</TooltipContent>
-            </Tooltip>
-          )}
-
-          {/* Email to Sponsor */}
-          {hasBills && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-muted"
-                  onClick={() => setEmailSheetOpen(true)}
-                >
-                  <Mail className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Email to sponsor</TooltipContent>
-            </Tooltip>
-          )}
-
           {/* More Actions Dropdown */}
           <DropdownMenu>
             <Tooltip>
@@ -424,16 +373,35 @@ export function ChatResponseFooter({
               </TooltipTrigger>
               <TooltipContent>More actions</TooltipContent>
             </Tooltip>
-            <DropdownMenuContent align="start">
-              <DropdownMenuItem onClick={handleCopy}>
+            <DropdownMenuContent align="start" className="[&>*]:cursor-pointer">
+              {/* Bill-specific actions - only show when bills present */}
+              {hasBills && onSendMessage && (
+                <DropdownMenuItem onClick={handleSupportLetter} className="focus:bg-muted focus:text-foreground">
+                  <ThumbsUp className="h-4 w-4 mr-2" />
+                  Write support letter
+                </DropdownMenuItem>
+              )}
+              {hasBills && onSendMessage && (
+                <DropdownMenuItem onClick={handleOppositionLetter} className="focus:bg-muted focus:text-foreground">
+                  <ThumbsDown className="h-4 w-4 mr-2" />
+                  Write opposition letter
+                </DropdownMenuItem>
+              )}
+              {hasBills && (
+                <DropdownMenuItem onClick={() => setEmailSheetOpen(true)} className="focus:bg-muted focus:text-foreground">
+                  <Mail className="h-4 w-4 mr-2" />
+                  Email to sponsor
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={handleCopy} className="focus:bg-muted focus:text-foreground">
                 {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
                 {copied ? "Copied!" : "Copy"}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleFavorite}>
+              <DropdownMenuItem onClick={handleFavorite} className="focus:bg-muted focus:text-foreground">
                 <Star className="h-4 w-4 mr-2" />
                 Favorite
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleExport}>
+              <DropdownMenuItem onClick={handleExport} className="focus:bg-muted focus:text-foreground">
                 <FileDown className="h-4 w-4 mr-2" />
                 Export
               </DropdownMenuItem>
