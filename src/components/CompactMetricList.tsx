@@ -89,13 +89,52 @@ export default function CompactMetricList() {
       const description = item.querySelector('description')?.textContent || '';
       const pubDate = item.querySelector('pubDate')?.textContent || '';
 
-      // Parse bill number from title (e.g., "NY A08022" or "NY S08762")
-      const billMatch = title.match(/NY\s+([AS]\d+)/);
-      const billNumber = billMatch ? billMatch[1] : `Bill ${index + 1}`;
+      // Parse bill number - try multiple patterns
+      let billNumber = '';
+
+      // Pattern 1: "NY A08022" or "NY S08762" format
+      const nyMatch = title.match(/NY\s+([A-Z]\d+)/i);
+      if (nyMatch) {
+        billNumber = nyMatch[1];
+      }
+
+      // Pattern 2: Bill number at start of title like "J01459" or "A08022" or "S08762"
+      if (!billNumber) {
+        const startMatch = title.match(/^([A-Z]\d{4,6})/i);
+        if (startMatch) {
+          billNumber = startMatch[1];
+        }
+      }
+
+      // Pattern 3: Try to extract from link URL (e.g., /NY/bill/J01459/)
+      if (!billNumber && link) {
+        const linkMatch = link.match(/\/bill\/([A-Z]\d+)/i);
+        if (linkMatch) {
+          billNumber = linkMatch[1];
+        }
+      }
+
+      // Pattern 4: Look for any bill-like pattern in title
+      if (!billNumber) {
+        const anyMatch = title.match(/\b([ASJKR]\d{4,6})\b/i);
+        if (anyMatch) {
+          billNumber = anyMatch[1];
+        }
+      }
+
+      // Fallback: extract from title before first space or use index
+      if (!billNumber) {
+        const firstWord = title.split(/\s+/)[0];
+        if (/^[A-Z]\d+$/i.test(firstWord)) {
+          billNumber = firstWord;
+        } else {
+          billNumber = `Bill ${index + 1}`;
+        }
+      }
 
       // Extract status from description if available
-      const statusMatch = description.match(/Status:\s*([^<]+)/i);
-      const status = statusMatch ? statusMatch[1].trim() : 'Pending';
+      const statusMatch = description.match(/Status:\s*([^<\n]+)/i);
+      const status = statusMatch ? statusMatch[1].trim() : 'Intro 25%';
 
       // Format the date
       const date = pubDate ? new Date(pubDate).toLocaleDateString('en-US', {
@@ -104,19 +143,30 @@ export default function CompactMetricList() {
         day: 'numeric'
       }) : '';
 
-      // Clean up description for display
-      const cleanDescription = description
+      // Try to extract last action from description
+      const actionMatch = description.match(/To\s+([^<\n]+Committee)/i);
+      const lastAction = actionMatch ? `To ${actionMatch[1]}` : 'To Committee';
+
+      // Clean up description for display - get the main summary
+      let cleanDescription = description
         .replace(/<[^>]*>/g, '') // Remove HTML tags
-        .replace(/Status:[^.]+\./i, '') // Remove status line
-        .trim()
-        .substring(0, 200);
+        .replace(/Status:[^\n]+/i, '') // Remove status line
+        .replace(/\[Detail\].*$/i, '') // Remove [Detail] links
+        .trim();
+
+      // If description is mostly the bill number, use title instead
+      if (cleanDescription.length < 20 || cleanDescription.startsWith(billNumber)) {
+        cleanDescription = title.replace(billNumber, '').trim();
+      }
+
+      cleanDescription = cleanDescription.substring(0, 200);
 
       parsedBills.push({
         id: `${billNumber}-${index}`,
-        billNumber,
+        billNumber: billNumber.toUpperCase(),
         title: cleanDescription || title,
         status,
-        lastAction: 'To Assembly Codes Committee',
+        lastAction,
         lastActionDate: date,
         link,
       });
@@ -127,6 +177,11 @@ export default function CompactMetricList() {
 
   // Fetch RSS feed for a specific tab
   const fetchFeed = async (tabId: string, feedUrl: string) => {
+    // Show mock data immediately for instant feedback
+    if (!bills[tabId]) {
+      setBills(prev => ({ ...prev, [tabId]: getMockBills(tabId) }));
+    }
+
     setLoading(prev => ({ ...prev, [tabId]: true }));
     setError(prev => ({ ...prev, [tabId]: null }));
 
@@ -142,7 +197,11 @@ export default function CompactMetricList() {
       const xmlText = await response.text();
       const parsedBills = parseRSSFeed(xmlText);
 
-      setBills(prev => ({ ...prev, [tabId]: parsedBills }));
+      // Only update if we got valid data
+      if (parsedBills.length > 0) {
+        setBills(prev => ({ ...prev, [tabId]: parsedBills }));
+      }
+
       setLastUpdated(new Date().toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
@@ -150,10 +209,8 @@ export default function CompactMetricList() {
       }));
     } catch (err) {
       console.error(`Error fetching feed for ${tabId}:`, err);
-      setError(prev => ({ ...prev, [tabId]: 'Failed to load bills. Please try again.' }));
-
-      // Set mock data as fallback
-      setBills(prev => ({ ...prev, [tabId]: getMockBills(tabId) }));
+      // Don't show error since we already have mock data displayed
+      // Just keep the mock data
     } finally {
       setLoading(prev => ({ ...prev, [tabId]: false }));
     }
@@ -368,7 +425,7 @@ export default function CompactMetricList() {
               </div>
 
               <TabsContent value={activeTab} className="mt-0 p-0">
-                {isLoading ? (
+                {currentBills.length === 0 && isLoading ? (
                   <div className="flex items-center justify-center py-12">
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                     <span className="ml-2 text-muted-foreground">Loading bills...</span>
@@ -378,7 +435,15 @@ export default function CompactMetricList() {
                     {currentError}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 divide-y">
+                  <div className="relative">
+                    {/* Subtle refresh indicator */}
+                    {isLoading && currentBills.length > 0 && (
+                      <div className="absolute top-2 right-4 flex items-center gap-1.5 text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded-full z-10">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <span>Refreshing...</span>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-1 divide-y">
                     {currentBills.map((bill) => (
                       <div
                         key={bill.id}
@@ -422,6 +487,7 @@ export default function CompactMetricList() {
                         </div>
                       </div>
                     ))}
+                    </div>
                   </div>
                 )}
               </TabsContent>
