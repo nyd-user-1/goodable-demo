@@ -177,7 +177,14 @@ export function NewAppSidebar() {
       const target = e.target as HTMLElement;
       // Check if click is outside the sidebar (in the main content area)
       const sidebar = document.querySelector('[data-sidebar="sidebar"]');
-      if (sidebar && !sidebar.contains(target)) {
+
+      // Don't close if clicking on dropdown menu elements (they may be portaled outside sidebar)
+      const isDropdownClick = target.closest('[data-radix-popper-content-wrapper]') ||
+                              target.closest('[role="menu"]') ||
+                              target.closest('[data-state="open"]') ||
+                              target.closest('button[data-state]');
+
+      if (sidebar && !sidebar.contains(target) && !isDropdownClick) {
         toggleSidebar();
       }
     };
