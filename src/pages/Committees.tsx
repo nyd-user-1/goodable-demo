@@ -35,6 +35,7 @@ const Committees = () => {
   const { committeeSlug } = useParams<{ committeeSlug?: string }>();
   const navigate = useNavigate();
   const [selectedCommittee, setSelectedCommittee] = useState<Committee | null>(null);
+  const [loadingSlug, setLoadingSlug] = useState(!!committeeSlug); // True if we have a slug to resolve
   const [chatOpen, setChatOpen] = useState(false);
   const [selectedCommitteeForChat, setSelectedCommitteeForChat] = useState<Committee | null>(null);
   const [committeesWithAIChat, setCommitteesWithAIChat] = useState<Set<number>>(new Set());
@@ -70,6 +71,7 @@ const Committees = () => {
   useEffect(() => {
     const fetchCommitteeBySlug = async () => {
       if (committeeSlug) {
+        setLoadingSlug(true);
         try {
           const { chamber, name } = parseCommitteeSlug(committeeSlug);
 
@@ -135,10 +137,13 @@ const Committees = () => {
           }
         } catch (error) {
           console.error("Error fetching committee:", error);
+        } finally {
+          setLoadingSlug(false);
         }
       } else {
         // If no committeeSlug in URL, clear selected committee
         setSelectedCommittee(null);
+        setLoadingSlug(false);
       }
     };
 
@@ -181,7 +186,7 @@ const Committees = () => {
     setCommitteesWithAIChat(prev => new Set([...prev, committee.committee_id]));
   };
 
-  if (loading) {
+  if (loading || loadingSlug) {
     return <CommitteesLoadingSkeleton />;
   }
 
