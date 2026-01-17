@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, createContext, useContext } from "react";
 import { NavLink, useLocation, useParams } from "react-router-dom";
-import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, ChevronRight, PanelLeftClose, PanelLeft, MoreHorizontal, Pin, Trash2, PenSquare, TextQuote } from "lucide-react";
+import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, ChevronRight, PanelLeftClose, PanelLeft, MoreHorizontal, Pin, Trash2, PenSquare, TextQuote, Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -169,6 +169,30 @@ export function NewAppSidebar() {
     return () => window.removeEventListener('refresh-sidebar-excerpts', handleExcerptsRefresh);
   }, [fetchRecentExcerpts]);
 
+  // Close sidebar when clicking outside (on the main content area)
+  useEffect(() => {
+    if (isCollapsed) return; // Only listen when sidebar is expanded
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Check if click is outside the sidebar (in the main content area)
+      const sidebar = document.querySelector('[data-sidebar="sidebar"]');
+      if (sidebar && !sidebar.contains(target)) {
+        toggleSidebar();
+      }
+    };
+
+    // Small delay to avoid closing immediately on the click that opened it
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [isCollapsed, toggleSidebar]);
+
   const deleteChat = async (chatId: string) => {
     const { error } = await supabase
       .from("chat_sessions")
@@ -272,7 +296,7 @@ export function NewAppSidebar() {
       </SidebarHeader>
 
       <SidebarContent onClick={handleWhitespaceClick}>
-        {/* New Chat & Chat History */}
+        {/* New Chat, Chat History, Favorites */}
         <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem
@@ -326,68 +350,59 @@ export function NewAppSidebar() {
                 </TooltipContent>
               </Tooltip>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <SidebarMenuButton asChild isActive={isActive("/bills")}>
-                    <NavLink to="/bills">
-                      <FileText />
-                      <span>Bills</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  <p>Bills</p>
-                </TooltipContent>
-              </Tooltip>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <SidebarMenuButton asChild isActive={isActive("/committees")}>
-                    <NavLink to="/committees">
-                      <Building2 />
-                      <span>Committees</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  <p>Committees</p>
-                </TooltipContent>
-              </Tooltip>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <SidebarMenuButton asChild isActive={isActive("/members")}>
-                    <NavLink to="/members">
-                      <Users />
-                      <span>Members</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  <p>Members</p>
-                </TooltipContent>
-              </Tooltip>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <SidebarMenuButton asChild isActive={isActive("/dashboard")}>
-                    <NavLink to="/dashboard">
-                      <TrendingUp />
-                      <span>Dashboard</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  <p>Dashboard</p>
-                </TooltipContent>
-              </Tooltip>
-            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
+
+        {/* Research dropdown - Bills, Committees, Members, Dashboard */}
+        <Collapsible defaultOpen className="group/collapsible">
+          <SidebarGroup>
+            <SidebarGroupLabel asChild>
+              <CollapsibleTrigger>
+                <Search className="h-4 w-4 mr-2" />
+                Research
+                <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive("/bills")}>
+                      <NavLink to="/bills">
+                        <FileText className="h-4 w-4" />
+                        <span>Bills</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive("/committees")}>
+                      <NavLink to="/committees">
+                        <Building2 className="h-4 w-4" />
+                        <span>Committees</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive("/members")}>
+                      <NavLink to="/members">
+                        <Users className="h-4 w-4" />
+                        <span>Members</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive("/dashboard")}>
+                      <NavLink to="/dashboard">
+                        <TrendingUp className="h-4 w-4" />
+                        <span>Dashboard</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
 
         {/* Your Chats - show on mobile or when sidebar is expanded on desktop */}
         {(isMobile || !isCollapsed) && recentChats.length > 0 && (
