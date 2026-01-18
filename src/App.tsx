@@ -48,6 +48,7 @@ import About from "./pages/About";
 import AIFluency from "./pages/AIFluency";
 import UseCasesBills from "./pages/UseCasesBills";
 import UseCasesCommittees from "./pages/UseCasesCommittees";
+import UseCasesMembers from "./pages/UseCasesMembers";
 import PublicPolicy from "./pages/PublicPolicy";
 import StyleGuide from "./pages/StyleGuide";
 import ImageSystem from "./pages/ImageSystem";
@@ -146,6 +147,7 @@ const App = () => {
                   <Route path="/ai-fluency" element={<AIFluency />} />
                   <Route path="/use-cases/bills" element={<UseCasesBills />} />
                   <Route path="/use-cases/committees" element={<UseCasesCommittees />} />
+                  <Route path="/use-cases/members" element={<UseCasesMembers />} />
                   <Route path="/problems/:problemSlug" element={<ProblemPage />} />
                   <Route path="*" element={<AppLayout />} />
                 </Routes>
