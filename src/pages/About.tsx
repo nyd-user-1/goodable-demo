@@ -13,7 +13,7 @@ const About = () => {
           {/* Hero Section */}
           <div className="mb-12">
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
-              About Goodable
+              About Goodable.dev
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed">
               Empowering citizens to shape the policies that shape their lives.
