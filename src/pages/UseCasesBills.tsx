@@ -89,10 +89,6 @@ const billPrompts = [
     title: "Arts and Culture Funding",
     prompt: "What programs or tax incentives are being considered to support artists and cultural organizations in New York?"
   },
-  {
-    title: "Consumer Protection",
-    prompt: "What new disclosure requirements are being proposed to protect consumers in New York?"
-  }
 ];
 
 const UseCasesBills = () => {
