@@ -266,7 +266,11 @@ const NewChat = () => {
   }, []);
 
   // Handle "Ask Goodable" popup click - inject selected text into query
-  const handleAskGoodable = () => {
+  // Uses onMouseDown with preventDefault to capture text before selection clears
+  const handleAskGoodable = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent selection from being cleared
+    e.stopPropagation(); // Stop event from bubbling to document
+
     const selectedText = selectionPopup.text;
     if (selectedText) {
       // Inject as a quoted reference
@@ -280,7 +284,9 @@ const NewChat = () => {
       setSelectionPopup(prev => ({ ...prev, visible: false }));
 
       // Focus the textarea
-      textareaRef.current?.focus();
+      setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 0);
     }
   };
 
@@ -1884,8 +1890,8 @@ const NewChat = () => {
           }}
         >
           <button
-            onClick={handleAskGoodable}
-            className="flex items-center gap-2 px-3 py-2 bg-foreground text-background rounded-lg shadow-lg hover:bg-foreground/90 transition-colors text-sm font-medium"
+            onMouseDown={handleAskGoodable}
+            className="flex items-center gap-2 px-3 py-2 bg-foreground text-background rounded-lg shadow-lg hover:bg-foreground/90 transition-colors text-sm font-medium cursor-pointer"
           >
             <span className="text-base">❤️</span>
             Ask Goodable
