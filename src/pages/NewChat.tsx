@@ -1891,7 +1891,7 @@ const NewChat = () => {
         >
           <button
             onMouseDown={handleAskGoodable}
-            className="flex items-center gap-2 px-3 py-2 bg-foreground text-background rounded-lg shadow-lg hover:bg-foreground/90 transition-colors text-sm font-medium cursor-pointer"
+            className="flex items-center gap-2 px-3 py-2 bg-white text-foreground rounded-full shadow-md border border-border/50 hover:bg-gray-100 transition-colors text-sm font-normal cursor-pointer"
           >
             <span className="text-base">❤️</span>
             Ask Goodable
