@@ -5,15 +5,8 @@ export default function FooterSimple() {
         <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
           <p className="text-muted-foreground text-center text-sm leading-loose md:text-left">
             Built with{' '}
-            <a
-              href="https://nextjs.org"
-              target="_blank"
-              rel="noreferrer"
-              className="font-medium underline underline-offset-4"
-            >
-              Next.js
-            </a>{' '}
-            and{' '}
+            <span className="font-medium">heart</span>
+            {' '}and{' '}
             <a
               href="https://ui.shadcn.com"
               target="_blank"
@@ -47,7 +40,7 @@ export default function FooterSimple() {
             </a>
           </nav>
           <p className="text-muted-foreground text-center text-sm md:text-left">
-            &copy; {new Date().getFullYear()} Your Company. All rights reserved.
+            &copy; {new Date().getFullYear()} Goodable.dev. All rights reserved.
           </p>
         </div>
       </div>
