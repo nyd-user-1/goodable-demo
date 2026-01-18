@@ -136,6 +136,15 @@ const NewChat = () => {
   const { sessionId: routeSessionId } = useParams<{ sessionId: string }>();
   const { user } = useAuth();
   const { setOpen: setSidebarOpen } = useSidebarSafe();
+
+  // "Ask Goodable" text selection popup state
+  const [selectionPopup, setSelectionPopup] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    text: string;
+  }>({ visible: false, x: 0, y: 0, text: "" });
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const {
     currentSessionId,
     isSaving,
@@ -222,6 +231,57 @@ const NewChat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     userScrolledRef.current = false;
     setShowScrollButton(false);
+  };
+
+  // "Ask Goodable" text selection popup - detect text selection
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      const selection = window.getSelection();
+      const selectedText = selection?.toString().trim() || "";
+
+      if (selectedText.length > 0 && selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+
+        // Position popup above the selection, centered
+        setSelectionPopup({
+          visible: true,
+          x: rect.left + rect.width / 2,
+          y: rect.top - 10, // 10px above selection
+          text: selectedText,
+        });
+      } else {
+        setSelectionPopup(prev => ({ ...prev, visible: false }));
+      }
+    };
+
+    // Use mouseup to detect selection completion (more reliable than selectionchange)
+    document.addEventListener("mouseup", handleSelectionChange);
+    document.addEventListener("keyup", handleSelectionChange);
+
+    return () => {
+      document.removeEventListener("mouseup", handleSelectionChange);
+      document.removeEventListener("keyup", handleSelectionChange);
+    };
+  }, []);
+
+  // Handle "Ask Goodable" popup click - inject selected text into query
+  const handleAskGoodable = () => {
+    const selectedText = selectionPopup.text;
+    if (selectedText) {
+      // Inject as a quoted reference
+      const newQuery = query
+        ? `${query}\n\n"${selectedText}"`
+        : `"${selectedText}"`;
+      setQuery(newQuery);
+
+      // Clear selection and hide popup
+      window.getSelection()?.removeAllRanges();
+      setSelectionPopup(prev => ({ ...prev, visible: false }));
+
+      // Focus the textarea
+      textareaRef.current?.focus();
+    }
   };
 
   // Track if we've already auto-submitted the prompt
@@ -1405,6 +1465,7 @@ const NewChat = () => {
 
                 {/* Text Input */}
                 <Textarea
+                  ref={textareaRef}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Ask anything..."
@@ -1812,6 +1873,25 @@ const NewChat = () => {
           </div>
         </div>
       </div>
+
+      {/* "Ask Goodable" Text Selection Popup */}
+      {selectionPopup.visible && (
+        <div
+          className="fixed z-50 transform -translate-x-1/2 -translate-y-full animate-in fade-in zoom-in-95 duration-150"
+          style={{
+            left: selectionPopup.x,
+            top: selectionPopup.y,
+          }}
+        >
+          <button
+            onClick={handleAskGoodable}
+            className="flex items-center gap-2 px-3 py-2 bg-foreground text-background rounded-lg shadow-lg hover:bg-foreground/90 transition-colors text-sm font-medium"
+          >
+            <span className="text-base">❤️</span>
+            Ask Goodable
+          </button>
+        </div>
+      )}
 
       {/* Beta Access Modal - triggers after 2 chat inputs */}
       <BetaAccessModal />
