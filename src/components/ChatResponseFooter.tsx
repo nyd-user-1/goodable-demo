@@ -5,7 +5,7 @@
 
 import { useState, ReactNode, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FileText, ThumbsUp, ThumbsDown, Copy, Check, Mail, BookOpenCheck, MoreHorizontal, Star, FileDown, CornerDownRight, ScrollText, TextQuote, Loader2 } from "lucide-react";
+import { FileText, ThumbsUp, ThumbsDown, Copy, Check, Mail, BookOpenCheck, MoreHorizontal, Star, FileDown, ScrollText, TextQuote, Loader2 } from "lucide-react";
 import { useExcerptPersistence } from "@/hooks/useExcerptPersistence";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,7 +54,6 @@ interface ChatResponseFooterProps {
   onCitationClick?: (citationNumber: number) => void;
   isStreaming?: boolean;
   onSendMessage?: (message: string) => void;
-  suggestedPrompts?: string[];  // AI-provided overrides for follow-up suggestions
   // Props for excerpt creation
   userMessage?: string;
   assistantMessageText?: string;
@@ -71,7 +70,6 @@ export function ChatResponseFooter({
   onCitationClick,
   isStreaming = false,
   onSendMessage,
-  suggestedPrompts,
   userMessage,
   assistantMessageText,
   parentSessionId,
@@ -84,22 +82,6 @@ export function ChatResponseFooter({
   const { toast } = useToast();
   const { createExcerpt, loading: excerptLoading } = useExcerptPersistence();
   const [excerptSaved, setExcerptSaved] = useState(false);
-
-  // Generate context-based follow-up suggestions
-  const getDefaultSuggestions = (): string[] => {
-    if (hasBills) {
-      return [
-        "What is this bill's current status?",
-        "Who sponsors this bill?",
-        "What are related bills on this topic?",
-        "Explain this bill in simpler terms"
-      ];
-    }
-    // Generic suggestions when no specific context
-    return [];
-  };
-
-  const followUpPrompts = suggestedPrompts?.length ? suggestedPrompts : getDefaultSuggestions();
 
   const [pdfOpen, setPdfOpen] = useState(false);
   const [selectedBillNumber, setSelectedBillNumber] = useState<string>("");
@@ -512,25 +494,6 @@ export function ChatResponseFooter({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-      )}
-
-      {/* Related Follow-up Prompts */}
-      {!isStreaming && followUpPrompts.length > 0 && onSendMessage && (
-        <div className="pt-4 animate-in fade-in duration-300">
-          <h4 className="text-sm font-medium mb-3">Related</h4>
-          <div className="space-y-1">
-            {followUpPrompts.slice(0, 4).map((prompt, idx) => (
-              <button
-                key={idx}
-                onClick={() => onSendMessage(prompt)}
-                className="flex items-center gap-3 w-full text-left text-muted-foreground hover:text-foreground transition-colors py-2"
-              >
-                <CornerDownRight className="h-4 w-4 flex-shrink-0" />
-                <span className="text-sm">{prompt}</span>
-              </button>
-            ))}
-          </div>
         </div>
       )}
 
