@@ -7,91 +7,113 @@ import { ArrowUp } from 'lucide-react';
 const billPrompts = [
   {
     title: "AI Consumer Protection",
-    prompt: "What protections does the NY Artificial Intelligence Consumer Protection Act establish against algorithmic discrimination?"
+    billNumber: "A00768",
+    prompt: "What protections does A00768, the NY Artificial Intelligence Consumer Protection Act, establish against algorithmic discrimination?"
   },
   {
     title: "Childcare Affordability",
-    prompt: "How would Assemblywoman Solages' bill A00405 improve childcare affordability by providing diaper assistance for families receiving safety net support?"
+    billNumber: "A00405",
+    prompt: "How would A00405 improve childcare affordability by providing diaper assistance for families receiving safety net support?"
   },
   {
     title: "Paid Family Leave",
-    prompt: "Explain the proposed changes to New York's paid family leave program and how they would affect working parents."
+    billNumber: "S02821",
+    prompt: "Explain how S02821 proposes to expand New York's paid family leave program and how it would affect working parents."
   },
   {
     title: "Affordable Housing",
-    prompt: "What does the bill requiring municipalities to include an Affordable Housing Needs Assessment in their comprehensive plans actually require?"
+    billNumber: "A00027",
+    prompt: "What does A00027 requiring municipalities to include an Affordable Housing Needs Assessment in their comprehensive plans actually require?"
   },
   {
     title: "Volunteer Firefighter Benefits",
-    prompt: "How would the tax credit for volunteer firefighters and ambulance workers help recruit and retain emergency responders?"
+    billNumber: "A00028",
+    prompt: "How would A00028's tax credit for volunteer firefighters and ambulance workers help recruit and retain emergency responders?"
   },
   {
     title: "Medicaid Prior Authorization",
-    prompt: "What impact would prohibiting Medicaid service providers from requiring prior authorization have on patient care?"
+    billNumber: "A00026",
+    prompt: "What impact would A00026 prohibiting Medicaid service providers from requiring prior authorization have on patient care?"
   },
   {
     title: "Minimum Wage Increase",
-    prompt: "What are the key provisions of the current minimum wage increase proposals in the NY legislature?"
+    billNumber: "S01978",
+    prompt: "What are the key provisions of S01978 regarding minimum wage increases in New York?"
   },
   {
     title: "School Safety",
-    prompt: "What does the bill requiring school crossing guards on every corner of intersections within school zones aim to accomplish?"
+    billNumber: "A00081",
+    prompt: "What does A00081 requiring school crossing guards on every corner of intersections within school zones aim to accomplish?"
   },
   {
     title: "Rental Assistance",
-    prompt: "How would the metered funding for rental assistance bill help New York City residents facing housing instability?"
+    billNumber: "A00085",
+    prompt: "How would A00085 on metered funding for rental assistance help New York City residents facing housing instability?"
   },
   {
     title: "Disability Benefits",
-    prompt: "Explain the proposal to increase short-term disability benefits and who would be affected."
+    billNumber: "A00084",
+    prompt: "Explain A00084's proposal to increase short-term disability benefits and who would be affected."
   },
   {
     title: "Veterans Programs",
-    prompt: "What does the bill establishing a program for sharing veteran contact information aim to achieve for veteran services?"
+    billNumber: "A00080",
+    prompt: "What does A00080 establishing a program for sharing veteran contact information aim to achieve for veteran services?"
   },
   {
     title: "Clean Energy Tax Exemptions",
-    prompt: "How would the exemption from taxation for energy-related public utilities promote clean energy adoption?"
+    billNumber: "A00042",
+    prompt: "How would A00042's exemption from taxation for energy-related public utilities promote clean energy adoption?"
   },
   {
     title: "Public Safety Equipment",
-    prompt: "What requirements does the bill about body armor for NYC emergency services personnel establish?"
+    billNumber: "A00079",
+    prompt: "What requirements does A00079 about body armor for NYC emergency services personnel establish?"
   },
   {
     title: "Child Day Care Regulations",
-    prompt: "How would exempting certain child day care facilities that serve only dependent children affect childcare availability?"
+    billNumber: "A00024",
+    prompt: "How would A00024 exempting certain child day care facilities that serve only dependent children affect childcare availability?"
   },
   {
     title: "Highway Use Tax",
-    prompt: "What are the implications of repealing provisions relating to the highway use tax?"
+    billNumber: "A00025",
+    prompt: "What are the implications of A00025 repealing provisions relating to the highway use tax?"
   },
   {
     title: "Prenatal Testing Disclosure",
-    prompt: "What information must be disclosed about non-invasive prenatal screening under the proposed legislation?"
+    billNumber: "A00044",
+    prompt: "What information must be disclosed about non-invasive prenatal screening under A00044?"
   },
   {
     title: "Retirement Stipends",
-    prompt: "How would the optional retirement stipend of thirty dollars per month benefit retirees?"
+    billNumber: "A00045",
+    prompt: "How would A00045's optional retirement stipend of thirty dollars per month benefit retirees?"
   },
   {
     title: "Economic Development",
-    prompt: "Explain the St. Lawrence county economic development initiatives in the current legislative session."
+    billNumber: "A00040",
+    prompt: "Explain A00040 regarding St. Lawrence county economic development initiatives."
   },
   {
     title: "Insurance Coverage",
-    prompt: "What services would insurance policies be required to cover under the new healthcare coverage mandates?"
+    billNumber: "A00021",
+    prompt: "What services would insurance policies be required to cover under A00021's healthcare coverage mandates?"
   },
   {
     title: "Tobacco Restrictions",
-    prompt: "How would prohibiting the sale of flavored smokeless tobacco within 500 feet of schools protect young people?"
+    billNumber: "A00077",
+    prompt: "How would A00077 prohibiting the sale of flavored smokeless tobacco within 500 feet of schools protect young people?"
   },
   {
     title: "Arts Space Act",
-    prompt: "What tax benefits does the New York City arts space act provide and how would it support the creative community?"
+    billNumber: "A00050",
+    prompt: "What tax benefits does A00050, the New York City arts space act, provide and how would it support the creative community?"
   },
   {
     title: "Motor Vehicle Transparency",
-    prompt: "What disclosures about replacement parts would motor vehicle repair shops be required to make under the proposed bill?"
+    billNumber: "A00075",
+    prompt: "What disclosures about replacement parts would motor vehicle repair shops be required to make under A00075?"
   }
 ];
 
@@ -130,7 +152,7 @@ const UseCasesBills = () => {
               <div
                 key={idx}
                 onClick={() => handlePromptClick(item.prompt)}
-                className="group break-inside-avoid bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200 relative"
+                className="group break-inside-avoid bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
               >
                 <h3 className="font-semibold text-base mb-3">
                   {item.title}
@@ -139,10 +161,12 @@ const UseCasesBills = () => {
                   {item.prompt}
                 </p>
 
-                {/* Chat arrow button - appears on hover */}
-                <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <div className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center">
-                    <ArrowUp className="h-5 w-5" />
+                {/* Chat arrow button - renders on hover, expands card height */}
+                <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
+                  <div className="flex justify-end">
+                    <div className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center">
+                      <ArrowUp className="h-5 w-5" />
+                    </div>
                   </div>
                 </div>
               </div>
