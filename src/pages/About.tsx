@@ -16,7 +16,7 @@ const About = () => {
               About Goodable
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed">
-              Building the tools that empower everyday citizens to shape the policies that shape their lives.
+              Empowering citizens to shape the policies that shape their lives.
             </p>
           </div>
 
