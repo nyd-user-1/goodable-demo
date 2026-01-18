@@ -1806,7 +1806,7 @@ const NewChat = () => {
             {/* Disclaimer */}
             <div className="flex items-center justify-center gap-1 mt-3">
               <span className="text-xs text-muted-foreground/70">
-                Goodable can make mistakes. Please double-check responses.
+                Goodable is an Alpha stage product and can make mistakes. Please double-check responses.
               </span>
             </div>
           </div>
