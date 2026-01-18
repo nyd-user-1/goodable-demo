@@ -25,6 +25,7 @@ const dropdownPlaceholders = [
 
 // About dropdown items
 const aboutDropdownItems = [
+  { label: "About", href: "/about" },
   { label: "AI Fluency", href: "/ai-fluency" },
   { label: "Constitution", href: "/constitution" },
   { label: "Digital Bill of Rights", href: "/digital-bill-of-rights" },
