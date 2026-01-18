@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CardActionButtons } from "@/components/ui/CardActionButtons";
 import {
@@ -20,6 +21,7 @@ interface MemberInformationProps {
 export const MemberInformation = ({ member }: MemberInformationProps) => {
   const navigate = useNavigate();
   const { favoriteMemberIds, toggleFavorite } = useMemberFavorites();
+  const [imageError, setImageError] = useState(false);
   const memberName = member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim() || `Member #${member.people_id}`;
 
   const isFavorited = favoriteMemberIds.has(member.people_id);
@@ -51,7 +53,21 @@ export const MemberInformation = ({ member }: MemberInformationProps) => {
 
         {/* Member Name Header */}
         <div className="pb-4 border-b pr-20">
-          <h1 className="text-2xl font-semibold text-foreground">{memberName}</h1>
+          <div className="flex items-center gap-4">
+            {member.photo_url && !imageError ? (
+              <img
+                src={member.photo_url}
+                alt={memberName}
+                className="w-14 h-14 rounded-full object-cover bg-primary/10 flex-shrink-0"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <User className="h-7 w-7 text-muted-foreground" />
+              </div>
+            )}
+            <h1 className="text-2xl font-semibold text-foreground">{memberName}</h1>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
