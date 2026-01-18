@@ -23,6 +23,14 @@ const dropdownPlaceholders = [
   { label: "Option 4", href: "#" },
 ];
 
+// Use Cases dropdown items
+const useCasesDropdownItems = [
+  { label: "Bills", href: "/use-cases/bills" },
+  { label: "Committees", href: "/use-cases/committees" },
+  { label: "Members", href: "/use-cases/members" },
+  { label: "Policy", href: "/use-cases/policy" },
+];
+
 // About dropdown items
 const aboutDropdownItems = [
   { label: "About", href: "/about" },
@@ -151,7 +159,7 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
                 Use Cases
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" sideOffset={4} className="min-w-[160px]">
-                {dropdownPlaceholders.map((item) => (
+                {useCasesDropdownItems.map((item) => (
                   <DropdownMenuItem key={item.label} asChild>
                     <Link to={item.href}>{item.label}</Link>
                   </DropdownMenuItem>

@@ -46,6 +46,7 @@ import ProblemPage from "./pages/ProblemPage";
 import Problems from "./pages/Problems";
 import About from "./pages/About";
 import AIFluency from "./pages/AIFluency";
+import UseCasesBills from "./pages/UseCasesBills";
 import PublicPolicy from "./pages/PublicPolicy";
 import StyleGuide from "./pages/StyleGuide";
 import ImageSystem from "./pages/ImageSystem";
@@ -142,6 +143,7 @@ const App = () => {
                   <Route path="/free-trial" element={<FreeTrial />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/ai-fluency" element={<AIFluency />} />
+                  <Route path="/use-cases/bills" element={<UseCasesBills />} />
                   <Route path="/problems/:problemSlug" element={<ProblemPage />} />
                   <Route path="*" element={<AppLayout />} />
                 </Routes>
