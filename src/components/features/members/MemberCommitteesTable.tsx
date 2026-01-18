@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Building2 } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
@@ -61,7 +62,11 @@ export const MemberCommitteesTable = ({ member }: MemberCommitteesTableProps) =>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {committees.map((committee) => (
-              <div key={committee.committee_id} className="p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors">
+              <Link
+                key={committee.committee_id}
+                to={`/committees/${committee.slug}`}
+                className="p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors block cursor-pointer"
+              >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
@@ -111,7 +116,7 @@ export const MemberCommitteesTable = ({ member }: MemberCommitteesTableProps) =>
                     </div>
                   )}
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

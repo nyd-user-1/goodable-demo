@@ -11,6 +11,7 @@ interface MemberCommittee {
   role: string;
   chamber: string;
   description?: string;
+  slug?: string;
 }
 
 export const useMemberCommittees = (member: Member) => {
@@ -41,6 +42,7 @@ export const useMemberCommittees = (member: Member) => {
           role: "Member", // Default role since we don't have specific role data
           chamber: committee.chamber || "Unknown",
           description: committee.description,
+          slug: committee.slug,
         })) || [];
 
         setCommittees(transformedCommittees);
