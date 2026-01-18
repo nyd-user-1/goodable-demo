@@ -137,7 +137,7 @@ const NewChat = () => {
   const { user } = useAuth();
   const { setOpen: setSidebarOpen } = useSidebarSafe();
 
-  // "Ask Goodable" text selection popup state
+  // "Ask Goodable" text selection popup state (uses onMouseDown to preserve selection)
   const [selectionPopup, setSelectionPopup] = useState<{
     visible: boolean;
     x: number;
