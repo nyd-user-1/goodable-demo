@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Building2 } from "lucide-react";
+import { Building, Scale, Building2 } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { useMemberCommittees } from "@/hooks/useMemberCommittees";
 
@@ -65,7 +65,11 @@ export const MemberCommitteesTable = ({ member }: MemberCommitteesTableProps) =>
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Building2 className="h-4 w-4" />
+                      {committee.chamber?.toLowerCase().includes("senate") ? (
+                        <Scale className="h-4 w-4" />
+                      ) : (
+                        <Building className="h-4 w-4" />
+                      )}
                     </div>
                     {committee.role && committee.role.toLowerCase() === 'chair' && (
                       <Badge variant="default" className="text-xs">
