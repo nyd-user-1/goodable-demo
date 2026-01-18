@@ -236,23 +236,26 @@ const NewChat = () => {
   // "Ask Goodable" text selection popup - detect text selection
   useEffect(() => {
     const handleSelectionChange = () => {
-      const selection = window.getSelection();
-      const selectedText = selection?.toString().trim() || "";
+      // Small delay to let browser finish processing triple-click selections
+      setTimeout(() => {
+        const selection = window.getSelection();
+        const selectedText = selection?.toString().trim() || "";
 
-      if (selectedText.length > 0 && selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
+        if (selectedText.length > 0 && selection && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          const rect = range.getBoundingClientRect();
 
-        // Position popup above the selection, centered
-        setSelectionPopup({
-          visible: true,
-          x: rect.left + rect.width / 2,
-          y: rect.top - 10, // 10px above selection
-          text: selectedText,
-        });
-      } else {
-        setSelectionPopup(prev => ({ ...prev, visible: false }));
-      }
+          // Position popup above the selection, centered
+          setSelectionPopup({
+            visible: true,
+            x: rect.left + rect.width / 2,
+            y: rect.top - 10, // 10px above selection
+            text: selectedText,
+          });
+        } else {
+          setSelectionPopup(prev => ({ ...prev, visible: false }));
+        }
+      }, 10);
     };
 
     // Use mouseup to detect selection completion (more reliable than selectionchange)
