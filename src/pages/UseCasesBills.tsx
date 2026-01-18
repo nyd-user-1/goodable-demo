@@ -3,117 +3,95 @@ import FooterSimple from '@/components/marketing/FooterSimple';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUp } from 'lucide-react';
 
-// Sample prompts for bills use cases
+// Sample prompts for bills use cases - topic-focused for exploration and drafting
 const billPrompts = [
   {
     title: "AI Consumer Protection",
-    billNumber: "A00768",
-    prompt: "What protections does A00768, the NY Artificial Intelligence Consumer Protection Act, establish against algorithmic discrimination?"
+    prompt: "What can you tell me about efforts to protect consumers from algorithmic discrimination in New York?"
   },
   {
     title: "Childcare Affordability",
-    billNumber: "A00405",
-    prompt: "How would A00405 improve childcare affordability by providing diaper assistance for families receiving safety net support?"
+    prompt: "What legislative approaches have been proposed to make childcare more affordable for working families in New York?"
   },
   {
     title: "Paid Family Leave",
-    billNumber: "S02821",
-    prompt: "Explain how S02821 proposes to expand New York's paid family leave program and how it would affect working parents."
+    prompt: "What can you tell me about efforts to expand paid family leave in New York?"
   },
   {
     title: "Affordable Housing",
-    billNumber: "A00027",
-    prompt: "What does A00027 requiring municipalities to include an Affordable Housing Needs Assessment in their comprehensive plans actually require?"
+    prompt: "What are legislators doing to address the affordable housing crisis in New York?"
   },
   {
-    title: "Volunteer Firefighter Benefits",
-    billNumber: "A00028",
-    prompt: "How would A00028's tax credit for volunteer firefighters and ambulance workers help recruit and retain emergency responders?"
+    title: "Volunteer Firefighter Recruitment",
+    prompt: "What incentives are being considered to help recruit and retain volunteer firefighters and emergency responders?"
   },
   {
-    title: "Medicaid Prior Authorization",
-    billNumber: "A00026",
-    prompt: "What impact would A00026 prohibiting Medicaid service providers from requiring prior authorization have on patient care?"
+    title: "Medicaid Access",
+    prompt: "What efforts are underway to reduce barriers to Medicaid services for patients?"
   },
   {
-    title: "Minimum Wage Increase",
-    billNumber: "S01978",
-    prompt: "What are the key provisions of S01978 regarding minimum wage increases in New York?"
+    title: "Minimum Wage",
+    prompt: "What's the current state of minimum wage legislation in New York and what changes are being proposed?"
   },
   {
     title: "School Safety",
-    billNumber: "A00081",
-    prompt: "What does A00081 requiring school crossing guards on every corner of intersections within school zones aim to accomplish?"
+    prompt: "What measures are being proposed to improve safety around school zones in New York?"
   },
   {
     title: "Rental Assistance",
-    billNumber: "A00085",
-    prompt: "How would A00085 on metered funding for rental assistance help New York City residents facing housing instability?"
+    prompt: "What programs exist or are being proposed to help New Yorkers facing housing instability?"
   },
   {
     title: "Disability Benefits",
-    billNumber: "A00084",
-    prompt: "Explain A00084's proposal to increase short-term disability benefits and who would be affected."
+    prompt: "What efforts are underway to strengthen disability benefits for New York workers?"
   },
   {
-    title: "Veterans Programs",
-    billNumber: "A00080",
-    prompt: "What does A00080 establishing a program for sharing veteran contact information aim to achieve for veteran services?"
+    title: "Veteran Services",
+    prompt: "What initiatives are being considered to improve services and support for veterans in New York?"
   },
   {
-    title: "Clean Energy Tax Exemptions",
-    billNumber: "A00042",
-    prompt: "How would A00042's exemption from taxation for energy-related public utilities promote clean energy adoption?"
+    title: "Clean Energy Incentives",
+    prompt: "What tax incentives or programs are being proposed to accelerate clean energy adoption in New York?"
   },
   {
-    title: "Public Safety Equipment",
-    billNumber: "A00079",
-    prompt: "What requirements does A00079 about body armor for NYC emergency services personnel establish?"
+    title: "First Responder Safety",
+    prompt: "What measures are being considered to improve safety equipment and protections for first responders?"
   },
   {
-    title: "Child Day Care Regulations",
-    billNumber: "A00024",
-    prompt: "How would A00024 exempting certain child day care facilities that serve only dependent children affect childcare availability?"
+    title: "Childcare Regulations",
+    prompt: "How are childcare licensing regulations being modernized to expand access while maintaining quality?"
   },
   {
-    title: "Highway Use Tax",
-    billNumber: "A00025",
-    prompt: "What are the implications of A00025 repealing provisions relating to the highway use tax?"
+    title: "Transportation Funding",
+    prompt: "What changes to transportation taxes and fees are being debated in New York?"
   },
   {
-    title: "Prenatal Testing Disclosure",
-    billNumber: "A00044",
-    prompt: "What information must be disclosed about non-invasive prenatal screening under A00044?"
+    title: "Prenatal Care Access",
+    prompt: "What efforts are being made to improve access to prenatal care and testing information for expectant parents?"
   },
   {
-    title: "Retirement Stipends",
-    billNumber: "A00045",
-    prompt: "How would A00045's optional retirement stipend of thirty dollars per month benefit retirees?"
+    title: "Public Pension Reform",
+    prompt: "What changes to public pension and retirement benefits are being considered in New York?"
   },
   {
-    title: "Economic Development",
-    billNumber: "A00040",
-    prompt: "Explain A00040 regarding St. Lawrence county economic development initiatives."
+    title: "Rural Economic Development",
+    prompt: "What initiatives are being proposed to support economic development in rural New York communities?"
   },
   {
-    title: "Insurance Coverage",
-    billNumber: "A00021",
-    prompt: "What services would insurance policies be required to cover under A00021's healthcare coverage mandates?"
+    title: "Healthcare Coverage",
+    prompt: "What mandates are being considered to expand healthcare coverage requirements for insurers in New York?"
   },
   {
-    title: "Tobacco Restrictions",
-    billNumber: "A00077",
-    prompt: "How would A00077 prohibiting the sale of flavored smokeless tobacco within 500 feet of schools protect young people?"
+    title: "Youth Tobacco Prevention",
+    prompt: "What measures are being proposed to reduce youth access to tobacco and vaping products?"
   },
   {
-    title: "Arts Space Act",
-    billNumber: "A00050",
-    prompt: "What tax benefits does A00050, the New York City arts space act, provide and how would it support the creative community?"
+    title: "Arts and Culture Funding",
+    prompt: "What programs or tax incentives are being considered to support artists and cultural organizations in New York?"
   },
   {
-    title: "Motor Vehicle Transparency",
-    billNumber: "A00075",
-    prompt: "What disclosures about replacement parts would motor vehicle repair shops be required to make under A00075?"
+    title: "Consumer Protection",
+    prompt: "What new disclosure requirements are being proposed to protect consumers in New York?"
   }
 ];
 
@@ -139,7 +117,7 @@ const UseCasesBills = () => {
               Chats for legislative research
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-4">
-              Citizens and policy professionals shared chats they use for understanding bills and legislation.
+              Explore policy topics, discover existing legislation, and draft your own bills.
             </p>
             <p className="text-muted-foreground">
               Tap a chat to get started.
