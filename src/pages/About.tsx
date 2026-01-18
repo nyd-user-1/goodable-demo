@@ -1,232 +1,148 @@
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import {
-  Calendar,
-  MapPin,
-  Mail,
-  ExternalLink,
-  Github,
-  Linkedin,
-  Twitter,
-  ArrowRight,
-  Sun,
-  Command,
-} from 'lucide-react';
+import { ChatHeader } from '@/components/ChatHeader';
+import FooterSimple from '@/components/marketing/FooterSimple';
 
 const About = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header Navigation */}
-      <header className="border-b">
-        <div className="container mx-auto px-4 2xl:max-w-[1400px]">
-          <div className="flex h-14 items-center justify-between">
-            {/* Left - Logo */}
-            <div className="flex items-center gap-2">
-              <Link to="/" className="flex items-center gap-2">
-                <img src="/goodable-heart-pwa.png" alt="Goodable" className="h-8 w-8" />
-              </Link>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <ExternalLink className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Center - Navigation */}
-            <nav className="hidden md:flex items-center gap-6">
-              <Link to="/about" className="text-sm font-medium text-foreground hover:text-foreground/80">
-                About
-              </Link>
-              <Link to="/academy" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-                Academy
-              </Link>
-              <Link to="/features" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-                Features
-              </Link>
-              <Link to="/free-trial" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-                Free Trial
-              </Link>
-              <Link to="/use-cases" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-                Use Cases
-              </Link>
-              <Link to="/non-profits" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-                Non Profits
-              </Link>
-              <Link to="/plans" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-                Pricing
-              </Link>
-            </nav>
-
-            {/* Right - Actions */}
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Sun className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Command className="h-4 w-4" />
-              </Button>
-              <Link to="/auth">
-                <Button variant="ghost" size="sm" className="text-sm">
-                  Log In
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      <ChatHeader />
 
       {/* Main Content */}
-      <main className="flex-1 py-16 md:py-24">
-        <div className="container mx-auto px-4 2xl:max-w-[1400px]">
-          <div className="gap-12 md:grid md:grid-cols-12 lg:gap-16">
-            {/* Quick Stats - Now at top left without photo */}
-            <div className="flex flex-col items-center md:col-span-5 lg:col-span-4">
-              <div className="bg-muted/30 w-full max-w-sm space-y-4 rounded-xl border p-6">
-                <h3 className="text-lg font-semibold">Quick Facts</h3>
-
-                <div className="grid gap-3">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="text-muted-foreground h-5 w-5" />
-                    <div>
-                      <p className="text-muted-foreground text-sm">Experience</p>
-                      <p className="font-medium">8+ Years</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <MapPin className="text-muted-foreground h-5 w-5" />
-                    <div>
-                      <p className="text-muted-foreground text-sm">Location</p>
-                      <p className="font-medium">San Francisco, CA</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <Mail className="text-muted-foreground h-5 w-5" />
-                    <div>
-                      <p className="text-muted-foreground text-sm">Contact</p>
-                      <a
-                        href="mailto:hello@example.com"
-                        className="hover:text-foreground font-medium"
-                      >
-                        hello@example.com
-                      </a>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Social Links */}
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <Button variant="outline" size="icon" asChild>
-                    <a href="#" aria-label="LinkedIn Profile">
-                      <Linkedin className="h-4 w-4" />
-                    </a>
-                  </Button>
-                  <Button variant="outline" size="icon" asChild>
-                    <a href="#" aria-label="GitHub Profile">
-                      <Github className="h-4 w-4" />
-                    </a>
-                  </Button>
-                  <Button variant="outline" size="icon" asChild>
-                    <a href="#" aria-label="Twitter Profile">
-                      <Twitter className="h-4 w-4" />
-                    </a>
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* About Me Content */}
-            <div className="mt-12 flex flex-col md:col-span-7 md:mt-0 lg:col-span-8">
-              <div className="mb-2 flex items-center gap-2">
-                <Badge
-                  variant="secondary"
-                  className="font-normal tracking-wide uppercase"
-                >
-                  About Me
-                </Badge>
-              </div>
-
-              <h1 className="mb-6 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-                Hi, I'm <span className="text-muted-foreground">Alex Morgan</span>
-                <br />
-                Full Stack Developer
-              </h1>
-
-              <div className="space-y-4 text-lg text-muted-foreground">
-                <p>
-                  With over 8 years of experience building web and mobile
-                  applications, I specialize in creating robust, user-focused
-                  software solutions that solve real business problems.
-                </p>
-
-                <p>
-                  My journey in tech began at Stanford University where I earned
-                  my degree in Computer Science. Since then, I've worked with
-                  startups and enterprise companies across fintech, healthcare,
-                  and e-commerce industries, developing everything from
-                  consumer-facing applications to complex backend systems.
-                </p>
-
-                <p>
-                  I'm passionate about clean code, thoughtful architecture,
-                  and continuous learning. When I'm not coding, you'll
-                  find me hiking in the Bay Area, experimenting with new cooking
-                  recipes, or mentoring upcoming developers.
-                </p>
-              </div>
-
-              <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-                <Button variant="secondary" className="gap-2" asChild>
-                  <a href="#contact">
-                    Get in Touch
-                    <ArrowRight className="h-4 w-4" />
-                  </a>
-                </Button>
-                <Button variant="outline" className="gap-2" asChild>
-                  <a href="#projects">
-                    View My Work
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                </Button>
-              </div>
-            </div>
+      <main className="flex-1 pt-20 pb-16">
+        <div className="container mx-auto px-4 max-w-4xl">
+          {/* Hero Section */}
+          <div className="mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
+              About Goodable
+            </h1>
+            <p className="text-xl text-muted-foreground leading-relaxed">
+              Building the tools that empower everyday citizens to shape the policies that shape their lives.
+            </p>
           </div>
+
+          {/* Essay Content */}
+          <article className="prose prose-lg dark:prose-invert max-w-none">
+            <section className="mb-10">
+              <h2 className="text-2xl font-semibold mb-4">A Different Kind of Technology Company</h2>
+              <p>
+                Goodable.dev began with a simple observation: the tools we use to participate in democracy haven't kept pace with the complexity of the challenges we face. While technology has transformed how we shop, communicate, and work, the fundamental processes of civic engagement remain largely unchanged from a century ago. Bills are still written in impenetrable legal language. Committee hearings happen during work hours when most people can't attend. The gap between citizens and their representatives grows wider each year.
+              </p>
+              <p>
+                We built Goodable to close that gap. Not by replacing human judgment with algorithms, but by giving people the information and tools they need to engage meaningfully with the legislative process. We believe that when citizens can easily understand what their government is doing, track the issues that matter to them, and connect with others who share their concerns, democracy works better for everyone.
+              </p>
+            </section>
+
+            <section className="mb-10">
+              <h2 className="text-2xl font-semibold mb-4">The Challenge We're Addressing</h2>
+              <p>
+                For decades, the American middle class has been under pressure. Manufacturing jobs have moved overseas. Healthcare and education costs have skyrocketed. Wages have stagnated while productivity has soared. These aren't abstract policy debates—they're the daily realities that millions of families navigate as they try to build stable, fulfilling lives.
+              </p>
+              <p>
+                The policy responses to these challenges have often fallen short, not because lawmakers don't care, but because the legislative process itself has become disconnected from the people it's meant to serve. Special interests with resources to hire lobbyists and track every bill have an inherent advantage over ordinary citizens who are busy working, raising families, and living their lives.
+              </p>
+              <p>
+                Goodable exists to level that playing field. We provide the same sophisticated tools that professional lobbyists use—bill tracking, legislative analysis, contact management, coalition building—but we make them accessible to everyone. A teacher in Ohio can now follow education funding bills with the same precision as a K Street lobbying firm. A small business owner in Arizona can understand exactly how proposed tax changes would affect their bottom line. A recent graduate in Michigan can track criminal justice reform efforts and know exactly when to make their voice heard.
+              </p>
+            </section>
+
+            <section className="mb-10">
+              <h2 className="text-2xl font-semibold mb-4">AI in Service of Democracy</h2>
+              <p>
+                Artificial intelligence is transforming every industry, and civic technology is no exception. But we approach AI differently than most companies. We're not interested in using AI to manipulate, persuade, or automate away human decision-making. Instead, we use AI to illuminate—to make complex legislation understandable, to surface connections between bills that might otherwise go unnoticed, to help people find their voice when engaging with their representatives.
+              </p>
+              <p>
+                Our AI systems are built on a foundation we call "constitutional AI for civic engagement." This means our tools are governed by a set of principles that prioritize accuracy, transparency, and the empowerment of citizens. When our AI summarizes a bill, it presents the facts without spin. When it identifies potential impacts, it acknowledges uncertainty and presents multiple perspectives. When it helps someone draft a letter to their representative, it amplifies their voice rather than replacing it.
+              </p>
+              <p>
+                We ask ourselves one central question when building every feature: Does this help restore and grow the American middle class? That might sound ambitious for a technology company, but we believe that giving ordinary people better tools to engage with their government is one of the most direct paths to policies that work for working families.
+              </p>
+            </section>
+
+            <section className="mb-10">
+              <h2 className="text-2xl font-semibold mb-4">What Goodable Does</h2>
+              <p>
+                At its core, Goodable is a platform that makes legislative information accessible and actionable. We track thousands of bills across state legislatures, providing plain-English summaries, status updates, and impact analyses. Users can set up alerts for issues they care about and receive notifications when relevant legislation moves forward.
+              </p>
+              <p>
+                But tracking bills is just the beginning. Goodable helps users understand the people behind the policies—who their legislators are, how they've voted in the past, who funds their campaigns, and how to contact them effectively. We provide tools for organizing with others who share your concerns, from finding local advocacy groups to coordinating testimony at public hearings.
+              </p>
+              <p>
+                Our AI assistant can answer questions about any bill in our database, explain complex legal language, and help users understand how proposed legislation might affect their lives. It can draft letters, prepare talking points for town halls, and suggest the most effective ways to make your voice heard on any given issue.
+              </p>
+              <p>
+                For those who want to go deeper, Goodable offers policy research tools that were previously available only to professional researchers. Users can trace the history of legislation, understand how similar bills have fared in other states, and access academic research on policy effectiveness. We're building the most comprehensive civic intelligence platform ever created, and we're making it available to everyone.
+              </p>
+            </section>
+
+            <section className="mb-10">
+              <h2 className="text-2xl font-semibold mb-4">The Next Generation of Citizen Legislators</h2>
+              <p>
+                We believe that the future of American democracy depends on a new generation of engaged citizens who see participation in government not as a burden but as an opportunity. We call these people "citizen legislators"—not because they hold elected office, but because they take ownership of the legislative process in their communities.
+              </p>
+              <p>
+                Citizen legislators come from every background. They're the parent who organizes their school district to advocate for better funding. The small business owner who testifies before the city council about zoning regulations. The retiree who tracks state pension legislation and keeps their former colleagues informed. The college student who registers voters on campus and helps their peers understand what's on the ballot.
+              </p>
+              <p>
+                What unites citizen legislators is a belief that democracy is participatory—that showing up matters, that individual voices can make a difference, and that the health of our republic depends on people taking responsibility for their communities. Goodable exists to support these people, to give them the tools they need to be effective, and to help them find and connect with others who share their commitment.
+              </p>
+              <p>
+                We're particularly focused on making civic engagement accessible to people who have historically been excluded from the political process. This means building tools that work on mobile devices, since many Americans access the internet primarily through their phones. It means providing information in multiple languages and at various reading levels. It means designing for users who may have never contacted their representative before and need guidance on where to start.
+              </p>
+            </section>
+
+            <section className="mb-10">
+              <h2 className="text-2xl font-semibold mb-4">Our Approach to Building Technology</h2>
+              <p>
+                Goodable is built on the belief that technology should serve human values, not the other way around. This shapes everything from how we design our user interface to how we train our AI models to how we structure our company.
+              </p>
+              <p>
+                We prioritize clarity over cleverness. Our interface is designed to be intuitive for first-time users while still being powerful enough for policy professionals. We avoid dark patterns and manipulation—we want users to engage because they find value in our tools, not because we've tricked them into staying.
+              </p>
+              <p>
+                We're committed to accuracy and honesty. Our AI systems are trained to acknowledge uncertainty, present multiple perspectives on contested issues, and clearly distinguish between facts and interpretation. When we make mistakes—and we will—we commit to correcting them quickly and transparently.
+              </p>
+              <p>
+                We protect user privacy. Civic engagement can be sensitive, and users need to trust that their activity on our platform won't be used against them. We collect only the data necessary to provide our services, we don't sell user information, and we give users control over their own data.
+              </p>
+              <p>
+                We build for the long term. The challenges facing American democracy won't be solved overnight, and we're building a company that can sustain this work for decades. This means making responsible business decisions, building a team that shares our values, and maintaining the trust of our users above all else.
+              </p>
+            </section>
+
+            <section className="mb-10">
+              <h2 className="text-2xl font-semibold mb-4">Looking Forward</h2>
+              <p>
+                We're still in the early days of building Goodable, and we have ambitious plans for what comes next. We're expanding our coverage to include more states and eventually the federal government. We're building new tools for coalition organizing and grassroots advocacy. We're developing educational resources to help people understand not just what's happening in their government, but how to effectively participate in it.
+              </p>
+              <p>
+                Most importantly, we're listening to our users. The best ideas for new features come from the citizen legislators who use our platform every day. They tell us what's working, what's missing, and what they need to be more effective advocates for their communities. This feedback shapes our roadmap and keeps us focused on what matters.
+              </p>
+              <p>
+                We believe that the tools we're building can make a real difference in the lives of ordinary Americans. Not by replacing human judgment with algorithms, but by giving people the information and capabilities they need to participate meaningfully in their democracy. When citizens can easily understand what their government is doing, hold their representatives accountable, and work together to advocate for change, policies tend to better reflect the needs of working families.
+              </p>
+              <p>
+                That's the future we're working toward—a democracy that truly represents the people, supported by technology that empowers rather than manipulates, building a country where the middle class can thrive again. It's ambitious, but we believe it's achievable. And we'd love for you to join us.
+              </p>
+            </section>
+
+            <section className="mb-10">
+              <h2 className="text-2xl font-semibold mb-4">Get Involved</h2>
+              <p>
+                Whether you're a seasoned activist or someone who's never contacted their representative, there's a place for you at Goodable. Start by exploring the bills that affect the issues you care about. Set up alerts so you never miss an important vote. Use our AI tools to understand complex legislation and draft effective communications. Connect with others in your community who share your concerns.
+              </p>
+              <p>
+                Democracy is not a spectator sport. The policies that shape our lives—from healthcare to education to economic opportunity—are decided by the people who show up. Goodable is here to help you show up, to give you the tools you need to be heard, and to connect you with a community of citizen legislators who believe that a better future is possible.
+              </p>
+              <p>
+                Welcome to Goodable. Let's build something good together.
+              </p>
+            </section>
+          </article>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t py-8">
-        <div className="container mx-auto px-4 2xl:max-w-[1400px]">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            {/* Left - Built with */}
-            <p className="text-sm text-muted-foreground">
-              Built with{' '}
-              <a href="https://nextjs.org" className="underline hover:text-foreground">
-                Next.js
-              </a>
-              {' '}and{' '}
-              <a href="https://ui.shadcn.com" className="underline hover:text-foreground">
-                shadcn/ui
-              </a>
-              .
-            </p>
-
-            {/* Right - Links and Copyright */}
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <a href="/terms" className="hover:text-foreground">
-                Terms
-              </a>
-              <a href="/privacy" className="hover:text-foreground">
-                Privacy
-              </a>
-              <a href="/contact" className="hover:text-foreground">
-                Contact
-              </a>
-              <span>© 2026 Your Company. All rights reserved.</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <FooterSimple />
     </div>
   );
 };
