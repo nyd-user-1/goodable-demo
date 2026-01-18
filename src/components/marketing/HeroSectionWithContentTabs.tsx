@@ -58,15 +58,8 @@ export default function HeroSectionWithContentTabs() {
   return (
     <>
       {/* Hero */}
-      <div className="">
-        <div className="relative">
-          {/* Background pattern */}
-          <div className="absolute inset-0 -z-10 h-full w-full">
-            <div className="absolute h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-            <div className="absolute top-0 right-0 bottom-0 left-0 bg-[radial-gradient(circle_800px_at_100%_200px,rgba(120,119,198,0.1),transparent)]"></div>
-          </div>
-
-          <div className="container mx-auto px-4 py-24 md:px-6 lg:py-32 2xl:max-w-[1400px]">
+      <div className="bg-background">
+        <div className="container mx-auto px-4 py-24 md:px-6 lg:py-32 2xl:max-w-[1400px]">
             <div className="mx-auto mb-16 max-w-3xl text-center">
               <Badge variant="outline" className="mb-4">
                 NYS Legislature API
@@ -188,7 +181,6 @@ export default function HeroSectionWithContentTabs() {
               </Tabs>
             </div>
           </div>
-        </div>
       </div>
       {/* End Hero */}
     </>
