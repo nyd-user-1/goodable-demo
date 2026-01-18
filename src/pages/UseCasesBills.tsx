@@ -117,7 +117,7 @@ const UseCasesBills = () => {
               Chats for legislative research
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-4">
-              Explore policy topics, discover existing legislation, and draft your own bills.
+              Seasoned public policy experts shared issues from their own experience.
             </p>
             <p className="text-muted-foreground">
               Tap a chat to get started.
@@ -149,6 +149,13 @@ const UseCasesBills = () => {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Attribution Section */}
+          <div className="mt-20 pt-8 border-t">
+            <p className="text-sm text-muted-foreground text-center max-w-4xl mx-auto leading-relaxed">
+              These chats were sourced from practitioners and educators across public policy, government administration, workforce and economic development, human resources, data analytics, artificial intelligence, product development, civic technology, education, organizational change, and strategic operations. Special thanks for their contributions.
+            </p>
           </div>
         </div>
       </main>
