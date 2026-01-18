@@ -23,6 +23,13 @@ const dropdownPlaceholders = [
   { label: "Option 4", href: "#" },
 ];
 
+// About dropdown items
+const aboutDropdownItems = [
+  { label: "AI Fluency", href: "/ai-fluency" },
+  { label: "Constitution", href: "/constitution" },
+  { label: "Digital Bill of Rights", href: "/digital-bill-of-rights" },
+];
+
 interface ChatHeaderProps {
   onNewChat?: () => void;
   onWhatIsGoodable?: () => void;
@@ -30,6 +37,7 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
   const navigate = useNavigate();
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [useCasesOpen, setUseCasesOpen] = useState(false);
   const [nonProfitsOpen, setNonProfitsOpen] = useState(false);
 
@@ -89,13 +97,24 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
 
         {/* Center - Marketing Navigation (desktop only) */}
         <nav className="hidden md:flex items-center gap-1">
-          {/* About - simple link */}
-          <Link
-            to="/about"
-            className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
+          {/* About - dropdown */}
+          <div
+            onMouseEnter={() => setAboutOpen(true)}
+            onMouseLeave={() => setAboutOpen(false)}
           >
-            About
-          </Link>
+            <DropdownMenu open={aboutOpen} onOpenChange={setAboutOpen} modal={false}>
+              <DropdownMenuTrigger className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none">
+                About
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" sideOffset={4} className="min-w-[180px]">
+                {aboutDropdownItems.map((item) => (
+                  <DropdownMenuItem key={item.label} asChild>
+                    <Link to={item.href}>{item.label}</Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           {/* Academy - simple link */}
           <Link
