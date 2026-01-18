@@ -1,552 +1,145 @@
-import { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { 
-  Heart, 
-  Users, 
-  Target, 
-  Globe, 
-  Sparkles, 
-  ArrowRight, 
-  CheckCircle, 
-  TrendingUp,
-  MessageSquare,
-  Lightbulb,
-  Scale,
-  Building2,
-  Play,
-  X
-} from "lucide-react";
-import { useNavigate } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Calendar,
+  MapPin,
+  Mail,
+  ExternalLink,
+  Github,
+  Linkedin,
+  Twitter,
+  ArrowRight,
+} from 'lucide-react';
 
 const About = () => {
-  const navigate = useNavigate();
-  const [videoModal, setVideoModal] = useState(false);
-
-  const values = [
-    {
-      icon: <Heart className="w-5 h-5" />,
-      title: "Human-Centered",
-      description: "Every policy decision starts with people. We design tools that put human needs at the center of legislative work."
-    },
-    {
-      icon: <Users className="w-5 h-5" />,
-      title: "Collaborative",
-      description: "Complex problems require diverse perspectives. We enable lawmakers, advocates, and citizens to work together effectively."
-    },
-    {
-      icon: <Target className="w-5 h-5" />,
-      title: "Impact-Driven", 
-      description: "We measure success by real-world outcomes, not just activity. Every feature is designed to create meaningful change."
-    },
-    {
-      icon: <Globe className="w-5 h-5" />,
-      title: "Transparent",
-      description: "Democracy thrives on openness. We make legislative processes accessible and understandable to everyone."
-    }
-  ];
-
-  const features = [
-    {
-      icon: <Sparkles className="w-5 h-5" />,
-      title: "AI-Powered Analysis",
-      description: "Advanced artificial intelligence helps analyze complex legislation and predict policy impacts."
-    },
-    {
-      icon: <MessageSquare className="w-5 h-5" />,
-      title: "Real-Time Collaboration",
-      description: "Connect with colleagues, stakeholders, and constituents through integrated communication tools."
-    },
-    {
-      icon: <Lightbulb className="w-5 h-5" />,
-      title: "Crowdsourced Solutions",
-      description: "Harness collective intelligence to identify innovative approaches to policy challenges."
-    },
-    {
-      icon: <TrendingUp className="w-5 h-5" />,
-      title: "Data-Driven Insights",
-      description: "Make informed decisions with comprehensive analytics and trend analysis."
-    }
-  ];
-
-  const stats = [
-    { number: "50,000+", label: "Bills Tracked" },
-    { number: "10,000+", label: "Active Users" },
-    { number: "500+", label: "Organizations" },
-    { number: "99.9%", label: "Uptime" }
-  ];
-
-  const team = [
-    {
-      name: "Sarah Chen",
-      role: "CEO & Co-Founder",
-      background: "Former legislative director with 15+ years in policy development",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=128&h=128&fit=crop&crop=face"
-    },
-    {
-      name: "Michael Rodriguez",
-      role: "CTO & Co-Founder", 
-      background: "Previously built data platforms at major tech companies",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=128&h=128&fit=crop&crop=face"
-    },
-    {
-      name: "Dr. Emily Watson",
-      role: "Head of Policy Research",
-      background: "PhD in Public Policy, former Harvard Kennedy School professor",
-      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=128&h=128&fit=crop&crop=face"
-    },
-    {
-      name: "David Kim",
-      role: "Head of Product",
-      background: "Product leader focused on civic technology and government innovation",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=128&h=128&fit=crop&crop=face"
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Video Background Hero Section */}
-      <section className="relative min-h-[85vh] overflow-hidden bg-black/90">
-        {/* Video background */}
-        <video
-          autoPlay
-          muted
-          loop
-          className="absolute inset-0 h-full w-full object-cover opacity-40"
-          poster="https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3"
-        >
-          <source
-            src="https://player.vimeo.com/progressive_redirect/playback/772380223/rendition/720p/file.mp4?loc=external"
-            type="video/mp4"
-          />
-          Your browser does not support the video tag.
-        </video>
-
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20"></div>
-
-        {/* Content */}
-        <div className="relative container mx-auto flex min-h-[85vh] flex-col items-center justify-center gap-6 px-4 py-24 text-center md:px-6 md:py-32 2xl:max-w-[1400px]">
-          <div className="flex flex-col items-center gap-2">
-            <span className="inline-flex items-center rounded-full border border-white/10 px-3 py-1 text-sm font-medium text-white">
-              Building the Future of Democracy
-            </span>
-          </div>
-          <h1 className="max-w-4xl text-4xl font-bold tracking-tighter text-white md:text-5xl/tight lg:text-6xl/tight">
-            Empowering Better Governance Through Intelligent Collaboration
-          </h1>
-          <p className="max-w-[700px] text-white/80 md:text-xl/relaxed">
-            We're creating a platform where lawmakers, advocates, researchers, and citizens 
-            can work together effectively to solve our most pressing challenges.
-          </p>
-
-          <div className="mt-6 flex flex-col gap-4 sm:flex-row">
-            <Button 
-              size="lg" 
-              variant="secondary"
-              onClick={() => navigate('/auth')}
-            >
-              Get Started Free
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-            <Button
-              size="lg"
-              variant="default"
-              onClick={() => setVideoModal(true)}
-            >
-              <Play className="mr-2 h-4 w-4" />
-              Watch Our Story
-            </Button>
-          </div>
-
-          <div className="mt-8 flex items-center gap-4 text-sm text-white/80">
-            <div className="flex items-center gap-1">
-              <Building2 className="h-5 w-5" />
-              <span>Government Ready</span>
+    <div className="bg-background py-16 md:py-24">
+      <div className="container mx-auto px-4 2xl:max-w-[1400px]">
+        <div className="gap-12 md:grid md:grid-cols-12 lg:gap-16">
+          {/* Profile Image and Quick Stats */}
+          <div className="flex flex-col items-center md:col-span-5 lg:col-span-4">
+            <div className="border-primary/10 relative mb-8 h-56 w-56 overflow-hidden rounded-full border-4 md:h-64 md:w-64 lg:h-72 lg:w-72">
+              <img
+                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3"
+                alt="Profile Picture"
+                className="object-cover"
+                fetchPriority="high"
+              />
             </div>
-            <div className="h-1 w-1 rounded-full bg-white/30"></div>
-            <div className="flex items-center gap-1">
-              <Users className="h-5 w-5" />
-              <span>Collaborative Platform</span>
-            </div>
-            <div className="h-1 w-1 rounded-full bg-white/30"></div>
-            <div className="flex items-center gap-1">
-              <Scale className="h-5 w-5" />
-              <span>Policy Intelligence</span>
+
+            {/* Quick Stats */}
+            <div className="bg-muted/30 w-full max-w-sm space-y-4 rounded-xl border p-6">
+              <h3 className="text-lg font-semibold">Quick Facts</h3>
+
+              <div className="grid gap-3">
+                <div className="flex items-center gap-3">
+                  <Calendar className="text-muted-foreground h-5 w-5" />
+                  <div>
+                    <p className="text-muted-foreground text-sm">Experience</p>
+                    <p className="font-medium">8+ Years</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <MapPin className="text-muted-foreground h-5 w-5" />
+                  <div>
+                    <p className="text-muted-foreground text-sm">Location</p>
+                    <p className="font-medium">San Francisco, CA</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Mail className="text-muted-foreground h-5 w-5" />
+                  <div>
+                    <p className="text-muted-foreground text-sm">Contact</p>
+                    <a
+                      href="mailto:hello@example.com"
+                      className="hover:text-primary font-medium"
+                    >
+                      hello@example.com
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Social Links */}
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Button variant="outline" size="icon" asChild>
+                  <a href="#" aria-label="LinkedIn Profile">
+                    <Linkedin className="h-4 w-4" />
+                  </a>
+                </Button>
+                <Button variant="outline" size="icon" asChild>
+                  <a href="#" aria-label="GitHub Profile">
+                    <Github className="h-4 w-4" />
+                  </a>
+                </Button>
+                <Button variant="outline" size="icon" asChild>
+                  <a href="#" aria-label="Twitter Profile">
+                    <Twitter className="h-4 w-4" />
+                  </a>
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Video Modal */}
-        {videoModal && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
-            onClick={() => setVideoModal(false)}
-          >
-            <div
-              className="relative w-full max-w-4xl p-2"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                className="absolute -top-10 right-0 text-white hover:text-white/80"
-                onClick={() => setVideoModal(false)}
+          {/* About Me Content */}
+          <div className="mt-12 flex flex-col md:col-span-7 md:mt-0 lg:col-span-8">
+            <div className="mb-2 flex items-center gap-2">
+              <Badge
+                variant="secondary"
+                className="font-normal tracking-wide uppercase"
               >
-                <X className="h-6 w-6" />
-                <span className="sr-only">Close</span>
-              </button>
-              <div className="aspect-video w-full overflow-hidden rounded-lg">
-                <iframe
-                  width="100%"
-                  height="100%"
-                  src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
-                  title="Goodable Story"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
-              </div>
+                About Me
+              </Badge>
             </div>
-          </div>
-        )}
-      </section>
 
-      {/* Alternating Features Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          {/* Section Header */}
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl mb-4">
-              Transforming Democracy Through Technology
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              We're building bridges between citizens and their government, making legislative 
-              processes more transparent, accessible, and participatory than ever before.
-            </p>
-          </div>
+            <h1 className="mb-6 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+              Hi, I&apos;m <span className="text-primary">Alex Morgan</span>
+              <br />
+              Full Stack Developer
+            </h1>
 
-          {/* Feature 1: Real-Time Legislative Tracking */}
-          <div className="grid gap-12 lg:gap-16 items-center mb-24">
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="order-2 md:order-1">
-                <h3 className="text-2xl font-bold tracking-tight sm:text-3xl mb-4">
-                  Track Every Bill, Every Vote, Every Impact
-                </h3>
-                <p className="text-muted-foreground mb-6">
-                  Our platform provides real-time tracking of legislative activities across all levels 
-                  of government. From bill introductions to committee hearings, amendments to final votes, 
-                  stay informed about the policies that matter to you.
-                </p>
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-start">
-                    <CheckCircle className="w-5 h-5 text-[#3D63DD] mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-muted-foreground">
-                      Real-time notifications for bills matching your interests
-                    </span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="w-5 h-5 text-[#3D63DD] mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-muted-foreground">
-                      Comprehensive voting records and legislator scorecards
-                    </span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="w-5 h-5 text-[#3D63DD] mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-muted-foreground">
-                      AI-powered summaries of complex legislation
-                    </span>
-                  </li>
-                </ul>
-                <Button 
-                  onClick={() => navigate('/bills')}
-                  className="bg-[#3D63DD] text-white hover:bg-[#2D53CD]"
-                >
-                  Explore Bills
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </div>
-              <div className="order-1 md:order-2">
-                <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-[#3D63DD]/10 to-[#5A7FDB]/10 p-2">
-                  <img
-                    src="/legislative%20research.png"
-                    alt="Legislative tracking dashboard"
-                    className="rounded-lg w-full h-auto"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+            <div className="space-y-4 text-lg">
+              <p>
+                With over 8 years of experience building web and mobile
+                applications, I specialize in creating robust, user-focused
+                software solutions that solve real business problems.
+              </p>
 
-          {/* Feature 2: Collaborative Problem Solving */}
-          <div className="grid gap-12 lg:gap-16 items-center mb-24">
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="order-2">
-                <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-[#3D63DD]/10 to-[#5A7FDB]/10 p-2">
-                  <img
-                    src="/goodable-heart.avif"
-                    alt="Collaborative problem solving"
-                    className="rounded-lg w-full h-auto"
-                  />
-                </div>
-              </div>
-              <div className="order-1">
-                <h3 className="text-2xl font-bold tracking-tight sm:text-3xl mb-4">
-                  Crowdsource Solutions to Complex Challenges
-                </h3>
-                <p className="text-muted-foreground mb-6">
-                  Connect with a community of engaged citizens, policy experts, and lawmakers to 
-                  tackle society's most pressing problems. Our collaborative workspace enables 
-                  meaningful dialogue and actionable solutions.
-                </p>
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-start">
-                    <CheckCircle className="w-5 h-5 text-[#3D63DD] mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-muted-foreground">
-                      Structured problem-solving frameworks and methodologies
-                    </span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="w-5 h-5 text-[#3D63DD] mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-muted-foreground">
-                      Connect directly with legislators and policy makers
-                    </span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="w-5 h-5 text-[#3D63DD] mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-muted-foreground">
-                      Turn ideas into actionable policy proposals
-                    </span>
-                  </li>
-                </ul>
-                <Button 
-                  onClick={() => navigate('/problems')}
-                  className="bg-[#3D63DD] text-white hover:bg-[#2D53CD]"
-                >
-                  Start Collaborating
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </div>
-            </div>
-          </div>
+              <p>
+                My journey in tech began at Stanford University where I earned
+                my degree in Computer Science. Since then, I&apos;ve worked with
+                startups and enterprise companies across fintech, healthcare,
+                and e-commerce industries, developing everything from
+                consumer-facing applications to complex backend systems.
+              </p>
 
-          {/* Feature 3: AI-Powered Policy Intelligence */}
-          <div className="grid gap-12 lg:gap-16 items-center">
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="order-2 md:order-1">
-                <h3 className="text-2xl font-bold tracking-tight sm:text-3xl mb-4">
-                  Harness AI for Smarter Policy Analysis
-                </h3>
-                <p className="text-muted-foreground mb-6">
-                  Our advanced AI tools help you understand the real impact of proposed legislation. 
-                  From predicting economic effects to identifying unintended consequences, make 
-                  informed decisions backed by data and intelligence.
-                </p>
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-start">
-                    <CheckCircle className="w-5 h-5 text-[#3D63DD] mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-muted-foreground">
-                      Multi-model AI support for comprehensive analysis
-                    </span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="w-5 h-5 text-[#3D63DD] mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-muted-foreground">
-                      Predictive modeling for policy outcomes
-                    </span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="w-5 h-5 text-[#3D63DD] mt-0.5 mr-3 flex-shrink-0" />
-                    <span className="text-muted-foreground">
-                      Natural language processing for document analysis
-                    </span>
-                  </li>
-                </ul>
-                <Button 
-                  onClick={() => navigate('/playground')}
-                  className="bg-[#3D63DD] text-white hover:bg-[#2D53CD]"
-                >
-                  Try AI Analysis
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </div>
-              <div className="order-1 md:order-2">
-                <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-[#3D63DD]/10 to-[#5A7FDB]/10 p-2">
-                  <img
-                    src="/ai-content-disclaimer.png"
-                    alt="AI-powered policy analysis"
-                    className="rounded-lg w-full h-auto"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Mission Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30">
-        <div className="mx-auto max-w-4xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Mission</h2>
-            <p className="text-lg text-muted-foreground">
-              Empowering better governance through intelligent collaboration
-            </p>
-          </div>
-          
-          <Card className="p-8 sm:p-12">
-            <div className="prose prose-lg max-w-none text-center">
-              <p className="text-lg leading-relaxed text-muted-foreground">
-                Democracy works best when everyone can participate meaningfully in the policy-making process. 
-                Goodable bridges the gap between complex legislative work and public engagement, creating a 
-                platform where lawmakers, advocates, researchers, and citizens can collaborate effectively 
-                to solve our most pressing challenges.
+              <p>
+                I&apos;m passionate about clean code, thoughtful architecture,
+                and continuous learning. When I&apos;m not coding, you&apos;ll
+                find me hiking in the Bay Area, experimenting with new cooking
+                recipes, or mentoring upcoming developers.
               </p>
             </div>
-          </Card>
-        </div>
-      </section>
 
-      {/* Values Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Values</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              The principles that guide everything we build and every decision we make
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {values.map((value, index) => (
-              <Card key={index} className="p-6 h-full">
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-muted/50 hover:bg-muted transition-colors duration-200 rounded-lg flex items-center justify-center text-foreground mx-auto mb-4">
-                    {value.icon}
-                  </div>
-                  <h3 className="text-lg font-semibold mb-3">{value.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {value.description}
-                  </p>
-                </div>
-              </Card>
-            ))}
+            <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+              <Button className="gap-2" asChild>
+                <a href="#contact">
+                  Get in Touch
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+              </Button>
+              <Button variant="outline" className="gap-2" asChild>
+                <a href="#projects">
+                  View My Work
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </Button>
+            </div>
           </div>
         </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/20">
-        <div className="mx-auto max-w-7xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">What We Build</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Cutting-edge tools designed for the complexities of modern governance
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-8">
-            {features.map((feature, index) => (
-              <div key={index} className="flex items-start space-x-4">
-                <div className="w-10 h-10 bg-muted/50 hover:bg-muted transition-colors duration-200 rounded-lg flex items-center justify-center text-foreground flex-shrink-0">
-                  {feature.icon}
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {feature.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">By the Numbers</h2>
-            <p className="text-lg text-muted-foreground">
-              The impact we're making together
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-[#3D63DD] mb-2">
-                  {stat.number}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Team Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30">
-        <div className="mx-auto max-w-7xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Meet Our Team</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Experienced leaders from policy, technology, and academia working together 
-              to strengthen democratic institutions
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {team.map((member, index) => (
-              <Card key={index} className="p-6 text-center">
-                <img 
-                  src={member.image} 
-                  alt={member.name}
-                  className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
-                />
-                <h3 className="text-lg font-semibold mb-1">{member.name}</h3>
-                <p className="text-[#3D63DD] font-medium text-sm mb-3">{member.role}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  {member.background}
-                </p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to Join the Movement?
-          </h2>
-          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Whether you're a policymaker, advocate, researcher, or engaged citizen, 
-            there's a place for you in building better governance.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              onClick={() => navigate('/auth')}
-              className="bg-[#3D63DD] text-white hover:bg-[#2D53CD]"
-            >
-              Start Collaborating
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              onClick={() => navigate('/plans')}
-            >
-              View Pricing
-            </Button>
-          </div>
-        </div>
-      </section>
+      </div>
     </div>
   );
 };
