@@ -11,19 +11,19 @@ export default function FreeTrial() {
       {/* Header */}
       <ChatHeader />
 
-      {/* Block 1: Multi-Step CTA Hero */}
+      {/* Block 1: Hero Section with Content Tabs */}
       <div className="pt-14">
-        <MultiStepCTAHero />
+        <HeroSectionWithContentTabs />
       </div>
 
-      {/* Block 2: Hero Section with Content Tabs */}
-      <HeroSectionWithContentTabs />
-
-      {/* Block 3: Compact Metric List */}
+      {/* Block 2: Compact Metric List */}
       <CompactMetricList />
 
-      {/* Block 4: Hero Section with Feature Timeline */}
+      {/* Block 3: Hero Section with Feature Timeline */}
       <HeroSectionWithFeatureTimeline />
+
+      {/* Block 4: Multi-Step CTA Hero */}
+      <MultiStepCTAHero />
 
       {/* Block 5: Simple Footer */}
       <FooterSimple />
