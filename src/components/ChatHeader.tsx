@@ -60,37 +60,14 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 px-5 py-2 bg-background/80 backdrop-blur-sm">
       <div className="flex items-center justify-between">
-        {/* Left side - Heart Logo + New Chat Pencil */}
-        <div className="flex items-center space-x-1">
-          {/* Heart logo - triggers "What is Goodable?" */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleHeartClick}
-                className="w-8 h-8 bg-card border rounded-lg flex items-center justify-center hover:bg-muted transition-colors cursor-pointer"
-              >
-                <span className="text-lg">❤️</span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="font-medium">
-              What is Goodable?
-            </TooltipContent>
-          </Tooltip>
-
-          {/* Pencil icon - triggers new chat */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleNewChat}
-                className="w-8 h-8 flex items-center justify-center hover:bg-muted rounded-lg transition-colors cursor-pointer"
-              >
-                <PenSquare className="h-4 w-4 text-muted-foreground" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="font-medium">
-              New chat
-            </TooltipContent>
-          </Tooltip>
+        {/* Left side - Heart Logo + Goodable text */}
+        <div className="flex items-center space-x-3">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-card border rounded-lg flex items-center justify-center">
+              <span className="text-xl">❤️</span>
+            </div>
+            <span className="text-xl font-semibold">Goodable</span>
+          </Link>
         </div>
 
         {/* Center - Marketing Navigation (desktop only) */}

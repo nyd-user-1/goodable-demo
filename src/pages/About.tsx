@@ -22,13 +22,11 @@ const About = () => {
         <div className="container mx-auto px-4 2xl:max-w-[1400px]">
           <div className="flex h-14 items-center justify-between">
             {/* Left - Logo */}
-            <div className="flex items-center gap-2">
-              <Link to="/" className="flex items-center gap-2">
-                <img src="/goodable-heart-pwa.png" alt="Goodable" className="h-8 w-8" />
+            <div className="flex items-center gap-3">
+              <Link to="/" className="flex items-center gap-3">
+                <img src="/goodable-heart-pwa.png" alt="Goodable" className="h-10 w-10 rounded-lg" />
+                <span className="text-xl font-semibold">Goodable</span>
               </Link>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <ExternalLink className="h-4 w-4" />
-              </Button>
             </div>
 
             {/* Center - Navigation */}
