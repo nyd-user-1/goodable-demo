@@ -126,11 +126,11 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
             onMouseEnter={() => setUseCasesOpen(true)}
             onMouseLeave={() => setUseCasesOpen(false)}
           >
-            <DropdownMenu open={useCasesOpen} onOpenChange={setUseCasesOpen}>
+            <DropdownMenu open={useCasesOpen} onOpenChange={setUseCasesOpen} modal={false}>
               <DropdownMenuTrigger className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none">
                 Use Cases
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="min-w-[160px]">
+              <DropdownMenuContent align="start" sideOffset={4} className="min-w-[160px]">
                 {dropdownPlaceholders.map((item) => (
                   <DropdownMenuItem key={item.label} asChild>
                     <Link to={item.href}>{item.label}</Link>
@@ -145,11 +145,11 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
             onMouseEnter={() => setNonProfitsOpen(true)}
             onMouseLeave={() => setNonProfitsOpen(false)}
           >
-            <DropdownMenu open={nonProfitsOpen} onOpenChange={setNonProfitsOpen}>
+            <DropdownMenu open={nonProfitsOpen} onOpenChange={setNonProfitsOpen} modal={false}>
               <DropdownMenuTrigger className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none">
                 Non Profits
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="min-w-[160px]">
+              <DropdownMenuContent align="start" sideOffset={4} className="min-w-[160px]">
                 {dropdownPlaceholders.map((item) => (
                   <DropdownMenuItem key={item.label} asChild>
                     <Link to={item.href}>{item.label}</Link>

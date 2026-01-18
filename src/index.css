@@ -202,6 +202,11 @@
     @apply border-border;
   }
 
+  html {
+    /* Prevent layout shift when scrollbar appears/disappears */
+    scrollbar-gutter: stable;
+  }
+
   body {
     @apply bg-background text-foreground;
   }
