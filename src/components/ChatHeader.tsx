@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Command, PenSquare } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import confetti from "canvas-confetti";
 import {
   Tooltip,
@@ -46,12 +46,18 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [useCasesOpen, setUseCasesOpen] = useState(false);
   const [nonProfitsOpen, setNonProfitsOpen] = useState(false);
 
   const handleNewChat = () => {
-    // Always navigate to root for new chat
+    // If already on root, force a page reload to reset chat state
+    if (location.pathname === '/') {
+      window.location.href = '/';
+      return;
+    }
+    // Otherwise navigate to root
     navigate('/');
   };
 
