@@ -30,7 +30,6 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
   const navigate = useNavigate();
-  const [featuresOpen, setFeaturesOpen] = useState(false);
   const [useCasesOpen, setUseCasesOpen] = useState(false);
   const [nonProfitsOpen, setNonProfitsOpen] = useState(false);
 
@@ -112,24 +111,13 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
             Academy
           </Link>
 
-          {/* Features - dropdown */}
-          <div
-            onMouseEnter={() => setFeaturesOpen(true)}
-            onMouseLeave={() => setFeaturesOpen(false)}
+          {/* Features - simple link */}
+          <Link
+            to="/features"
+            className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
           >
-            <DropdownMenu open={featuresOpen} onOpenChange={setFeaturesOpen}>
-              <DropdownMenuTrigger className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none">
-                Features
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="min-w-[160px]">
-                {dropdownPlaceholders.map((item) => (
-                  <DropdownMenuItem key={item.label} asChild>
-                    <Link to={item.href}>{item.label}</Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+            Features
+          </Link>
 
           {/* Free Trial - simple link */}
           <Link

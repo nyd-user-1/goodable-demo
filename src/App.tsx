@@ -135,7 +135,7 @@ const App = () => {
               <PageTransition>
                 <Routes>
             <Route path="/" element={<NewChat />} />                  <Route path="/alt" element={<Landing />} />
-                              <Route path="/marketing" element={<LandingPageWaitlist />} />
+                              <Route path="/features" element={<LandingPageWaitlist />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/auth-2" element={<Auth2 />} />
                   <Route path="/free-trial" element={<FreeTrial />} />
