@@ -34,12 +34,8 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
   const [nonProfitsOpen, setNonProfitsOpen] = useState(false);
 
   const handleNewChat = () => {
-    if (onNewChat) {
-      onNewChat();
-    } else {
-      // Fallback: refresh the page to start new chat
-      window.location.reload();
-    }
+    // Always navigate to root for new chat
+    navigate('/');
   };
 
   const handleHeartClick = () => {
@@ -51,10 +47,8 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
       colors: ['#ff6b6b', '#ff8e8e', '#ffb3b3', '#ffd4d4', '#3D63DD'],
     });
 
-    // Trigger the "What is Goodable.dev?" prompt
-    if (onWhatIsGoodable) {
-      onWhatIsGoodable();
-    }
+    // Navigate to root with prompt to trigger "What is Goodable?" chat
+    navigate('/?prompt=What%20is%20Goodable%3F');
   };
 
   return (
@@ -67,7 +61,7 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
             <TooltipTrigger asChild>
               <button
                 onClick={handleHeartClick}
-                className="w-8 h-8 bg-card border rounded-lg flex items-center justify-center hover:bg-muted transition-colors cursor-pointer"
+                className="w-8 h-8 flex items-center justify-center hover:bg-muted rounded-lg transition-colors cursor-pointer"
               >
                 <span className="text-lg">❤️</span>
               </button>
