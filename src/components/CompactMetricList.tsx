@@ -10,9 +10,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ArrowRight, FileText, ExternalLink, Loader2, Menu, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ExternalLink, Loader2, Menu, RefreshCw, ChevronLeft, ChevronRight, ScrollText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { BillPDFSheet } from "@/components/features/bills/BillPDFSheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface LegislativeBill {
   id: string;
@@ -48,6 +54,8 @@ export default function CompactMetricList() {
   const [bills, setBills] = useState<Record<string, LegislativeBill[]>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [lastUpdated, setLastUpdated] = useState<string>('');
+  const [pdfSheetOpen, setPdfSheetOpen] = useState(false);
+  const [selectedBill, setSelectedBill] = useState<LegislativeBill | null>(null);
 
   // Build cache key from filters and page
   const getCacheKey = (chamberVal: string, statusVal: string, pageNum: number) => `${chamberVal}-${statusVal}-${pageNum}`;
@@ -96,7 +104,9 @@ export default function CompactMetricList() {
       const fullLink = link.startsWith('/') ? `https://legiscan.com${link}` : link;
 
       // Extract status from second cell
-      const statusText = cells[1]?.textContent?.trim() || '';
+      let statusText = cells[1]?.textContent?.trim() || '';
+      // Ensure space between letters and numbers (e.g., "Intro25%" → "Intro 25%")
+      statusText = statusText.replace(/([a-zA-Z])(\d)/g, '$1 $2');
 
       // Extract title/summary from third cell
       const titleCell = cells[2];
@@ -118,20 +128,23 @@ export default function CompactMetricList() {
       // Extract last action date from fourth cell
       const lastActionCell = cells[3];
       const dateText = lastActionCell?.textContent?.trim() || '';
-      // Parse date - format is "2026-01-16\nTo Committee"
-      const dateParts = dateText.split('\n');
-      const rawDate = dateParts[0]?.trim() || '';
-      const lastAction = dateParts.slice(1).join(' ').trim() || 'To Committee';
 
-      // Format the date
+      // Extract date (YYYY-MM-DD format) from the beginning of the text
+      const dateMatch = dateText.match(/^(\d{4}-\d{2}-\d{2})/);
+      let rawDate = '';
+      let lastAction = dateText;
+
+      if (dateMatch) {
+        rawDate = dateMatch[1];
+        // Get everything after the date as the action text
+        lastAction = dateText.substring(rawDate.length).trim() || 'To Committee';
+      }
+
+      // Format the date as MM-DD-YYYY
       let formattedDate = rawDate;
-      if (rawDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-        const date = new Date(rawDate + 'T00:00:00');
-        formattedDate = date.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
-        });
+      if (rawDate) {
+        const [year, month, day] = rawDate.split('-');
+        formattedDate = `${month}-${day}-${year}`;
       }
 
       if (billNumber) {
@@ -502,9 +515,22 @@ export default function CompactMetricList() {
                         className="hover:bg-muted/50 flex items-start justify-between gap-4 px-4 py-4 transition-colors md:px-6"
                       >
                         <div className="flex items-start space-x-3 md:space-x-4 flex-1 min-w-0">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600 flex-shrink-0">
-                            <FileText className="h-4 w-4" />
-                          </div>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 flex-shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
+                                onClick={() => {
+                                  setSelectedBill(bill);
+                                  setPdfSheetOpen(true);
+                                }}
+                              >
+                                <ScrollText className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>View bill</TooltipContent>
+                          </Tooltip>
 
                           <div className="flex flex-col min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
@@ -563,6 +589,14 @@ export default function CompactMetricList() {
           </Button>
         </div>
       </div>
+
+      {/* PDF Sheet */}
+      <BillPDFSheet
+        isOpen={pdfSheetOpen}
+        onClose={() => setPdfSheetOpen(false)}
+        billNumber={selectedBill?.billNumber || ''}
+        billTitle={selectedBill?.title}
+      />
     </section>
   );
 }
