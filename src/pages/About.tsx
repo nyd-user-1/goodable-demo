@@ -23,7 +23,7 @@ const About = () => {
           {/* Essay Content */}
           <article className="prose prose-lg dark:prose-invert max-w-none">
             <section className="mb-10">
-              <h2 className="text-2xl font-semibold mb-4">A Different Kind of Technology Company</h2>
+              <h2 className="text-2xl font-semibold mb-4">We're all heart.</h2>
               <p>
                 Goodable.dev began with a simple observation: the tools we use to participate in democracy haven't kept pace with the complexity of the challenges we face. While technology has transformed how we shop, communicate, and work, the fundamental processes of civic engagement remain largely unchanged from a century ago. Bills are still written in impenetrable legal language. Committee hearings happen during work hours when most people can't attend. The gap between citizens and their representatives grows wider each year.
               </p>
