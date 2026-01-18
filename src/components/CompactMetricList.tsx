@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ArrowRight, ExternalLink, Loader2, Menu, RefreshCw, ChevronLeft, ChevronRight, ScrollText } from "lucide-react";
+import { ArrowRight, Loader2, Menu, RefreshCw, ChevronLeft, ChevronRight, ScrollText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { BillPDFSheet } from "@/components/features/bills/BillPDFSheet";
@@ -514,13 +514,35 @@ export default function CompactMetricList() {
                         key={bill.id}
                         className="hover:bg-muted/50 flex items-start justify-between gap-4 px-4 py-4 transition-colors md:px-6"
                       >
-                        <div className="flex items-start space-x-3 md:space-x-4 flex-1 min-w-0">
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-semibold text-blue-600">
+                              {bill.billNumber}
+                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              {bill.status}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-foreground mt-1 line-clamp-2">
+                            {bill.title}
+                          </p>
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 mt-1">
+                            <span className="text-muted-foreground text-xs">
+                              {bill.lastAction}
+                            </span>
+                            <span className="text-muted-foreground text-xs">
+                              {bill.lastActionDate}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex-shrink-0">
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 flex-shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
+                                className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
                                 onClick={() => {
                                   setSelectedBill(bill);
                                   setPdfSheetOpen(true);
@@ -531,37 +553,6 @@ export default function CompactMetricList() {
                             </TooltipTrigger>
                             <TooltipContent>View bill</TooltipContent>
                           </Tooltip>
-
-                          <div className="flex flex-col min-w-0 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-sm font-semibold text-blue-600">
-                                {bill.billNumber}
-                              </span>
-                              <Badge variant="outline" className="text-xs">
-                                {bill.status}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-foreground mt-1 line-clamp-2">
-                              {bill.title}
-                            </p>
-                            <span className="text-muted-foreground text-xs mt-1">
-                              {bill.lastAction}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col items-end flex-shrink-0">
-                          <span className="text-sm font-medium">{bill.lastActionDate}</span>
-                          {bill.link && bill.link !== '#' && (
-                            <a
-                              href={bill.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-800 mt-1"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                            </a>
-                          )}
                         </div>
                       </div>
                     ))}
