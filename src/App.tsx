@@ -52,6 +52,9 @@ import UseCasesCommittees from "./pages/UseCasesCommittees";
 import UseCasesMembers from "./pages/UseCasesMembers";
 import UseCasesPolicy from "./pages/UseCasesPolicy";
 import NonprofitEconomicAdvocacy from "./pages/NonprofitEconomicAdvocacy";
+import NonprofitEnvironmentalAdvocacy from "./pages/NonprofitEnvironmentalAdvocacy";
+import NonprofitLegalAdvocacy from "./pages/NonprofitLegalAdvocacy";
+import NonprofitSocialAdvocacy from "./pages/NonprofitSocialAdvocacy";
 import PublicPolicy from "./pages/PublicPolicy";
 import StyleGuide from "./pages/StyleGuide";
 import ImageSystem from "./pages/ImageSystem";
@@ -154,6 +157,9 @@ const App = () => {
                   <Route path="/use-cases/members" element={<UseCasesMembers />} />
                   <Route path="/use-cases/policy" element={<UseCasesPolicy />} />
                   <Route path="/nonprofits/economic-advocacy" element={<NonprofitEconomicAdvocacy />} />
+                  <Route path="/nonprofits/environmental-advocacy" element={<NonprofitEnvironmentalAdvocacy />} />
+                  <Route path="/nonprofits/legal-advocacy" element={<NonprofitLegalAdvocacy />} />
+                  <Route path="/nonprofits/social-advocacy" element={<NonprofitSocialAdvocacy />} />
                   <Route path="/problems/:problemSlug" element={<ProblemPage />} />
                   <Route path="*" element={<AppLayout />} />
                 </Routes>
