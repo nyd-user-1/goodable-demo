@@ -46,12 +46,11 @@ const Committees2 = () => {
 
   // Generate a prompt for a committee
   const generatePrompt = (committee: Committee): string => {
-    const name = committee.committee_name || 'this committee';
-    const chamber = committee.chamber ? ` in the ${committee.chamber}` : '';
+    const chamberPrefix = committee.chamber === 'Senate' ? 'Senate ' : committee.chamber === 'Assembly' ? 'Assembly ' : '';
+    const name = `${chamberPrefix}${committee.committee_name || 'Committee'}`;
     const chair = committee.chair_name ? ` chaired by ${committee.chair_name}` : '';
-    const bills = committee.active_bills_count ? ` with ${committee.active_bills_count} active bills` : '';
 
-    return `Tell me about the ${name}${chamber}${chair}${bills}. What legislation does this committee handle and what should I know about it?`;
+    return `Tell me about the ${name}${chair}. What legislation does this committee handle and what should I know about it?`;
   };
 
   const handleCommitteeClick = (committee: Committee) => {
@@ -139,9 +138,9 @@ const Committees2 = () => {
             <p className="text-destructive">Error loading committees: {String(error)}</p>
           </div>
         ) : isLoading ? (
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="break-inside-avoid h-32 bg-muted/30 rounded-2xl animate-pulse" />
+              <div key={i} className="h-32 bg-muted/30 rounded-2xl animate-pulse" />
             ))}
           </div>
         ) : committees.length === 0 ? (
@@ -155,7 +154,7 @@ const Committees2 = () => {
             )}
           </div>
         ) : (
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {committees.map((committee) => (
               <CommitteeCard
                 key={committee.committee_id}
@@ -180,11 +179,12 @@ function CommitteeCard({ committee, onClick }: CommitteeCardProps) {
   const chamber = committee.chamber;
   const chair = committee.chair_name;
 
+  // Build committee name with chamber prefix
+  const chamberPrefix = chamber === 'Senate' ? 'Senate ' : chamber === 'Assembly' ? 'Assembly ' : '';
+  const fullCommitteeName = `${chamberPrefix}${committee.committee_name || 'Unknown Committee'}`;
+
   // Build the prompt preview text
   let promptText = `Tell me about this committee`;
-  if (chamber) {
-    promptText += ` in the ${chamber}`;
-  }
   if (chair) {
     promptText += ` chaired by ${chair}`;
   }
@@ -193,10 +193,10 @@ function CommitteeCard({ committee, onClick }: CommitteeCardProps) {
   return (
     <div
       onClick={onClick}
-      className="group break-inside-avoid bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
+      className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
     >
       <h3 className="font-semibold text-base mb-3">
-        {committee.committee_name || 'Unknown Committee'}
+        {fullCommitteeName}
       </h3>
       <p className="text-sm text-muted-foreground leading-relaxed">
         {promptText}
@@ -222,12 +222,6 @@ function CommitteeCard({ committee, onClick }: CommitteeCardProps) {
             <div>
               <span className="text-muted-foreground">Members</span>
               <p className="font-medium">{committee.member_count}</p>
-            </div>
-          )}
-          {committee.active_bills_count && (
-            <div>
-              <span className="text-muted-foreground">Active Bills</span>
-              <p className="font-medium">{committee.active_bills_count}</p>
             </div>
           )}
           {committee.meeting_schedule && (
