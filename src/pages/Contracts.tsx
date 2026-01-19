@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, X, Building2, FileText, Filter, Calendar } from 'lucide-react';
+import { Search, X, Building2, FileText, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +21,7 @@ const Contracts = () => {
   const {
     contracts,
     allContracts,
+    totalCount,
     isLoading,
     error,
     departments,
@@ -72,7 +73,7 @@ const Contracts = () => {
                 <p className="text-sm text-muted-foreground">
                   {isLoading
                     ? 'Loading...'
-                    : `${contracts.length.toLocaleString()} of ${allContracts.length.toLocaleString()} contracts`
+                    : `Showing ${contracts.length.toLocaleString()} of ${totalCount.toLocaleString()} contracts`
                   }
                 </p>
               </div>
@@ -270,17 +271,19 @@ function ContractRow({ contract, isSelected, onClick }: ContractRowProps) {
             </p>
           )}
         </div>
-        <div className="text-right shrink-0">
+        <div className="text-right shrink-0 space-y-0.5">
           <p className="font-semibold">
             {formatCurrency(contract.current_contract_amount)}
           </p>
           <p className="text-xs text-muted-foreground">
             {contract.contract_number}
           </p>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-            <Calendar className="h-3 w-3" />
-            {formatContractDate(contract.contract_start_date)}
-          </div>
+          <p className="text-xs text-muted-foreground">
+            Start: {formatContractDate(contract.contract_start_date)}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            End: {formatContractDate(contract.contract_end_date)}
+          </p>
         </div>
       </div>
     </button>

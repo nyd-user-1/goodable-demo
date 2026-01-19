@@ -9,40 +9,43 @@ export function useContractsSearch() {
   const [contractTypeFilter, setContractTypeFilter] = useState('');
 
   // Fetch contracts with a reasonable limit for performance
-  const { data: allContracts, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['contracts-all'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from('Contracts')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('current_contract_amount', { ascending: false, nullsFirst: false })
-        .limit(5000); // Limit to 5000 for performance
+        .limit(1000); // Show top 1000 by amount
 
       if (error) throw error;
 
-      return data as Contract[];
+      return { contracts: data as Contract[], totalCount: count || 0 };
     },
     staleTime: 10 * 60 * 1000, // Cache for 10 minutes
     gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
   });
 
+  const allContracts = data?.contracts || [];
+  const totalCount = data?.totalCount || 0;
+
   // Extract unique departments
   const departments = useMemo(() => {
-    if (!allContracts) return [];
+    if (!allContracts.length) return [];
     const depts = [...new Set(allContracts.map(c => c.department_facility).filter(Boolean))];
     return depts.sort() as string[];
   }, [allContracts]);
 
   // Extract unique contract types
   const contractTypes = useMemo(() => {
-    if (!allContracts) return [];
+    if (!allContracts.length) return [];
     const types = [...new Set(allContracts.map(c => c.contract_type).filter(Boolean))];
     return types.sort() as string[];
   }, [allContracts]);
 
   // Client-side filtering - super fast
   const filteredContracts = useMemo(() => {
-    if (!allContracts) return [];
+    if (!allContracts.length) return [];
 
     let results = allContracts;
 
@@ -73,7 +76,8 @@ export function useContractsSearch() {
 
   return {
     contracts: filteredContracts,
-    allContracts: allContracts || [],
+    allContracts,
+    totalCount,
     isLoading,
     error,
     departments,
