@@ -1,105 +1,80 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { MessageSquare, MousePointerClick, Mail, FileText, ThumbsUp, Users, PenTool, Lightbulb, Rss, Quote, Search, Bookmark } from "lucide-react";
 
 export default function HeroSectionWithFeatureTimeline() {
   const milestones = [
     {
-      date: "Research",
+      category: "Research",
       title: "AI-Powered Chat with Streaming",
       description:
         "Get instant analysis of bills, legislators, and committees with word-by-word streaming responses. Context-aware AI that understands legislative nuance.",
-      status: "Released",
-      icon: <MessageSquare className="h-5 w-5 text-foreground" />,
     },
     {
-      date: "Research",
+      category: "Research",
       title: '"Ask Goodable" Text Selection',
       description:
         "Select any text on the page and instantly ask our AI about it. Removes friction from research by enabling contextual questions without switching screens.",
-      status: "Released",
-      icon: <MousePointerClick className="h-5 w-5 text-foreground" />,
     },
     {
-      date: "Research",
+      category: "Research",
       title: "Embedded Bill PDF Viewer",
       description:
         "View official NYS Legislature documents in a resizable side panel without leaving the app. Includes Quick Review buttons and direct download options.",
-      status: "Released",
-      icon: <FileText className="h-5 w-5 text-foreground" />,
     },
     {
-      date: "Track",
+      category: "Track",
       title: "Quick Review System",
       description:
         "One-click Support, Oppose, or Neutral tracking with personal notes on any bill. Democratizes advocacy tracking by making it frictionless to record positions.",
-      status: "Released",
-      icon: <ThumbsUp className="h-5 w-5 text-foreground" />,
     },
     {
-      date: "Track",
+      category: "Track",
       title: "Live Policy Feed",
       description:
         "Real-time legislative activity with source credibility indicators, expandable summaries, and direct links to official NYS Open Legislation pages.",
-      status: "Released",
-      icon: <Rss className="h-5 w-5 text-foreground" />,
     },
     {
-      date: "Act",
+      category: "Act",
       title: "Direct Email Advocacy",
       description:
         "Send AI-generated support or opposition letters to bill sponsors with one click. CC all co-sponsors and customize before sending. Research to action, seamlessly.",
-      status: "Released",
-      icon: <Mail className="h-5 w-5 text-foreground" />,
     },
     {
-      date: "Act",
+      category: "Act",
       title: "Problem-to-Policy Pipeline",
       description:
         "Multi-stage wizard that guides you from real-world problems to structured policy solutions. AI-assisted advocacy strategy development built in.",
-      status: "Released",
-      icon: <Lightbulb className="h-5 w-5 text-foreground" />,
     },
     {
-      date: "Collaborate",
+      category: "Collaborate",
       title: "Co-Authorship System",
       description:
         "Invite-based multi-user legislative drafting with role-based permissions. Transform individual research into collaborative policy development.",
-      status: "Released",
-      icon: <Users className="h-5 w-5 text-foreground" />,
     },
     {
-      date: "Collaborate",
+      category: "Collaborate",
       title: "Solutions Whiteboard",
       description:
         "Canvas-based collaborative drawing tool with policy templates including Stakeholder Maps, Policy Frameworks, and Impact Analysis diagrams.",
-      status: "Released",
-      icon: <PenTool className="h-5 w-5 text-foreground" />,
     },
     {
-      date: "Discover",
+      category: "Discover",
       title: "Citation Management",
       description:
         "Numbered citations with inline links, expandable accordion views, and organized reference management. Turn research into documented, shareable insights.",
-      status: "Released",
-      icon: <Quote className="h-5 w-5 text-foreground" />,
     },
     {
-      date: "Discover",
+      category: "Discover",
       title: "Excerpt Creation",
       description:
         "One-click saving of AI insights as shareable, citable excerpts. Export to PDF or copy to clipboard for easy sharing with colleagues and stakeholders.",
-      status: "Released",
-      icon: <Bookmark className="h-5 w-5 text-foreground" />,
     },
     {
-      date: "Discover",
+      category: "Discover",
       title: "Curated Use Cases",
       description:
         "Expert-sourced prompts from policy practitioners, government administrators, and civic technologists. High-quality starting points for any research need.",
-      status: "Released",
-      icon: <Search className="h-5 w-5 text-foreground" />,
     },
   ];
 
@@ -150,36 +125,24 @@ export default function HeroSectionWithFeatureTimeline() {
                     {/* Timeline line */}
                     {index !== milestones.length - 1 && (
                       <div
-                        className="absolute left-6 top-12 h-full w-0.5 bg-foreground"
+                        className="absolute left-8 top-16 h-full w-0.5 bg-foreground"
                       ></div>
                     )}
 
-                    <Card className="relative flex gap-6 p-6 hover:shadow-lg transition-all duration-300">
-                      {/* Icon */}
-                      <div
-                        className="w-12 h-12 rounded-full flex items-center justify-center bg-muted"
-                      >
-                        {milestone.icon}
+                    <Card className="relative p-6 hover:shadow-lg transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Badge
+                          className="bg-foreground text-background hover:bg-foreground/90"
+                        >
+                          {milestone.category}
+                        </Badge>
                       </div>
-
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Badge
-                            className="bg-foreground text-background hover:bg-foreground/90"
-                          >
-                            {milestone.status}
-                          </Badge>
-                          <div className="text-sm text-muted-foreground">
-                            {milestone.date}
-                          </div>
-                        </div>
-                        <h3 className="font-semibold mb-2">
-                          {milestone.title}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {milestone.description}
-                        </p>
-                      </div>
+                      <h3 className="font-semibold mb-2">
+                        {milestone.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {milestone.description}
+                      </p>
                     </Card>
                   </div>
                 ))}
