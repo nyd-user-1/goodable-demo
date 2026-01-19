@@ -51,7 +51,7 @@ const DigitalBillOfRights = () => {
                       <span className="text-xl font-semibold">1</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">The Right to Digital Privacy</h3>
+                      <h3 className="text-xl font-semibold mb-2 mt-0">The Right to Digital Privacy</h3>
                       <p className="text-muted-foreground m-0">
                         People must have control over their data. Personal information cannot be collected, shared, or monetized without explicit consent. Your digital life belongs to you—not to corporations, not to advertisers, not to data brokers. You have the right to know what data is collected about you, to access that data, to correct it, and to delete it.
                       </p>
@@ -66,7 +66,7 @@ const DigitalBillOfRights = () => {
                       <span className="text-xl font-semibold">2</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">The Right to Digital Well-Being</h3>
+                      <h3 className="text-xl font-semibold mb-2 mt-0">The Right to Digital Well-Being</h3>
                       <p className="text-muted-foreground m-0">
                         Individuals must be able to live free from digital overstimulation, endless notifications, and algorithmic addiction. Technology should serve your goals, not hijack your attention for profit. You have the right to technology that respects your time, your focus, and your mental health.
                       </p>
@@ -81,7 +81,7 @@ const DigitalBillOfRights = () => {
                       <span className="text-xl font-semibold">3</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">The Right to Digital Security</h3>
+                      <h3 className="text-xl font-semibold mb-2 mt-0">The Right to Digital Security</h3>
                       <p className="text-muted-foreground m-0">
                         Every person has the right to a secure digital environment, free from hacking, identity theft, and AI-driven exploitation. Your digital identity deserves the same protection as your physical safety. Technology providers have a duty to protect you from malicious actors.
                       </p>
@@ -96,7 +96,7 @@ const DigitalBillOfRights = () => {
                       <span className="text-xl font-semibold">4</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">The Right to Human-Centered AI</h3>
+                      <h3 className="text-xl font-semibold mb-2 mt-0">The Right to Human-Centered AI</h3>
                       <p className="text-muted-foreground m-0">
                         AI must enhance human potential—not replace workers, reinforce bias, or make life-altering decisions without oversight. Artificial intelligence should be a tool that empowers people, not a system that controls them. You have the right to understand how AI affects your life and to challenge decisions made by algorithms.
                       </p>
@@ -111,7 +111,7 @@ const DigitalBillOfRights = () => {
                       <span className="text-xl font-semibold">5</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">The Right to a Humane Digital Childhood</h3>
+                      <h3 className="text-xl font-semibold mb-2 mt-0">The Right to a Humane Digital Childhood</h3>
                       <p className="text-muted-foreground m-0">
                         Children must be protected from predatory algorithms, invasive data collection, and engagement-driven exploitation. Every child deserves to grow up without being targeted by systems designed to maximize screen time, harvest their data, or manipulate their developing minds for profit.
                       </p>
@@ -136,7 +136,7 @@ const DigitalBillOfRights = () => {
                       <span className="text-xl font-semibold">6</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Freedom of Access</h3>
+                      <h3 className="text-xl font-semibold mb-2 mt-0">Freedom of Access</h3>
                       <p className="text-muted-foreground m-0">
                         The internet must be open, affordable, and accessible to all, free from corporate gatekeeping or government-imposed restrictions. Digital participation has become essential for full participation in modern society. No one should be excluded from the digital commons by poverty, geography, or arbitrary barriers.
                       </p>
@@ -151,7 +151,7 @@ const DigitalBillOfRights = () => {
                       <span className="text-xl font-semibold">7</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Freedom of Expression & Knowledge</h3>
+                      <h3 className="text-xl font-semibold mb-2 mt-0">Freedom of Expression & Knowledge</h3>
                       <p className="text-muted-foreground m-0">
                         People have the right to communicate, create, and access information without undue censorship or manipulation. The free exchange of ideas is the foundation of democracy and human progress. This freedom includes both the right to speak and the right to access the speech of others.
                       </p>
@@ -166,7 +166,7 @@ const DigitalBillOfRights = () => {
                       <span className="text-xl font-semibold">8</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Freedom from Exploitation</h3>
+                      <h3 className="text-xl font-semibold mb-2 mt-0">Freedom from Exploitation</h3>
                       <p className="text-muted-foreground m-0">
                         No one should be subjected to mass surveillance, data harvesting, or algorithmic manipulation designed to mislead or exploit. Your attention, your data, and your choices are not raw materials to be extracted for others' profit. Freedom means being free from systems designed to exploit human psychology for commercial gain.
                       </p>
@@ -181,7 +181,7 @@ const DigitalBillOfRights = () => {
                       <span className="text-xl font-semibold">9</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Freedom from Digital Tyranny</h3>
+                      <h3 className="text-xl font-semibold mb-2 mt-0">Freedom from Digital Tyranny</h3>
                       <p className="text-muted-foreground m-0">
                         No person should be subject to cyber warfare, disinformation campaigns, or exclusion from digital spaces essential for participation in society. The digital realm must not become a tool of oppression—whether by governments, corporations, or malicious actors. Democracy requires a digital environment where truth can compete and citizens can participate.
                       </p>
@@ -196,7 +196,7 @@ const DigitalBillOfRights = () => {
                       <span className="text-xl font-semibold">10</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Freedom from Digital Dependency</h3>
+                      <h3 className="text-xl font-semibold mb-2 mt-0">Freedom from Digital Dependency</h3>
                       <p className="text-muted-foreground m-0">
                         Technology must not be designed to manipulate, distract, or foster addiction. Individuals must have the ability to disconnect without penalty. True freedom includes the freedom to step away—to live a full human life that isn't mediated by screens and algorithms. No one should be punished for choosing to be offline.
                       </p>
