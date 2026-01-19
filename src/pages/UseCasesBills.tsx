@@ -1,4 +1,5 @@
 import { ChatHeader } from '@/components/ChatHeader';
+import { UseCasesTabs } from '@/components/UseCasesTabs';
 import FooterSimple from '@/components/marketing/FooterSimple';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUp } from 'lucide-react';
@@ -112,6 +113,10 @@ const UseCasesBills = () => {
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
               Chats for legislative research
             </h1>
+
+            {/* Tab Navigation */}
+            <UseCasesTabs />
+
             <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-4">
               Seasoned public policy experts shared issues from their own experience.
             </p>
