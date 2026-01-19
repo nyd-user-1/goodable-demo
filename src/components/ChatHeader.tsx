@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { Command, PenSquare } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import confetti from "canvas-confetti";
@@ -205,17 +204,6 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
 
         {/* Right side - Controls */}
         <div className="flex items-center gap-2">
-          {/* Theme toggle - hidden on mobile */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="hidden md:block">
-                <ThemeToggle />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              Toggle theme
-            </TooltipContent>
-          </Tooltip>
           {/* Command menu - desktop only */}
           <Tooltip>
             <TooltipTrigger asChild>
@@ -238,12 +226,19 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
               Command menu
             </TooltipContent>
           </Tooltip>
-          {/* Log In button - routes to auth-2 (sign up page with login link) */}
+          {/* Log In button - routes to /auth */}
+          <button
+            className="inline-flex items-center justify-center h-9 rounded-md px-3 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-medium"
+            onClick={() => navigate('/auth')}
+          >
+            Log In
+          </button>
+          {/* Sign Up button - routes to /auth-2 */}
           <button
             className="inline-flex items-center justify-center h-9 rounded-md px-3 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-medium"
             onClick={() => navigate('/auth-2')}
           >
-            Log In
+            Sign Up
           </button>
         </div>
       </div>
