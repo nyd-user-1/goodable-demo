@@ -75,11 +75,11 @@ const Committees2 = () => {
     navigate(`/committees/${slug}`);
   };
 
-  // Navigate to new chat with prompt
+  // Navigate to new chat with prompt and committee_id
   const handleChatClick = (committee: Committee, e: React.MouseEvent) => {
     e.stopPropagation();
     const prompt = generatePrompt(committee);
-    navigate(`/new-chat?prompt=${encodeURIComponent(prompt)}`);
+    navigate(`/new-chat?prompt=${encodeURIComponent(prompt)}&committeeId=${committee.committee_id}`);
   };
 
   const clearFilters = () => {

@@ -11,3 +11,4 @@ export { CommitteeBillsTable } from './CommitteeBillsTable';
 export { CommitteeBillsTableFull } from './CommitteeBillsTableFull';
 export { CommitteeMembersTable } from './CommitteeMembersTable';
 export { CommitteeVotesTable } from './CommitteeVotesTable';
+export { CommitteeNoteDialog } from './CommitteeNoteDialog';
