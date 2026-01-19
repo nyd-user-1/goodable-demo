@@ -66,7 +66,18 @@ const Chats2 = () => {
 
   // Filter chats based on search and type
   const filteredChats = chatSessions.filter((session) => {
-    const matchesSearch = session.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchLower = searchTerm.toLowerCase();
+
+    // Search in title
+    const matchesTitle = session.title.toLowerCase().includes(searchLower);
+
+    // Search in all message content (both user and assistant messages)
+    const messages = session.messages as unknown as Array<{ role: string; content: string }>;
+    const matchesContent = searchTerm && Array.isArray(messages) && messages.some(
+      msg => msg.content?.toLowerCase().includes(searchLower)
+    );
+
+    const matchesSearch = !searchTerm || matchesTitle || matchesContent;
     const chatType = getChatType(session);
     const matchesType = typeFilter === 'all' || chatType === typeFilter;
     return matchesSearch && matchesType;
@@ -138,7 +149,7 @@ const Chats2 = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 ref={searchInputRef}
-                placeholder="Search chats by title... (press / to focus)"
+                placeholder="Search chats by title or content... (press / to focus)"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 h-12 text-base"
