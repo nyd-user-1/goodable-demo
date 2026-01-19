@@ -12,7 +12,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowLeft, User, StickyNote, Pencil, Plus, Trash2, MessageSquare, ExternalLink } from "lucide-react";
+import { ArrowLeft, User, Pencil, Plus, Trash2, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { BillSummary, BillKeyInformation, QuickReviewNoteDialog } from "./features/bills";
@@ -299,8 +299,7 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
             <CardHeader className="px-6 py-4 border-b">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                    <StickyNote className="h-5 w-5 text-yellow-600" />
+                  <CardTitle className="text-lg font-semibold">
                     Your Notes
                   </CardTitle>
                   {notes.length > 0 && (
@@ -376,8 +375,7 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
             <CardHeader className="px-6 py-4 border-b">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5 text-blue-600" />
+                  <CardTitle className="text-lg font-semibold">
                     Bill Chats
                   </CardTitle>
                   {billChats.length > 0 && (

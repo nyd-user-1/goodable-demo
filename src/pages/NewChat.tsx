@@ -683,13 +683,17 @@ const NewChat = () => {
         ? userQuery.substring(0, 50) + '...'
         : userQuery;
 
+      // Check for billId in URL params to link chat to a bill
+      const billIdParam = searchParams.get('billId');
+      const context = billIdParam ? { bill_id: parseInt(billIdParam, 10) } : undefined;
+
       sessionId = await createSession(title, [{
         id: userMessage.id,
         role: userMessage.role,
         content: userMessage.content,
         timestamp: new Date().toISOString(),
-      }]);
-      console.log('[NewChat] Created new session:', sessionId);
+      }], context);
+      console.log('[NewChat] Created new session:', sessionId, 'with bill_id:', billIdParam);
 
       // Update URL to include session ID (like ChatGPT's /c/id pattern)
       if (sessionId) {

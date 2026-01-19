@@ -75,11 +75,11 @@ const Bills2 = () => {
     navigate(`/bills/${bill.bill_number}`);
   };
 
-  // Navigate to new chat with prompt
+  // Navigate to new chat with prompt and bill_id
   const handleChatClick = (bill: Bill, e: React.MouseEvent) => {
     e.stopPropagation();
     const prompt = generatePrompt(bill);
-    navigate(`/new-chat?prompt=${encodeURIComponent(prompt)}`);
+    navigate(`/new-chat?prompt=${encodeURIComponent(prompt)}&billId=${bill.bill_id}`);
   };
 
   const clearFilters = () => {
