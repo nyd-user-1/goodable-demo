@@ -71,6 +71,7 @@ import FixABCStructure from "./pages/FixABCStructure";
 import ExcerptView from "./pages/ExcerptView";
 import FreeTrial from "./pages/FreeTrial";
 import Contracts from "./pages/Contracts";
+import Committees2 from "./pages/Committees2";
 import Constitution from "./pages/Constitution";
 import DigitalBillOfRights from "./pages/DigitalBillOfRights";
 
@@ -99,6 +100,7 @@ const AppLayout = () => {
               <Route path="/policy-lab" element={<PolicyLab />} />
               <Route path="/bills/:billNumber?" element={<Bills />} />
               <Route path="/contracts" element={<Contracts />} />
+              <Route path="/committees-2" element={<Committees2 />} />
               <Route path="/members/:memberSlug?" element={<Members />} />
               <Route path="/problems" element={<Problems />} />
               <Route path="/problems/:problemSlug" element={<ProblemPage />} />
