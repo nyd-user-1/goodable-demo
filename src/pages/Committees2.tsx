@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, Building2, Users, ArrowUp, Eye } from 'lucide-react';
+import { Search, X, Building2, Users, ArrowUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -269,24 +269,8 @@ function CommitteeCard({ committee, onClick, onChatClick }: CommitteeCardProps) 
           )}
         </div>
 
-        {/* Action buttons */}
-        <div className="flex justify-end gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={onClick}
-                  className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
-                >
-                  <Eye className="h-5 w-5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>View Details</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
+        {/* Action button */}
+        <div className="flex justify-end">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
