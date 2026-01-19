@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useContractsSearch, formatCurrency } from '@/hooks/useContractsSearch';
+import { useContractsSearch, formatCurrency, formatContractDate } from '@/hooks/useContractsSearch';
 import { Contract } from '@/types/contracts';
 
 const Contracts = () => {
@@ -227,8 +227,49 @@ function ContractCard({ contract, onClick }: ContractCardProps) {
         {promptText}
       </p>
 
-      {/* Chat arrow button - renders on hover */}
+      {/* Details and arrow - render on hover */}
       <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
+        {/* Contract details grid */}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
+          {contract.contract_number && (
+            <div>
+              <span className="text-muted-foreground">Contract #</span>
+              <p className="font-medium truncate">{contract.contract_number}</p>
+            </div>
+          )}
+          {contract.contract_type && (
+            <div>
+              <span className="text-muted-foreground">Type</span>
+              <p className="font-medium">{contract.contract_type}</p>
+            </div>
+          )}
+          {contract.contract_start_date && (
+            <div>
+              <span className="text-muted-foreground">Start</span>
+              <p className="font-medium">{formatContractDate(contract.contract_start_date)}</p>
+            </div>
+          )}
+          {contract.contract_end_date && (
+            <div>
+              <span className="text-muted-foreground">End</span>
+              <p className="font-medium">{formatContractDate(contract.contract_end_date)}</p>
+            </div>
+          )}
+          {contract.spending_to_date && (
+            <div>
+              <span className="text-muted-foreground">Spent</span>
+              <p className="font-medium">{contract.spending_to_date}</p>
+            </div>
+          )}
+          {contract.original_contract_approved_file_date && (
+            <div>
+              <span className="text-muted-foreground">Approved</span>
+              <p className="font-medium">{formatContractDate(contract.original_contract_approved_file_date)}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Arrow button */}
         <div className="flex justify-end">
           <div className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center">
             <ArrowUp className="h-5 w-5" />
