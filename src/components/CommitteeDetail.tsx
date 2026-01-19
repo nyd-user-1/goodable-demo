@@ -172,7 +172,7 @@ export const CommitteeDetail = ({ committee, onBack }: CommitteeDetailProps) => 
         {/* Committee Header Card */}
         <Card className="overflow-hidden">
           <CardContent className="p-6">
-            <CommitteeInformation committee={committee} />
+            <CommitteeInformation committee={committee} hasNotes={notes.length > 0} />
           </CardContent>
         </Card>
 

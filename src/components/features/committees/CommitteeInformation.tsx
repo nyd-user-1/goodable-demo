@@ -1,5 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
-import { CardActionButtons } from "@/components/ui/CardActionButtons";
+import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 import {
   Building2,
   Users,
@@ -7,9 +7,9 @@ import {
   Globe,
   MapPin,
   Calendar,
-  Clock
+  Clock,
+  StickyNote
 } from "lucide-react";
-import { useCommitteeFavorites } from "@/hooks/useCommitteeFavorites";
 
 type Committee = {
   committee_id: number;
@@ -30,14 +30,10 @@ type Committee = {
 
 interface CommitteeInformationProps {
   committee: Committee;
+  hasNotes?: boolean;
 }
 
-export const CommitteeInformation = ({ committee }: CommitteeInformationProps) => {
-  const navigate = useNavigate();
-  const { favoriteCommitteeIds, toggleFavorite } = useCommitteeFavorites();
-
-  const isFavorited = favoriteCommitteeIds.has(committee.committee_id);
-
+export const CommitteeInformation = ({ committee, hasNotes = false }: CommitteeInformationProps) => {
   // Get chamber seal image
   const chamberSeal = committee.chamber?.toLowerCase() === 'senate'
     ? '/nys-senate-seal.png'
@@ -65,32 +61,24 @@ export const CommitteeInformation = ({ committee }: CommitteeInformationProps) =
 
   const chairSlug = committee.chair_name ? generateMemberSlugFromName(committee.chair_name) : null;
 
-  const handleFavorite = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    toggleFavorite(committee.committee_id);
-  };
-
-  const handleAIAnalysis = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const initialPrompt = `Tell me about the ${committee.chamber} ${committee.name} committee`;
-    navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}&committeeId=${committee.committee_id}`);
-  };
-
   return (
     <>
       <div className="space-y-6 relative">
-        {/* Action Buttons - Top Right Corner */}
-        <div className="absolute top-0 right-0 z-10">
-          <CardActionButtons
-            onFavorite={handleFavorite}
-            onAIAnalysis={handleAIAnalysis}
-            isFavorited={isFavorited}
-            hasAIChat={false}
-          />
-        </div>
+        {/* Has Note Badge - Top Right Corner */}
+        {hasNotes && (
+          <div className="absolute top-0 right-0 z-10">
+            <Badge
+              variant="outline"
+              className="bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800"
+            >
+              <StickyNote className="h-3 w-3 mr-1" />
+              Has Note
+            </Badge>
+          </div>
+        )}
 
         {/* Committee Name Header with Seal */}
-        <div className="pb-4 border-b pr-20">
+        <div className={`pb-4 border-b ${hasNotes ? 'pr-24' : ''}`}>
           <div className="flex items-center gap-4">
             <img
               src={chamberSeal}
