@@ -13,6 +13,7 @@ export default function HeroSectionWithContentTabs() {
         description:
           'Access the full NYS legislative database with live updates. Browse bills by session, view full texts, track status changes, and see committee assignments—all in one place.',
         image: '/bills-image-2.png',
+        floatingLabel: 'View bills',
         stats: [
           { label: 'Active Bills', value: '15K+' },
           { label: 'Sessions', value: '10+' },
@@ -29,6 +30,7 @@ export default function HeroSectionWithContentTabs() {
         description:
           'Detailed profiles for every legislator including party affiliations, districts, voting patterns, and committee memberships. Plus comprehensive committee data with leadership roles and jurisdictions.',
         image: '/live-feed-2.png',
+        floatingLabel: 'Live data',
         stats: [
           { label: 'Legislators', value: '213' },
           { label: 'Committees', value: '70+' },
@@ -45,6 +47,7 @@ export default function HeroSectionWithContentTabs() {
         description:
           'Every bill analysis includes tools to email sponsors directly, generate personalized letters, view official documents, and track your positions. Make your voice heard with one click.',
         image: '/bill-analysis-actions.png',
+        floatingLabel: 'Take Action',
         stats: [
           { label: 'Email Templates', value: '50+' },
           { label: 'Letter Formats', value: '12' },
@@ -166,7 +169,7 @@ export default function HeroSectionWithContentTabs() {
                                   <path d="m9 12 2 2 4-4" />
                                 </svg>
                               </div>
-                              <p className="font-medium">Live data</p>
+                              <p className="font-medium">{feature.content.floatingLabel}</p>
                             </div>
                           </Card>
                         </div>
