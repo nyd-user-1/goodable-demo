@@ -473,7 +473,7 @@ export function NewAppSidebar() {
 
         {/* Your Chats - show on mobile or when sidebar is expanded on desktop */}
         {(isMobile || !isCollapsed) && recentChats.length > 0 && (
-          <Collapsible defaultOpen className="group/collapsible">
+          <Collapsible className="group/collapsible">
             <SidebarGroup>
               <SidebarGroupLabel asChild>
                 <CollapsibleTrigger>
@@ -540,7 +540,7 @@ export function NewAppSidebar() {
 
         {/* Your Excerpts - show on mobile or when sidebar is expanded on desktop */}
         {(isMobile || !isCollapsed) && recentExcerpts.length > 0 && (
-          <Collapsible defaultOpen className="group/collapsible">
+          <Collapsible className="group/collapsible">
             <SidebarGroup>
               <SidebarGroupLabel asChild>
                 <CollapsibleTrigger>
