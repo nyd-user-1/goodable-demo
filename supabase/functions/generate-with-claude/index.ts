@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
+import { getConstitutionalPrompt } from '../_shared/constitution.ts';
 
 const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
 const nysApiKey = Deno.env.get('NYS_LEGISLATION_API_KEY');
@@ -250,11 +251,12 @@ You have DIRECT ACCESS to comprehensive, up-to-date legislative data through TWO
 Structure your responses with:
 
 1. **Executive Summary** (2-3 sentences): What the bill does in plain language
-2. **Key Provisions**: Specific sections and their effects, citing actual bill language
-3. **Fiscal Impact**: Cost estimates, funding sources, budget implications (be specific or acknowledge when data is unavailable)
-4. **Stakeholder Analysis**: Who benefits, who's affected, potential opposition/support
-5. **Political Context**: Sponsor background, committee assignment significance, likelihood of passage based on sponsor influence, committee composition, and party dynamics
-6. **District Impact** (when relevant): How this affects specific regions or districts
+2. **Working Family Impact**: How does this affect wages, healthcare costs, housing, childcare, or economic security for middle-class families? Who benefits and who bears the costs?
+3. **Key Provisions**: Specific sections and their effects, citing actual bill language
+4. **Fiscal Impact**: Cost estimates, funding sources, budget implications (be specific or acknowledge when data is unavailable)
+5. **Stakeholder Analysis**: Who benefits, who's affected, potential opposition/support
+6. **Political Context**: Sponsor background, committee assignment significance, likelihood of passage based on sponsor influence, committee composition, and party dynamics
+7. **District Impact** (when relevant): How this affects specific regions or districts
 
 ### For Quick Review/Recommendation Requests
 Provide a structured assessment:
@@ -405,8 +407,9 @@ serve(async (req) => {
       legislativeContext += formatNYSDataForContext(nysData);
     }
 
-    // Build the enhanced system prompt with legislative data
-    let enhancedSystemPrompt = CLAUDE_SYSTEM_PROMPT;
+    // Build the enhanced system prompt with constitutional principles and legislative data
+    const constitutionalContext = getConstitutionalPrompt(type || 'chat');
+    let enhancedSystemPrompt = `${constitutionalContext}\n\n${CLAUDE_SYSTEM_PROMPT}`;
 
     // Add custom system context if provided (e.g., for "What is Goodable.dev?" prompt)
     if (context?.systemContext) {

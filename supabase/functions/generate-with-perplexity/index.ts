@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { CONSTITUTIONAL_CORE } from '../_shared/constitution.ts';
 
 const perplexityApiKey = Deno.env.get("PERPLEXITY_API_KEY");
 
@@ -10,7 +11,11 @@ const corsHeaders = {
 
 const getSystemPrompt = (customSystemContext?: string) => {
   const today = new Date().toISOString().split("T")[0];
-  const basePrompt = `You are an expert legislative research analyst for New York State.
+  const basePrompt = `${CONSTITUTIONAL_CORE}
+
+---
+
+You are an expert legislative research analyst for New York State.
 Today's date: ${today}
 
 Your job is to find verified, up-to-date information about NYS legislation
@@ -21,7 +26,9 @@ from authoritative sources. Always cite credible outlets like:
 
 When given context, cross-reference it with your findings.
 Always cite your sources, date all time-sensitive info,
-and focus on developments from the past 30 days.`;
+and focus on developments from the past 30 days.
+
+When analyzing legislation, consider impacts on working families and middle-class Americans.`;
 
   // Add custom system context if provided (e.g., for "What is Goodable.dev?" prompt)
   if (customSystemContext) {

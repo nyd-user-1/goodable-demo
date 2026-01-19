@@ -2,6 +2,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
+import { getConstitutionalPrompt } from '../_shared/constitution.ts';
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const nysApiKey = Deno.env.get('NYS_LEGISLATION_API_KEY');
@@ -77,11 +78,12 @@ You also have access to:
 Structure your responses with:
 
 1. **Executive Summary** (2-3 sentences): What the bill does in plain language
-2. **Key Provisions**: Specific sections and their effects, citing actual bill language
-3. **Fiscal Impact**: Cost estimates, funding sources, budget implications (be specific or acknowledge when data is unavailable)
-4. **Stakeholder Analysis**: Who benefits, who's affected, potential opposition/support
-5. **Political Context**: Sponsor background, committee assignment significance, likelihood of passage based on sponsor influence, committee composition, and party dynamics
-6. **District Impact** (when relevant): How this affects specific regions or districts
+2. **Working Family Impact**: How does this affect wages, healthcare costs, housing, childcare, or economic security for middle-class families? Who benefits and who bears the costs?
+3. **Key Provisions**: Specific sections and their effects, citing actual bill language
+4. **Fiscal Impact**: Cost estimates, funding sources, budget implications (be specific or acknowledge when data is unavailable)
+5. **Stakeholder Analysis**: Who benefits, who's affected, potential opposition/support
+6. **Political Context**: Sponsor background, committee assignment significance, likelihood of passage based on sponsor influence, committee composition, and party dynamics
+7. **District Impact** (when relevant): How this affects specific regions or districts
 
 ### For Quick Review/Recommendation Requests
 Provide a structured assessment:
@@ -176,7 +178,9 @@ When users ask about bills from 2025 or the current legislative session, you HAV
 Provide specific, detailed analysis using actual bill numbers, titles, sponsors, and current status. Always cite relevant bills with their actual bill numbers (e.g., A00405, S1234).`
   };
 
-  let systemPrompt = basePrompts[type] || basePrompts['default'];
+  // Prepend constitutional principles to the system prompt
+  const constitutionalContext = getConstitutionalPrompt(type);
+  let systemPrompt = `${constitutionalContext}\n\n${basePrompts[type] || basePrompts['default']}`;
 
   // Add entity-specific context
   if (entityData) {
