@@ -73,6 +73,7 @@ import FreeTrial from "./pages/FreeTrial";
 import Contracts from "./pages/Contracts";
 import Committees2 from "./pages/Committees2";
 import Members2 from "./pages/Members2";
+import Bills2 from "./pages/Bills2";
 import Constitution from "./pages/Constitution";
 import DigitalBillOfRights from "./pages/DigitalBillOfRights";
 
@@ -100,6 +101,7 @@ const AppLayout = () => {
               <Route path="/policy-portal" element={<PolicyPortal />} />
               <Route path="/policy-lab" element={<PolicyLab />} />
               <Route path="/bills/:billNumber?" element={<Bills />} />
+              <Route path="/bills-2" element={<Bills2 />} />
               <Route path="/contracts" element={<Contracts />} />
               <Route path="/committees" element={<Committees2 />} />
               <Route path="/committees/:committeeSlug" element={<Committees />} />
