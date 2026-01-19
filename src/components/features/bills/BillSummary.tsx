@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { BillStatusBadge } from "@/components/BillStatusBadge";
-import { CardActionButtons } from "@/components/ui/CardActionButtons";
 import { Tables } from "@/integrations/supabase/types";
 import { generateMemberSlug } from "@/utils/memberSlug";
-import { ThumbsUp, ThumbsDown, Minus, StickyNote } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Minus, StickyNote, FileText } from "lucide-react";
 import { ReviewStatus } from "@/hooks/useBillReviews";
 import { BillPDFSheet } from "./BillPDFSheet";
 import {
@@ -24,23 +24,15 @@ type Sponsor = Tables<"Sponsors"> & {
 interface BillSummaryProps {
   bill: Bill;
   sponsors: Sponsor[];
-  onFavorite?: (e: React.MouseEvent) => void;
-  onAIAnalysis?: (e: React.MouseEvent) => void;
-  isFavorited?: boolean;
-  hasAIChat?: boolean;
   reviewStatus?: ReviewStatus;
-  reviewNote?: string | null;
+  hasNotes?: boolean;
 }
 
 export const BillSummary = ({
   bill,
   sponsors,
-  onFavorite,
-  onAIAnalysis,
-  isFavorited = false,
-  hasAIChat = false,
   reviewStatus,
-  reviewNote
+  hasNotes = false
 }: BillSummaryProps) => {
   const [pdfSheetOpen, setPdfSheetOpen] = useState(false);
 
@@ -140,37 +132,33 @@ export const BillSummary = ({
                 {bill.bill_number || "Unknown Bill Number"}
               </CardTitle>
               {getReviewBadge()}
-              {reviewNote && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Badge variant="outline" className="gap-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 cursor-pointer">
-                        <StickyNote className="h-3 w-3" />
-                        Has Note
-                      </Badge>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" className="max-w-[300px]">
-                      <p className="text-sm whitespace-pre-wrap">{reviewNote}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+              {hasNotes && (
+                <Badge variant="outline" className="gap-1 bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800">
+                  <StickyNote className="h-3 w-3" />
+                  Has Note
+                </Badge>
               )}
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <CardActionButtons
-              onFavorite={onFavorite}
-              onAIAnalysis={onAIAnalysis}
-              onPDFView={handlePDFView}
-              isFavorited={isFavorited}
-              hasAIChat={hasAIChat}
-              showFavorite={!!onFavorite}
-              showAIAnalysis={!!onAIAnalysis}
-              billNumber={bill.bill_number}
-              showPDF={true}
-              size="sm"
-              variant="outline"
-            />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePDFView}
+                    className="gap-2"
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span className="hidden sm:inline">View PDF</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  View bill PDF
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       </CardHeader>

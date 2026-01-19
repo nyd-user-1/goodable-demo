@@ -16,7 +16,6 @@ import { ArrowLeft, User, Pencil, Plus, Trash2, ExternalLink } from "lucide-reac
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { BillSummary, BillKeyInformation, QuickReviewNoteDialog } from "./features/bills";
-import { useFavorites } from "@/hooks/useFavorites";
 import { useBillReviews, ReviewStatus, BillNote } from "@/hooks/useBillReviews";
 
 type Bill = Tables<"Bills">;
@@ -42,7 +41,6 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
   const [editingNote, setEditingNote] = useState<BillNote | null>(null);
   const [billChats, setBillChats] = useState<Array<{ id: string; title: string; created_at: string }>>([]);
 
-  const { favoriteBillIds, toggleFavorite } = useFavorites();
   const { getReviewForBill, saveReview, addNote, updateNote, deleteNote } = useBillReviews();
   const billReview = getReviewForBill(bill.bill_id);
   const notes = billReview?.notes || [];
@@ -229,11 +227,6 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
     return person.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   };
 
-  const handleFavorite = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    toggleFavorite(bill.bill_id);
-  };
-
   const handleAIAnalysis = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
@@ -286,12 +279,8 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
           <BillSummary
             bill={bill}
             sponsors={sponsors}
-            onFavorite={handleFavorite}
-            onAIAnalysis={handleAIAnalysis}
-            isFavorited={favoriteBillIds.has(bill.bill_id)}
-            hasAIChat={billChats.length > 0}
             reviewStatus={billReview?.review_status}
-            reviewNote={billReview?.note}
+            hasNotes={notes.length > 0}
           />
 
           {/* Your Notes Section */}
