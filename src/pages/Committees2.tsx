@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, Building2, Users, Filter, ArrowUp } from 'lucide-react';
+import { Search, X, Building2, Users, ArrowUp, Eye } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,8 +10,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useCommitteesSearch } from '@/hooks/useCommitteesSearch';
 import { Committee } from '@/types/committee';
+import { generateCommitteeSlug } from '@/utils/committeeSlug';
 
 const Committees2 = () => {
   const navigate = useNavigate();
@@ -44,16 +51,33 @@ const Committees2 = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Generate a prompt for a committee
+  // Generate a prompt for a committee - varies based on available data
   const generatePrompt = (committee: Committee): string => {
     const chamberPrefix = committee.chamber === 'Senate' ? 'Senate ' : committee.chamber === 'Assembly' ? 'Assembly ' : '';
     const name = `${chamberPrefix}${committee.committee_name || 'Committee'}`;
     const chair = committee.chair_name ? ` chaired by ${committee.chair_name}` : '';
 
+    // Use description if available to vary the prompt
+    if (committee.description) {
+      return `Tell me about the ${name}${chair}. The committee's focus is: "${committee.description}". What current legislation is this committee working on?`;
+    }
+
     return `Tell me about the ${name}${chair}. What legislation does this committee handle and what should I know about it?`;
   };
 
+  // Navigate to committee detail page
   const handleCommitteeClick = (committee: Committee) => {
+    const slug = generateCommitteeSlug({
+      committee_id: committee.committee_id,
+      committee_name: committee.committee_name,
+      chamber: committee.chamber,
+    } as any);
+    navigate(`/committees/${slug}`);
+  };
+
+  // Navigate to new chat with prompt
+  const handleChatClick = (committee: Committee, e: React.MouseEvent) => {
+    e.stopPropagation();
     const prompt = generatePrompt(committee);
     navigate(`/new-chat?prompt=${encodeURIComponent(prompt)}`);
   };
@@ -131,7 +155,7 @@ const Committees2 = () => {
         </div>
       </div>
 
-      {/* Results - Masonry Grid */}
+      {/* Results - Grid */}
       <div className="container mx-auto px-4 py-6">
         {error ? (
           <div className="text-center py-12">
@@ -160,6 +184,7 @@ const Committees2 = () => {
                 key={committee.committee_id}
                 committee={committee}
                 onClick={() => handleCommitteeClick(committee)}
+                onChatClick={(e) => handleChatClick(committee, e)}
               />
             ))}
           </div>
@@ -169,13 +194,14 @@ const Committees2 = () => {
   );
 };
 
-// Committee card component - masonry style matching case studies
+// Committee card component
 interface CommitteeCardProps {
   committee: Committee;
   onClick: () => void;
+  onChatClick: (e: React.MouseEvent) => void;
 }
 
-function CommitteeCard({ committee, onClick }: CommitteeCardProps) {
+function CommitteeCard({ committee, onClick, onChatClick }: CommitteeCardProps) {
   const chamber = committee.chamber;
   const chair = committee.chair_name;
 
@@ -183,12 +209,19 @@ function CommitteeCard({ committee, onClick }: CommitteeCardProps) {
   const chamberPrefix = chamber === 'Senate' ? 'Senate ' : chamber === 'Assembly' ? 'Assembly ' : '';
   const fullCommitteeName = `${chamberPrefix}${committee.committee_name || 'Unknown Committee'}`;
 
-  // Build the prompt preview text
-  let promptText = `Tell me about this committee`;
-  if (chair) {
-    promptText += ` chaired by ${chair}`;
+  // Build varied prompt preview text based on description
+  let promptText: string;
+  if (committee.description) {
+    // Truncate description if too long
+    const shortDesc = committee.description.length > 100
+      ? committee.description.substring(0, 100) + '...'
+      : committee.description;
+    promptText = shortDesc;
+  } else if (chair) {
+    promptText = `Chaired by ${chair}`;
+  } else {
+    promptText = `${chamber || 'Legislative'} committee`;
   }
-  promptText += '.';
 
   return (
     <div
@@ -202,47 +235,73 @@ function CommitteeCard({ committee, onClick }: CommitteeCardProps) {
         {promptText}
       </p>
 
-      {/* Details and arrow - render on hover */}
+      {/* Details and buttons - render on hover */}
       <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
-        {/* Committee details grid */}
+        {/* Committee details grid - balanced 2x2 layout */}
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
+          {/* Column 1 */}
           {committee.chamber && (
             <div>
               <span className="text-muted-foreground">Chamber</span>
               <p className="font-medium">{committee.chamber}</p>
             </div>
           )}
+          {/* Column 2 */}
           {committee.chair_name && (
             <div>
               <span className="text-muted-foreground">Chair</span>
               <p className="font-medium truncate">{committee.chair_name}</p>
             </div>
           )}
+          {/* Column 1 */}
           {committee.member_count && (
             <div>
               <span className="text-muted-foreground">Members</span>
               <p className="font-medium">{committee.member_count}</p>
             </div>
           )}
+          {/* Column 2 */}
           {committee.meeting_schedule && (
-            <div className="col-span-2">
+            <div>
               <span className="text-muted-foreground">Meeting Schedule</span>
               <p className="font-medium">{committee.meeting_schedule}</p>
             </div>
           )}
-          {committee.next_meeting && (
-            <div className="col-span-2">
-              <span className="text-muted-foreground">Next Meeting</span>
-              <p className="font-medium">{committee.next_meeting}</p>
-            </div>
-          )}
         </div>
 
-        {/* Arrow button */}
-        <div className="flex justify-end">
-          <div className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center">
-            <ArrowUp className="h-5 w-5" />
-          </div>
+        {/* Action buttons */}
+        <div className="flex justify-end gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={onClick}
+                  className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
+                >
+                  <Eye className="h-5 w-5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>View Details</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={onChatClick}
+                  className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
+                >
+                  <ArrowUp className="h-5 w-5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Ask AI</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
     </div>
