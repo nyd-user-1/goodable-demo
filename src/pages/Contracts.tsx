@@ -189,8 +189,8 @@ const Contracts = () => {
           <div className="container mx-auto px-4 py-4">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h2 className="text-lg font-semibold">{selectedContract.vendorName}</h2>
-                <p className="text-sm text-muted-foreground">{selectedContract.contractNumber}</p>
+                <h2 className="text-lg font-semibold">{selectedContract.vendor_name}</h2>
+                <p className="text-sm text-muted-foreground">{selectedContract.contract_number}</p>
               </div>
               <Button variant="ghost" size="sm" onClick={() => setSelectedContract(null)}>
                 <X className="h-4 w-4" />
@@ -199,37 +199,37 @@ const Contracts = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
               <div>
                 <p className="text-muted-foreground">Department</p>
-                <p className="font-medium">{selectedContract.departmentFacility || 'N/A'}</p>
+                <p className="font-medium">{selectedContract.department_facility || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Contract Amount</p>
-                <p className="font-medium text-primary">{formatCurrency(selectedContract.currentContractAmount)}</p>
+                <p className="font-medium text-primary">{formatCurrency(selectedContract.current_contract_amount)}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Spending to Date</p>
-                <p className="font-medium">{selectedContract.spendingToDate || 'N/A'}</p>
+                <p className="font-medium">{selectedContract.spending_to_date || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Contract Type</p>
-                <p className="font-medium">{selectedContract.contractType || 'N/A'}</p>
+                <p className="font-medium">{selectedContract.contract_type || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Start Date</p>
-                <p className="font-medium">{formatContractDate(selectedContract.contractStartDate)}</p>
+                <p className="font-medium">{formatContractDate(selectedContract.contract_start_date)}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">End Date</p>
-                <p className="font-medium">{formatContractDate(selectedContract.contractEndDate)}</p>
+                <p className="font-medium">{formatContractDate(selectedContract.contract_end_date)}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Approved Date</p>
-                <p className="font-medium">{formatContractDate(selectedContract.originalContractApprovedDate)}</p>
+                <p className="font-medium">{formatContractDate(selectedContract.original_contract_approved_file_date)}</p>
               </div>
             </div>
-            {selectedContract.contractDescription && (
+            {selectedContract.contract_description && (
               <div className="mt-4">
                 <p className="text-muted-foreground text-sm">Description</p>
-                <p className="text-sm mt-1">{selectedContract.contractDescription}</p>
+                <p className="text-sm mt-1">{selectedContract.contract_description}</p>
               </div>
             )}
           </div>
@@ -259,32 +259,32 @@ function ContractRow({ contract, isSelected, onClick }: ContractRowProps) {
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-medium truncate">{contract.vendorName || 'Unknown Vendor'}</h3>
-            {contract.contractType && (
+            <h3 className="font-medium truncate">{contract.vendor_name || 'Unknown Vendor'}</h3>
+            {contract.contract_type && (
               <Badge variant="secondary" className="text-xs shrink-0">
-                {contract.contractType}
+                {contract.contract_type}
               </Badge>
             )}
           </div>
           <p className="text-sm text-muted-foreground truncate">
-            {contract.departmentFacility || 'No department'}
+            {contract.department_facility || 'No department'}
           </p>
-          {contract.contractDescription && (
+          {contract.contract_description && (
             <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
-              {contract.contractDescription}
+              {contract.contract_description}
             </p>
           )}
         </div>
         <div className="text-right shrink-0">
           <p className="font-semibold text-primary">
-            {formatCurrency(contract.currentContractAmount)}
+            {formatCurrency(contract.current_contract_amount)}
           </p>
           <p className="text-xs text-muted-foreground">
-            {contract.contractNumber}
+            {contract.contract_number}
           </p>
           <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
             <Calendar className="h-3 w-3" />
-            {formatContractDate(contract.contractStartDate)}
+            {formatContractDate(contract.contract_start_date)}
           </div>
         </div>
       </div>

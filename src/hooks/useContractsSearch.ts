@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Contract, ContractRow, transformContract } from '@/types/contracts';
+import { Contract } from '@/types/contracts';
 
 export function useContractsSearch() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,16 +14,12 @@ export function useContractsSearch() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('Contracts')
-        .select('*');
+        .select('*')
+        .order('current_contract_amount', { ascending: false, nullsFirst: false });
 
       if (error) throw error;
 
-      // Transform and sort by amount descending
-      const contracts = (data as ContractRow[])
-        .map(transformContract)
-        .sort((a, b) => (b.currentContractAmount || 0) - (a.currentContractAmount || 0));
-
-      return contracts;
+      return data as Contract[];
     },
     staleTime: 10 * 60 * 1000, // Cache for 10 minutes
     gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
@@ -32,14 +28,14 @@ export function useContractsSearch() {
   // Extract unique departments
   const departments = useMemo(() => {
     if (!allContracts) return [];
-    const depts = [...new Set(allContracts.map(c => c.departmentFacility).filter(Boolean))];
+    const depts = [...new Set(allContracts.map(c => c.department_facility).filter(Boolean))];
     return depts.sort() as string[];
   }, [allContracts]);
 
   // Extract unique contract types
   const contractTypes = useMemo(() => {
     if (!allContracts) return [];
-    const types = [...new Set(allContracts.map(c => c.contractType).filter(Boolean))];
+    const types = [...new Set(allContracts.map(c => c.contract_type).filter(Boolean))];
     return types.sort() as string[];
   }, [allContracts]);
 
@@ -54,21 +50,21 @@ export function useContractsSearch() {
       const searchLower = searchTerm.toLowerCase();
       results = results.filter(
         (c) =>
-          c.vendorName?.toLowerCase().includes(searchLower) ||
-          c.contractDescription?.toLowerCase().includes(searchLower) ||
-          c.contractNumber?.toLowerCase().includes(searchLower) ||
-          c.departmentFacility?.toLowerCase().includes(searchLower)
+          c.vendor_name?.toLowerCase().includes(searchLower) ||
+          c.contract_description?.toLowerCase().includes(searchLower) ||
+          c.contract_number?.toLowerCase().includes(searchLower) ||
+          c.department_facility?.toLowerCase().includes(searchLower)
       );
     }
 
     // Filter by department
     if (departmentFilter) {
-      results = results.filter(c => c.departmentFacility === departmentFilter);
+      results = results.filter(c => c.department_facility === departmentFilter);
     }
 
     // Filter by contract type
     if (contractTypeFilter) {
-      results = results.filter(c => c.contractType === contractTypeFilter);
+      results = results.filter(c => c.contract_type === contractTypeFilter);
     }
 
     return results;
