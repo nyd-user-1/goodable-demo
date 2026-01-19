@@ -48,6 +48,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { EngineSelection } from "@/components/EngineSelection";
+import { AskGoodableSelectionPopup } from "@/components/AskGoodableSelectionPopup";
 
 // Thinking phrases that rotate per message instance
 const thinkingPhrases = [
@@ -137,13 +138,6 @@ const NewChat = () => {
   const { user } = useAuth();
   const { setOpen: setSidebarOpen } = useSidebarSafe();
 
-  // "Ask Goodable" text selection popup state (uses onMouseDown to preserve selection)
-  const [selectionPopup, setSelectionPopup] = useState<{
-    visible: boolean;
-    x: number;
-    y: number;
-    text: string;
-  }>({ visible: false, x: 0, y: 0, text: "" });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const {
     currentSessionId,
@@ -233,58 +227,15 @@ const NewChat = () => {
     setShowScrollButton(false);
   };
 
-  // "Ask Goodable" text selection popup - detect text selection
-  useEffect(() => {
-    const handleSelectionChange = () => {
-      // Small delay to let browser finish processing triple-click selections
-      setTimeout(() => {
-        const selection = window.getSelection();
-        const selectedText = selection?.toString().trim() || "";
-
-        if (selectedText.length > 0 && selection && selection.rangeCount > 0) {
-          const range = selection.getRangeAt(0);
-          const rect = range.getBoundingClientRect();
-
-          // Position popup above the selection, centered
-          setSelectionPopup({
-            visible: true,
-            x: rect.left + rect.width / 2,
-            y: rect.top - 10, // 10px above selection
-            text: selectedText,
-          });
-        } else {
-          setSelectionPopup(prev => ({ ...prev, visible: false }));
-        }
-      }, 10);
-    };
-
-    // Use mouseup to detect selection completion (more reliable than selectionchange)
-    document.addEventListener("mouseup", handleSelectionChange);
-    document.addEventListener("keyup", handleSelectionChange);
-
-    return () => {
-      document.removeEventListener("mouseup", handleSelectionChange);
-      document.removeEventListener("keyup", handleSelectionChange);
-    };
-  }, []);
 
   // Handle "Ask Goodable" popup click - inject selected text into query
-  // Uses onMouseDown with preventDefault to capture text before selection clears
-  const handleAskGoodable = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent selection from being cleared
-    e.stopPropagation(); // Stop event from bubbling to document
-
-    const selectedText = selectionPopup.text;
+  const handleAskGoodable = (selectedText: string) => {
     if (selectedText) {
       // Inject as a quoted reference
       const newQuery = query
         ? `${query}\n\n"${selectedText}"`
         : `"${selectedText}"`;
       setQuery(newQuery);
-
-      // Clear selection and hide popup
-      window.getSelection()?.removeAllRanges();
-      setSelectionPopup(prev => ({ ...prev, visible: false }));
 
       // Focus the textarea
       setTimeout(() => {
@@ -1883,24 +1834,8 @@ const NewChat = () => {
         </div>
       </div>
 
-      {/* "Ask Goodable" Text Selection Popup */}
-      {selectionPopup.visible && (
-        <div
-          className="fixed z-50 transform -translate-x-1/2 -translate-y-full animate-in fade-in zoom-in-95 duration-150"
-          style={{
-            left: selectionPopup.x,
-            top: selectionPopup.y,
-          }}
-        >
-          <button
-            onMouseDown={handleAskGoodable}
-            className="flex items-center gap-2 px-3 py-2 bg-white text-foreground rounded-full shadow-md border border-border/50 hover:bg-gray-100 transition-colors text-sm font-normal cursor-pointer"
-          >
-            <span className="text-base">❤️</span>
-            Ask Goodable
-          </button>
-        </div>
-      )}
+      {/* "Ask Goodable" Text Selection Popup - rendered via portal */}
+      <AskGoodableSelectionPopup onAsk={handleAskGoodable} />
 
       {/* Beta Access Modal - triggers after 2 chat inputs */}
       <BetaAccessModal />
