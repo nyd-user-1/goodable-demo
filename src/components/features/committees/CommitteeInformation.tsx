@@ -3,12 +3,13 @@ import { CardActionButtons } from "@/components/ui/CardActionButtons";
 import {
   Building2,
   Users,
-  FileText,
   Mail,
-  Globe
+  Globe,
+  MapPin,
+  Calendar,
+  Clock
 } from "lucide-react";
 import { useCommitteeFavorites } from "@/hooks/useCommitteeFavorites";
-import { supabase } from "@/integrations/supabase/client";
 
 type Committee = {
   committee_id: number;
@@ -37,21 +38,29 @@ export const CommitteeInformation = ({ committee }: CommitteeInformationProps) =
 
   const isFavorited = favoriteCommitteeIds.has(committee.committee_id);
 
+  // Get chamber seal image
+  const chamberSeal = committee.chamber?.toLowerCase() === 'senate'
+    ? '/nys-senate-seal.png'
+    : '/nys-assembly-seal.png';
+
+  // Get full committee name with chamber prefix
+  const fullCommitteeName = committee.chamber
+    ? `${committee.chamber} ${committee.name}`
+    : committee.name;
+
   // Generate member slug from chair name
   const generateMemberSlugFromName = (name: string): string => {
-    // Split name into parts and filter out single-letter parts (middle initials)
     const nameParts = name
       .toLowerCase()
       .trim()
-      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-      .split(/\s+/) // Split on whitespace
-      .filter(part => part.length > 1); // Remove single-letter parts (middle initials)
+      .replace(/[^a-z0-9\s-]/g, '')
+      .split(/\s+/)
+      .filter(part => part.length > 1);
 
-    // Join with hyphens
     return nameParts
       .join('-')
-      .replace(/-+/g, '-')           // Replace multiple hyphens with single
-      .replace(/^-|-$/g, '');        // Remove leading/trailing hyphens
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
   };
 
   const chairSlug = committee.chair_name ? generateMemberSlugFromName(committee.chair_name) : null;
@@ -63,9 +72,8 @@ export const CommitteeInformation = ({ committee }: CommitteeInformationProps) =
 
   const handleAIAnalysis = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Navigate to chat with prompt - the chat page will create the session
     const initialPrompt = `Tell me about the ${committee.chamber} ${committee.name} committee`;
-    navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
+    navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}&committeeId=${committee.committee_id}`);
   };
 
   return (
@@ -81,10 +89,24 @@ export const CommitteeInformation = ({ committee }: CommitteeInformationProps) =
           />
         </div>
 
-        {/* Committee Name Header */}
+        {/* Committee Name Header with Seal */}
         <div className="pb-4 border-b pr-20">
-          <h1 className="text-2xl font-semibold text-foreground">{committee.name}</h1>
+          <div className="flex items-center gap-4">
+            <img
+              src={chamberSeal}
+              alt={`${committee.chamber} seal`}
+              className="w-12 h-12 object-contain"
+            />
+            <h1 className="text-2xl font-semibold text-foreground">{fullCommitteeName}</h1>
+          </div>
         </div>
+
+        {/* Description if available */}
+        {committee.description && (
+          <div className="text-muted-foreground text-sm leading-relaxed">
+            {committee.description}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Left Column */}
@@ -112,6 +134,32 @@ export const CommitteeInformation = ({ committee }: CommitteeInformationProps) =
                 {committee.memberCount || '0'} {parseInt(committee.memberCount || '0') === 1 ? 'member' : 'members'}
               </div>
             </div>
+
+            {/* Address */}
+            {committee.address && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-foreground font-medium">
+                  <MapPin className="h-4 w-4" />
+                  <span>Address</span>
+                </div>
+                <div className="text-muted-foreground ml-6">
+                  {committee.address}
+                </div>
+              </div>
+            )}
+
+            {/* Meeting Schedule */}
+            {committee.meeting_schedule && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-foreground font-medium">
+                  <Calendar className="h-4 w-4" />
+                  <span>Meeting Schedule</span>
+                </div>
+                <div className="text-muted-foreground ml-6">
+                  {committee.meeting_schedule}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right Column */}
@@ -156,6 +204,19 @@ export const CommitteeInformation = ({ committee }: CommitteeInformationProps) =
               </div>
             )}
 
+            {/* Next Meeting */}
+            {committee.next_meeting && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-foreground font-medium">
+                  <Clock className="h-4 w-4" />
+                  <span>Next Meeting</span>
+                </div>
+                <div className="text-muted-foreground ml-6">
+                  {committee.next_meeting}
+                </div>
+              </div>
+            )}
+
             {/* Website */}
             {committee.committee_url && (
               <div className="space-y-2">
@@ -177,6 +238,19 @@ export const CommitteeInformation = ({ committee }: CommitteeInformationProps) =
             )}
           </div>
         </div>
+
+        {/* Upcoming Agenda */}
+        {committee.upcoming_agenda && (
+          <div className="space-y-2 pt-4 border-t">
+            <div className="flex items-center gap-2 text-foreground font-medium">
+              <Calendar className="h-4 w-4" />
+              <span>Upcoming Agenda</span>
+            </div>
+            <div className="text-muted-foreground ml-6 whitespace-pre-wrap">
+              {committee.upcoming_agenda}
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

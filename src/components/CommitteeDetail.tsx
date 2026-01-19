@@ -9,7 +9,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowLeft, Plus, Pencil, Trash2, ExternalLink } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, ExternalLink, Command } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import {
   CommitteeInformation,
@@ -116,7 +122,7 @@ export const CommitteeDetail = ({ committee, onBack }: CommitteeDetailProps) => 
     <div className="container mx-auto px-4 sm:px-6 py-6 bg-background min-h-screen">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Navigation Section */}
-        <div className="pb-6">
+        <div className="pb-6 flex items-center justify-between">
           <Button
             variant="outline"
             onClick={onBack}
@@ -126,6 +132,41 @@ export const CommitteeDetail = ({ committee, onBack }: CommitteeDetailProps) => 
             <span className="hidden sm:inline">Back to Committees</span>
             <span className="sm:hidden">Back</span>
           </Button>
+
+          {/* Right side controls */}
+          <div className="flex items-center gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <ThemeToggle />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                Toggle theme
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  onClick={() => {
+                    const event = new KeyboardEvent('keydown', {
+                      key: 'k',
+                      metaKey: true,
+                      ctrlKey: true,
+                      bubbles: true
+                    });
+                    document.dispatchEvent(event);
+                  }}
+                >
+                  <Command className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                Command menu
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
 
         {/* Committee Header Card */}
