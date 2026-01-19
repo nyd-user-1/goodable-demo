@@ -28,7 +28,7 @@ export default function HeroSectionWithContentTabs() {
         title: 'Know your representatives',
         description:
           'Detailed profiles for every legislator including party affiliations, districts, voting patterns, and committee memberships. Plus comprehensive committee data with leadership roles and jurisdictions.',
-        image: '/legislators-problems.png',
+        image: '/live-feed.png',
         stats: [
           { label: 'Legislators', value: '213' },
           { label: 'Committees', value: '70+' },
