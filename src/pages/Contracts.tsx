@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { Search, X, Building2, FileText, DollarSign, Calendar, Filter } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Search, X, Building2, FileText, Filter, Calendar } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,42 +15,30 @@ import { Contract } from '@/types/contracts';
 import { cn } from '@/lib/utils';
 
 const Contracts = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [departmentFilter, setDepartmentFilter] = useState('');
-  const [contractTypeFilter, setContractTypeFilter] = useState('');
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Debounce search for server queries
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
   const {
     contracts,
+    allContracts,
     isLoading,
     error,
     departments,
     contractTypes,
-    localSearch,
-    setLocalSearch,
-  } = useContractsSearch({
-    searchTerm: debouncedSearch,
+    searchTerm,
+    setSearchTerm,
     departmentFilter,
+    setDepartmentFilter,
     contractTypeFilter,
-    limit: 500,
-  });
+    setContractTypeFilter,
+  } = useContractsSearch();
 
   // Focus search on mount and keyboard shortcut
   useEffect(() => {
     searchInputRef.current?.focus();
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === '/' && !e.metaKey && !e.ctrlKey) {
+      if (e.key === '/' && !e.metaKey && !e.ctrlKey && document.activeElement?.tagName !== 'INPUT') {
         e.preventDefault();
         searchInputRef.current?.focus();
       }
@@ -63,13 +51,11 @@ const Contracts = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const clearFilters = useCallback(() => {
+  const clearFilters = () => {
     setSearchTerm('');
-    setDebouncedSearch('');
     setDepartmentFilter('');
     setContractTypeFilter('');
-    setLocalSearch('');
-  }, [setLocalSearch]);
+  };
 
   const hasActiveFilters = searchTerm || departmentFilter || contractTypeFilter;
 
@@ -88,7 +74,10 @@ const Contracts = () => {
                 <div>
                   <h1 className="text-xl font-semibold">Contracts</h1>
                   <p className="text-sm text-muted-foreground">
-                    {isLoading ? 'Searching...' : `${contracts.length.toLocaleString()} contracts`}
+                    {isLoading
+                      ? 'Loading...'
+                      : `${contracts.length.toLocaleString()} of ${allContracts.length.toLocaleString()} contracts`
+                    }
                   </p>
                 </div>
               </div>
@@ -105,7 +94,7 @@ const Contracts = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 ref={searchInputRef}
-                placeholder="Search vendors, departments, contract numbers... (press / to focus)"
+                placeholder="Search vendors, departments, contracts... (press / to focus)"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 h-12 text-base"
@@ -151,16 +140,6 @@ const Contracts = () => {
                   ))}
                 </SelectContent>
               </Select>
-
-              {/* Quick filter for instant local search */}
-              <div className="flex-1 min-w-[200px]">
-                <Input
-                  placeholder="Quick filter loaded results..."
-                  value={localSearch}
-                  onChange={(e) => setLocalSearch(e.target.value)}
-                  className="h-9"
-                />
-              </div>
             </div>
           </div>
         </div>
@@ -170,7 +149,7 @@ const Contracts = () => {
       <div className="container mx-auto px-4 py-6">
         {error ? (
           <div className="text-center py-12">
-            <p className="text-destructive">Error loading contracts. Please try again.</p>
+            <p className="text-destructive">Error loading contracts: {String(error)}</p>
           </div>
         ) : isLoading ? (
           <div className="space-y-2">
@@ -260,7 +239,7 @@ const Contracts = () => {
   );
 };
 
-// Contract row component for performance
+// Contract row component
 interface ContractRowProps {
   contract: Contract;
   isSelected: boolean;
