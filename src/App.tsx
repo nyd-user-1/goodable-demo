@@ -45,6 +45,7 @@ import ChangeLog from "./pages/ChangeLog";
 import ProblemPage from "./pages/ProblemPage";
 import Problems from "./pages/Problems";
 import About from "./pages/About";
+import Pricing from "./pages/Pricing";
 import AIFluency from "./pages/AIFluency";
 import UseCasesBills from "./pages/UseCasesBills";
 import UseCasesCommittees from "./pages/UseCasesCommittees";
@@ -145,6 +146,7 @@ const App = () => {
                   <Route path="/auth-2" element={<Auth2 />} />
                   <Route path="/free-trial" element={<FreeTrial />} />
                   <Route path="/about" element={<About />} />
+                  <Route path="/pricing" element={<Pricing />} />
                   <Route path="/ai-fluency" element={<AIFluency />} />
                   <Route path="/use-cases/bills" element={<UseCasesBills />} />
                   <Route path="/use-cases/committees" element={<UseCasesCommittees />} />
