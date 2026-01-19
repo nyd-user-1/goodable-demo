@@ -1,7 +1,6 @@
 import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
 import { Link } from 'react-router-dom';
-import { Shield, Lock, Heart, Brain, Baby, Globe, MessageSquare, Eye, Swords, Unplug } from 'lucide-react';
 
 const DigitalBillOfRights = () => {
   return (
@@ -49,7 +48,7 @@ const DigitalBillOfRights = () => {
                 <div className="bg-muted/30 rounded-2xl p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      <Lock className="h-6 w-6" />
+                      <span className="text-xl font-semibold">1</span>
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold mb-2">The Right to Digital Privacy</h3>
@@ -64,7 +63,7 @@ const DigitalBillOfRights = () => {
                 <div className="bg-muted/30 rounded-2xl p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      <Heart className="h-6 w-6" />
+                      <span className="text-xl font-semibold">2</span>
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold mb-2">The Right to Digital Well-Being</h3>
@@ -79,7 +78,7 @@ const DigitalBillOfRights = () => {
                 <div className="bg-muted/30 rounded-2xl p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      <Shield className="h-6 w-6" />
+                      <span className="text-xl font-semibold">3</span>
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold mb-2">The Right to Digital Security</h3>
@@ -94,7 +93,7 @@ const DigitalBillOfRights = () => {
                 <div className="bg-muted/30 rounded-2xl p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      <Brain className="h-6 w-6" />
+                      <span className="text-xl font-semibold">4</span>
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold mb-2">The Right to Human-Centered AI</h3>
@@ -109,7 +108,7 @@ const DigitalBillOfRights = () => {
                 <div className="bg-muted/30 rounded-2xl p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      <Baby className="h-6 w-6" />
+                      <span className="text-xl font-semibold">5</span>
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold mb-2">The Right to a Humane Digital Childhood</h3>
@@ -134,7 +133,7 @@ const DigitalBillOfRights = () => {
                 <div className="bg-muted/30 rounded-2xl p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      <Globe className="h-6 w-6" />
+                      <span className="text-xl font-semibold">6</span>
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold mb-2">Freedom of Access</h3>
@@ -149,7 +148,7 @@ const DigitalBillOfRights = () => {
                 <div className="bg-muted/30 rounded-2xl p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      <MessageSquare className="h-6 w-6" />
+                      <span className="text-xl font-semibold">7</span>
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold mb-2">Freedom of Expression & Knowledge</h3>
@@ -164,7 +163,7 @@ const DigitalBillOfRights = () => {
                 <div className="bg-muted/30 rounded-2xl p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      <Eye className="h-6 w-6" />
+                      <span className="text-xl font-semibold">8</span>
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold mb-2">Freedom from Exploitation</h3>
@@ -179,7 +178,7 @@ const DigitalBillOfRights = () => {
                 <div className="bg-muted/30 rounded-2xl p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      <Swords className="h-6 w-6" />
+                      <span className="text-xl font-semibold">9</span>
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold mb-2">Freedom from Digital Tyranny</h3>
@@ -194,7 +193,7 @@ const DigitalBillOfRights = () => {
                 <div className="bg-muted/30 rounded-2xl p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      <Unplug className="h-6 w-6" />
+                      <span className="text-xl font-semibold">10</span>
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold mb-2">Freedom from Digital Dependency</h3>
