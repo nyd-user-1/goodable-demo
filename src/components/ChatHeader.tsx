@@ -15,12 +15,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Dropdown placeholder items
-const dropdownPlaceholders = [
-  { label: "Option 1", href: "#" },
-  { label: "Option 2", href: "#" },
-  { label: "Option 3", href: "#" },
-  { label: "Option 4", href: "#" },
+// Non Profits dropdown items
+const nonProfitsDropdownItems = [
+  { label: "Economic Advocacy", href: "/nonprofits/economic-advocacy" },
+  { label: "Environmental Advocacy", href: "/nonprofits/environmental-advocacy" },
+  { label: "Legal Advocacy", href: "/nonprofits/legal-advocacy" },
+  { label: "Social Advocacy", href: "/nonprofits/social-advocacy" },
 ];
 
 // Use Cases dropdown items
@@ -184,7 +184,7 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
                 Non Profits
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" sideOffset={4} className="min-w-[160px]">
-                {dropdownPlaceholders.map((item) => (
+                {nonProfitsDropdownItems.map((item) => (
                   <DropdownMenuItem key={item.label} asChild>
                     <Link to={item.href}>{item.label}</Link>
                   </DropdownMenuItem>
