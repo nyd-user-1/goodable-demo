@@ -74,6 +74,7 @@ import Contracts from "./pages/Contracts";
 import Committees2 from "./pages/Committees2";
 import Members2 from "./pages/Members2";
 import Bills2 from "./pages/Bills2";
+import Chats2 from "./pages/Chats2";
 import Constitution from "./pages/Constitution";
 import DigitalBillOfRights from "./pages/DigitalBillOfRights";
 
@@ -96,6 +97,7 @@ const AppLayout = () => {
               <Route path="/e/:excerptId" element={<ExcerptView />} />
               <Route path="/new-chat-2" element={<NewChat2 />} />
               <Route path="/chats" element={<Chats />} />
+              <Route path="/chats-2" element={<Chats2 />} />
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/playground" element={<Playground />} />
               <Route path="/policy-portal" element={<PolicyPortal />} />
