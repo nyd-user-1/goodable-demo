@@ -15,6 +15,8 @@ import { Contract } from '@/types/contracts';
 import { cn } from '@/lib/utils';
 
 const Contracts = () => {
+  console.log('Contracts page rendering...');
+
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -32,6 +34,8 @@ const Contracts = () => {
     contractTypeFilter,
     setContractTypeFilter,
   } = useContractsSearch();
+
+  console.log('Contracts hook state:', { isLoading, error, contractsCount: contracts?.length });
 
   // Focus search on mount and keyboard shortcut
   useEffect(() => {
