@@ -70,6 +70,7 @@ import RealABCPopulator from "./pages/RealABCPopulator";
 import FixABCStructure from "./pages/FixABCStructure";
 import ExcerptView from "./pages/ExcerptView";
 import FreeTrial from "./pages/FreeTrial";
+import Contracts from "./pages/Contracts";
 
 const queryClient = new QueryClient();
 
@@ -95,6 +96,7 @@ const AppLayout = () => {
               <Route path="/policy-portal" element={<PolicyPortal />} />
               <Route path="/policy-lab" element={<PolicyLab />} />
               <Route path="/bills/:billNumber?" element={<Bills />} />
+              <Route path="/contracts" element={<Contracts />} />
               <Route path="/members/:memberSlug?" element={<Members />} />
               <Route path="/problems" element={<Problems />} />
               <Route path="/problems/:problemSlug" element={<ProblemPage />} />
