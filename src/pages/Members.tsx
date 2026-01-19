@@ -80,10 +80,12 @@ const Members = () => {
       };
 
       fetchSelectedMember();
-    } else {
+    } else if (!memberSlug) {
+      // Only clear selectedMember if there's no memberSlug in URL
+      // (memberSlug handling is done in a separate useEffect)
       setSelectedMember(null);
     }
-  }, [searchParams, members]);
+  }, [searchParams, members, memberSlug]);
 
   // Handle URL parameter for member slug (/members/:memberSlug)
   useEffect(() => {

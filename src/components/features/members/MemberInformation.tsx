@@ -20,11 +20,6 @@ export const MemberInformation = ({ member, hasNotes = false }: MemberInformatio
   const [imageError, setImageError] = useState(false);
   const memberName = member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim() || `Member #${member.people_id}`;
 
-  // Get chamber seal image
-  const chamberSeal = member.chamber?.toLowerCase() === 'senate'
-    ? '/nys-senate-seal.png'
-    : '/nys-assembly-seal.png';
-
   return (
     <>
       <div className="space-y-6 relative">
@@ -44,13 +39,6 @@ export const MemberInformation = ({ member, hasNotes = false }: MemberInformatio
         {/* Member Name Header */}
         <div className={`pb-4 border-b ${hasNotes ? 'pr-24' : ''}`}>
           <div className="flex items-center gap-4">
-            {member.chamber && (
-              <img
-                src={chamberSeal}
-                alt={`${member.chamber} seal`}
-                className="w-12 h-12 object-contain flex-shrink-0"
-              />
-            )}
             {member.photo_url && !imageError ? (
               <img
                 src={member.photo_url}
