@@ -359,7 +359,13 @@ export default function CompactMetricList() {
     <section className="bg-background w-full py-12 md:py-24">
       <div className="container mx-auto px-4 md:px-6 2xl:max-w-[1400px]">
         <div className="mb-8 flex flex-col items-center justify-center space-y-4 text-center">
-          <Badge className="px-3.5 py-1.5 bg-foreground text-background hover:bg-foreground/90">Live Feed</Badge>
+          <Badge className="px-3.5 py-1.5 bg-foreground text-background hover:bg-foreground/90 flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            Live Feed
+          </Badge>
           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
             NYS Legislative Activity
           </h2>
