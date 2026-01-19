@@ -71,6 +71,8 @@ import FixABCStructure from "./pages/FixABCStructure";
 import ExcerptView from "./pages/ExcerptView";
 import FreeTrial from "./pages/FreeTrial";
 import Contracts from "./pages/Contracts";
+import Constitution from "./pages/Constitution";
+import DigitalBillOfRights from "./pages/DigitalBillOfRights";
 
 const queryClient = new QueryClient();
 
@@ -153,6 +155,8 @@ const App = () => {
                   <Route path="/auth-2" element={<Auth2 />} />
                   <Route path="/free-trial" element={<FreeTrial />} />
                   <Route path="/about" element={<About />} />
+                  <Route path="/constitution" element={<Constitution />} />
+                  <Route path="/digital-bill-of-rights" element={<DigitalBillOfRights />} />
                   <Route path="/pricing" element={<Pricing />} />
                   <Route path="/ai-fluency" element={<AIFluency />} />
                   <Route path="/use-cases/bills" element={<UseCasesBills />} />
