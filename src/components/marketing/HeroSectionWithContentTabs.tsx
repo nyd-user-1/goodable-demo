@@ -12,7 +12,7 @@ export default function HeroSectionWithContentTabs() {
         title: 'Every bill at your fingertips',
         description:
           'Access the full NYS legislative database with live updates. Browse bills by session, view full texts, track status changes, and see committee assignments—all in one place.',
-        image: '/bills-image.png',
+        image: '/bills-image-2.png',
         stats: [
           { label: 'Active Bills', value: '15K+' },
           { label: 'Sessions', value: '10+' },
