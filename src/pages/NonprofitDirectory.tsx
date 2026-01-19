@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
-// Featured nonprofit partners organized by category
+// Nonprofit organizations organized by category
 const partnerCategories = [
   {
     category: "Economic Advocacy",
@@ -133,7 +133,7 @@ const partnerCategories = [
   }
 ];
 
-const NonprofitPartners = () => {
+const NonprofitDirectory = () => {
   const navigate = useNavigate();
 
   const handlePromptClick = (prompt: string) => {
@@ -151,7 +151,7 @@ const NonprofitPartners = () => {
           {/* Hero Section */}
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
-              Featured nonprofit partners
+              Nonprofit directory
             </h1>
 
             {/* Tab Navigation */}
@@ -182,9 +182,9 @@ const NonprofitPartners = () => {
                   <div
                     key={partner.name}
                     onClick={() => handlePromptClick(partner.prompt)}
-                    className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200 border border-transparent hover:border-blue-200"
+                    className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
                   >
-                    <h3 className="font-semibold text-base mb-2 group-hover:text-blue-600 transition-colors">
+                    <h3 className="font-semibold text-base mb-2">
                       {partner.name}
                     </h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">
@@ -194,7 +194,7 @@ const NonprofitPartners = () => {
                     {/* Chat arrow button - renders on hover */}
                     <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
                       <div className="flex justify-end">
-                        <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center">
+                        <div className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center">
                           <ArrowUp className="h-5 w-5" />
                         </div>
                       </div>
@@ -220,4 +220,4 @@ const NonprofitPartners = () => {
   );
 };
 
-export default NonprofitPartners;
+export default NonprofitDirectory;

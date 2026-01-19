@@ -2,11 +2,11 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 const tabs = [
+  { label: 'Directory', href: '/nonprofits/directory' },
   { label: 'Economic', href: '/nonprofits/economic-advocacy' },
   { label: 'Environmental', href: '/nonprofits/environmental-advocacy' },
   { label: 'Legal', href: '/nonprofits/legal-advocacy' },
   { label: 'Social', href: '/nonprofits/social-advocacy' },
-  { label: 'Partners', href: '/nonprofits/partners', featured: true },
 ];
 
 export function NonprofitAdvocacyTabs() {
@@ -24,12 +24,8 @@ export function NonprofitAdvocacyTabs() {
               className={cn(
                 "px-5 py-2 rounded-full text-sm font-medium transition-all duration-200",
                 isActive
-                  ? tab.featured
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "bg-white text-foreground shadow-sm"
-                  : tab.featured
-                    ? "text-blue-600 hover:text-blue-700"
-                    : "text-muted-foreground hover:text-foreground"
+                  ? "bg-white text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               {tab.label}

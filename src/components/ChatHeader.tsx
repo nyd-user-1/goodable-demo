@@ -17,11 +17,11 @@ import {
 
 // Non Profits dropdown items
 const nonProfitsDropdownItems = [
+  { label: "Directory", href: "/nonprofits/directory" },
   { label: "Economic", href: "/nonprofits/economic-advocacy" },
   { label: "Environmental", href: "/nonprofits/environmental-advocacy" },
   { label: "Legal", href: "/nonprofits/legal-advocacy" },
   { label: "Social", href: "/nonprofits/social-advocacy" },
-  { label: "Featured Partners", href: "/nonprofits/partners", featured: true },
 ];
 
 // Use Cases dropdown items
@@ -187,12 +187,7 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
               <DropdownMenuContent align="start" sideOffset={4} className="min-w-[160px]">
                 {nonProfitsDropdownItems.map((item) => (
                   <DropdownMenuItem key={item.label} asChild>
-                    <Link
-                      to={item.href}
-                      className={item.featured ? "text-blue-600 font-medium" : ""}
-                    >
-                      {item.label}
-                    </Link>
+                    <Link to={item.href}>{item.label}</Link>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
