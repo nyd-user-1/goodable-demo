@@ -12,22 +12,14 @@ export function useContractsSearch() {
   const { data: allContracts, isLoading, error } = useQuery({
     queryKey: ['contracts-all'],
     queryFn: async () => {
-      console.log('Fetching contracts from Supabase...');
-
-      const { data, error, count, status, statusText } = await supabase
+      const { data, error } = await supabase
         .from('Contracts')
-        .select('*', { count: 'exact' })
+        .select('*')
         .order('current_contract_amount', { ascending: false, nullsFirst: false })
         .limit(5000); // Limit to 5000 for performance
 
-      console.log('Supabase response:', { status, statusText, count, dataLength: data?.length, error });
+      if (error) throw error;
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-
-      console.log(`Fetched ${data?.length} contracts (total in DB: ${count})`);
       return data as Contract[];
     },
     staleTime: 10 * 60 * 1000, // Cache for 10 minutes

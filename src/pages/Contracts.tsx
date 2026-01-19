@@ -15,8 +15,6 @@ import { Contract } from '@/types/contracts';
 import { cn } from '@/lib/utils';
 
 const Contracts = () => {
-  console.log('Contracts page rendering...');
-
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -34,8 +32,6 @@ const Contracts = () => {
     contractTypeFilter,
     setContractTypeFilter,
   } = useContractsSearch();
-
-  console.log('Contracts hook state:', { isLoading, error, contractsCount: contracts?.length });
 
   // Focus search on mount and keyboard shortcut
   useEffect(() => {
@@ -66,24 +62,19 @@ const Contracts = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col gap-4">
             {/* Title and stats */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-semibold">Contracts</h1>
-                  <p className="text-sm text-muted-foreground">
-                    {isLoading
-                      ? 'Loading...'
-                      : `${contracts.length.toLocaleString()} of ${allContracts.length.toLocaleString()} contracts`
-                    }
-                  </p>
-                </div>
+              <div>
+                <h1 className="text-xl font-semibold">Contracts</h1>
+                <p className="text-sm text-muted-foreground">
+                  {isLoading
+                    ? 'Loading...'
+                    : `${contracts.length.toLocaleString()} of ${allContracts.length.toLocaleString()} contracts`
+                  }
+                </p>
               </div>
               {hasActiveFilters && (
                 <Button variant="ghost" size="sm" onClick={clearFilters}>
@@ -207,7 +198,7 @@ const Contracts = () => {
               </div>
               <div>
                 <p className="text-muted-foreground">Contract Amount</p>
-                <p className="font-medium text-primary">{formatCurrency(selectedContract.current_contract_amount)}</p>
+                <p className="font-medium">{formatCurrency(selectedContract.current_contract_amount)}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Spending to Date</p>
@@ -255,15 +246,15 @@ function ContractRow({ contract, isSelected, onClick }: ContractRowProps) {
     <button
       onClick={onClick}
       className={cn(
-        "w-full text-left p-4 rounded-lg border transition-colors",
-        "hover:bg-muted/50",
-        isSelected ? "bg-muted border-primary" : "bg-card"
+        "w-full text-left p-6 rounded-2xl transition-all duration-200",
+        "bg-muted/30 hover:bg-muted/50",
+        isSelected && "bg-muted/60"
       )}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-medium truncate">{contract.vendor_name || 'Unknown Vendor'}</h3>
+            <h3 className="font-semibold truncate">{contract.vendor_name || 'Unknown Vendor'}</h3>
             {contract.contract_type && (
               <Badge variant="secondary" className="text-xs shrink-0">
                 {contract.contract_type}
@@ -280,7 +271,7 @@ function ContractRow({ contract, isSelected, onClick }: ContractRowProps) {
           )}
         </div>
         <div className="text-right shrink-0">
-          <p className="font-semibold text-primary">
+          <p className="font-semibold">
             {formatCurrency(contract.current_contract_amount)}
           </p>
           <p className="text-xs text-muted-foreground">
