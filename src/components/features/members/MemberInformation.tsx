@@ -1,59 +1,56 @@
-
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { CardActionButtons } from "@/components/ui/CardActionButtons";
+import { Badge } from "@/components/ui/badge";
 import {
   MapPin,
   Phone,
   Mail,
-  User
+  User,
+  StickyNote
 } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
-import { useMemberFavorites } from "@/hooks/useMemberFavorites";
-import { supabase } from "@/integrations/supabase/client";
 
 type Member = Tables<"People">;
 
 interface MemberInformationProps {
   member: Member;
+  hasNotes?: boolean;
 }
 
-export const MemberInformation = ({ member }: MemberInformationProps) => {
-  const navigate = useNavigate();
-  const { favoriteMemberIds, toggleFavorite } = useMemberFavorites();
+export const MemberInformation = ({ member, hasNotes = false }: MemberInformationProps) => {
   const [imageError, setImageError] = useState(false);
   const memberName = member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim() || `Member #${member.people_id}`;
 
-  const isFavorited = favoriteMemberIds.has(member.people_id);
+  // Get chamber seal image
+  const chamberSeal = member.chamber?.toLowerCase() === 'senate'
+    ? '/nys-senate-seal.png'
+    : '/nys-assembly-seal.png';
 
-  const handleFavorite = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    toggleFavorite(member.people_id);
-  };
-
-  const handleAIAnalysis = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    // Navigate to chat with prompt - the chat page will create the session
-    const initialPrompt = `Tell me about ${memberName}`;
-    navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
-  };
-  
   return (
     <>
       <div className="space-y-6 relative">
-        {/* Action Buttons - Top Right Corner */}
-        <div className="absolute top-0 right-0 z-10">
-          <CardActionButtons
-            onFavorite={handleFavorite}
-            onAIAnalysis={handleAIAnalysis}
-            isFavorited={isFavorited}
-            hasAIChat={false}
-          />
-        </div>
+        {/* Has Note Badge - Top Right Corner */}
+        {hasNotes && (
+          <div className="absolute top-0 right-0 z-10">
+            <Badge
+              variant="outline"
+              className="bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800"
+            >
+              <StickyNote className="h-3 w-3 mr-1" />
+              Has Note
+            </Badge>
+          </div>
+        )}
 
         {/* Member Name Header */}
-        <div className="pb-4 border-b pr-20">
+        <div className={`pb-4 border-b ${hasNotes ? 'pr-24' : ''}`}>
           <div className="flex items-center gap-4">
+            {member.chamber && (
+              <img
+                src={chamberSeal}
+                alt={`${member.chamber} seal`}
+                className="w-12 h-12 object-contain flex-shrink-0"
+              />
+            )}
             {member.photo_url && !imageError ? (
               <img
                 src={member.photo_url}

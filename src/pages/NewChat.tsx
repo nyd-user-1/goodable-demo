@@ -683,12 +683,14 @@ const NewChat = () => {
         ? userQuery.substring(0, 50) + '...'
         : userQuery;
 
-      // Check for billId or committeeId in URL params to link chat
+      // Check for billId, committeeId, or memberId in URL params to link chat
       const billIdParam = searchParams.get('billId');
       const committeeIdParam = searchParams.get('committeeId');
-      const context = (billIdParam || committeeIdParam) ? {
+      const memberIdParam = searchParams.get('memberId');
+      const context = (billIdParam || committeeIdParam || memberIdParam) ? {
         bill_id: billIdParam ? parseInt(billIdParam, 10) : undefined,
         committee_id: committeeIdParam ? parseInt(committeeIdParam, 10) : undefined,
+        member_id: memberIdParam ? parseInt(memberIdParam, 10) : undefined,
       } : undefined;
 
       sessionId = await createSession(title, [{
@@ -697,7 +699,7 @@ const NewChat = () => {
         content: userMessage.content,
         timestamp: new Date().toISOString(),
       }], context);
-      console.log('[NewChat] Created new session:', sessionId, 'with bill_id:', billIdParam, 'committee_id:', committeeIdParam);
+      console.log('[NewChat] Created new session:', sessionId, 'with bill_id:', billIdParam, 'committee_id:', committeeIdParam, 'member_id:', memberIdParam);
 
       // Update URL to include session ID (like ChatGPT's /c/id pattern)
       if (sessionId) {
