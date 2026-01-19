@@ -72,6 +72,7 @@ import ExcerptView from "./pages/ExcerptView";
 import FreeTrial from "./pages/FreeTrial";
 import Contracts from "./pages/Contracts";
 import Committees2 from "./pages/Committees2";
+import Members2 from "./pages/Members2";
 import Constitution from "./pages/Constitution";
 import DigitalBillOfRights from "./pages/DigitalBillOfRights";
 
@@ -102,6 +103,7 @@ const AppLayout = () => {
               <Route path="/contracts" element={<Contracts />} />
               <Route path="/committees" element={<Committees2 />} />
               <Route path="/committees/:committeeSlug" element={<Committees />} />
+              <Route path="/members-2" element={<Members2 />} />
               <Route path="/members/:memberSlug?" element={<Members />} />
               <Route path="/problems" element={<Problems />} />
               <Route path="/problems/:problemSlug" element={<ProblemPage />} />
