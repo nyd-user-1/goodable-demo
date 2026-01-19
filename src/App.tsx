@@ -100,11 +100,11 @@ const AppLayout = () => {
               <Route path="/policy-lab" element={<PolicyLab />} />
               <Route path="/bills/:billNumber?" element={<Bills />} />
               <Route path="/contracts" element={<Contracts />} />
-              <Route path="/committees-2" element={<Committees2 />} />
+              <Route path="/committees" element={<Committees2 />} />
+              <Route path="/committees/:committeeSlug" element={<Committees />} />
               <Route path="/members/:memberSlug?" element={<Members />} />
               <Route path="/problems" element={<Problems />} />
               <Route path="/problems/:problemSlug" element={<ProblemPage />} />
-              <Route path="/committees/:committeeSlug?" element={<Committees />} />
               <Route path="/laws" element={<LawsClean />} />
               <Route path="/laws/admin" element={<LawsAdminWorking />} />
               <Route path="/laws/admin-full" element={<LawsAdmin />} />
