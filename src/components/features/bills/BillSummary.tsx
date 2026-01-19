@@ -1,20 +1,10 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { BillStatusBadge } from "@/components/BillStatusBadge";
 import { Tables } from "@/integrations/supabase/types";
 import { generateMemberSlug } from "@/utils/memberSlug";
-import { ThumbsUp, ThumbsDown, Minus, StickyNote, FileText } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Minus, StickyNote } from "lucide-react";
 import { ReviewStatus } from "@/hooks/useBillReviews";
-import { BillPDFSheet } from "./BillPDFSheet";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 type Bill = Tables<"Bills">;
 type Sponsor = Tables<"Sponsors"> & {
@@ -34,12 +24,19 @@ export const BillSummary = ({
   reviewStatus,
   hasNotes = false
 }: BillSummaryProps) => {
-  const [pdfSheetOpen, setPdfSheetOpen] = useState(false);
-
-  const handlePDFView = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setPdfSheetOpen(true);
+  // Determine chamber from bill number (S = Senate, A = Assembly)
+  const getChamberFromBillNumber = (billNumber: string | null): 'senate' | 'assembly' | null => {
+    if (!billNumber) return null;
+    const firstChar = billNumber.charAt(0).toUpperCase();
+    if (firstChar === 'S') return 'senate';
+    if (firstChar === 'A') return 'assembly';
+    return null;
   };
+
+  const chamber = getChamberFromBillNumber(bill.bill_number);
+  const chamberSeal = chamber === 'senate'
+    ? '/nys-senate-seal.png'
+    : '/nys-assembly-seal.png';
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "No date";
@@ -123,42 +120,35 @@ export const BillSummary = ({
   };
 
   return (
-    <Card className="card bg-card rounded-xl shadow-sm border overflow-hidden">
-      <CardHeader className="card-header px-6 py-4 border-b">
-        <div className="flex items-start justify-between gap-4">
+    <Card className="card bg-card rounded-xl shadow-sm border overflow-hidden relative">
+      {/* Has Note Badge - Top Right Corner */}
+      {hasNotes && (
+        <div className="absolute top-4 right-6 z-10">
+          <Badge
+            variant="outline"
+            className="bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800"
+          >
+            <StickyNote className="h-3 w-3 mr-1" />
+            Has Note
+          </Badge>
+        </div>
+      )}
+      <CardHeader className={`card-header px-6 py-4 border-b ${hasNotes ? 'pr-32' : ''}`}>
+        <div className="flex items-center gap-4">
+          {chamber && (
+            <img
+              src={chamberSeal}
+              alt={`${chamber} seal`}
+              className="w-12 h-12 object-contain"
+            />
+          )}
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-3">
               <CardTitle className="text-xl font-semibold">
                 {bill.bill_number || "Unknown Bill Number"}
               </CardTitle>
               {getReviewBadge()}
-              {hasNotes && (
-                <Badge variant="outline" className="gap-1 bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800">
-                  <StickyNote className="h-3 w-3" />
-                  Has Note
-                </Badge>
-              )}
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handlePDFView}
-                    className="gap-2"
-                  >
-                    <FileText className="h-4 w-4" />
-                    <span className="hidden sm:inline">View PDF</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  View bill PDF
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
           </div>
         </div>
       </CardHeader>
@@ -214,15 +204,6 @@ export const BillSummary = ({
           </div>
         )}
       </CardContent>
-
-      {/* PDF Viewer Sheet */}
-      <BillPDFSheet
-        isOpen={pdfSheetOpen}
-        onClose={() => setPdfSheetOpen(false)}
-        billNumber={bill.bill_number || ""}
-        billTitle={bill.title || ""}
-        bill={bill}
-      />
     </Card>
   );
 };

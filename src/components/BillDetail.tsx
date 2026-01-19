@@ -12,7 +12,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowLeft, User, Pencil, Plus, Trash2, ExternalLink } from "lucide-react";
+import { ArrowLeft, User, Pencil, Plus, Trash2, ExternalLink, Command } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { BillSummary, BillKeyInformation, QuickReviewNoteDialog } from "./features/bills";
@@ -266,14 +272,51 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
       <div className="content-wrapper max-w-7xl mx-auto">
         <div className="space-y-6">
           {/* Navigation Section */}
-          <Button 
-            variant="outline" 
-            onClick={onBack}
-            className="btn-secondary font-medium py-3 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Bills
-          </Button>
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              onClick={onBack}
+              className="btn-secondary font-medium py-3 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Bills
+            </Button>
+
+            {/* Right side controls */}
+            <div className="flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <ThemeToggle />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  Toggle theme
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    onClick={() => {
+                      const event = new KeyboardEvent('keydown', {
+                        key: 'k',
+                        metaKey: true,
+                        ctrlKey: true,
+                        bubbles: true
+                      });
+                      document.dispatchEvent(event);
+                    }}
+                  >
+                    <Command className="h-4 w-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  Command menu
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
 
           {/* Bill Summary Section - Full Width */}
           <BillSummary
