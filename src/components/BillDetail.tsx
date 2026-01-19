@@ -12,10 +12,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowLeft, User, StickyNote, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, User, StickyNote, Pencil, Plus, Trash2, MessageSquare, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
-import { BillSummary, BillKeyInformation, BillText, QuickReviewNoteDialog } from "./features/bills";
+import { BillSummary, BillKeyInformation, QuickReviewNoteDialog } from "./features/bills";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useBillReviews, ReviewStatus, BillNote } from "@/hooks/useBillReviews";
 
@@ -40,6 +40,7 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<BillNote | null>(null);
+  const [billChats, setBillChats] = useState<Array<{ id: string; title: string; created_at: string }>>([]);
 
   const { favoriteBillIds, toggleFavorite } = useFavorites();
   const { getReviewForBill, saveReview, addNote, updateNote, deleteNote } = useBillReviews();
@@ -97,7 +98,28 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
 
   useEffect(() => {
     fetchBillDetails();
+    fetchBillChats();
   }, [bill.bill_id]);
+
+  const fetchBillChats = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("chat_sessions")
+        .select("id, title, created_at")
+        .eq("bill_id", bill.bill_id)
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (!error && data) {
+        setBillChats(data);
+      }
+    } catch (error) {
+      console.error("Error fetching bill chats:", error);
+    }
+  };
 
   const fetchBillDetails = async () => {
     try {
@@ -267,89 +289,12 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
             onFavorite={handleFavorite}
             onAIAnalysis={handleAIAnalysis}
             isFavorited={favoriteBillIds.has(bill.bill_id)}
-            hasAIChat={false}
+            hasAIChat={billChats.length > 0}
             reviewStatus={billReview?.review_status}
             reviewNote={billReview?.note}
           />
 
-          {/* Your Notes Section - Always shown with accordion */}
-          <Card className="bg-card rounded-xl shadow-sm border">
-            <CardHeader className="px-6 py-4 border-b">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                    <StickyNote className="h-5 w-5 text-yellow-600" />
-                    Your Notes
-                  </CardTitle>
-                  {notes.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      {notes.length} {notes.length === 1 ? 'note' : 'notes'}
-                    </Badge>
-                  )}
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddNote}
-                  className="gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Note
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              {notes.length === 0 ? (
-                <div className="bg-muted/30 rounded-lg p-4 text-sm">
-                  <span className="text-muted-foreground italic">Add your notes here.</span>
-                </div>
-              ) : (
-                <Accordion type="single" collapsible className="w-full">
-                  {notes.map((note, index) => (
-                    <AccordionItem key={note.id} value={note.id} className="border-b last:border-b-0">
-                      <AccordionTrigger className="hover:no-underline py-3">
-                        <div className="flex items-center gap-3 text-left">
-                          <span className="text-xs text-muted-foreground">
-                            {formatNoteDate(note.updated_at || note.created_at)}
-                          </span>
-                          <span className="text-sm truncate max-w-[300px]">
-                            {note.content.substring(0, 50)}{note.content.length > 50 ? '...' : ''}
-                          </span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-4">
-                        <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-wrap mb-3">
-                          {note.content}
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditNote(note)}
-                            className="gap-1"
-                          >
-                            <Pencil className="h-3 w-3" />
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteNote(note.id)}
-                            className="gap-1 text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                            Delete
-                          </Button>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Bill Tabs Section */}
+          {/* Bill Tabs Section - Moved above Your Notes */}
           <section>
             <Tabs defaultValue="overview" className="space-y-6">
               <TabsList className="grid w-full grid-cols-4 h-12 p-1 bg-muted rounded-lg">
@@ -370,9 +315,6 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
               <TabsContent value="overview" className="mt-6 space-y-6">
                 {/* Bill Key Information Section */}
                 <BillKeyInformation bill={bill} sponsors={sponsors} totalSponsors={sponsors.length} />
-
-                {/* Bill Text Section */}
-                <BillText billId={bill.bill_id} />
               </TabsContent>
 
               <TabsContent value="sponsors" className="mt-6">
@@ -665,6 +607,148 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
               </TabsContent>
             </Tabs>
           </section>
+
+          {/* Your Notes Section */}
+          <Card className="bg-card rounded-xl shadow-sm border">
+            <CardHeader className="px-6 py-4 border-b">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <StickyNote className="h-5 w-5 text-yellow-600" />
+                    Your Notes
+                  </CardTitle>
+                  {notes.length > 0 && (
+                    <Badge variant="secondary" className="text-xs">
+                      {notes.length} {notes.length === 1 ? 'note' : 'notes'}
+                    </Badge>
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddNote}
+                  className="gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Note
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              {notes.length === 0 ? (
+                <div className="bg-muted/30 rounded-lg p-4 text-sm">
+                  <span className="text-muted-foreground italic">Add your notes here.</span>
+                </div>
+              ) : (
+                <Accordion type="single" collapsible className="w-full">
+                  {notes.map((note) => (
+                    <AccordionItem key={note.id} value={note.id} className="border-b last:border-b-0">
+                      <AccordionTrigger className="hover:no-underline py-3">
+                        <div className="flex items-center gap-3 text-left">
+                          <span className="text-xs text-muted-foreground">
+                            {formatNoteDate(note.updated_at || note.created_at)}
+                          </span>
+                          <span className="text-sm truncate max-w-[300px]">
+                            {note.content.substring(0, 50)}{note.content.length > 50 ? '...' : ''}
+                          </span>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-4">
+                        <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-wrap mb-3">
+                          {note.content}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditNote(note)}
+                            className="gap-1"
+                          >
+                            <Pencil className="h-3 w-3" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteNote(note.id)}
+                            className="gap-1 text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            Delete
+                          </Button>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Bill Chat Section - Shows chats related to this bill */}
+          <Card className="bg-card rounded-xl shadow-sm border">
+            <CardHeader className="px-6 py-4 border-b">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 text-blue-600" />
+                    Bill Chats
+                  </CardTitle>
+                  {billChats.length > 0 && (
+                    <Badge variant="secondary" className="text-xs">
+                      {billChats.length} {billChats.length === 1 ? 'chat' : 'chats'}
+                    </Badge>
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAIAnalysis}
+                  className="gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  New Chat
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              {billChats.length === 0 ? (
+                <div className="bg-muted/30 rounded-lg p-4 text-sm">
+                  <span className="text-muted-foreground italic">No chats yet. Start a conversation about this bill.</span>
+                </div>
+              ) : (
+                <Accordion type="single" collapsible className="w-full">
+                  {billChats.map((chat) => (
+                    <AccordionItem key={chat.id} value={chat.id} className="border-b last:border-b-0">
+                      <AccordionTrigger className="hover:no-underline py-3">
+                        <div className="flex items-center gap-3 text-left">
+                          <span className="text-xs text-muted-foreground">
+                            {formatNoteDate(chat.created_at)}
+                          </span>
+                          <span className="text-sm truncate max-w-[300px]">
+                            {chat.title}
+                          </span>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-4">
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/c/${chat.id}`)}
+                            className="gap-1"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            Open Chat
+                          </Button>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
 
