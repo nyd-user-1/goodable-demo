@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -59,11 +58,8 @@ export default function HeroSectionWithContentTabs() {
     <>
       {/* Hero */}
       <div className="bg-background">
-        <div className="container mx-auto px-4 py-24 md:px-6 lg:py-32 2xl:max-w-[1400px]">
+        <div className="container mx-auto px-4 pt-6 pb-16 md:px-6 2xl:max-w-[1400px]">
             <div className="mx-auto mb-16 max-w-3xl text-center">
-              <Badge variant="outline" className="mb-4">
-                NYS Legislature API
-              </Badge>
               <h1 className="mb-4 scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
                 Comprehensive legislative intelligence
               </h1>
