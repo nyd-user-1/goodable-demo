@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
-import { Search, X, Building2, FileText, Filter } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Search, X, Building2, FileText, Filter, ArrowUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -10,12 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useContractsSearch, formatCurrency, formatContractDate } from '@/hooks/useContractsSearch';
+import { useContractsSearch, formatCurrency } from '@/hooks/useContractsSearch';
 import { Contract } from '@/types/contracts';
-import { cn } from '@/lib/utils';
 
 const Contracts = () => {
-  const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
+  const navigate = useNavigate();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -42,14 +41,30 @@ const Contracts = () => {
         e.preventDefault();
         searchInputRef.current?.focus();
       }
-      if (e.key === 'Escape') {
-        setSelectedContract(null);
-      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // Generate a prompt for a contract
+  const generatePrompt = (contract: Contract): string => {
+    const vendor = contract.vendor_name || 'this vendor';
+    const dept = contract.department_facility ? ` for ${contract.department_facility}` : '';
+    const amount = contract.current_contract_amount
+      ? ` worth ${formatCurrency(contract.current_contract_amount)}`
+      : '';
+    const desc = contract.contract_description
+      ? ` The contract description says: "${contract.contract_description}".`
+      : '';
+
+    return `Tell me about the contract with ${vendor}${dept}${amount}.${desc} What should I know about this contract?`;
+  };
+
+  const handleContractClick = (contract: Contract) => {
+    const prompt = generatePrompt(contract);
+    navigate(`/?prompt=${encodeURIComponent(prompt)}`);
+  };
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -140,16 +155,16 @@ const Contracts = () => {
         </div>
       </div>
 
-      {/* Results */}
+      {/* Results - Masonry Grid */}
       <div className="container mx-auto px-4 py-6">
         {error ? (
           <div className="text-center py-12">
             <p className="text-destructive">Error loading contracts: {String(error)}</p>
           </div>
         ) : isLoading ? (
-          <div className="space-y-2">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="h-20 bg-muted/50 rounded-lg animate-pulse" />
+          <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="break-inside-avoid h-32 bg-muted/30 rounded-2xl animate-pulse" />
             ))}
           </div>
         ) : contracts.length === 0 ? (
@@ -163,129 +178,64 @@ const Contracts = () => {
             )}
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
             {contracts.map((contract) => (
-              <ContractRow
+              <ContractCard
                 key={contract.id}
                 contract={contract}
-                isSelected={selectedContract?.id === contract.id}
-                onClick={() => setSelectedContract(
-                  selectedContract?.id === contract.id ? null : contract
-                )}
+                onClick={() => handleContractClick(contract)}
               />
             ))}
           </div>
         )}
       </div>
-
-      {/* Selected Contract Detail Panel */}
-      {selectedContract && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background border-t shadow-lg z-50 max-h-[40vh] overflow-auto">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h2 className="text-lg font-semibold">{selectedContract.vendor_name}</h2>
-                <p className="text-sm text-muted-foreground">{selectedContract.contract_number}</p>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => setSelectedContract(null)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-              <div>
-                <p className="text-muted-foreground">Department</p>
-                <p className="font-medium">{selectedContract.department_facility || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Contract Amount</p>
-                <p className="font-medium">{formatCurrency(selectedContract.current_contract_amount)}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Spending to Date</p>
-                <p className="font-medium">{selectedContract.spending_to_date || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Contract Type</p>
-                <p className="font-medium">{selectedContract.contract_type || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Start Date</p>
-                <p className="font-medium">{formatContractDate(selectedContract.contract_start_date)}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">End Date</p>
-                <p className="font-medium">{formatContractDate(selectedContract.contract_end_date)}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Approved Date</p>
-                <p className="font-medium">{formatContractDate(selectedContract.original_contract_approved_file_date)}</p>
-              </div>
-            </div>
-            {selectedContract.contract_description && (
-              <div className="mt-4">
-                <p className="text-muted-foreground text-sm">Description</p>
-                <p className="text-sm mt-1">{selectedContract.contract_description}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
-// Contract row component
-interface ContractRowProps {
+// Contract card component - masonry style matching case studies
+interface ContractCardProps {
   contract: Contract;
-  isSelected: boolean;
   onClick: () => void;
 }
 
-function ContractRow({ contract, isSelected, onClick }: ContractRowProps) {
+function ContractCard({ contract, onClick }: ContractCardProps) {
+  const amount = contract.current_contract_amount
+    ? formatCurrency(contract.current_contract_amount)
+    : null;
+  const dept = contract.department_facility;
+
+  // Build the prompt preview text
+  let promptText = `Tell me about this contract`;
+  if (dept) {
+    promptText += ` with ${dept}`;
+  }
+  if (amount) {
+    promptText += ` worth ${amount}`;
+  }
+  promptText += '.';
+
   return (
-    <button
+    <div
       onClick={onClick}
-      className={cn(
-        "w-full text-left p-6 rounded-2xl transition-all duration-200",
-        "bg-muted/30 hover:bg-muted/50",
-        isSelected && "bg-muted/60"
-      )}
+      className="group break-inside-avoid bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold truncate">{contract.vendor_name || 'Unknown Vendor'}</h3>
-            {contract.contract_type && (
-              <Badge variant="secondary" className="text-xs shrink-0">
-                {contract.contract_type}
-              </Badge>
-            )}
+      <h3 className="font-semibold text-base mb-3">
+        {contract.vendor_name || 'Unknown Vendor'}
+      </h3>
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        {promptText}
+      </p>
+
+      {/* Chat arrow button - renders on hover */}
+      <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
+        <div className="flex justify-end">
+          <div className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center">
+            <ArrowUp className="h-5 w-5" />
           </div>
-          <p className="text-sm text-muted-foreground truncate">
-            {contract.department_facility || 'No department'}
-          </p>
-          {contract.contract_description && (
-            <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
-              {contract.contract_description}
-            </p>
-          )}
-        </div>
-        <div className="text-right shrink-0 space-y-0.5">
-          <p className="font-semibold">
-            {formatCurrency(contract.current_contract_amount)}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {contract.contract_number}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Start: {formatContractDate(contract.contract_start_date)}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            End: {formatContractDate(contract.contract_end_date)}
-          </p>
         </div>
       </div>
-    </button>
+    </div>
   );
 }
 
