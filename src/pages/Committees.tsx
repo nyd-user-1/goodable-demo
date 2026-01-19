@@ -125,7 +125,13 @@ const Committees = () => {
               billCount: matchedCommittee.active_bills_count || '0',
               description: matchedCommittee.description,
               chair_name: matchedCommittee.chair_name,
+              chair_email: matchedCommittee.chair_email,
               chamber: matchedCommittee.chamber,
+              committee_url: matchedCommittee.committee_url,
+              meeting_schedule: matchedCommittee.meeting_schedule,
+              next_meeting: matchedCommittee.next_meeting,
+              upcoming_agenda: matchedCommittee.upcoming_agenda,
+              address: matchedCommittee.address,
               slug: committeeSlug,
             };
             setSelectedCommittee(committee);
