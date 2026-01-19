@@ -12,6 +12,11 @@ const partnerCategories = [
     description: "Labor markets, inequality, fiscal policy, housing, consumer protection",
     partners: [
       {
+        name: "Center for Popular Democracy",
+        tagline: "Grassroots organizing meets economic and labor policy",
+        prompt: "How does the Center for Popular Democracy combine grassroots organizing with economic policy advocacy? What campaigns are they currently running?"
+      },
+      {
         name: "Economic Policy Institute",
         tagline: "National leader on wages, labor economics, and inequality",
         prompt: "Tell me about the Economic Policy Institute's work on wage policy and labor economics. How can I support their research and advocacy efforts?"
@@ -20,11 +25,6 @@ const partnerCategories = [
         name: "Fiscal Policy Institute",
         tagline: "NY-focused fiscal policy and tax equity research",
         prompt: "What is the Fiscal Policy Institute and how does their research influence New York State budget and tax policy? How can I get involved?"
-      },
-      {
-        name: "Center for Popular Democracy",
-        tagline: "Grassroots organizing meets economic and labor policy",
-        prompt: "How does the Center for Popular Democracy combine grassroots organizing with economic policy advocacy? What campaigns are they currently running?"
       },
       {
         name: "NYPIRG",
@@ -43,9 +43,9 @@ const partnerCategories = [
     description: "Climate, energy, land use, environmental justice",
     partners: [
       {
-        name: "Natural Resources Defense Council (NRDC)",
-        tagline: "Climate litigation and environmental regulation",
-        prompt: "What is NRDC's current work on climate policy and environmental protection? How can I support their legal and advocacy efforts?"
+        name: "Citizens Campaign for the Environment (CCE)",
+        tagline: "Influential in NYS environmental legislation",
+        prompt: "Tell me about Citizens Campaign for the Environment and their impact on New York environmental legislation. How can I volunteer or donate?"
       },
       {
         name: "Environmental Defense Fund (EDF)",
@@ -53,19 +53,19 @@ const partnerCategories = [
         prompt: "How does the Environmental Defense Fund approach climate and environmental policy? What are their current priorities and how can I help?"
       },
       {
-        name: "Citizens Campaign for the Environment (CCE)",
-        tagline: "Influential in NYS environmental legislation",
-        prompt: "Tell me about Citizens Campaign for the Environment and their impact on New York environmental legislation. How can I volunteer or donate?"
-      },
-      {
-        name: "WE ACT for Environmental Justice",
-        tagline: "Environmental justice and community-driven climate policy",
-        prompt: "What is WE ACT for Environmental Justice and how do they advance environmental justice in New York? How can I support their community-driven work?"
+        name: "Natural Resources Defense Council (NRDC)",
+        tagline: "Climate litigation and environmental regulation",
+        prompt: "What is NRDC's current work on climate policy and environmental protection? How can I support their legal and advocacy efforts?"
       },
       {
         name: "Open Space Institute",
         tagline: "Conservation and land-use policy across the Northeast",
         prompt: "How does the Open Space Institute work to protect land and open spaces in New York and the Northeast? How can I contribute to their mission?"
+      },
+      {
+        name: "WE ACT for Environmental Justice",
+        tagline: "Environmental justice and community-driven climate policy",
+        prompt: "What is WE ACT for Environmental Justice and how do they advance environmental justice in New York? How can I support their community-driven work?"
       },
     ]
   },
@@ -73,6 +73,11 @@ const partnerCategories = [
     category: "Social Advocacy",
     description: "Civil rights, housing, healthcare, education, justice",
     partners: [
+      {
+        name: "Community Service Society of New York (CSS)",
+        tagline: "Historic institution in social welfare and poverty policy",
+        prompt: "What is the Community Service Society of New York and how do they address poverty and social welfare? How can I support their work?"
+      },
       {
         name: "New York Civil Liberties Union (NYCLU)",
         tagline: "Shaping policy through litigation and legislation",
@@ -82,11 +87,6 @@ const partnerCategories = [
         name: "The Century Foundation",
         tagline: "Education, healthcare, immigration, and democracy research",
         prompt: "Tell me about The Century Foundation's research and policy work. What are their current priorities and how can I engage with their mission?"
-      },
-      {
-        name: "Community Service Society of New York (CSS)",
-        tagline: "Historic institution in social welfare and poverty policy",
-        prompt: "What is the Community Service Society of New York and how do they address poverty and social welfare? How can I support their work?"
       },
       {
         name: "United Way NYC",
@@ -115,14 +115,14 @@ const partnerCategories = [
         prompt: "How does the Campaign Legal Center work to improve campaign finance laws and government ethics? How can I get involved?"
       },
       {
-        name: "League of Women Voters of New York State",
-        tagline: "Election administration and transparency advocacy",
-        prompt: "What is the League of Women Voters doing to improve elections in New York? How can I join or support their civic engagement work?"
-      },
-      {
         name: "Common Cause New York",
         tagline: "Redistricting, ethics reform, and voter access",
         prompt: "Tell me about Common Cause New York's work on redistricting and voting access. How can I volunteer or support their campaigns?"
+      },
+      {
+        name: "League of Women Voters of New York State",
+        tagline: "Election administration and transparency advocacy",
+        prompt: "What is the League of Women Voters doing to improve elections in New York? How can I join or support their civic engagement work?"
       },
       {
         name: "Rockefeller Institute of Government",
