@@ -8,17 +8,24 @@ export function useContractsSearch() {
   const [departmentFilter, setDepartmentFilter] = useState('');
   const [contractTypeFilter, setContractTypeFilter] = useState('');
 
-  // Fetch all contracts once and filter client-side for speed
+  // Fetch contracts with a reasonable limit for performance
   const { data: allContracts, isLoading, error } = useQuery({
     queryKey: ['contracts-all'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      console.log('Fetching contracts from Supabase...');
+
+      const { data, error, count } = await supabase
         .from('Contracts')
-        .select('*')
-        .order('current_contract_amount', { ascending: false, nullsFirst: false });
+        .select('*', { count: 'exact' })
+        .order('current_contract_amount', { ascending: false, nullsFirst: false })
+        .limit(5000); // Limit to 5000 for performance
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
+      console.log(`Fetched ${data?.length} contracts (total in DB: ${count})`);
       return data as Contract[];
     },
     staleTime: 10 * 60 * 1000, // Cache for 10 minutes
