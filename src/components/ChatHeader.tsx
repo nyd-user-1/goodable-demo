@@ -17,10 +17,10 @@ import {
 
 // Non Profits dropdown items
 const nonProfitsDropdownItems = [
-  { label: "Economic Advocacy", href: "/nonprofits/economic-advocacy" },
-  { label: "Environmental Advocacy", href: "/nonprofits/environmental-advocacy" },
-  { label: "Legal Advocacy", href: "/nonprofits/legal-advocacy" },
-  { label: "Social Advocacy", href: "/nonprofits/social-advocacy" },
+  { label: "Economic", href: "/nonprofits/economic-advocacy" },
+  { label: "Environmental", href: "/nonprofits/environmental-advocacy" },
+  { label: "Legal", href: "/nonprofits/legal-advocacy" },
+  { label: "Social", href: "/nonprofits/social-advocacy" },
 ];
 
 // Use Cases dropdown items
