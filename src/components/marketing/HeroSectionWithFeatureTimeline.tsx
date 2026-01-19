@@ -4,99 +4,109 @@ import { Card } from "@/components/ui/card";
 import { MessageSquare, MousePointerClick, Mail, FileText, ThumbsUp, Users, PenTool, Lightbulb, Rss, Quote, Search, Bookmark } from "lucide-react";
 
 export default function HeroSectionWithFeatureTimeline() {
-  const features = [
+  const milestones = [
     {
-      category: "Research",
+      date: "Research",
       title: "AI-Powered Chat with Streaming",
       description:
         "Get instant analysis of bills, legislators, and committees with word-by-word streaming responses. Context-aware AI that understands legislative nuance.",
+      status: "Released",
       icon: <MessageSquare className="h-5 w-5 text-foreground" />,
     },
     {
-      category: "Research",
+      date: "Research",
       title: '"Ask Goodable" Text Selection',
       description:
         "Select any text on the page and instantly ask our AI about it. Removes friction from research by enabling contextual questions without switching screens.",
+      status: "Released",
       icon: <MousePointerClick className="h-5 w-5 text-foreground" />,
     },
     {
-      category: "Research",
+      date: "Research",
       title: "Embedded Bill PDF Viewer",
       description:
         "View official NYS Legislature documents in a resizable side panel without leaving the app. Includes Quick Review buttons and direct download options.",
+      status: "Released",
       icon: <FileText className="h-5 w-5 text-foreground" />,
     },
     {
-      category: "Research",
-      title: "Live Policy Feed",
-      description:
-        "Real-time legislative activity with source credibility indicators, expandable summaries, and direct links to official NYS Open Legislation pages.",
-      icon: <Rss className="h-5 w-5 text-foreground" />,
-    },
-    {
-      category: "Track",
+      date: "Track",
       title: "Quick Review System",
       description:
         "One-click Support, Oppose, or Neutral tracking with personal notes on any bill. Democratizes advocacy tracking by making it frictionless to record positions.",
+      status: "Released",
       icon: <ThumbsUp className="h-5 w-5 text-foreground" />,
     },
     {
-      category: "Track",
-      title: "Citation Management",
+      date: "Track",
+      title: "Live Policy Feed",
       description:
-        "Numbered citations with inline links, expandable accordion views, and organized reference management. Turn research into documented, shareable insights.",
-      icon: <Quote className="h-5 w-5 text-foreground" />,
+        "Real-time legislative activity with source credibility indicators, expandable summaries, and direct links to official NYS Open Legislation pages.",
+      status: "Released",
+      icon: <Rss className="h-5 w-5 text-foreground" />,
     },
     {
-      category: "Track",
-      title: "Excerpt Creation",
-      description:
-        "One-click saving of AI insights as shareable, citable excerpts. Export to PDF or copy to clipboard for easy sharing with colleagues and stakeholders.",
-      icon: <Bookmark className="h-5 w-5 text-foreground" />,
-    },
-    {
-      category: "Act",
+      date: "Act",
       title: "Direct Email Advocacy",
       description:
         "Send AI-generated support or opposition letters to bill sponsors with one click. CC all co-sponsors and customize before sending. Research to action, seamlessly.",
+      status: "Released",
       icon: <Mail className="h-5 w-5 text-foreground" />,
     },
     {
-      category: "Act",
+      date: "Act",
       title: "Problem-to-Policy Pipeline",
       description:
         "Multi-stage wizard that guides you from real-world problems to structured policy solutions. AI-assisted advocacy strategy development built in.",
+      status: "Released",
       icon: <Lightbulb className="h-5 w-5 text-foreground" />,
     },
     {
-      category: "Collaborate",
+      date: "Collaborate",
       title: "Co-Authorship System",
       description:
         "Invite-based multi-user legislative drafting with role-based permissions. Transform individual research into collaborative policy development.",
+      status: "Released",
       icon: <Users className="h-5 w-5 text-foreground" />,
     },
     {
-      category: "Collaborate",
+      date: "Collaborate",
       title: "Solutions Whiteboard",
       description:
         "Canvas-based collaborative drawing tool with policy templates including Stakeholder Maps, Policy Frameworks, and Impact Analysis diagrams.",
+      status: "Released",
       icon: <PenTool className="h-5 w-5 text-foreground" />,
     },
     {
-      category: "Discover",
+      date: "Discover",
+      title: "Citation Management",
+      description:
+        "Numbered citations with inline links, expandable accordion views, and organized reference management. Turn research into documented, shareable insights.",
+      status: "Released",
+      icon: <Quote className="h-5 w-5 text-foreground" />,
+    },
+    {
+      date: "Discover",
+      title: "Excerpt Creation",
+      description:
+        "One-click saving of AI insights as shareable, citable excerpts. Export to PDF or copy to clipboard for easy sharing with colleagues and stakeholders.",
+      status: "Released",
+      icon: <Bookmark className="h-5 w-5 text-foreground" />,
+    },
+    {
+      date: "Discover",
       title: "Curated Use Cases",
       description:
         "Expert-sourced prompts from policy practitioners, government administrators, and civic technologists. High-quality starting points for any research need.",
+      status: "Released",
       icon: <Search className="h-5 w-5 text-foreground" />,
     },
   ];
 
-  const categories = ["Research", "Track", "Act", "Collaborate", "Discover"];
-
   return (
     <>
       <div className="bg-background">
-        <div className="container mx-auto px-4 md:px-6 2xl:max-w-[1400px] py-16 lg:py-24">
+        <div className="container mx-auto px-4 md:px-6 2xl:max-w-[1400px] py-24 lg:py-32">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <Badge variant="outline" className="mb-4">
                 Platform Features
@@ -132,45 +142,51 @@ export default function HeroSectionWithFeatureTimeline() {
               </div>
             </div>
 
-            {/* Features by Category */}
-            <div className="max-w-5xl mx-auto space-y-12">
-              {categories.map((category) => (
-                <div key={category}>
-                  <div className="flex items-center gap-3 mb-6">
-                    <Badge className="bg-foreground text-background hover:bg-foreground/90 px-3 py-1">
-                      {category}
-                    </Badge>
-                    <div className="h-px flex-1 bg-border"></div>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
-                    {features
-                      .filter((f) => f.category === category)
-                      .map((feature) => (
-                        <Card
-                          key={feature.title}
-                          className="p-6 hover:shadow-lg transition-all duration-300 hover:border-foreground/20"
-                        >
-                          <div className="flex gap-4">
-                            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-muted shrink-0">
-                              {feature.icon}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold mb-2">
-                                {feature.title}
-                              </h3>
-                              <p className="text-sm text-muted-foreground leading-relaxed">
-                                {feature.description}
-                              </p>
-                            </div>
+            {/* Timeline */}
+            <div className="max-w-4xl mx-auto">
+              <div className="space-y-8">
+                {milestones.map((milestone, index) => (
+                  <div key={milestone.title} className="relative">
+                    {/* Timeline line */}
+                    {index !== milestones.length - 1 && (
+                      <div
+                        className="absolute left-6 top-12 h-full w-0.5 bg-foreground"
+                      ></div>
+                    )}
+
+                    <Card className="relative flex gap-6 p-6 hover:shadow-lg transition-all duration-300">
+                      {/* Icon */}
+                      <div
+                        className="w-12 h-12 rounded-full flex items-center justify-center bg-muted"
+                      >
+                        {milestone.icon}
+                      </div>
+
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Badge
+                            className="bg-foreground text-background hover:bg-foreground/90"
+                          >
+                            {milestone.status}
+                          </Badge>
+                          <div className="text-sm text-muted-foreground">
+                            {milestone.date}
                           </div>
-                        </Card>
-                      ))}
+                        </div>
+                        <h3 className="font-semibold mb-2">
+                          {milestone.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {milestone.description}
+                        </p>
+                      </div>
+                    </Card>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
-            {/* CTA */}
+            {/* Feature Request CTA */}
             <Card className="mt-16 p-8 text-center max-w-2xl mx-auto bg-muted/50">
               <h3 className="font-semibold mb-2">Ready to get started?</h3>
               <p className="text-sm text-muted-foreground mb-4">
