@@ -96,8 +96,7 @@ const AppLayout = () => {
               <Route path="/c/:sessionId" element={<NewChat />} />
               <Route path="/e/:excerptId" element={<ExcerptView />} />
               <Route path="/new-chat-2" element={<NewChat2 />} />
-              <Route path="/chats" element={<Chats />} />
-              <Route path="/chats-2" element={<Chats2 />} />
+              <Route path="/chats" element={<Chats2 />} />
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/playground" element={<Playground />} />
               <Route path="/policy-portal" element={<PolicyPortal />} />
