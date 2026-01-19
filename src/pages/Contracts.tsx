@@ -63,7 +63,7 @@ const Contracts = () => {
 
   const handleContractClick = (contract: Contract) => {
     const prompt = generatePrompt(contract);
-    navigate(`/?prompt=${encodeURIComponent(prompt)}`);
+    navigate(`/new-chat?prompt=${encodeURIComponent(prompt)}`);
   };
 
   const clearFilters = () => {
