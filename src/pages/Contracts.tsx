@@ -20,7 +20,6 @@ const Contracts = () => {
 
   const {
     contracts,
-    allContracts,
     totalCount,
     isLoading,
     error,

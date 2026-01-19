@@ -8,80 +8,80 @@ export function useContractsSearch() {
   const [departmentFilter, setDepartmentFilter] = useState('');
   const [contractTypeFilter, setContractTypeFilter] = useState('');
 
-  // Fetch contracts with a reasonable limit for performance
+  // Fetch contracts - server-side search when there's a search term
   const { data, isLoading, error } = useQuery({
-    queryKey: ['contracts-all'],
+    queryKey: ['contracts', searchTerm, departmentFilter, contractTypeFilter],
     queryFn: async () => {
-      const { data, error, count } = await supabase
+      let query = supabase
         .from('Contracts')
-        .select('*', { count: 'exact' })
+        .select('*', { count: 'exact' });
+
+      // Server-side search across vendor name, description, contract number, department
+      if (searchTerm && searchTerm.length >= 2) {
+        query = query.or(
+          `vendor_name.ilike.%${searchTerm}%,contract_description.ilike.%${searchTerm}%,contract_number.ilike.%${searchTerm}%,department_facility.ilike.%${searchTerm}%`
+        );
+      }
+
+      // Server-side department filter
+      if (departmentFilter) {
+        query = query.eq('department_facility', departmentFilter);
+      }
+
+      // Server-side contract type filter
+      if (contractTypeFilter) {
+        query = query.eq('contract_type', contractTypeFilter);
+      }
+
+      // Order by amount and limit results
+      query = query
         .order('current_contract_amount', { ascending: false, nullsFirst: false })
-        .limit(1000); // Show top 1000 by amount
+        .limit(1000);
+
+      const { data, error, count } = await query;
 
       if (error) throw error;
 
       return { contracts: data as Contract[], totalCount: count || 0 };
     },
-    staleTime: 10 * 60 * 1000, // Cache for 10 minutes
-    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000,
   });
 
-  const allContracts = data?.contracts || [];
+  const contracts = data?.contracts || [];
   const totalCount = data?.totalCount || 0;
 
-  // Extract unique departments
-  const departments = useMemo(() => {
-    if (!allContracts.length) return [];
-    const depts = [...new Set(allContracts.map(c => c.department_facility).filter(Boolean))];
-    return depts.sort() as string[];
-  }, [allContracts]);
+  // Get filter options (departments and types) from a separate query
+  const { data: filterOptions } = useQuery({
+    queryKey: ['contracts-filter-options'],
+    queryFn: async () => {
+      // Get unique departments
+      const { data: deptData } = await supabase
+        .from('Contracts')
+        .select('department_facility')
+        .not('department_facility', 'is', null);
 
-  // Extract unique contract types
-  const contractTypes = useMemo(() => {
-    if (!allContracts.length) return [];
-    const types = [...new Set(allContracts.map(c => c.contract_type).filter(Boolean))];
-    return types.sort() as string[];
-  }, [allContracts]);
+      // Get unique contract types
+      const { data: typeData } = await supabase
+        .from('Contracts')
+        .select('contract_type')
+        .not('contract_type', 'is', null);
 
-  // Client-side filtering - super fast
-  const filteredContracts = useMemo(() => {
-    if (!allContracts.length) return [];
+      const departments = [...new Set(deptData?.map(d => d.department_facility))].filter(Boolean).sort() as string[];
+      const contractTypes = [...new Set(typeData?.map(t => t.contract_type))].filter(Boolean).sort() as string[];
 
-    let results = allContracts;
-
-    // Filter by search term
-    if (searchTerm && searchTerm.length >= 1) {
-      const searchLower = searchTerm.toLowerCase();
-      results = results.filter(
-        (c) =>
-          c.vendor_name?.toLowerCase().includes(searchLower) ||
-          c.contract_description?.toLowerCase().includes(searchLower) ||
-          c.contract_number?.toLowerCase().includes(searchLower) ||
-          c.department_facility?.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Filter by department
-    if (departmentFilter) {
-      results = results.filter(c => c.department_facility === departmentFilter);
-    }
-
-    // Filter by contract type
-    if (contractTypeFilter) {
-      results = results.filter(c => c.contract_type === contractTypeFilter);
-    }
-
-    return results;
-  }, [allContracts, searchTerm, departmentFilter, contractTypeFilter]);
+      return { departments, contractTypes };
+    },
+    staleTime: 30 * 60 * 1000, // Cache filter options for 30 minutes
+  });
 
   return {
-    contracts: filteredContracts,
-    allContracts,
+    contracts,
     totalCount,
     isLoading,
     error,
-    departments,
-    contractTypes,
+    departments: filterOptions?.departments || [],
+    contractTypes: filterOptions?.contractTypes || [],
     searchTerm,
     setSearchTerm,
     departmentFilter,
