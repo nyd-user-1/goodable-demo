@@ -115,13 +115,13 @@ const Contracts = () => {
 
             {/* Filters row */}
             <div className="flex flex-wrap gap-2">
-              <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+              <Select value={departmentFilter || "all"} onValueChange={(v) => setDepartmentFilter(v === "all" ? "" : v)}>
                 <SelectTrigger className="w-[220px]">
                   <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
                   <SelectValue placeholder="All Departments" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Departments</SelectItem>
+                  <SelectItem value="all">All Departments</SelectItem>
                   {departments.map((dept) => (
                     <SelectItem key={dept} value={dept}>
                       {dept}
@@ -130,13 +130,13 @@ const Contracts = () => {
                 </SelectContent>
               </Select>
 
-              <Select value={contractTypeFilter} onValueChange={setContractTypeFilter}>
+              <Select value={contractTypeFilter || "all"} onValueChange={(v) => setContractTypeFilter(v === "all" ? "" : v)}>
                 <SelectTrigger className="w-[180px]">
                   <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
                   {contractTypes.map((type) => (
                     <SelectItem key={type} value={type}>
                       {type}

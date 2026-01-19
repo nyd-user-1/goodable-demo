@@ -14,11 +14,13 @@ export function useContractsSearch() {
     queryFn: async () => {
       console.log('Fetching contracts from Supabase...');
 
-      const { data, error, count } = await supabase
+      const { data, error, count, status, statusText } = await supabase
         .from('Contracts')
         .select('*', { count: 'exact' })
         .order('current_contract_amount', { ascending: false, nullsFirst: false })
         .limit(5000); // Limit to 5000 for performance
+
+      console.log('Supabase response:', { status, statusText, count, dataLength: data?.length, error });
 
       if (error) {
         console.error('Supabase error:', error);
