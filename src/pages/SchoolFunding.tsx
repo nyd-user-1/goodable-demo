@@ -115,13 +115,6 @@ const SchoolFundingPage = () => {
         console.error('Error fetching aid category details:', error);
       }
 
-      console.log('School funding query result:', {
-        district: record.district,
-        budgetYear: record.enacted_budget,
-        categoriesFound: rawCategories?.length || 0,
-        sampleRow: rawCategories?.[0]
-      });
-
       // Map the raw database columns to our expected format
       const aidCategories: SchoolFunding[] | null = rawCategories ? rawCategories.map((row: Record<string, unknown>) => ({
         id: row.id as number,

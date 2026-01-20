@@ -746,13 +746,8 @@ const NewChat = () => {
     let schoolFundingData: SchoolFundingDetails | undefined;
     try {
       const storedData = sessionStorage.getItem('schoolFundingDetails');
-      console.log('Reading schoolFundingDetails from sessionStorage:', storedData ? 'found' : 'not found');
       if (storedData) {
         schoolFundingData = JSON.parse(storedData);
-        console.log('Parsed school funding data:', {
-          district: schoolFundingData?.district,
-          categories: schoolFundingData?.categories?.length
-        });
         // Clear it after reading so it's only used once
         sessionStorage.removeItem('schoolFundingDetails');
       }
@@ -1229,6 +1224,60 @@ const NewChat = () => {
                       </div>
                     )}
 
+                    {/* School Aid Details Accordion - shown when school funding data is available */}
+                    {message.schoolFundingData && !message.isStreaming && (
+                      <Accordion type="single" collapsible className="w-full mt-4">
+                        <AccordionItem
+                          value="school-aid-details"
+                          className="border border-border rounded-lg"
+                        >
+                          <AccordionTrigger className="hover:no-underline px-4 py-3 text-sm font-medium">
+                            <div className="flex items-center gap-2">
+                              <span>School Aid Details</span>
+                              <span className="text-xs text-muted-foreground font-normal">
+                                {message.schoolFundingData.district} • {message.schoolFundingData.budgetYear?.replace(' Enacted Budget', '')}
+                              </span>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="px-4 pb-4">
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-sm">
+                                <thead>
+                                  <tr className="border-b border-border/50">
+                                    <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Aid Category</th>
+                                    <th className="text-right py-2 px-4 font-medium text-muted-foreground">Base Year</th>
+                                    <th className="text-right py-2 px-4 font-medium text-muted-foreground">School Year</th>
+                                    <th className="text-right py-2 pl-4 font-medium text-muted-foreground">% Change</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {message.schoolFundingData.categories.map((cat, idx) => {
+                                    const pctNum = parseFloat(cat.percentChange?.replace('%', '') || '0');
+                                    const isPositive = pctNum > 0;
+                                    const isNegative = pctNum < 0;
+                                    return (
+                                      <tr key={idx} className="border-b border-border/30 last:border-0">
+                                        <td className="py-2 pr-4">{cat.name}</td>
+                                        <td className="py-2 px-4 text-right text-muted-foreground">${cat.baseYear}</td>
+                                        <td className="py-2 px-4 text-right text-muted-foreground">${cat.schoolYear}</td>
+                                        <td className={`py-2 pl-4 text-right font-medium ${
+                                          isPositive ? 'text-green-600 dark:text-green-400' :
+                                          isNegative ? 'text-red-600 dark:text-red-400' :
+                                          'text-muted-foreground'
+                                        }`}>
+                                          {cat.percentChange}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    )}
+
                     {/* Perplexity-style Tabbed Interface for all assistant messages */}
                     {message.role === 'assistant' && (
                       <ChatResponseFooter
@@ -1351,60 +1400,6 @@ const NewChat = () => {
                         assistantMessageText={message.content}
                         parentSessionId={currentSessionId || undefined}
                       />
-                    )}
-
-                    {/* School Aid Details Accordion - shown when school funding data is available */}
-                    {message.schoolFundingData && !message.isStreaming && (
-                      <Accordion type="single" collapsible className="w-full mt-4">
-                        <AccordionItem
-                          value="school-aid-details"
-                          className="border border-border rounded-lg"
-                        >
-                          <AccordionTrigger className="hover:no-underline px-4 py-3 text-sm font-medium">
-                            <div className="flex items-center gap-2">
-                              <span>School Aid Details</span>
-                              <span className="text-xs text-muted-foreground font-normal">
-                                {message.schoolFundingData.district} • {message.schoolFundingData.budgetYear?.replace(' Enacted Budget', '')}
-                              </span>
-                            </div>
-                          </AccordionTrigger>
-                          <AccordionContent className="px-4 pb-4">
-                            <div className="overflow-x-auto">
-                              <table className="w-full text-sm">
-                                <thead>
-                                  <tr className="border-b border-border/50">
-                                    <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Aid Category</th>
-                                    <th className="text-right py-2 px-4 font-medium text-muted-foreground">Base Year</th>
-                                    <th className="text-right py-2 px-4 font-medium text-muted-foreground">School Year</th>
-                                    <th className="text-right py-2 pl-4 font-medium text-muted-foreground">% Change</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {message.schoolFundingData.categories.map((cat, idx) => {
-                                    const pctNum = parseFloat(cat.percentChange?.replace('%', '') || '0');
-                                    const isPositive = pctNum > 0;
-                                    const isNegative = pctNum < 0;
-                                    return (
-                                      <tr key={idx} className="border-b border-border/30 last:border-0">
-                                        <td className="py-2 pr-4">{cat.name}</td>
-                                        <td className="py-2 px-4 text-right text-muted-foreground">${cat.baseYear}</td>
-                                        <td className="py-2 px-4 text-right text-muted-foreground">${cat.schoolYear}</td>
-                                        <td className={`py-2 pl-4 text-right font-medium ${
-                                          isPositive ? 'text-green-600 dark:text-green-400' :
-                                          isNegative ? 'text-red-600 dark:text-red-400' :
-                                          'text-muted-foreground'
-                                        }`}>
-                                          {cat.percentChange}
-                                        </td>
-                                      </tr>
-                                    );
-                                  })}
-                                </tbody>
-                              </table>
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
                     )}
                   </div>
                 )}
