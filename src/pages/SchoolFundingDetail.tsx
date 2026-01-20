@@ -122,7 +122,8 @@ const SchoolFundingDetail = () => {
         const schoolYearStr = cat.school_year || '0';
         const baseYear = parseFloat(baseYearStr.replace(/[$,]/g, '')) || 0;
         const schoolYear = parseFloat(schoolYearStr.replace(/[$,]/g, '')) || 0;
-        const pctChange = parseFloat(cat.percent_change || '0');
+        const rawPctChange = parseFloat(cat.percent_change || '0');
+        const pctChange = isNaN(rawPctChange) ? 0 : rawPctChange;
         return {
           name: cat.aid_category || 'Unknown',
           baseYear: Math.round(baseYear).toLocaleString(),
