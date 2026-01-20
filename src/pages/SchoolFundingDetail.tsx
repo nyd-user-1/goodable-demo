@@ -106,8 +106,28 @@ const SchoolFundingDetail = () => {
 
   const handleNewChat = async () => {
     if (!funding) return;
-    // Include fundingId in prompt for precise chat association
-    const initialPrompt = `[SchoolFunding:${fundingId}] Analyze school funding for ${funding.district} in ${funding.county || 'New York'} County for the ${funding.enacted_budget} budget year. The total funding change is ${formatCurrency(funding.total_change)} (${formatPercent(funding.percent_change)}). What should I know about this district's funding?`;
+
+    // Build aid categories breakdown for the prompt
+    let aidBreakdown = '';
+    if (categories && categories.length > 0) {
+      const categoryLines = categories.map(cat => {
+        const change = parseFloat(cat.Change || '0');
+        const pctChange = parseFloat(cat['% Change'] || '0');
+        return `- ${cat['Aid Category']}: ${formatCurrency(change)} (${pctChange >= 0 ? '+' : ''}${pctChange.toFixed(2)}%)`;
+      }).join('\n');
+      aidBreakdown = `\n\nAid Categories Breakdown:\n${categoryLines}`;
+    }
+
+    // Include fundingId and full data in prompt for precise chat association
+    const initialPrompt = `[SchoolFunding:${fundingId}] Analyze school funding for ${funding.district} in ${funding.county || 'New York'} County for the ${funding.enacted_budget} budget year.
+
+Summary:
+- Base Year Total: ${formatCurrency(funding.total_base_year)}
+- School Year Total: ${formatCurrency(funding.total_school_year)}
+- Total Change: ${formatCurrency(funding.total_change)} (${formatPercent(funding.percent_change)})
+- Number of Aid Categories: ${funding.category_count}${aidBreakdown}
+
+What should I know about this district's funding? Please analyze the funding changes and their implications.`;
     navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
   };
 
