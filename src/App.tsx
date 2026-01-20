@@ -72,6 +72,7 @@ import FixABCStructure from "./pages/FixABCStructure";
 import ExcerptView from "./pages/ExcerptView";
 import FreeTrial from "./pages/FreeTrial";
 import Contracts from "./pages/Contracts";
+import SchoolFunding from "./pages/SchoolFunding";
 import Committees2 from "./pages/Committees2";
 import Members2 from "./pages/Members2";
 import Bills2 from "./pages/Bills2";
@@ -105,6 +106,7 @@ const AppLayout = () => {
               <Route path="/bills" element={<Bills2 />} />
               <Route path="/bills/:billNumber" element={<Bills />} />
               <Route path="/contracts" element={<Contracts />} />
+              <Route path="/school-funding" element={<SchoolFunding />} />
               <Route path="/committees" element={<Committees2 />} />
               <Route path="/committees/:committeeSlug" element={<Committees />} />
               <Route path="/members" element={<Members2 />} />
