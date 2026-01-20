@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, Building2, Users, ArrowUp } from 'lucide-react';
+import { Search, X, Users, ArrowUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -142,14 +142,13 @@ const Members2 = () => {
             {/* Filters row */}
             <div className="flex flex-wrap gap-2">
               <Select value={chamberFilter || "all"} onValueChange={(v) => setChamberFilter(v === "all" ? "" : v)}>
-                <SelectTrigger className="w-[180px]">
-                  <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
+                <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
                   <SelectValue placeholder="All Chambers" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Chambers</SelectItem>
+                  <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Chambers</SelectItem>
                   {chambers.map((chamber) => (
-                    <SelectItem key={chamber} value={chamber}>
+                    <SelectItem key={chamber} value={chamber} className="focus:bg-muted focus:text-foreground">
                       {chamber}
                     </SelectItem>
                   ))}
@@ -157,14 +156,13 @@ const Members2 = () => {
               </Select>
 
               <Select value={partyFilter || "all"} onValueChange={(v) => setPartyFilter(v === "all" ? "" : v)}>
-                <SelectTrigger className="w-[180px]">
-                  <Users className="h-4 w-4 mr-2 text-muted-foreground" />
+                <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
                   <SelectValue placeholder="All Parties" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Parties</SelectItem>
+                  <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Parties</SelectItem>
                   {parties.map((party) => (
-                    <SelectItem key={party} value={party}>
+                    <SelectItem key={party} value={party} className="focus:bg-muted focus:text-foreground">
                       {party}
                     </SelectItem>
                   ))}

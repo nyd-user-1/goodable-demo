@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, Building2, FileText, Filter, ArrowUp } from 'lucide-react';
+import { Search, X, FileText, ArrowUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -122,14 +122,13 @@ const Contracts = () => {
             {/* Filters row */}
             <div className="flex flex-wrap gap-2">
               <Select value={departmentFilter || "all"} onValueChange={(v) => setDepartmentFilter(v === "all" ? "" : v)}>
-                <SelectTrigger className="w-[220px]">
-                  <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
+                <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
                   <SelectValue placeholder="All Departments" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
+                  <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Departments</SelectItem>
                   {departments.map((dept) => (
-                    <SelectItem key={dept} value={dept}>
+                    <SelectItem key={dept} value={dept} className="focus:bg-muted focus:text-foreground">
                       {dept}
                     </SelectItem>
                   ))}
@@ -137,14 +136,13 @@ const Contracts = () => {
               </Select>
 
               <Select value={contractTypeFilter || "all"} onValueChange={(v) => setContractTypeFilter(v === "all" ? "" : v)}>
-                <SelectTrigger className="w-[180px]">
-                  <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+                <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Types</SelectItem>
                   {contractTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
+                    <SelectItem key={type} value={type} className="focus:bg-muted focus:text-foreground">
                       {type}
                     </SelectItem>
                   ))}

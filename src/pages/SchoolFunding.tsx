@@ -229,13 +229,13 @@ const SchoolFundingPage = () => {
             {/* Filters row */}
             <div className="flex flex-wrap gap-2">
               <Select value={districtFilter || "all"} onValueChange={(v) => setDistrictFilter(v === "all" ? "" : v)}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
                   <SelectValue placeholder="All Districts" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Districts</SelectItem>
+                  <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Districts</SelectItem>
                   {districts.map((district) => (
-                    <SelectItem key={district} value={district}>
+                    <SelectItem key={district} value={district} className="focus:bg-muted focus:text-foreground">
                       {district}
                     </SelectItem>
                   ))}
@@ -243,13 +243,13 @@ const SchoolFundingPage = () => {
               </Select>
 
               <Select value={countyFilter || "all"} onValueChange={(v) => setCountyFilter(v === "all" ? "" : v)}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
                   <SelectValue placeholder="All Counties" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Counties</SelectItem>
+                  <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Counties</SelectItem>
                   {counties.map((county) => (
-                    <SelectItem key={county} value={county}>
+                    <SelectItem key={county} value={county} className="focus:bg-muted focus:text-foreground">
                       {county}
                     </SelectItem>
                   ))}
@@ -257,13 +257,13 @@ const SchoolFundingPage = () => {
               </Select>
 
               <Select value={budgetYearFilter || "all"} onValueChange={(v) => setBudgetYearFilter(v === "all" ? "" : v)}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
                   <SelectValue placeholder="All Budget Years" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Budget Years</SelectItem>
+                  <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Budget Years</SelectItem>
                   {budgetYears.map((year) => (
-                    <SelectItem key={year} value={year}>
+                    <SelectItem key={year} value={year} className="focus:bg-muted focus:text-foreground">
                       {year}
                     </SelectItem>
                   ))}
