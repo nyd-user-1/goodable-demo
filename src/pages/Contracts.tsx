@@ -53,6 +53,23 @@ const Contracts = () => {
     }
   };
 
+  const handleChatClick = (contract: Contract) => {
+    if (!contract.contract_number) return;
+
+    const vendor = contract.vendor_name || 'this vendor';
+    const dept = contract.department_facility ? ` for ${contract.department_facility}` : '';
+    const amount = contract.current_contract_amount
+      ? ` worth ${formatCurrency(contract.current_contract_amount)}`
+      : '';
+    const desc = contract.contract_description
+      ? ` The contract description says: "${contract.contract_description}".`
+      : '';
+
+    // Include contractNumber in prompt for precise chat association
+    const initialPrompt = `[Contract:${contract.contract_number}] Tell me about the contract with ${vendor}${dept}${amount}.${desc} What should I know about this contract?`;
+    navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
+  };
+
   const clearFilters = () => {
     setSearchTerm('');
     setDepartmentFilter('');
@@ -169,6 +186,7 @@ const Contracts = () => {
                 key={contract.id}
                 contract={contract}
                 onClick={() => handleContractClick(contract)}
+                onChatClick={() => handleChatClick(contract)}
               />
             ))}
           </div>
@@ -182,9 +200,10 @@ const Contracts = () => {
 interface ContractCardProps {
   contract: Contract;
   onClick: () => void;
+  onChatClick: () => void;
 }
 
-function ContractCard({ contract, onClick }: ContractCardProps) {
+function ContractCard({ contract, onClick, onChatClick }: ContractCardProps) {
   const amount = contract.current_contract_amount
     ? formatCurrency(contract.current_contract_amount)
     : null;
@@ -199,6 +218,11 @@ function ContractCard({ contract, onClick }: ContractCardProps) {
     promptText += ` worth ${amount}`;
   }
   promptText += '.';
+
+  const handleChatClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
+    onChatClick();
+  };
 
   return (
     <div
@@ -254,11 +278,14 @@ function ContractCard({ contract, onClick }: ContractCardProps) {
           )}
         </div>
 
-        {/* Arrow button */}
+        {/* Arrow button - initiates chat */}
         <div className="flex justify-end">
-          <div className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center">
+          <button
+            onClick={handleChatClick}
+            className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors"
+          >
             <ArrowUp className="h-5 w-5" />
-          </div>
+          </button>
         </div>
       </div>
     </div>

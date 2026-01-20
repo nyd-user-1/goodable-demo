@@ -54,6 +54,25 @@ const SchoolFundingPage = () => {
     navigate(`/school-funding/${record.id}`);
   };
 
+  const handleChatClick = (record: SchoolFundingTotals) => {
+    // Build chat prompt with full funding data
+    const district = record.district || 'Unknown District';
+    const county = record.county || 'New York';
+    const budgetYear = record.enacted_budget || '';
+
+    const initialPrompt = `[SchoolFunding:${record.id}] Analyze school funding for ${district} in ${county} County for the ${budgetYear} budget year.
+
+Summary:
+- Base Year Total: ${formatCurrency(record.total_base_year)}
+- School Year Total: ${formatCurrency(record.total_school_year)}
+- Total Change: ${formatCurrency(record.total_change)} (${formatPercent(record.percent_change)})
+- Number of Aid Categories: ${record.category_count}
+
+What should I know about this district's funding? Please analyze the funding changes and their implications.`;
+
+    navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
+  };
+
   const clearFilters = () => {
     setSearchTerm('');
     setDistrictFilter('');
@@ -185,6 +204,7 @@ const SchoolFundingPage = () => {
                 key={record.id}
                 record={record}
                 onClick={() => handleRecordClick(record)}
+                onChatClick={() => handleChatClick(record)}
               />
             ))}
           </div>
@@ -198,9 +218,10 @@ const SchoolFundingPage = () => {
 interface SchoolFundingCardProps {
   record: SchoolFundingTotals;
   onClick: () => void;
+  onChatClick: () => void;
 }
 
-function SchoolFundingCard({ record, onClick }: SchoolFundingCardProps) {
+function SchoolFundingCard({ record, onClick, onChatClick }: SchoolFundingCardProps) {
   const district = record.district || 'Unknown District';
   const county = record.county;
   // Strip "Enacted Budget" suffix to show just the year (e.g., "2025-26")
@@ -211,6 +232,11 @@ function SchoolFundingCard({ record, onClick }: SchoolFundingCardProps) {
   // Determine if change is positive/negative for styling
   const isPositive = totalChange > 0;
   const isNegative = totalChange < 0;
+
+  const handleChatClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
+    onChatClick();
+  };
 
   return (
     <div
@@ -260,11 +286,14 @@ function SchoolFundingCard({ record, onClick }: SchoolFundingCardProps) {
           </div>
         </div>
 
-        {/* Arrow button */}
+        {/* Arrow button - initiates chat */}
         <div className="flex justify-end">
-          <div className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center">
+          <button
+            onClick={handleChatClick}
+            className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors"
+          >
             <ArrowUp className="h-5 w-5" />
-          </div>
+          </button>
         </div>
       </div>
     </div>
