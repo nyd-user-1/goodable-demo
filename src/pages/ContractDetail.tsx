@@ -10,7 +10,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowLeft, Plus, ExternalLink, Command, Wallet, Building2, Calendar, DollarSign, FileText, Hash } from "lucide-react";
+import { ArrowLeft, Plus, ExternalLink, Command, Wallet, Building2, Calendar, Pencil, Trash2 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Tooltip,
@@ -20,11 +20,18 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { Contract } from "@/types/contracts";
 import { formatCurrency, formatContractDate } from "@/hooks/useContractsSearch";
+import { useContractNotes } from "@/hooks/useContractNotes";
+import { NoteDialog } from "@/components/shared/NoteDialog";
 
 const ContractDetail = () => {
   const navigate = useNavigate();
   const { contractNumber } = useParams<{ contractNumber: string }>();
   const [contractChats, setContractChats] = useState<Array<{ id: string; title: string; created_at: string }>>([]);
+
+  // Notes state
+  const { notes, addNote, updateNote, deleteNote } = useContractNotes(contractNumber);
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState<{ id: string; content: string } | null>(null);
 
   // Fetch contract data by contract_number
   const { data: contract, isLoading, error } = useQuery({
@@ -96,6 +103,31 @@ const ContractDetail = () => {
 
   const handleBack = () => {
     navigate('/contracts');
+  };
+
+  // Note handlers
+  const handleAddNote = () => {
+    setEditingNote(null);
+    setNoteDialogOpen(true);
+  };
+
+  const handleEditNote = (note: { id: string; content: string }) => {
+    setEditingNote(note);
+    setNoteDialogOpen(true);
+  };
+
+  const handleSaveNote = (content: string) => {
+    if (editingNote) {
+      updateNote(editingNote.id, content);
+    } else {
+      addNote(content);
+    }
+    setNoteDialogOpen(false);
+    setEditingNote(null);
+  };
+
+  const handleDeleteNote = (noteId: string) => {
+    deleteNote(noteId);
   };
 
   if (isLoading) {
@@ -294,6 +326,82 @@ const ContractDetail = () => {
           </CardContent>
         </Card>
 
+        {/* Your Notes Section */}
+        <Card className="bg-card rounded-xl shadow-sm border">
+          <CardHeader className="px-6 py-4 border-b">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CardTitle className="text-lg font-semibold">
+                  Your Notes
+                </CardTitle>
+                {notes.length > 0 && (
+                  <Badge variant="secondary" className="text-xs">
+                    {notes.length} {notes.length === 1 ? 'note' : 'notes'}
+                  </Badge>
+                )}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAddNote}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add Note
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            {notes.length === 0 ? (
+              <div className="bg-muted/30 rounded-lg p-4 text-sm">
+                <span className="text-muted-foreground italic">No notes yet. Add a note to keep track of important information.</span>
+              </div>
+            ) : (
+              <Accordion type="single" collapsible className="w-full">
+                {notes.map((note) => (
+                  <AccordionItem key={note.id} value={note.id} className="border-b last:border-b-0">
+                    <AccordionTrigger className="hover:no-underline py-3">
+                      <div className="flex items-center gap-3 text-left">
+                        <span className="text-xs text-muted-foreground">
+                          {formatNoteDate(note.created_at)}
+                        </span>
+                        <span className="text-sm truncate max-w-[300px]">
+                          {note.content.substring(0, 50)}{note.content.length > 50 ? '...' : ''}
+                        </span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-4">
+                      <div className="text-sm text-muted-foreground whitespace-pre-wrap mb-4">
+                        {note.content}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditNote(note)}
+                          className="gap-1"
+                        >
+                          <Pencil className="h-3 w-3" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteNote(note.id)}
+                          className="gap-1 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          Delete
+                        </Button>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Related Chats Section */}
         <Card className="bg-card rounded-xl shadow-sm border">
           <CardHeader className="px-6 py-4 border-b">
@@ -358,6 +466,18 @@ const ContractDetail = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Note Dialog */}
+      <NoteDialog
+        isOpen={noteDialogOpen}
+        onClose={() => {
+          setNoteDialogOpen(false);
+          setEditingNote(null);
+        }}
+        onSave={handleSaveNote}
+        initialNote={editingNote?.content || ''}
+        placeholder="Add your notes about this contract..."
+      />
     </div>
   );
 };
