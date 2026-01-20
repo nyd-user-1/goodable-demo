@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import { useSchoolFundingSearch, formatCurrency, formatPercent } from '@/hooks/useSchoolFundingSearch';
 import { SchoolFundingTotals } from '@/types/schoolFunding';
+import { supabase } from '@/integrations/supabase/client';
 
 const SchoolFundingPage = () => {
   const navigate = useNavigate();
@@ -54,21 +55,39 @@ const SchoolFundingPage = () => {
     navigate(`/school-funding/${record.id}`);
   };
 
-  const handleChatClick = (record: SchoolFundingTotals) => {
-    // Build chat prompt with full funding data
+  const handleChatClick = async (record: SchoolFundingTotals) => {
     const district = record.district || 'Unknown District';
     const county = record.county || 'New York';
     const budgetYear = record.enacted_budget || '';
 
-    const initialPrompt = `[SchoolFunding:${record.id}] Analyze school funding for ${district} in ${county} County for the ${budgetYear} budget year.
+    // Fetch detailed categories for this district/year
+    const { data: categories } = await supabase
+      .from('school_funding')
+      .select('*')
+      .eq('District', record.district)
+      .ilike('School Year', `%${record.enacted_budget}%`);
 
-Summary:
-- Base Year Total: ${formatCurrency(record.total_base_year)}
-- School Year Total: ${formatCurrency(record.total_school_year)}
-- Total Change: ${formatCurrency(record.total_change)} (${formatPercent(record.percent_change)})
-- Number of Aid Categories: ${record.category_count}
+    // Store school funding details in sessionStorage for the chat to display
+    const schoolFundingDetails = {
+      district,
+      county,
+      budgetYear,
+      totalBaseYear: record.total_base_year,
+      totalSchoolYear: record.total_school_year,
+      totalChange: record.total_change,
+      percentChange: record.percent_change,
+      categories: (categories || []).map(cat => ({
+        name: cat['Aid Category'] || 'Unknown',
+        baseYear: formatCurrency(parseFloat(cat['Base Year'] || '0')),
+        schoolYear: formatCurrency(parseFloat(cat['School Year'] || '0')),
+        change: formatCurrency(parseFloat(cat.Change || '0')),
+        percentChange: `${parseFloat(cat['% Change'] || '0').toFixed(2)}%`,
+      })),
+    };
+    sessionStorage.setItem('schoolFundingDetails', JSON.stringify(schoolFundingDetails));
 
-What should I know about this district's funding? Please analyze the funding changes and their implications.`;
+    // Include fundingId in prompt for precise chat association
+    const initialPrompt = `[SchoolFunding:${record.id}] Analyze school funding for ${district} in ${county} County for the ${budgetYear} budget year. Total change: ${formatCurrency(record.total_change)} (${formatPercent(record.percent_change)}). What should I know about this district's funding?`;
 
     navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
   };
