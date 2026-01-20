@@ -36,7 +36,6 @@ import LawsAdminWorking from "./pages/LawsAdminWorking";
 import Chats from "./pages/Chats";
 import NewChat from "./pages/NewChat";
 import NewChat2 from "./pages/NewChat2";
-import Favorites from "./pages/Favorites";
 import Playground from "./pages/Playground";
 import PolicyPortal from "./pages/PolicyPortal";
 import PolicyLab from "./pages/PolicyLab";
@@ -72,7 +71,9 @@ import FixABCStructure from "./pages/FixABCStructure";
 import ExcerptView from "./pages/ExcerptView";
 import FreeTrial from "./pages/FreeTrial";
 import Contracts from "./pages/Contracts";
+import ContractDetail from "./pages/ContractDetail";
 import SchoolFunding from "./pages/SchoolFunding";
+import SchoolFundingDetail from "./pages/SchoolFundingDetail";
 import Committees2 from "./pages/Committees2";
 import Members2 from "./pages/Members2";
 import Bills2 from "./pages/Bills2";
@@ -99,14 +100,15 @@ const AppLayout = () => {
               <Route path="/e/:excerptId" element={<ExcerptView />} />
               <Route path="/new-chat-2" element={<NewChat2 />} />
               <Route path="/chats" element={<Chats2 />} />
-              <Route path="/favorites" element={<Favorites />} />
               <Route path="/playground" element={<Playground />} />
               <Route path="/policy-portal" element={<PolicyPortal />} />
               <Route path="/policy-lab" element={<PolicyLab />} />
               <Route path="/bills" element={<Bills2 />} />
               <Route path="/bills/:billNumber" element={<Bills />} />
               <Route path="/contracts" element={<Contracts />} />
+              <Route path="/contracts/:contractId" element={<ContractDetail />} />
               <Route path="/school-funding" element={<SchoolFunding />} />
+              <Route path="/school-funding/:fundingId" element={<SchoolFundingDetail />} />
               <Route path="/committees" element={<Committees2 />} />
               <Route path="/committees/:committeeSlug" element={<Committees />} />
               <Route path="/members" element={<Members2 />} />

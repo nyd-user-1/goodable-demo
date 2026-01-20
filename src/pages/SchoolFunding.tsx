@@ -1,10 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, GraduationCap, ArrowUp, Loader2 } from 'lucide-react';
+import { Search, X, GraduationCap, ArrowUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
-import { SchoolFunding } from '@/types/schoolFunding';
 import {
   Select,
   SelectContent,
@@ -18,7 +16,6 @@ import { SchoolFundingTotals } from '@/types/schoolFunding';
 const SchoolFundingPage = () => {
   const navigate = useNavigate();
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
   const {
     records,
@@ -53,113 +50,8 @@ const SchoolFundingPage = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Generate a prompt for a school funding record with detailed aid category breakdown
-  const generatePrompt = (record: SchoolFundingTotals, aidCategories: SchoolFunding[]): string => {
-    const district = record.district || 'this district';
-    const county = record.county ? ` in ${record.county} County` : '';
-    const year = record.enacted_budget ? ` for ${record.enacted_budget}` : '';
-
-    // Build summary section
-    let prompt = `Analyze school funding for ${district}${county}${year}.\n\n`;
-    prompt += `SUMMARY:\n`;
-    prompt += `- Total Base Year Funding: ${formatCurrency(record.total_base_year)}\n`;
-    prompt += `- Total School Year Funding: ${formatCurrency(record.total_school_year)}\n`;
-    prompt += `- Total Change: ${formatCurrency(record.total_change)} (${formatPercent(record.percent_change)})\n`;
-    prompt += `- Number of Aid Categories: ${record.category_count}\n\n`;
-
-    // Build detailed breakdown if we have aid category data
-    if (aidCategories.length > 0) {
-      prompt += `DETAILED AID CATEGORY BREAKDOWN:\n`;
-
-      // Sort by absolute change amount to highlight biggest movers
-      const sortedCategories = [...aidCategories].sort((a, b) => {
-        const aChange = Math.abs(parseFloat(a['Change']?.replace(/,/g, '') || '0'));
-        const bChange = Math.abs(parseFloat(b['Change']?.replace(/,/g, '') || '0'));
-        return bChange - aChange;
-      });
-
-      for (const cat of sortedCategories) {
-        const catName = cat['Aid Category'] || 'Unknown';
-        const baseYear = cat['Base Year'] || '0';
-        const schoolYear = cat['School Year'] || '0';
-        const change = cat['Change'] || '0';
-        const pctChange = cat['% Change'] || 'N/A';
-
-        prompt += `- ${catName}: Base Year $${baseYear} → School Year $${schoolYear} (Change: $${change}, ${pctChange})\n`;
-      }
-      prompt += '\n';
-    }
-
-    prompt += `Based on this detailed funding data, please:\n`;
-    prompt += `1. Identify the most significant funding changes (increases and decreases)\n`;
-    prompt += `2. Explain what each major aid category funds and why it might have changed\n`;
-    prompt += `3. Discuss how these changes might impact the district's operations\n`;
-    prompt += `4. Note any concerning trends or positive developments`;
-
-    return prompt;
-  };
-
-  const handleRecordClick = async (record: SchoolFundingTotals) => {
-    setIsLoadingDetails(true);
-
-    try {
-      // Fetch detailed aid category breakdown from raw school_funding table
-      // Table columns: enacted_budget, District, aid_category, base_year, school_year, Change, percent_change
-      const { data: rawCategories, error } = await supabase
-        .from('school_funding')
-        .select('*')
-        .eq('District', record.district)
-        .eq('enacted_budget', record.enacted_budget);
-
-      if (error) {
-        console.error('Error fetching aid category details:', error);
-      }
-
-      // Map the raw database columns to our expected format
-      const aidCategories: SchoolFunding[] | null = rawCategories ? rawCategories.map((row: Record<string, unknown>) => ({
-        id: row.id as number,
-        "Event": row.enacted_budget as string || null,
-        "BEDS Code": null,
-        "County": row.County as string || null,
-        "District": row.District as string || null,
-        "Aid Category": row.aid_category as string || null,
-        "Base Year": row.base_year as string || null,
-        "School Year": row.school_year as string || null,
-        "Change": row.Change as string || null,
-        "% Change": row.percent_change as string || null,
-      })) : null;
-
-      const prompt = generatePrompt(record, (aidCategories as SchoolFunding[]) || []);
-
-      // Store detailed aid category data in sessionStorage for chat to display
-      if (aidCategories && aidCategories.length > 0) {
-        sessionStorage.setItem('schoolFundingDetails', JSON.stringify({
-          district: record.district,
-          county: record.county,
-          budgetYear: record.enacted_budget,
-          totalBaseYear: record.total_base_year,
-          totalSchoolYear: record.total_school_year,
-          totalChange: record.total_change,
-          percentChange: record.percent_change,
-          categories: (aidCategories as SchoolFunding[]).map(cat => ({
-            name: cat['Aid Category'] || 'Unknown',
-            baseYear: cat['Base Year'] || '0',
-            schoolYear: cat['School Year'] || '0',
-            change: cat['Change'] || '0',
-            percentChange: cat['% Change'] || 'N/A'
-          }))
-        }));
-      }
-
-      navigate(`/new-chat?prompt=${encodeURIComponent(prompt)}`);
-    } catch (err) {
-      console.error('Error in handleRecordClick:', err);
-      // Fallback to basic prompt without detailed breakdown
-      const prompt = generatePrompt(record, []);
-      navigate(`/new-chat?prompt=${encodeURIComponent(prompt)}`);
-    } finally {
-      setIsLoadingDetails(false);
-    }
+  const handleRecordClick = (record: SchoolFundingTotals) => {
+    navigate(`/school-funding/${record.id}`);
   };
 
   const clearFilters = () => {
@@ -173,16 +65,6 @@ const SchoolFundingPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Loading overlay when fetching aid category details */}
-      {isLoadingDetails && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">Loading funding details...</p>
-          </div>
-        </div>
-      )}
-
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4">

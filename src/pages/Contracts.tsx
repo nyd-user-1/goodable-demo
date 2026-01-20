@@ -47,23 +47,8 @@ const Contracts = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Generate a prompt for a contract
-  const generatePrompt = (contract: Contract): string => {
-    const vendor = contract.vendor_name || 'this vendor';
-    const dept = contract.department_facility ? ` for ${contract.department_facility}` : '';
-    const amount = contract.current_contract_amount
-      ? ` worth ${formatCurrency(contract.current_contract_amount)}`
-      : '';
-    const desc = contract.contract_description
-      ? ` The contract description says: "${contract.contract_description}".`
-      : '';
-
-    return `Tell me about the contract with ${vendor}${dept}${amount}.${desc} What should I know about this contract?`;
-  };
-
   const handleContractClick = (contract: Contract) => {
-    const prompt = generatePrompt(contract);
-    navigate(`/new-chat?prompt=${encodeURIComponent(prompt)}`);
+    navigate(`/contracts/${contract.id}`);
   };
 
   const clearFilters = () => {

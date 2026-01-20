@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, createContext, useContext } from "react";
 import { NavLink, useLocation, useParams } from "react-router-dom";
-import { MessageSquare, MessagesSquare, ScrollText, Users, Landmark, TrendingUp, Heart, Target, Gamepad2, Factory, Home, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, ChevronRight, PanelLeftClose, PanelLeft, MoreHorizontal, Pin, Trash2, PenSquare, TextQuote, Pencil, Wallet, GraduationCap } from "lucide-react";
+import { MessageSquare, MessagesSquare, ScrollText, Users, Landmark, TrendingUp, Target, Gamepad2, Factory, Home, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, ChevronRight, PanelLeftClose, PanelLeft, MoreHorizontal, Pin, Trash2, PenSquare, TextQuote, Pencil, Wallet, GraduationCap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -388,21 +388,6 @@ export function NewAppSidebar() {
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p>Chat History</p>
-                </TooltipContent>
-              </Tooltip>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <SidebarMenuButton asChild isActive={isActive("/favorites")}>
-                    <NavLink to="/favorites">
-                      <Heart />
-                      <span>Favorites</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  <p>Favorites</p>
                 </TooltipContent>
               </Tooltip>
             </SidebarMenuItem>
