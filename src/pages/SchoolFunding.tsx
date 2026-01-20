@@ -116,6 +116,27 @@ const SchoolFundingPage = () => {
       }
 
       const prompt = generatePrompt(record, (aidCategories as SchoolFunding[]) || []);
+
+      // Store detailed aid category data in sessionStorage for chat to display
+      if (aidCategories && aidCategories.length > 0) {
+        sessionStorage.setItem('schoolFundingDetails', JSON.stringify({
+          district: record.district,
+          county: record.county,
+          budgetYear: record.enacted_budget,
+          totalBaseYear: record.total_base_year,
+          totalSchoolYear: record.total_school_year,
+          totalChange: record.total_change,
+          percentChange: record.percent_change,
+          categories: (aidCategories as SchoolFunding[]).map(cat => ({
+            name: cat['Aid Category'] || 'Unknown',
+            baseYear: cat['Base Year'] || '0',
+            schoolYear: cat['School Year'] || '0',
+            change: cat['Change'] || '0',
+            percentChange: cat['% Change'] || 'N/A'
+          }))
+        }));
+      }
+
       navigate(`/new-chat?prompt=${encodeURIComponent(prompt)}`);
     } catch (err) {
       console.error('Error in handleRecordClick:', err);
