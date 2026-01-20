@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, FileText, Filter, ArrowUp } from 'lucide-react';
+import { Search, X, FileText, ArrowUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -138,14 +138,13 @@ const Bills2 = () => {
             {/* Filters row */}
             <div className="flex flex-wrap gap-2">
               <Select value={statusFilter || "all"} onValueChange={(v) => setStatusFilter(v === "all" ? "" : v)}>
-                <SelectTrigger className="w-[200px]">
-                  <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+                <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden">
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Statuses</SelectItem>
                   {statuses.map((status) => (
-                    <SelectItem key={status} value={status}>
+                    <SelectItem key={status} value={status} className="focus:bg-muted focus:text-foreground">
                       {status}
                     </SelectItem>
                   ))}
@@ -153,14 +152,13 @@ const Bills2 = () => {
               </Select>
 
               <Select value={committeeFilter || "all"} onValueChange={(v) => setCommitteeFilter(v === "all" ? "" : v)}>
-                <SelectTrigger className="w-[220px]">
-                  <FileText className="h-4 w-4 mr-2 text-muted-foreground" />
+                <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden">
                   <SelectValue placeholder="All Committees" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Committees</SelectItem>
+                  <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Committees</SelectItem>
                   {committees.map((committee) => (
-                    <SelectItem key={committee} value={committee}>
+                    <SelectItem key={committee} value={committee} className="focus:bg-muted focus:text-foreground">
                       {committee}
                     </SelectItem>
                   ))}
