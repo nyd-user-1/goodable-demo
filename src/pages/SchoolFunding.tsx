@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, MapPin, GraduationCap, Calendar, ArrowUp } from 'lucide-react';
+import { Search, X, GraduationCap, ArrowUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -125,7 +125,6 @@ const SchoolFundingPage = () => {
             <div className="flex flex-wrap gap-2">
               <Select value={countyFilter || "all"} onValueChange={(v) => setCountyFilter(v === "all" ? "" : v)}>
                 <SelectTrigger className="w-[180px]">
-                  <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
                   <SelectValue placeholder="All Counties" />
                 </SelectTrigger>
                 <SelectContent>
@@ -140,7 +139,6 @@ const SchoolFundingPage = () => {
 
               <Select value={aidCategoryFilter || "all"} onValueChange={(v) => setAidCategoryFilter(v === "all" ? "" : v)}>
                 <SelectTrigger className="w-[200px]">
-                  <GraduationCap className="h-4 w-4 mr-2 text-muted-foreground" />
                   <SelectValue placeholder="All Aid Categories" />
                 </SelectTrigger>
                 <SelectContent>
@@ -155,7 +153,6 @@ const SchoolFundingPage = () => {
 
               <Select value={schoolYearFilter || "all"} onValueChange={(v) => setSchoolYearFilter(v === "all" ? "" : v)}>
                 <SelectTrigger className="w-[160px]">
-                  <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
                   <SelectValue placeholder="All Years" />
                 </SelectTrigger>
                 <SelectContent>
