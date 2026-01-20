@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, MessageSquare, ScrollText, Users, Landmark, Wallet, GraduationCap, Trash2, Check } from 'lucide-react';
+import { Search, X, MessageSquare, ScrollText, Users, Landmark, Wallet, GraduationCap, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Tooltip,
   TooltipContent,
@@ -28,9 +29,7 @@ import {
 import { useChatSessions } from '@/pages/chats/hooks/useChatSessions';
 import { ChatSession } from '@/pages/chats/types';
 
-type ChatType = 'bill' | 'member' | 'committee' | 'school-funding' | 'contract' | 'general';
-
-const ALL_CHAT_TYPES: ChatType[] = ['bill', 'member', 'committee', 'school-funding', 'contract', 'general'];
+type ChatType = 'all' | 'bill' | 'member' | 'committee' | 'school-funding' | 'contract' | 'general';
 
 const Chats2 = () => {
   const navigate = useNavigate();
@@ -40,7 +39,7 @@ const Chats2 = () => {
 
   const { chatSessions, loading, deleteSession } = useChatSessions();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTypes, setSelectedTypes] = useState<Set<ChatType>>(new Set(ALL_CHAT_TYPES));
+  const [typeFilter, setTypeFilter] = useState<ChatType>('all');
 
   // Focus search on mount and keyboard shortcut
   useEffect(() => {
@@ -88,7 +87,7 @@ const Chats2 = () => {
 
     const matchesSearch = !searchTerm || matchesTitle || matchesContent;
     const chatType = getChatType(session);
-    const matchesType = selectedTypes.has(chatType);
+    const matchesType = typeFilter === 'all' || chatType === typeFilter;
     return matchesSearch && matchesType;
   });
 
@@ -114,49 +113,20 @@ const Chats2 = () => {
 
   const clearFilters = () => {
     setSearchTerm('');
-    setSelectedTypes(new Set(ALL_CHAT_TYPES));
+    setTypeFilter('all');
   };
 
-  const toggleType = (type: ChatType) => {
-    const newSelected = new Set(selectedTypes);
-    if (newSelected.has(type)) {
-      newSelected.delete(type);
-    } else {
-      newSelected.add(type);
-    }
-    setSelectedTypes(newSelected);
-  };
-
-  const allTypesSelected = selectedTypes.size === ALL_CHAT_TYPES.length;
-  const hasActiveFilters = searchTerm || !allTypesSelected;
+  const hasActiveFilters = searchTerm || typeFilter !== 'all';
 
   // Get counts by type using getChatType for consistency
   const typeCounts = {
+    all: chatSessions.length,
     bill: chatSessions.filter(s => getChatType(s) === 'bill').length,
     member: chatSessions.filter(s => getChatType(s) === 'member').length,
     committee: chatSessions.filter(s => getChatType(s) === 'committee').length,
     'school-funding': chatSessions.filter(s => getChatType(s) === 'school-funding').length,
     contract: chatSessions.filter(s => getChatType(s) === 'contract').length,
     general: chatSessions.filter(s => getChatType(s) === 'general').length,
-  };
-
-  // Get display label for selected types
-  const getFilterLabel = () => {
-    if (allTypesSelected) return `All Types (${chatSessions.length})`;
-    if (selectedTypes.size === 0) return 'None selected';
-    if (selectedTypes.size === 1) {
-      const type = Array.from(selectedTypes)[0];
-      const labels: Record<ChatType, string> = {
-        bill: 'Bills',
-        member: 'Members',
-        committee: 'Committees',
-        'school-funding': 'School Funding',
-        contract: 'Contracts',
-        general: 'General',
-      };
-      return `${labels[type]} (${typeCounts[type]})`;
-    }
-    return `${selectedTypes.size} types selected`;
   };
 
   return (
@@ -206,68 +176,20 @@ const Chats2 = () => {
 
             {/* Filters row */}
             <div className="flex flex-wrap gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted focus:outline-none focus:ring-0">
-                  {getFilterLabel()}
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <DropdownMenuCheckboxItem
-                    checked={allTypesSelected}
-                    onCheckedChange={() => {
-                      if (allTypesSelected) {
-                        setSelectedTypes(new Set());
-                      } else {
-                        setSelectedTypes(new Set(ALL_CHAT_TYPES));
-                      }
-                    }}
-                    className="focus:bg-muted focus:text-foreground"
-                  >
-                    All Types ({chatSessions.length})
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={selectedTypes.has('bill')}
-                    onCheckedChange={() => toggleType('bill')}
-                    className="focus:bg-muted focus:text-foreground"
-                  >
-                    Bills ({typeCounts.bill})
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={selectedTypes.has('member')}
-                    onCheckedChange={() => toggleType('member')}
-                    className="focus:bg-muted focus:text-foreground"
-                  >
-                    Members ({typeCounts.member})
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={selectedTypes.has('committee')}
-                    onCheckedChange={() => toggleType('committee')}
-                    className="focus:bg-muted focus:text-foreground"
-                  >
-                    Committees ({typeCounts.committee})
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={selectedTypes.has('school-funding')}
-                    onCheckedChange={() => toggleType('school-funding')}
-                    className="focus:bg-muted focus:text-foreground"
-                  >
-                    School Funding ({typeCounts['school-funding']})
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={selectedTypes.has('contract')}
-                    onCheckedChange={() => toggleType('contract')}
-                    className="focus:bg-muted focus:text-foreground"
-                  >
-                    Contracts ({typeCounts.contract})
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={selectedTypes.has('general')}
-                    onCheckedChange={() => toggleType('general')}
-                    className="focus:bg-muted focus:text-foreground"
-                  >
-                    General ({typeCounts.general})
-                  </DropdownMenuCheckboxItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as ChatType)}>
+                <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
+                  <SelectValue placeholder="All Types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Types ({typeCounts.all})</SelectItem>
+                  <SelectItem value="bill" className="focus:bg-muted focus:text-foreground">Bills ({typeCounts.bill})</SelectItem>
+                  <SelectItem value="member" className="focus:bg-muted focus:text-foreground">Members ({typeCounts.member})</SelectItem>
+                  <SelectItem value="committee" className="focus:bg-muted focus:text-foreground">Committees ({typeCounts.committee})</SelectItem>
+                  <SelectItem value="school-funding" className="focus:bg-muted focus:text-foreground">School Funding ({typeCounts['school-funding']})</SelectItem>
+                  <SelectItem value="contract" className="focus:bg-muted focus:text-foreground">Contracts ({typeCounts.contract})</SelectItem>
+                  <SelectItem value="general" className="focus:bg-muted focus:text-foreground">General ({typeCounts.general})</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
