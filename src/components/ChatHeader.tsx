@@ -46,7 +46,7 @@ const featuresDropdownItems = [
   { label: "Contracts", href: "/features/contracts" },
   { label: "Excerpts", href: "/features/excerpts" },
   { label: "Letter Generation", href: "/features/letter-generation" },
-  { label: "Live Feed", href: "/features/live-feed" },
+  { label: "Live Feed", href: "/live-feed" },
   { label: "Multi-Engine Chat", href: "/features/multi-engine-chat" },
   { label: "Prompt Library", href: "/features/prompt-library" },
 ];

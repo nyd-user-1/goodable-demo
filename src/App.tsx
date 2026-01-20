@@ -80,6 +80,7 @@ import Bills2 from "./pages/Bills2";
 import Chats2 from "./pages/Chats2";
 import Constitution from "./pages/Constitution";
 import DigitalBillOfRights from "./pages/DigitalBillOfRights";
+import LiveFeed from "./pages/LiveFeed";
 
 const queryClient = new QueryClient();
 
@@ -166,6 +167,7 @@ const App = () => {
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/auth-2" element={<Auth2 />} />
                   <Route path="/free-trial" element={<FreeTrial />} />
+                  <Route path="/live-feed" element={<LiveFeed />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/academy" element={<Academy />} />
                   <Route path="/constitution" element={<Constitution />} />
