@@ -10,7 +10,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowLeft, Plus, ExternalLink, Command, GraduationCap, MapPin, Calendar, DollarSign, TrendingUp, TrendingDown, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, ExternalLink, Command, MapPin, Calendar, DollarSign, TrendingUp, TrendingDown, Pencil, Trash2 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Tooltip,
@@ -67,20 +67,20 @@ const SchoolFundingDetail = () => {
     enabled: !!funding,
   });
 
-  // Fetch school-funding related chats
+  // Fetch school-funding related chats - only chats initiated from this specific funding record
   useEffect(() => {
     const fetchFundingChats = async () => {
-      if (!funding) return;
+      if (!fundingId) return;
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        // Search for chats that mention this district or school funding
+        // Search for chats with this specific funding ID marker
         const { data, error } = await supabase
           .from("chat_sessions")
           .select("id, title, created_at")
           .eq("user_id", user.id)
-          .or(`title.ilike.%${funding.district}%,title.ilike.%school funding%,title.ilike.%school aid%`)
+          .ilike("title", `%[SchoolFunding:${fundingId}]%`)
           .order("created_at", { ascending: false });
 
         if (!error && data) {
@@ -92,7 +92,7 @@ const SchoolFundingDetail = () => {
     };
 
     fetchFundingChats();
-  }, [funding]);
+  }, [fundingId]);
 
   const formatNoteDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -106,7 +106,8 @@ const SchoolFundingDetail = () => {
 
   const handleNewChat = async () => {
     if (!funding) return;
-    const initialPrompt = `Tell me about school funding for ${funding.district} in ${funding.county || 'New York'} County for the ${funding.enacted_budget} budget year. The total funding change is ${formatCurrency(funding.total_change)} (${formatPercent(funding.percent_change)}). What should I know about this district's funding?`;
+    // Include fundingId in prompt for precise chat association
+    const initialPrompt = `[SchoolFunding:${fundingId}] Analyze school funding for ${funding.district} in ${funding.county || 'New York'} County for the ${funding.enacted_budget} budget year. The total funding change is ${formatCurrency(funding.total_change)} (${formatPercent(funding.percent_change)}). What should I know about this district's funding?`;
     navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
   };
 
@@ -226,21 +227,14 @@ const SchoolFundingDetail = () => {
         <Card className="overflow-hidden">
           <CardContent className="p-6">
             <div className="space-y-6 relative">
-              {/* Header with Icon */}
+              {/* Header */}
               <div className="pb-4 border-b">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <GraduationCap className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h1 className="text-2xl font-semibold text-foreground">
-                      {funding.district}
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                      {funding.county && `${funding.county} County`}
-                    </p>
-                  </div>
-                </div>
+                <h1 className="text-2xl font-semibold text-foreground">
+                  {funding.district}
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  {funding.county && `${funding.county} County`}
+                </p>
               </div>
 
               {/* Summary Stats */}

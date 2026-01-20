@@ -10,7 +10,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowLeft, Plus, ExternalLink, Command, Wallet, Building2, Calendar, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, ExternalLink, Command, Building2, Calendar, Pencil, Trash2 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Tooltip,
@@ -49,20 +49,20 @@ const ContractDetail = () => {
     enabled: !!contractNumber,
   });
 
-  // Fetch contract-related chats (by title pattern matching)
+  // Fetch contract-related chats - only chats initiated from this specific contract
   useEffect(() => {
     const fetchContractChats = async () => {
-      if (!contract) return;
+      if (!contractNumber) return;
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        // Search for chats that mention this contract's vendor name or contract number
+        // Search for chats with this specific contract number marker
         const { data, error } = await supabase
           .from("chat_sessions")
           .select("id, title, created_at")
           .eq("user_id", user.id)
-          .or(`title.ilike.%${contract.vendor_name || ''}%,title.ilike.%contract%`)
+          .ilike("title", `%[Contract:${contractNumber}]%`)
           .order("created_at", { ascending: false });
 
         if (!error && data) {
@@ -74,7 +74,7 @@ const ContractDetail = () => {
     };
 
     fetchContractChats();
-  }, [contract]);
+  }, [contractNumber]);
 
   const formatNoteDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -87,7 +87,7 @@ const ContractDetail = () => {
   };
 
   const handleNewChat = async () => {
-    if (!contract) return;
+    if (!contract || !contractNumber) return;
     const vendor = contract.vendor_name || 'this vendor';
     const dept = contract.department_facility ? ` for ${contract.department_facility}` : '';
     const amount = contract.current_contract_amount
@@ -97,7 +97,8 @@ const ContractDetail = () => {
       ? ` The contract description says: "${contract.contract_description}".`
       : '';
 
-    const initialPrompt = `Tell me about the contract with ${vendor}${dept}${amount}.${desc} What should I know about this contract?`;
+    // Include contractNumber in prompt for precise chat association
+    const initialPrompt = `[Contract:${contractNumber}] Tell me about the contract with ${vendor}${dept}${amount}.${desc} What should I know about this contract?`;
     navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
   };
 
@@ -215,27 +216,20 @@ const ContractDetail = () => {
         <Card className="overflow-hidden">
           <CardContent className="p-6">
             <div className="space-y-6 relative">
-              {/* Header with Icon */}
+              {/* Header */}
               <div className="pb-4 border-b">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Wallet className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h1 className="text-2xl font-semibold text-foreground">
-                      {contract.vendor_name || 'Unknown Vendor'}
-                    </h1>
-                    {contract.department_facility && (
-                      <p className="text-sm text-muted-foreground">
-                        {contract.department_facility}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                <h1 className="text-2xl font-semibold text-foreground">
+                  {contract.vendor_name || 'Unknown Vendor'}
+                </h1>
+                {contract.department_facility && (
+                  <p className="text-sm text-muted-foreground">
+                    {contract.department_facility}
+                  </p>
+                )}
               </div>
 
-              {/* Summary Stats Grid - matching School Funding style */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* Summary Stats Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="bg-muted/30 rounded-lg p-4">
                   <div className="text-xs text-muted-foreground mb-1">Contract #</div>
                   <div className="font-semibold">{contract.contract_number || 'N/A'}</div>
@@ -249,10 +243,6 @@ const ContractDetail = () => {
                 <div className="bg-muted/30 rounded-lg p-4">
                   <div className="text-xs text-muted-foreground mb-1">Type</div>
                   <div className="font-semibold text-sm">{contract.contract_type || 'N/A'}</div>
-                </div>
-                <div className="bg-muted/30 rounded-lg p-4">
-                  <div className="text-xs text-muted-foreground mb-1">Spent to Date</div>
-                  <div className="font-semibold">{contract.spending_to_date || '0.00'}</div>
                 </div>
               </div>
 
