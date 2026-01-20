@@ -1,15 +1,15 @@
 // SchoolFunding type matching Supabase school_funding table (raw data)
 export interface SchoolFunding {
   id: number;
-  "Event": string | null;
+  enacted_budget: string | null;
   "BEDS Code": string | null;
   "County": string | null;
   "District": string | null;
-  "Aid Category": string | null;
-  "Base Year": string | null;
-  "School Year": string | null;
+  aid_category: string | null;
+  base_year: string | null;
+  school_year: string | null;
   "Change": string | null;
-  "% Change": string | null;
+  percent_change: string | null;
 }
 
 // SchoolFundingTotals type matching school_funding_totals table (aggregated)

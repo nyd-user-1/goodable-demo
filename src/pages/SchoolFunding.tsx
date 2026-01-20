@@ -61,12 +61,11 @@ const SchoolFundingPage = () => {
     const budgetYear = record.enacted_budget || '';
 
     // Fetch detailed categories for this district/year
-    // Note: 'Event' column contains budget year text, 'School Year' contains dollar amounts
     const { data: categories } = await supabase
       .from('school_funding')
       .select('*')
       .eq('District', record.district)
-      .ilike('Event', `%${record.enacted_budget}%`);
+      .eq('enacted_budget', record.enacted_budget);
 
     // Store school funding details in sessionStorage for the chat to display
     const schoolFundingDetails = {
@@ -78,14 +77,14 @@ const SchoolFundingPage = () => {
       totalChange: record.total_change,
       percentChange: record.percent_change,
       categories: (categories || []).map(cat => {
-        // Parse dollar amounts from Base Year and School Year columns
-        const baseYearStr = cat['Base Year'] || '0';
-        const schoolYearStr = cat['School Year'] || '0';
+        // Parse dollar amounts from base_year and school_year columns
+        const baseYearStr = cat.base_year || '0';
+        const schoolYearStr = cat.school_year || '0';
         const baseYear = parseFloat(baseYearStr.replace(/[$,]/g, '')) || 0;
         const schoolYear = parseFloat(schoolYearStr.replace(/[$,]/g, '')) || 0;
-        const pctChange = parseFloat(cat['% Change'] || '0');
+        const pctChange = parseFloat(cat.percent_change || '0');
         return {
-          name: cat['Aid Category'] || 'Unknown',
+          name: cat.aid_category || 'Unknown',
           baseYear: Math.round(baseYear).toLocaleString(),
           schoolYear: Math.round(schoolYear).toLocaleString(),
           change: formatCurrency(schoolYear - baseYear),

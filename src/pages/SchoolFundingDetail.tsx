@@ -50,7 +50,6 @@ const SchoolFundingDetail = () => {
   });
 
   // Fetch detailed breakdown by aid category from raw school_funding table
-  // Note: 'Event' column contains budget year text, 'School Year' contains dollar amounts
   const { data: categories } = useQuery({
     queryKey: ['school-funding-categories', funding?.district, funding?.enacted_budget],
     queryFn: async () => {
@@ -60,7 +59,7 @@ const SchoolFundingDetail = () => {
         .from('school_funding')
         .select('*')
         .eq('District', funding.district)
-        .ilike('Event', `%${funding.enacted_budget}%`);
+        .eq('enacted_budget', funding.enacted_budget);
 
       if (error) throw error;
       return data as SchoolFunding[];
@@ -118,14 +117,14 @@ const SchoolFundingDetail = () => {
       totalChange: funding.total_change,
       percentChange: funding.percent_change,
       categories: (categories || []).map(cat => {
-        // Parse dollar amounts from Base Year and School Year columns
-        const baseYearStr = cat['Base Year'] || '0';
-        const schoolYearStr = cat['School Year'] || '0';
+        // Parse dollar amounts from base_year and school_year columns
+        const baseYearStr = cat.base_year || '0';
+        const schoolYearStr = cat.school_year || '0';
         const baseYear = parseFloat(baseYearStr.replace(/[$,]/g, '')) || 0;
         const schoolYear = parseFloat(schoolYearStr.replace(/[$,]/g, '')) || 0;
-        const pctChange = parseFloat(cat['% Change'] || '0');
+        const pctChange = parseFloat(cat.percent_change || '0');
         return {
-          name: cat['Aid Category'] || 'Unknown',
+          name: cat.aid_category || 'Unknown',
           baseYear: Math.round(baseYear).toLocaleString(),
           schoolYear: Math.round(schoolYear).toLocaleString(),
           change: formatCurrency(schoolYear - baseYear),
@@ -367,13 +366,13 @@ const SchoolFundingDetail = () => {
               <div className="space-y-3">
                 {categories.map((category, index) => {
                   const change = parseFloat(category.Change || '0');
-                  const pctChange = parseFloat(category['% Change'] || '0');
+                  const pctChange = parseFloat(category.percent_change || '0');
                   const isPositive = change >= 0;
 
                   return (
                     <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                       <div className="flex-1">
-                        <div className="font-medium text-sm">{category['Aid Category'] || 'Unknown Category'}</div>
+                        <div className="font-medium text-sm">{category.aid_category || 'Unknown Category'}</div>
                       </div>
                       <div className="flex items-center gap-4 text-right">
                         <div className={`font-semibold text-sm ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
