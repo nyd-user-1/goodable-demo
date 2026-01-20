@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, MessageSquare, FileText, Users, Building2, Trash2 } from 'lucide-react';
+import { Search, X, MessageSquare, ScrollText, Users, Landmark, Wallet, GraduationCap, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,7 +29,7 @@ import {
 import { useChatSessions } from '@/pages/chats/hooks/useChatSessions';
 import { ChatSession } from '@/pages/chats/types';
 
-type ChatType = 'all' | 'bill' | 'member' | 'committee' | 'general';
+type ChatType = 'all' | 'bill' | 'member' | 'committee' | 'school-funding' | 'contract' | 'general';
 
 const Chats2 = () => {
   const navigate = useNavigate();
@@ -58,9 +58,17 @@ const Chats2 = () => {
 
   // Determine chat type
   const getChatType = (session: ChatSession): ChatType => {
+    const titleLower = session.title.toLowerCase();
+
     if (session.bill_id) return 'bill';
     if (session.member_id) return 'member';
     if (session.committee_id) return 'committee';
+
+    // Detect by title pattern
+    if (titleLower.includes('school funding') || titleLower.includes('school aid')) return 'school-funding';
+    if (titleLower.includes('contract')) return 'contract';
+    if (titleLower.includes('bill ') || titleLower.match(/^(a|s)\d+/i)) return 'bill';
+
     return 'general';
   };
 
@@ -110,13 +118,15 @@ const Chats2 = () => {
 
   const hasActiveFilters = searchTerm || typeFilter !== 'all';
 
-  // Get counts by type
+  // Get counts by type using getChatType for consistency
   const typeCounts = {
     all: chatSessions.length,
-    bill: chatSessions.filter(s => s.bill_id).length,
-    member: chatSessions.filter(s => s.member_id).length,
-    committee: chatSessions.filter(s => s.committee_id).length,
-    general: chatSessions.filter(s => !s.bill_id && !s.member_id && !s.committee_id).length,
+    bill: chatSessions.filter(s => getChatType(s) === 'bill').length,
+    member: chatSessions.filter(s => getChatType(s) === 'member').length,
+    committee: chatSessions.filter(s => getChatType(s) === 'committee').length,
+    'school-funding': chatSessions.filter(s => getChatType(s) === 'school-funding').length,
+    contract: chatSessions.filter(s => getChatType(s) === 'contract').length,
+    general: chatSessions.filter(s => getChatType(s) === 'general').length,
   };
 
   return (
@@ -167,16 +177,17 @@ const Chats2 = () => {
             {/* Filters row */}
             <div className="flex flex-wrap gap-2">
               <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as ChatType)}>
-                <SelectTrigger className="w-[200px]">
-                  <MessageSquare className="h-4 w-4 mr-2 text-muted-foreground" />
+                <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types ({typeCounts.all})</SelectItem>
-                  <SelectItem value="bill">Bills ({typeCounts.bill})</SelectItem>
-                  <SelectItem value="member">Members ({typeCounts.member})</SelectItem>
-                  <SelectItem value="committee">Committees ({typeCounts.committee})</SelectItem>
-                  <SelectItem value="general">General ({typeCounts.general})</SelectItem>
+                  <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Types ({typeCounts.all})</SelectItem>
+                  <SelectItem value="bill" className="focus:bg-muted focus:text-foreground">Bills ({typeCounts.bill})</SelectItem>
+                  <SelectItem value="member" className="focus:bg-muted focus:text-foreground">Members ({typeCounts.member})</SelectItem>
+                  <SelectItem value="committee" className="focus:bg-muted focus:text-foreground">Committees ({typeCounts.committee})</SelectItem>
+                  <SelectItem value="school-funding" className="focus:bg-muted focus:text-foreground">School Funding ({typeCounts['school-funding']})</SelectItem>
+                  <SelectItem value="contract" className="focus:bg-muted focus:text-foreground">Contracts ({typeCounts.contract})</SelectItem>
+                  <SelectItem value="general" className="focus:bg-muted focus:text-foreground">General ({typeCounts.general})</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -245,11 +256,28 @@ interface ChatCardProps {
 }
 
 function ChatCard({ session, onClick, onDeleteClick }: ChatCardProps) {
-  // Determine chat type and icon
+  // Determine chat type and icon based on session data or title patterns
   const getChatTypeInfo = () => {
-    if (session.bill_id) return { type: 'Bill', icon: FileText, color: 'text-blue-500' };
-    if (session.member_id) return { type: 'Member', icon: Users, color: 'text-green-500' };
-    if (session.committee_id) return { type: 'Committee', icon: Building2, color: 'text-purple-500' };
+    const titleLower = session.title.toLowerCase();
+
+    // Check for specific entity IDs first
+    if (session.bill_id) return { type: 'Bill', icon: ScrollText, color: 'text-muted-foreground' };
+    if (session.member_id) return { type: 'Member', icon: Users, color: 'text-muted-foreground' };
+    if (session.committee_id) return { type: 'Committee', icon: Landmark, color: 'text-muted-foreground' };
+
+    // Check for school funding and contracts by title pattern
+    if (titleLower.includes('school funding') || titleLower.includes('school aid')) {
+      return { type: 'School Funding', icon: GraduationCap, color: 'text-muted-foreground' };
+    }
+    if (titleLower.includes('contract')) {
+      return { type: 'Contract', icon: Wallet, color: 'text-muted-foreground' };
+    }
+
+    // Check for bill-related titles without bill_id
+    if (titleLower.includes('bill ') || titleLower.match(/^(a|s)\d+/i)) {
+      return { type: 'Bill', icon: ScrollText, color: 'text-muted-foreground' };
+    }
+
     return { type: 'General', icon: MessageSquare, color: 'text-muted-foreground' };
   };
 
