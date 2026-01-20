@@ -175,9 +175,9 @@ const SchoolFundingPage = () => {
             <p className="text-destructive">Error loading school funding data: {String(error)}</p>
           </div>
         ) : isLoading ? (
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="break-inside-avoid h-32 bg-muted/30 rounded-2xl animate-pulse" />
+              <div key={i} className="h-32 bg-muted/30 rounded-2xl animate-pulse" />
             ))}
           </div>
         ) : records.length === 0 ? (
@@ -191,7 +191,7 @@ const SchoolFundingPage = () => {
             )}
           </div>
         ) : (
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {records.map((record) => (
               <SchoolFundingCard
                 key={record.id}
@@ -227,7 +227,7 @@ function SchoolFundingCard({ record, onClick }: SchoolFundingCardProps) {
   return (
     <div
       onClick={onClick}
-      className="group break-inside-avoid bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
+      className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
     >
       <div className="flex items-start justify-between mb-2">
         <h3 className="font-semibold text-base">
@@ -244,7 +244,7 @@ function SchoolFundingCard({ record, onClick }: SchoolFundingCardProps) {
       </p>
       {totalChange !== 0 && (
         <p className={`text-sm font-medium ${isPositive ? 'text-green-600 dark:text-green-400' : isNegative ? 'text-red-600 dark:text-red-400' : 'text-muted-foreground'}`}>
-          {formatCurrency(totalChange)} ({formatPercent(pctChange)})
+          {formatCurrency(totalChange)}
         </p>
       )}
 
@@ -259,6 +259,12 @@ function SchoolFundingCard({ record, onClick }: SchoolFundingCardProps) {
           <div>
             <span className="text-muted-foreground">School Year Total</span>
             <p className="font-medium">{formatCurrency(record.total_school_year)}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">% Change</span>
+            <p className={`font-medium ${isPositive ? 'text-green-600 dark:text-green-400' : isNegative ? 'text-red-600 dark:text-red-400' : ''}`}>
+              {formatPercent(pctChange)}
+            </p>
           </div>
           <div>
             <span className="text-muted-foreground">Aid Categories</span>
