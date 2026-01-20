@@ -1,55 +1,55 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { SchoolFunding } from '@/types/schoolFunding';
+import { SchoolFundingTotals } from '@/types/schoolFunding';
 
 export function useSchoolFundingSearch() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [districtFilter, setDistrictFilter] = useState('');
   const [countyFilter, setCountyFilter] = useState('');
-  const [aidCategoryFilter, setAidCategoryFilter] = useState('');
-  const [schoolYearFilter, setSchoolYearFilter] = useState('');
+  const [budgetYearFilter, setBudgetYearFilter] = useState('');
 
-  // Fetch school funding data
+  // Fetch aggregated school funding data from school_funding_totals
   const { data, isLoading, error } = useQuery({
-    queryKey: ['school-funding', searchTerm, countyFilter, aidCategoryFilter, schoolYearFilter],
+    queryKey: ['school-funding-totals', searchTerm, districtFilter, countyFilter, budgetYearFilter],
     queryFn: async () => {
       let query = supabase
-        .from('school_funding')
+        .from('school_funding_totals')
         .select('*', { count: 'exact' });
 
-      // Server-side search across district, county, BEDS code
+      // Server-side search across district, county
       if (searchTerm && searchTerm.length >= 2) {
         query = query.or(
-          `District.ilike.%${searchTerm}%,County.ilike.%${searchTerm}%,"BEDS Code".ilike.%${searchTerm}%`
+          `district.ilike.%${searchTerm}%,county.ilike.%${searchTerm}%`
         );
+      }
+
+      // Server-side district filter
+      if (districtFilter) {
+        query = query.eq('district', districtFilter);
       }
 
       // Server-side county filter
       if (countyFilter) {
-        query = query.eq('County', countyFilter);
+        query = query.eq('county', countyFilter);
       }
 
-      // Server-side aid category filter
-      if (aidCategoryFilter) {
-        query = query.eq('Aid Category', aidCategoryFilter);
-      }
-
-      // Server-side school year filter
-      if (schoolYearFilter) {
-        query = query.eq('School Year', schoolYearFilter);
+      // Server-side budget year filter
+      if (budgetYearFilter) {
+        query = query.eq('enacted_budget', budgetYearFilter);
       }
 
       // Order and limit results
       query = query
-        .order('County', { ascending: true })
-        .order('District', { ascending: true })
+        .order('district', { ascending: true })
+        .order('enacted_budget', { ascending: false })
         .limit(1000);
 
       const { data, error, count } = await query;
 
       if (error) throw error;
 
-      return { records: data as SchoolFunding[], totalCount: count || 0 };
+      return { records: data as SchoolFundingTotals[], totalCount: count || 0 };
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -60,31 +60,31 @@ export function useSchoolFundingSearch() {
 
   // Get filter options from a separate query
   const { data: filterOptions } = useQuery({
-    queryKey: ['school-funding-filter-options'],
+    queryKey: ['school-funding-totals-filter-options'],
     queryFn: async () => {
+      // Get unique districts
+      const { data: districtData } = await supabase
+        .from('school_funding_totals')
+        .select('district')
+        .not('district', 'is', null);
+
       // Get unique counties
       const { data: countyData } = await supabase
-        .from('school_funding')
-        .select('County')
-        .not('County', 'is', null);
+        .from('school_funding_totals')
+        .select('county')
+        .not('county', 'is', null);
 
-      // Get unique aid categories
-      const { data: aidData } = await supabase
-        .from('school_funding')
-        .select('"Aid Category"')
-        .not('Aid Category', 'is', null);
-
-      // Get unique school years
+      // Get unique budget years
       const { data: yearData } = await supabase
-        .from('school_funding')
-        .select('"School Year"')
-        .not('School Year', 'is', null);
+        .from('school_funding_totals')
+        .select('enacted_budget')
+        .not('enacted_budget', 'is', null);
 
-      const counties = [...new Set(countyData?.map(d => d.County))].filter(Boolean).sort() as string[];
-      const aidCategories = [...new Set(aidData?.map(d => d['Aid Category']))].filter(Boolean).sort() as string[];
-      const schoolYears = [...new Set(yearData?.map(d => d['School Year']))].filter(Boolean).sort() as string[];
+      const districts = [...new Set(districtData?.map(d => d.district))].filter(Boolean).sort() as string[];
+      const counties = [...new Set(countyData?.map(d => d.county))].filter(Boolean).sort() as string[];
+      const budgetYears = [...new Set(yearData?.map(d => d.enacted_budget))].filter(Boolean).sort().reverse() as string[];
 
-      return { counties, aidCategories, schoolYears };
+      return { districts, counties, budgetYears };
     },
     staleTime: 30 * 60 * 1000,
   });
@@ -94,37 +94,39 @@ export function useSchoolFundingSearch() {
     totalCount,
     isLoading,
     error,
+    districts: filterOptions?.districts || [],
     counties: filterOptions?.counties || [],
-    aidCategories: filterOptions?.aidCategories || [],
-    schoolYears: filterOptions?.schoolYears || [],
+    budgetYears: filterOptions?.budgetYears || [],
     searchTerm,
     setSearchTerm,
+    districtFilter,
+    setDistrictFilter,
     countyFilter,
     setCountyFilter,
-    aidCategoryFilter,
-    setAidCategoryFilter,
-    schoolYearFilter,
-    setSchoolYearFilter,
+    budgetYearFilter,
+    setBudgetYearFilter,
   };
 }
 
-// Helper to format currency change
-export function formatChange(change: string | null): string {
-  if (!change) return 'N/A';
-  const num = parseFloat(change);
-  if (isNaN(num)) return change;
+// Helper to format currency
+export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(num);
+  }).format(amount);
 }
 
 // Helper to format percentage
-export function formatPercent(pct: string | null): string {
-  if (!pct) return 'N/A';
-  const num = parseFloat(pct);
-  if (isNaN(num)) return pct;
-  return `${num >= 0 ? '+' : ''}${num.toFixed(2)}%`;
+export function formatPercent(pct: number): string {
+  return `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
+}
+
+// Legacy helpers for backwards compatibility
+export function formatChange(change: string | null): string {
+  if (!change) return 'N/A';
+  const num = parseFloat(change);
+  if (isNaN(num)) return change;
+  return formatCurrency(num);
 }

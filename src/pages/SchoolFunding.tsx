@@ -10,8 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useSchoolFundingSearch, formatChange, formatPercent } from '@/hooks/useSchoolFundingSearch';
-import { SchoolFunding } from '@/types/schoolFunding';
+import { useSchoolFundingSearch, formatCurrency, formatPercent } from '@/hooks/useSchoolFundingSearch';
+import { SchoolFundingTotals } from '@/types/schoolFunding';
 
 const SchoolFundingPage = () => {
   const navigate = useNavigate();
@@ -22,17 +22,17 @@ const SchoolFundingPage = () => {
     totalCount,
     isLoading,
     error,
+    districts,
     counties,
-    aidCategories,
-    schoolYears,
+    budgetYears,
     searchTerm,
     setSearchTerm,
+    districtFilter,
+    setDistrictFilter,
     countyFilter,
     setCountyFilter,
-    aidCategoryFilter,
-    setAidCategoryFilter,
-    schoolYearFilter,
-    setSchoolYearFilter,
+    budgetYearFilter,
+    setBudgetYearFilter,
   } = useSchoolFundingSearch();
 
   // Focus search on mount and keyboard shortcut
@@ -51,30 +51,29 @@ const SchoolFundingPage = () => {
   }, []);
 
   // Generate a prompt for a school funding record
-  const generatePrompt = (record: SchoolFunding): string => {
-    const district = record['District'] || 'this district';
-    const county = record['County'] ? ` in ${record['County']} County` : '';
-    const category = record['Aid Category'] ? ` for ${record['Aid Category']}` : '';
-    const year = record['School Year'] ? ` in ${record['School Year']}` : '';
-    const change = record['Change'] ? ` The funding change was ${formatChange(record['Change'])}` : '';
-    const pctChange = record['% Change'] ? ` (${formatPercent(record['% Change'])})` : '';
+  const generatePrompt = (record: SchoolFundingTotals): string => {
+    const district = record.district || 'this district';
+    const county = record.county ? ` in ${record.county} County` : '';
+    const year = record.enacted_budget ? ` for ${record.enacted_budget}` : '';
+    const change = record.total_change ? ` The total funding change was ${formatCurrency(record.total_change)}` : '';
+    const pctChange = record.percent_change ? ` (${formatPercent(record.percent_change)})` : '';
 
-    return `Tell me about school funding for ${district}${county}${category}${year}.${change}${pctChange}. What factors affect school aid in this district?`;
+    return `Tell me about school funding for ${district}${county}${year}.${change}${pctChange}. What factors affect school aid in this district?`;
   };
 
-  const handleRecordClick = (record: SchoolFunding) => {
+  const handleRecordClick = (record: SchoolFundingTotals) => {
     const prompt = generatePrompt(record);
     navigate(`/new-chat?prompt=${encodeURIComponent(prompt)}`);
   };
 
   const clearFilters = () => {
     setSearchTerm('');
+    setDistrictFilter('');
     setCountyFilter('');
-    setAidCategoryFilter('');
-    setSchoolYearFilter('');
+    setBudgetYearFilter('');
   };
 
-  const hasActiveFilters = searchTerm || countyFilter || aidCategoryFilter || schoolYearFilter;
+  const hasActiveFilters = searchTerm || districtFilter || countyFilter || budgetYearFilter;
 
   return (
     <div className="min-h-screen bg-background">
@@ -89,7 +88,7 @@ const SchoolFundingPage = () => {
                 <p className="text-sm text-muted-foreground">
                   {isLoading
                     ? 'Loading...'
-                    : `Showing ${records.length.toLocaleString()} of ${totalCount.toLocaleString()} records`
+                    : `Showing ${records.length.toLocaleString()} of ${totalCount.toLocaleString()} districts`
                   }
                 </p>
               </div>
@@ -123,6 +122,20 @@ const SchoolFundingPage = () => {
 
             {/* Filters row */}
             <div className="flex flex-wrap gap-2">
+              <Select value={districtFilter || "all"} onValueChange={(v) => setDistrictFilter(v === "all" ? "" : v)}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="All Districts" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Districts</SelectItem>
+                  {districts.map((district) => (
+                    <SelectItem key={district} value={district}>
+                      {district}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               <Select value={countyFilter || "all"} onValueChange={(v) => setCountyFilter(v === "all" ? "" : v)}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="All Counties" />
@@ -137,27 +150,13 @@ const SchoolFundingPage = () => {
                 </SelectContent>
               </Select>
 
-              <Select value={aidCategoryFilter || "all"} onValueChange={(v) => setAidCategoryFilter(v === "all" ? "" : v)}>
+              <Select value={budgetYearFilter || "all"} onValueChange={(v) => setBudgetYearFilter(v === "all" ? "" : v)}>
                 <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="All Aid Categories" />
+                  <SelectValue placeholder="All Budget Years" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Aid Categories</SelectItem>
-                  {aidCategories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={schoolYearFilter || "all"} onValueChange={(v) => setSchoolYearFilter(v === "all" ? "" : v)}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="All Years" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Years</SelectItem>
-                  {schoolYears.map((year) => (
+                  <SelectItem value="all">All Budget Years</SelectItem>
+                  {budgetYears.map((year) => (
                     <SelectItem key={year} value={year}>
                       {year}
                     </SelectItem>
@@ -209,38 +208,43 @@ const SchoolFundingPage = () => {
 
 // School funding card component
 interface SchoolFundingCardProps {
-  record: SchoolFunding;
+  record: SchoolFundingTotals;
   onClick: () => void;
 }
 
 function SchoolFundingCard({ record, onClick }: SchoolFundingCardProps) {
-  const district = record['District'] || 'Unknown District';
-  const county = record['County'];
-  const aidCategory = record['Aid Category'];
-  const change = record['Change'];
-  const pctChange = record['% Change'];
+  const district = record.district || 'Unknown District';
+  const county = record.county;
+  // Strip "Enacted Budget" suffix to show just the year (e.g., "2025-26")
+  const budgetYear = (record.enacted_budget || '').replace(' Enacted Budget', '');
+  const totalChange = record.total_change;
+  const pctChange = record.percent_change;
 
   // Determine if change is positive/negative for styling
-  const changeNum = change ? parseFloat(change) : 0;
-  const isPositive = changeNum > 0;
-  const isNegative = changeNum < 0;
+  const isPositive = totalChange > 0;
+  const isNegative = totalChange < 0;
 
   return (
     <div
       onClick={onClick}
       className="group break-inside-avoid bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
     >
-      <h3 className="font-semibold text-base mb-2">
-        {district}
-      </h3>
+      <div className="flex items-start justify-between mb-2">
+        <h3 className="font-semibold text-base">
+          {district}
+        </h3>
+        {budgetYear && (
+          <span className="text-sm text-muted-foreground ml-2 shrink-0">
+            {budgetYear}
+          </span>
+        )}
+      </div>
       <p className="text-sm text-muted-foreground mb-1">
         {county && `${county} County`}
-        {county && aidCategory && ' • '}
-        {aidCategory}
       </p>
-      {change && (
+      {totalChange !== 0 && (
         <p className={`text-sm font-medium ${isPositive ? 'text-green-600 dark:text-green-400' : isNegative ? 'text-red-600 dark:text-red-400' : 'text-muted-foreground'}`}>
-          {formatChange(change)} {pctChange && `(${formatPercent(pctChange)})`}
+          {formatCurrency(totalChange)} ({formatPercent(pctChange)})
         </p>
       )}
 
@@ -248,30 +252,18 @@ function SchoolFundingCard({ record, onClick }: SchoolFundingCardProps) {
       <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
         {/* Record details grid */}
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
-          {record['BEDS Code'] && (
-            <div>
-              <span className="text-muted-foreground">BEDS Code</span>
-              <p className="font-medium">{record['BEDS Code']}</p>
-            </div>
-          )}
-          {record['School Year'] && (
-            <div>
-              <span className="text-muted-foreground">School Year</span>
-              <p className="font-medium">{record['School Year']}</p>
-            </div>
-          )}
-          {record['Base Year'] && (
-            <div>
-              <span className="text-muted-foreground">Base Year</span>
-              <p className="font-medium">{record['Base Year']}</p>
-            </div>
-          )}
-          {record['Event'] && (
-            <div>
-              <span className="text-muted-foreground">Event</span>
-              <p className="font-medium">{record['Event']}</p>
-            </div>
-          )}
+          <div>
+            <span className="text-muted-foreground">Base Year Total</span>
+            <p className="font-medium">{formatCurrency(record.total_base_year)}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">School Year Total</span>
+            <p className="font-medium">{formatCurrency(record.total_school_year)}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Aid Categories</span>
+            <p className="font-medium">{record.category_count}</p>
+          </div>
         </div>
 
         {/* Arrow button */}
