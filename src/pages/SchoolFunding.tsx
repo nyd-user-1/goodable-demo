@@ -68,6 +68,8 @@ const SchoolFundingPage = () => {
       .ilike('School Year', `%${record.enacted_budget}%`);
 
     // Store school funding details in sessionStorage for the chat to display
+    // Note: Raw school_funding table has Change and % Change, but not separate base/school year amounts per category
+    // We calculate approximate base/school year amounts from the change and percent change
     const schoolFundingDetails = {
       district,
       county,
@@ -76,13 +78,25 @@ const SchoolFundingPage = () => {
       totalSchoolYear: record.total_school_year,
       totalChange: record.total_change,
       percentChange: record.percent_change,
-      categories: (categories || []).map(cat => ({
-        name: cat['Aid Category'] || 'Unknown',
-        baseYear: formatCurrency(parseFloat(cat['Base Year'] || '0')),
-        schoolYear: formatCurrency(parseFloat(cat['School Year'] || '0')),
-        change: formatCurrency(parseFloat(cat.Change || '0')),
-        percentChange: `${parseFloat(cat['% Change'] || '0').toFixed(2)}%`,
-      })),
+      categories: (categories || []).map(cat => {
+        const change = parseFloat(cat.Change || '0');
+        const pctChange = parseFloat(cat['% Change'] || '0');
+        // Calculate base year from change and percent: baseYear = change / (pctChange/100)
+        // schoolYear = baseYear + change
+        let baseYear = 0;
+        let schoolYear = 0;
+        if (pctChange !== 0) {
+          baseYear = Math.abs(change / (pctChange / 100));
+          schoolYear = baseYear + change;
+        }
+        return {
+          name: cat['Aid Category'] || 'Unknown',
+          baseYear: Math.round(baseYear).toLocaleString(),
+          schoolYear: Math.round(schoolYear).toLocaleString(),
+          change: formatCurrency(change),
+          percentChange: `${pctChange >= 0 ? '+' : ''}${pctChange.toFixed(2)}%`,
+        };
+      }),
     };
     sessionStorage.setItem('schoolFundingDetails', JSON.stringify(schoolFundingDetails));
 
