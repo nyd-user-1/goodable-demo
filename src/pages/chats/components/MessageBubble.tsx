@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import { Message } from "../types";
 import { ContextBuilder } from "@/utils/contextBuilder";
 import { useNavigate } from "react-router-dom";
+import { SchoolFundingDataCard, parseSchoolFundingData } from "@/components/features/chat/SchoolFundingDataCard";
 
 interface MessageBubbleProps {
   message: Message & { isStreaming?: boolean };
@@ -179,17 +180,33 @@ export const MessageBubble = ({
               )}
             </div>
           ) : (
-            <p 
-              className="chat-text-content text-sm whitespace-pre-wrap"
-              style={{ 
-                wordWrap: 'break-word', 
-                overflowWrap: 'break-word', 
-                wordBreak: 'break-word',
-                maxWidth: '100%'
-              }}
-            >
-              {message.content}
-            </p>
+            // Check if this is a school funding message and render special card
+            (() => {
+              const schoolFundingData = parseSchoolFundingData(message.content);
+              if (schoolFundingData) {
+                return (
+                  <div className="space-y-2">
+                    <SchoolFundingDataCard data={schoolFundingData} />
+                    <p className="text-xs text-slate-300 mt-2">
+                      What should I know about this district's funding?
+                    </p>
+                  </div>
+                );
+              }
+              return (
+                <p
+                  className="chat-text-content text-sm whitespace-pre-wrap"
+                  style={{
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word',
+                    wordBreak: 'break-word',
+                    maxWidth: '100%'
+                  }}
+                >
+                  {message.content}
+                </p>
+              );
+            })()
           )}
           {message.timestamp && (
             <div className="flex items-center gap-2 mt-1">
