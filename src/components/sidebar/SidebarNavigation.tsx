@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageSquare, FileText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, ChevronDown, Search, Shield, Palette, Image, Moon, Sun, MoreHorizontal, Pin, Trash2 } from "lucide-react";
+import { MessageSquare, ScrollText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, ChevronDown, Search, Shield, Palette, Image, Moon, Sun, MoreHorizontal, Pin, Trash2 } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -25,7 +25,7 @@ import { NavLink } from "react-router-dom";
 import { SearchChatsModal } from "@/components/SearchChatsModal";
 
 const legislationItems = [
-  { title: "Bills", url: "/bills", icon: FileText, requiresAuth: true },
+  { title: "Bills", url: "/bills", icon: ScrollText, requiresAuth: true },
   { title: "Committees", url: "/committees", icon: Building2, requiresAuth: true },
   { title: "Members", url: "/members", icon: Users },
   { title: "Dashboard", url: "/dashboard", icon: TrendingUp },

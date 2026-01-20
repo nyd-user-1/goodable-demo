@@ -291,11 +291,11 @@ function ChatCard({ session, onClick, onDeleteClick }: ChatCardProps) {
       onClick={onClick}
       className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
     >
-      <div className="flex items-start gap-3 mb-3">
-        <TypeIcon className={`h-5 w-5 mt-0.5 ${typeInfo.color}`} />
-        <h3 className="font-semibold text-base flex-1 line-clamp-2">
+      <div className="flex items-start justify-between mb-3">
+        <h3 className="font-semibold text-base flex-1 line-clamp-2 pr-2">
           {session.title}
         </h3>
+        <TypeIcon className={`h-5 w-5 mt-0.5 flex-shrink-0 ${typeInfo.color}`} />
       </div>
       <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
         {getPreview()}
