@@ -104,34 +104,12 @@ const SchoolFundingPage = () => {
 
     try {
       // Fetch detailed aid category breakdown from raw school_funding table
-      // Note: Trying multiple possible column names since table schema varies
-      let aidCategories: SchoolFunding[] | null = null;
-      let error: Error | null = null;
-
-      // First try with 'Event' column (original schema)
-      const result1 = await supabase
+      // Table columns: enacted_budget, District, aid_category, base_year, school_year, Change, percent_change
+      const { data: rawCategories, error } = await supabase
         .from('school_funding')
         .select('*')
         .eq('District', record.district)
-        .eq('Event', record.enacted_budget)
-        .order('Change', { ascending: false });
-
-      if (result1.data && result1.data.length > 0) {
-        aidCategories = result1.data as SchoolFunding[];
-      } else {
-        // Try with 'enacted_budget' column (alternate schema)
-        const result2 = await supabase
-          .from('school_funding')
-          .select('*')
-          .eq('District', record.district)
-          .eq('enacted_budget', record.enacted_budget);
-
-        if (result2.data && result2.data.length > 0) {
-          aidCategories = result2.data as SchoolFunding[];
-        } else if (result2.error) {
-          error = result2.error;
-        }
-      }
+        .eq('enacted_budget', record.enacted_budget);
 
       if (error) {
         console.error('Error fetching aid category details:', error);
@@ -140,8 +118,23 @@ const SchoolFundingPage = () => {
       console.log('School funding query result:', {
         district: record.district,
         budgetYear: record.enacted_budget,
-        categoriesFound: aidCategories?.length || 0
+        categoriesFound: rawCategories?.length || 0,
+        sampleRow: rawCategories?.[0]
       });
+
+      // Map the raw database columns to our expected format
+      const aidCategories: SchoolFunding[] | null = rawCategories ? rawCategories.map((row: Record<string, unknown>) => ({
+        id: row.id as number,
+        "Event": row.enacted_budget as string || null,
+        "BEDS Code": null,
+        "County": row.County as string || null,
+        "District": row.District as string || null,
+        "Aid Category": row.aid_category as string || null,
+        "Base Year": row.base_year as string || null,
+        "School Year": row.school_year as string || null,
+        "Change": row.Change as string || null,
+        "% Change": row.percent_change as string || null,
+      })) : null;
 
       const prompt = generatePrompt(record, (aidCategories as SchoolFunding[]) || []);
 
