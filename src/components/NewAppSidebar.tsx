@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, createContext, useContext } from "react";
 import { NavLink, useLocation, useParams } from "react-router-dom";
-import { MessageSquare, MessagesSquare, ScrollText, Users, Building2, TrendingUp, Heart, Target, Gamepad2, Factory, Home, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, ChevronRight, PanelLeftClose, PanelLeft, MoreHorizontal, Pin, Trash2, PenSquare, TextQuote, Pencil, Wallet, GraduationCap } from "lucide-react";
+import { MessageSquare, MessagesSquare, ScrollText, Users, Landmark, TrendingUp, Heart, Target, Gamepad2, Factory, Home, User, CreditCard, Clock, Shield, Palette, Image as ImageIcon, ChevronRight, PanelLeftClose, PanelLeft, MoreHorizontal, Pin, Trash2, PenSquare, TextQuote, Pencil, Wallet, GraduationCap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -432,7 +432,7 @@ export function NewAppSidebar() {
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={isActive("/committees")}>
                       <NavLink to="/committees">
-                        <Building2 className="h-4 w-4" />
+                        <Landmark className="h-4 w-4" />
                         <span>Committees</span>
                       </NavLink>
                     </SidebarMenuButton>
