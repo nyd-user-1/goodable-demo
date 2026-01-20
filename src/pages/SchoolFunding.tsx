@@ -104,16 +104,44 @@ const SchoolFundingPage = () => {
 
     try {
       // Fetch detailed aid category breakdown from raw school_funding table
-      const { data: aidCategories, error } = await supabase
+      // Note: Trying multiple possible column names since table schema varies
+      let aidCategories: SchoolFunding[] | null = null;
+      let error: Error | null = null;
+
+      // First try with 'Event' column (original schema)
+      const result1 = await supabase
         .from('school_funding')
         .select('*')
         .eq('District', record.district)
         .eq('Event', record.enacted_budget)
         .order('Change', { ascending: false });
 
+      if (result1.data && result1.data.length > 0) {
+        aidCategories = result1.data as SchoolFunding[];
+      } else {
+        // Try with 'enacted_budget' column (alternate schema)
+        const result2 = await supabase
+          .from('school_funding')
+          .select('*')
+          .eq('District', record.district)
+          .eq('enacted_budget', record.enacted_budget);
+
+        if (result2.data && result2.data.length > 0) {
+          aidCategories = result2.data as SchoolFunding[];
+        } else if (result2.error) {
+          error = result2.error;
+        }
+      }
+
       if (error) {
         console.error('Error fetching aid category details:', error);
       }
+
+      console.log('School funding query result:', {
+        district: record.district,
+        budgetYear: record.enacted_budget,
+        categoriesFound: aidCategories?.length || 0
+      });
 
       const prompt = generatePrompt(record, (aidCategories as SchoolFunding[]) || []);
 

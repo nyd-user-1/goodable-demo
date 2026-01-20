@@ -746,8 +746,13 @@ const NewChat = () => {
     let schoolFundingData: SchoolFundingDetails | undefined;
     try {
       const storedData = sessionStorage.getItem('schoolFundingDetails');
+      console.log('Reading schoolFundingDetails from sessionStorage:', storedData ? 'found' : 'not found');
       if (storedData) {
         schoolFundingData = JSON.parse(storedData);
+        console.log('Parsed school funding data:', {
+          district: schoolFundingData?.district,
+          categories: schoolFundingData?.categories?.length
+        });
         // Clear it after reading so it's only used once
         sessionStorage.removeItem('schoolFundingDetails');
       }
