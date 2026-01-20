@@ -23,23 +23,23 @@ import { formatCurrency, formatContractDate } from "@/hooks/useContractsSearch";
 
 const ContractDetail = () => {
   const navigate = useNavigate();
-  const { contractId } = useParams<{ contractId: string }>();
+  const { contractNumber } = useParams<{ contractNumber: string }>();
   const [contractChats, setContractChats] = useState<Array<{ id: string; title: string; created_at: string }>>([]);
 
-  // Fetch contract data
+  // Fetch contract data by contract_number
   const { data: contract, isLoading, error } = useQuery({
-    queryKey: ['contract', contractId],
+    queryKey: ['contract', contractNumber],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('Contracts')
         .select('*')
-        .eq('id', contractId)
+        .eq('contract_number', contractNumber)
         .single();
 
       if (error) throw error;
       return data as Contract;
     },
-    enabled: !!contractId,
+    enabled: !!contractNumber,
   });
 
   // Fetch contract-related chats (by title pattern matching)
@@ -50,12 +50,12 @@ const ContractDetail = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        // Search for chats that mention this contract's vendor name
+        // Search for chats that mention this contract's vendor name or contract number
         const { data, error } = await supabase
           .from("chat_sessions")
           .select("id, title, created_at")
           .eq("user_id", user.id)
-          .ilike("title", `%${contract.vendor_name || ''}%`)
+          .or(`title.ilike.%${contract.vendor_name || ''}%,title.ilike.%contract%`)
           .order("created_at", { ascending: false });
 
         if (!error && data) {
@@ -182,17 +182,125 @@ const ContractDetail = () => {
         {/* Contract Header Card */}
         <Card className="overflow-hidden">
           <CardContent className="p-6">
-            <ContractInformation contract={contract} />
+            <div className="space-y-6 relative">
+              {/* Header with Icon */}
+              <div className="pb-4 border-b">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Wallet className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                      {contract.vendor_name || 'Unknown Vendor'}
+                    </h1>
+                    {contract.department_facility && (
+                      <p className="text-sm text-muted-foreground">
+                        {contract.department_facility}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Summary Stats Grid - matching School Funding style */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <div className="text-xs text-muted-foreground mb-1">Contract #</div>
+                  <div className="font-semibold">{contract.contract_number || 'N/A'}</div>
+                </div>
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <div className="text-xs text-muted-foreground mb-1">Contract Amount</div>
+                  <div className="font-semibold text-green-600 dark:text-green-400">
+                    {contract.current_contract_amount ? formatCurrency(contract.current_contract_amount) : 'N/A'}
+                  </div>
+                </div>
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <div className="text-xs text-muted-foreground mb-1">Type</div>
+                  <div className="font-semibold text-sm">{contract.contract_type || 'N/A'}</div>
+                </div>
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <div className="text-xs text-muted-foreground mb-1">Spent to Date</div>
+                  <div className="font-semibold">{contract.spending_to_date || '0.00'}</div>
+                </div>
+              </div>
+
+              {/* Description if available */}
+              {contract.contract_description && (
+                <div className="text-muted-foreground text-sm leading-relaxed">
+                  {contract.contract_description}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Left Column */}
+                <div className="space-y-6">
+                  {/* Start Date */}
+                  {contract.contract_start_date && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-foreground font-medium">
+                        <Calendar className="h-4 w-4" />
+                        <span>Start Date</span>
+                      </div>
+                      <div className="text-muted-foreground ml-6">
+                        {formatContractDate(contract.contract_start_date)}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Approval Date */}
+                  {contract.original_contract_approved_file_date && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-foreground font-medium">
+                        <Calendar className="h-4 w-4" />
+                        <span>Approved</span>
+                      </div>
+                      <div className="text-muted-foreground ml-6">
+                        {formatContractDate(contract.original_contract_approved_file_date)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-6">
+                  {/* End Date */}
+                  {contract.contract_end_date && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-foreground font-medium">
+                        <Calendar className="h-4 w-4" />
+                        <span>End Date</span>
+                      </div>
+                      <div className="text-muted-foreground ml-6">
+                        {formatContractDate(contract.contract_end_date)}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Department */}
+                  {contract.department_facility && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-foreground font-medium">
+                        <Building2 className="h-4 w-4" />
+                        <span>Department</span>
+                      </div>
+                      <div className="text-muted-foreground ml-6">
+                        {contract.department_facility}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Contract Chats Section */}
+        {/* Related Chats Section */}
         <Card className="bg-card rounded-xl shadow-sm border">
           <CardHeader className="px-6 py-4 border-b">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <CardTitle className="text-lg font-semibold">
-                  Contract Chats
+                  Related Chats
                 </CardTitle>
                 {contractChats.length > 0 && (
                   <Badge variant="secondary" className="text-xs">
@@ -253,147 +361,5 @@ const ContractDetail = () => {
     </div>
   );
 };
-
-// Contract Information Component
-interface ContractInformationProps {
-  contract: Contract;
-}
-
-function ContractInformation({ contract }: ContractInformationProps) {
-  return (
-    <div className="space-y-6 relative">
-      {/* Contract Header with Icon */}
-      <div className="pb-4 border-b">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Wallet className="w-6 h-6 text-primary" />
-          </div>
-          <h1 className="text-2xl font-semibold text-foreground">
-            {contract.vendor_name || 'Unknown Vendor'}
-          </h1>
-        </div>
-      </div>
-
-      {/* Description if available */}
-      {contract.contract_description && (
-        <div className="text-muted-foreground text-sm leading-relaxed">
-          {contract.contract_description}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Left Column */}
-        <div className="space-y-6">
-          {/* Contract Number */}
-          {contract.contract_number && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-foreground font-medium">
-                <Hash className="h-4 w-4" />
-                <span>Contract Number</span>
-              </div>
-              <div className="text-muted-foreground ml-6">
-                {contract.contract_number}
-              </div>
-            </div>
-          )}
-
-          {/* Department */}
-          {contract.department_facility && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-foreground font-medium">
-                <Building2 className="h-4 w-4" />
-                <span>Department</span>
-              </div>
-              <div className="text-muted-foreground ml-6">
-                {contract.department_facility}
-              </div>
-            </div>
-          )}
-
-          {/* Contract Type */}
-          {contract.contract_type && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-foreground font-medium">
-                <FileText className="h-4 w-4" />
-                <span>Contract Type</span>
-              </div>
-              <div className="text-muted-foreground ml-6">
-                {contract.contract_type}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Right Column */}
-        <div className="space-y-6">
-          {/* Contract Amount */}
-          {contract.current_contract_amount && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-foreground font-medium">
-                <DollarSign className="h-4 w-4" />
-                <span>Contract Amount</span>
-              </div>
-              <div className="text-muted-foreground ml-6">
-                {formatCurrency(contract.current_contract_amount)}
-              </div>
-            </div>
-          )}
-
-          {/* Spending to Date */}
-          {contract.spending_to_date && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-foreground font-medium">
-                <DollarSign className="h-4 w-4" />
-                <span>Spending to Date</span>
-              </div>
-              <div className="text-muted-foreground ml-6">
-                {contract.spending_to_date}
-              </div>
-            </div>
-          )}
-
-          {/* Contract Start Date */}
-          {contract.contract_start_date && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-foreground font-medium">
-                <Calendar className="h-4 w-4" />
-                <span>Start Date</span>
-              </div>
-              <div className="text-muted-foreground ml-6">
-                {formatContractDate(contract.contract_start_date)}
-              </div>
-            </div>
-          )}
-
-          {/* Contract End Date */}
-          {contract.contract_end_date && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-foreground font-medium">
-                <Calendar className="h-4 w-4" />
-                <span>End Date</span>
-              </div>
-              <div className="text-muted-foreground ml-6">
-                {formatContractDate(contract.contract_end_date)}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Approval Date */}
-      {contract.original_contract_approved_file_date && (
-        <div className="space-y-2 pt-4 border-t">
-          <div className="flex items-center gap-2 text-foreground font-medium">
-            <Calendar className="h-4 w-4" />
-            <span>Original Approval Date</span>
-          </div>
-          <div className="text-muted-foreground ml-6">
-            {formatContractDate(contract.original_contract_approved_file_date)}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default ContractDetail;

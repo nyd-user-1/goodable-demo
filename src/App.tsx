@@ -106,7 +106,7 @@ const AppLayout = () => {
               <Route path="/bills" element={<Bills2 />} />
               <Route path="/bills/:billNumber" element={<Bills />} />
               <Route path="/contracts" element={<Contracts />} />
-              <Route path="/contracts/:contractId" element={<ContractDetail />} />
+              <Route path="/contracts/:contractNumber" element={<ContractDetail />} />
               <Route path="/school-funding" element={<SchoolFunding />} />
               <Route path="/school-funding/:fundingId" element={<SchoolFundingDetail />} />
               <Route path="/committees" element={<Committees2 />} />

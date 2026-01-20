@@ -48,7 +48,9 @@ const Contracts = () => {
   }, []);
 
   const handleContractClick = (contract: Contract) => {
-    navigate(`/contracts/${contract.id}`);
+    if (contract.contract_number) {
+      navigate(`/contracts/${encodeURIComponent(contract.contract_number)}`);
+    }
   };
 
   const clearFilters = () => {
