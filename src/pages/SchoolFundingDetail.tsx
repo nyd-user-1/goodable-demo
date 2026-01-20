@@ -50,6 +50,7 @@ const SchoolFundingDetail = () => {
   });
 
   // Fetch detailed breakdown by aid category from raw school_funding table
+  // Note: 'Event' column contains budget year text, 'School Year' contains dollar amounts
   const { data: categories } = useQuery({
     queryKey: ['school-funding-categories', funding?.district, funding?.enacted_budget],
     queryFn: async () => {
@@ -59,7 +60,7 @@ const SchoolFundingDetail = () => {
         .from('school_funding')
         .select('*')
         .eq('District', funding.district)
-        .ilike('School Year', `%${funding.enacted_budget}%`);
+        .ilike('Event', `%${funding.enacted_budget}%`);
 
       if (error) throw error;
       return data as SchoolFunding[];
@@ -108,8 +109,6 @@ const SchoolFundingDetail = () => {
     if (!funding) return;
 
     // Store school funding details in sessionStorage for the chat to display
-    // Note: Raw school_funding table has Change and % Change, but not separate base/school year amounts per category
-    // We calculate approximate base/school year amounts from the change and percent change
     const schoolFundingDetails = {
       district: funding.district,
       county: funding.county,
@@ -119,21 +118,17 @@ const SchoolFundingDetail = () => {
       totalChange: funding.total_change,
       percentChange: funding.percent_change,
       categories: (categories || []).map(cat => {
-        const change = parseFloat(cat.Change || '0');
+        // Parse dollar amounts from Base Year and School Year columns
+        const baseYearStr = cat['Base Year'] || '0';
+        const schoolYearStr = cat['School Year'] || '0';
+        const baseYear = parseFloat(baseYearStr.replace(/[$,]/g, '')) || 0;
+        const schoolYear = parseFloat(schoolYearStr.replace(/[$,]/g, '')) || 0;
         const pctChange = parseFloat(cat['% Change'] || '0');
-        // Calculate base year from change and percent: baseYear = change / (pctChange/100)
-        // schoolYear = baseYear + change
-        let baseYear = 0;
-        let schoolYear = 0;
-        if (pctChange !== 0) {
-          baseYear = Math.abs(change / (pctChange / 100));
-          schoolYear = baseYear + change;
-        }
         return {
           name: cat['Aid Category'] || 'Unknown',
           baseYear: Math.round(baseYear).toLocaleString(),
           schoolYear: Math.round(schoolYear).toLocaleString(),
-          change: formatCurrency(change),
+          change: formatCurrency(schoolYear - baseYear),
           percentChange: `${pctChange >= 0 ? '+' : ''}${pctChange.toFixed(2)}%`,
         };
       }),
