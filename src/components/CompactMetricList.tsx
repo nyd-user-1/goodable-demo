@@ -47,41 +47,89 @@ const statusOptions = [
 
 const BILLS_PER_PAGE = 10;
 
+// LegiScan RSS feed URL for NY legislation
+const RSS_FEED_URL = 'https://legiscan.com/gaits/feed/17608aebc160d8aa0e1d7df491f4fc08.rss';
+
 export default function CompactMetricList() {
   const [chamber, setChamber] = useState("both");
   const [status, setStatus] = useState("any");
   const [page, setPage] = useState(1);
-  const [bills, setBills] = useState<Record<string, LegislativeBill[]>>({});
-  const [loading, setLoading] = useState<Record<string, boolean>>({});
+  const [allBills, setAllBills] = useState<LegislativeBill[]>([]);
+  const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string>('');
   const [pdfSheetOpen, setPdfSheetOpen] = useState(false);
   const [selectedBill, setSelectedBill] = useState<LegislativeBill | null>(null);
 
-  // Build cache key from filters and page
-  const getCacheKey = (chamberVal: string, statusVal: string, pageNum: number) => `${chamberVal}-${statusVal}-${pageNum}`;
+  // Parse RSS feed XML to extract bill data
+  const parseRSSFeed = (xmlText: string): LegislativeBill[] => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlText, 'text/xml');
+    const items = doc.querySelectorAll('item');
+    const parsedBills: LegislativeBill[] = [];
 
-  // Build LegiScan URL from filters and page
-  const buildUrl = (chamberVal: string, statusVal: string, pageNum: number): string => {
-    const baseUrl = 'https://legiscan.com/NY/legislation';
-    const params = new URLSearchParams();
+    items.forEach((item, index) => {
+      const title = item.querySelector('title')?.textContent || '';
+      const link = item.querySelector('link')?.textContent || '';
+      const description = item.querySelector('description')?.textContent || '';
+      const pubDate = item.querySelector('pubDate')?.textContent || '';
 
-    if (statusVal !== 'any') {
-      params.append('status', statusVal);
-    }
+      // Parse bill number from title (e.g., "NY S08952 - Prohibits a seller...")
+      const billMatch = title.match(/^NY\s+([A-Z]\d+)\s+-\s+(.*)$/);
+      if (!billMatch) return;
 
-    if (chamberVal !== 'both') {
-      params.append('chamber', chamberVal);
-    }
+      const billNumber = billMatch[1];
+      const billTitle = billMatch[2];
 
-    if (pageNum > 1) {
-      params.append('page', pageNum.toString());
-    }
+      // Parse description for status and action info
+      // Description typically contains: "Status: Intro | Last Action: 2026-01-21 To Senate..."
+      let billStatus = 'Intro 25%';
+      let lastAction = '';
+      let lastActionDate = '';
 
-    const queryString = params.toString();
-    return queryString ? `${baseUrl}?${queryString}` : baseUrl;
+      // Extract status from description
+      const statusMatch = description.match(/Status:\s*(\w+)/i);
+      if (statusMatch) {
+        const rawStatus = statusMatch[1].toLowerCase();
+        if (rawStatus === 'intro' || rawStatus === 'introduced') {
+          billStatus = 'Intro 25%';
+        } else if (rawStatus === 'engross' || rawStatus === 'engrossed') {
+          billStatus = 'Engross 50%';
+        } else if (rawStatus === 'enroll' || rawStatus === 'enrolled') {
+          billStatus = 'Enrolled';
+        } else if (rawStatus === 'pass' || rawStatus === 'passed') {
+          billStatus = 'Passed';
+        } else {
+          billStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
+        }
+      }
+
+      // Extract last action from description
+      const actionMatch = description.match(/Last Action:\s*(\d{4}-\d{2}-\d{2})\s*(.*?)(?:\||$)/i);
+      if (actionMatch) {
+        const [year, month, day] = actionMatch[1].split('-');
+        lastActionDate = `${month}-${day}-${year}`;
+        lastAction = actionMatch[2]?.trim() || 'Action taken';
+      } else if (pubDate) {
+        // Fallback to pubDate
+        const date = new Date(pubDate);
+        lastActionDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      parsedBills.push({
+        id: `${billNumber}-${index}`,
+        billNumber: billNumber.toUpperCase(),
+        title: billTitle.substring(0, 200),
+        status: billStatus,
+        lastAction: lastAction || 'To Committee',
+        lastActionDate,
+        link: link || `https://legiscan.com/NY/bill/${billNumber}`,
+      });
+    });
+
+    return parsedBills;
   };
 
-  // Parse HTML table to extract bill data
+  // Legacy HTML parser (kept as fallback)
   const parseHTMLPage = (htmlText: string): LegislativeBill[] => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlText, 'text/html');
@@ -163,60 +211,29 @@ export default function CompactMetricList() {
     return parsedBills.slice(0, BILLS_PER_PAGE);
   };
 
-  // Track if we've reached the end of results
-  const [endOfResults, setEndOfResults] = useState<Record<string, boolean>>({});
-
-  // Fetch data from LegiScan
-  const fetchData = useCallback(async (chamberVal: string, statusVal: string, pageNum: number, forceRefresh = false) => {
-    const cacheKey = getCacheKey(chamberVal, statusVal, pageNum);
-
-    // Check if already cached (use functional check to avoid stale closure)
-    const alreadyCached = await new Promise<boolean>(resolve => {
-      setBills(prev => {
-        resolve(!!prev[cacheKey] && !forceRefresh);
-        return prev;
-      });
-    });
-
-    if (alreadyCached) {
+  // Fetch data from RSS feed
+  const fetchRSSFeed = useCallback(async (forceRefresh = false) => {
+    // Don't refetch if we already have data (unless forced)
+    if (allBills.length > 0 && !forceRefresh) {
       return;
     }
 
-    // Show mock data immediately for instant feedback (only for page 1)
-    if (pageNum === 1) {
-      setBills(prev => {
-        if (!prev[cacheKey]) {
-          return { ...prev, [cacheKey]: getMockBills(chamberVal, statusVal) };
-        }
-        return prev;
-      });
-    }
-
-    setLoading(prev => ({ ...prev, [cacheKey]: true }));
+    setLoading(true);
 
     try {
-      const url = buildUrl(chamberVal, statusVal, pageNum);
       // Use a CORS proxy for client-side fetching
-      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(RSS_FEED_URL)}`;
       const response = await fetch(proxyUrl);
 
       if (!response.ok) {
-        throw new Error('Failed to fetch data');
+        throw new Error('Failed to fetch RSS feed');
       }
 
-      const htmlText = await response.text();
-      const parsedBills = parseHTMLPage(htmlText);
+      const xmlText = await response.text();
+      const parsedBills = parseRSSFeed(xmlText);
 
       if (parsedBills.length > 0) {
-        setBills(prev => ({ ...prev, [cacheKey]: parsedBills }));
-        setEndOfResults(prev => ({ ...prev, [cacheKey]: parsedBills.length < BILLS_PER_PAGE }));
-      } else {
-        // No results for this page - mark as end of results
-        setEndOfResults(prev => ({ ...prev, [cacheKey]: true }));
-        // If page > 1 and no results, auto-revert to page 1
-        if (pageNum > 1) {
-          setPage(1);
-        }
+        setAllBills(parsedBills);
       }
 
       setLastUpdated(new Date().toLocaleTimeString('en-US', {
@@ -225,101 +242,69 @@ export default function CompactMetricList() {
         timeZoneName: 'short'
       }));
     } catch (err) {
-      console.error(`Error fetching data for ${cacheKey}:`, err);
-      // On error for page > 1, revert to page 1
-      if (pageNum > 1) {
-        setPage(1);
+      console.error('Error fetching RSS feed:', err);
+      // Try fallback to HTML scraping if RSS fails
+      try {
+        const htmlUrl = 'https://legiscan.com/NY/legislation';
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(htmlUrl)}`;
+        const response = await fetch(proxyUrl);
+        if (response.ok) {
+          const htmlText = await response.text();
+          const parsedBills = parseHTMLPage(htmlText);
+          if (parsedBills.length > 0) {
+            setAllBills(parsedBills);
+            setLastUpdated(new Date().toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit',
+              timeZoneName: 'short'
+            }));
+          }
+        }
+      } catch (fallbackErr) {
+        console.error('Fallback HTML fetch also failed:', fallbackErr);
       }
     } finally {
-      setLoading(prev => ({ ...prev, [cacheKey]: false }));
+      setLoading(false);
     }
-  }, []);
+  }, [allBills.length]);
 
-  // Mock data fallback - context-aware based on filters (expanded to 10 bills)
-  const getMockBills = (chamberVal: string, statusVal: string): LegislativeBill[] => {
-    const senateBills: LegislativeBill[] = [
-      { id: 's1', billNumber: 'S04448', title: 'Authorizes the county of Clinton to employ retired former members of the division of state police as special patrol officers.', status: 'Engross 50%', lastAction: 'To Senate Civil Service Committee', lastActionDate: 'Jan 16, 2026', link: 'https://legiscan.com/NY/bill/S04448' },
-      { id: 's2', billNumber: 'S02505', title: 'Establishes a task force to conduct a comprehensive study on the presence of educator diversity in the state.', status: 'Engross 50%', lastAction: 'To Senate Education Committee', lastActionDate: 'Jan 16, 2026', link: 'https://legiscan.com/NY/bill/S02505' },
-      { id: 's3', billNumber: 'S00620', title: 'Relates to the practice of professional geology.', status: 'Engross 50%', lastAction: 'To Senate Higher Education Committee', lastActionDate: 'Jan 15, 2026', link: 'https://legiscan.com/NY/bill/S00620' },
-      { id: 's4', billNumber: 'S05553', title: 'Enacts the "rate hike notice act" which requires utilities to provide notice of a proposed rate hike.', status: 'Engross 50%', lastAction: 'To Senate Energy Committee', lastActionDate: 'Jan 15, 2026', link: 'https://legiscan.com/NY/bill/S05553' },
-      { id: 's5', billNumber: 'S08762', title: 'Allows the removal of criminal actions to a mental health court in an adjoining county.', status: 'Intro 25%', lastAction: 'To Senate Codes Committee', lastActionDate: 'Jan 14, 2026', link: 'https://legiscan.com/NY/bill/S08762' },
-      { id: 's6', billNumber: 'S08824', title: 'Clarifies standards for glass repair and calibration of advanced driver assistance systems.', status: 'Intro 25%', lastAction: 'To Senate Transportation Committee', lastActionDate: 'Jan 14, 2026', link: 'https://legiscan.com/NY/bill/S08824' },
-      { id: 's7', billNumber: 'S09123', title: 'Relates to the use of automated lending decision-making tools by banks.', status: 'Intro 25%', lastAction: 'To Senate Banks Committee', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/S09123' },
-      { id: 's8', billNumber: 'S07891', title: 'Establishes the New York state climate adaptation fund.', status: 'Intro 25%', lastAction: 'To Senate Environmental Conservation Committee', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/S07891' },
-      { id: 's9', billNumber: 'S06543', title: 'Relates to expanding access to affordable housing programs in urban areas.', status: 'Intro 25%', lastAction: 'To Senate Housing Committee', lastActionDate: 'Jan 12, 2026', link: 'https://legiscan.com/NY/bill/S06543' },
-      { id: 's10', billNumber: 'S05432', title: 'Amends the education law to require financial literacy instruction in high schools.', status: 'Intro 25%', lastAction: 'To Senate Education Committee', lastActionDate: 'Jan 12, 2026', link: 'https://legiscan.com/NY/bill/S05432' },
-    ];
+  // Filter bills based on chamber and status
+  const getFilteredBills = useCallback(() => {
+    let filtered = [...allBills];
 
-    const assemblyBills: LegislativeBill[] = [
-      { id: 'a1', billNumber: 'A08022', title: 'Requires an operator of a covered platform with at least one million users to provide a process for law enforcement agencies.', status: 'Intro 25%', lastAction: 'To Assembly Codes Committee', lastActionDate: 'Jan 16, 2026', link: 'https://legiscan.com/NY/bill/A08022' },
-      { id: 'a2', billNumber: 'A09316', title: 'Limits the circumstances under which the case of an adolescent offender may be removed to family court.', status: 'Intro 25%', lastAction: 'To Assembly Codes Committee', lastActionDate: 'Jan 15, 2026', link: 'https://legiscan.com/NY/bill/A09316' },
-      { id: 'a3', billNumber: 'A08235', title: 'Designates dog control officers of the village of Holley as peace officers.', status: 'Engross 50%', lastAction: 'To Assembly Codes Committee', lastActionDate: 'Jan 15, 2026', link: 'https://legiscan.com/NY/bill/A08235' },
-      { id: 'a4', billNumber: 'A07654', title: 'Relates to the regulation of short-term rental properties in residential zones.', status: 'Intro 25%', lastAction: 'To Assembly Housing Committee', lastActionDate: 'Jan 14, 2026', link: 'https://legiscan.com/NY/bill/A07654' },
-      { id: 'a5', billNumber: 'A06543', title: 'Establishes guidelines for the use of artificial intelligence in state agencies.', status: 'Intro 25%', lastAction: 'To Assembly Governmental Operations Committee', lastActionDate: 'Jan 14, 2026', link: 'https://legiscan.com/NY/bill/A06543' },
-      { id: 'a6', billNumber: 'A05432', title: 'Provides for the establishment of a statewide broadband infrastructure program.', status: 'Intro 25%', lastAction: 'To Assembly Energy Committee', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/A05432' },
-      { id: 'a7', billNumber: 'A04321', title: 'Amends the vehicle and traffic law relating to electric vehicle charging stations.', status: 'Intro 25%', lastAction: 'To Assembly Transportation Committee', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/A04321' },
-      { id: 'a8', billNumber: 'A03210', title: 'Relates to the establishment of community solar programs for low-income residents.', status: 'Intro 25%', lastAction: 'To Assembly Energy Committee', lastActionDate: 'Jan 12, 2026', link: 'https://legiscan.com/NY/bill/A03210' },
-      { id: 'a9', billNumber: 'A02109', title: 'Provides for enhanced penalties for wage theft violations by employers.', status: 'Intro 25%', lastAction: 'To Assembly Labor Committee', lastActionDate: 'Jan 12, 2026', link: 'https://legiscan.com/NY/bill/A02109' },
-      { id: 'a10', billNumber: 'A01098', title: 'Establishes a task force to study the impact of remote work on commercial real estate.', status: 'Intro 25%', lastAction: 'To Assembly Economic Development Committee', lastActionDate: 'Jan 11, 2026', link: 'https://legiscan.com/NY/bill/A01098' },
-    ];
-
-    const passedBills: LegislativeBill[] = [
-      { id: 'p1', billNumber: 'J01343', title: 'Memorializing Governor Kathy Hochul to proclaim May 10-16, 2026, as Police Week in the State of New York.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/J01343' },
-      { id: 'p2', billNumber: 'J01289', title: 'Commending Johnathan Rudat upon the occasion of his designation as recipient of a Liberty Medal.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/J01289' },
-      { id: 'p3', billNumber: 'J01291', title: 'Commending Danielle Johnson upon the occasion of her designation as recipient of a Liberty Medal.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/J01291' },
-      { id: 'p4', billNumber: 'J01304', title: 'Congratulating Ava Walia upon the occasion of being crowned the 2025 National All-American Miss Preteen.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/J01304' },
-      { id: 'p5', billNumber: 'J01292', title: 'Commending Brandon Orlikowski upon the occasion of his designation as recipient of a Liberty Medal.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/J01292' },
-      { id: 'p6', billNumber: 'J01337', title: 'Memorializing Governor Kathy Hochul to proclaim February 14, 2026, as Snowmobile Ride Day.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/J01337' },
-      { id: 'p7', billNumber: 'J01316', title: 'Congratulating the Burnt Hills-Ballston Lake Field Hockey Team upon capturing the 2025 Class B Championship.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/J01316' },
-      { id: 'p8', billNumber: 'J01261', title: 'Commending Salvatore J. Costanze posthumously upon his designation as recipient of a Liberty Medal.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/J01261' },
-      { id: 'p9', billNumber: 'J01245', title: 'Honoring the New York State Volunteer Firefighters Association on its 150th anniversary.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 12, 2026', link: 'https://legiscan.com/NY/bill/J01245' },
-      { id: 'p10', billNumber: 'J01198', title: 'Commending the City of Buffalo upon the occasion of its bicentennial celebration.', status: 'Pass', lastAction: 'ADOPTED', lastActionDate: 'Jan 12, 2026', link: 'https://legiscan.com/NY/bill/J01198' },
-    ];
-
-    const enrolledBills: LegislativeBill[] = [
-      { id: 'e1', billNumber: 'S07234', title: 'Establishes the New York state climate adaptation fund to provide financial assistance for climate resilience projects.', status: 'Enrolled', lastAction: 'Sent to Governor', lastActionDate: 'Jan 10, 2026', link: 'https://legiscan.com/NY/bill/S07234' },
-      { id: 'e2', billNumber: 'A05123', title: 'Relates to expanding access to affordable housing programs in urban areas.', status: 'Enrolled', lastAction: 'Sent to Governor', lastActionDate: 'Jan 9, 2026', link: 'https://legiscan.com/NY/bill/A05123' },
-    ];
-
-    const engrossedBills: LegislativeBill[] = [
-      { id: 'eg1', billNumber: 'S04448', title: 'Authorizes the county of Clinton to employ retired former members of the division of state police.', status: 'Engross 50%', lastAction: 'To Senate Civil Service Committee', lastActionDate: 'Jan 16, 2026', link: 'https://legiscan.com/NY/bill/S04448' },
-      { id: 'eg2', billNumber: 'S02505', title: 'Establishes a task force to conduct a comprehensive study on educator diversity.', status: 'Engross 50%', lastAction: 'To Senate Education Committee', lastActionDate: 'Jan 16, 2026', link: 'https://legiscan.com/NY/bill/S02505' },
-      { id: 'eg3', billNumber: 'S00620', title: 'Relates to the practice of professional geology.', status: 'Engross 50%', lastAction: 'To Senate Higher Education Committee', lastActionDate: 'Jan 15, 2026', link: 'https://legiscan.com/NY/bill/S00620' },
-      { id: 'eg4', billNumber: 'S05553', title: 'Enacts the "rate hike notice act" for utilities.', status: 'Engross 50%', lastAction: 'To Senate Energy Committee', lastActionDate: 'Jan 15, 2026', link: 'https://legiscan.com/NY/bill/S05553' },
-      { id: 'eg5', billNumber: 'A08235', title: 'Designates dog control officers of the village of Holley as peace officers.', status: 'Engross 50%', lastAction: 'To Assembly Codes Committee', lastActionDate: 'Jan 15, 2026', link: 'https://legiscan.com/NY/bill/A08235' },
-    ];
-
-    const introducedBills: LegislativeBill[] = [
-      { id: 'i1', billNumber: 'A08022', title: 'Requires an operator of a covered platform with at least one million users to provide a process for law enforcement.', status: 'Intro 25%', lastAction: 'To Assembly Codes Committee', lastActionDate: 'Jan 16, 2026', link: 'https://legiscan.com/NY/bill/A08022' },
-      { id: 'i2', billNumber: 'A09316', title: 'Limits the circumstances under which an adolescent offender may be removed to family court.', status: 'Intro 25%', lastAction: 'To Assembly Codes Committee', lastActionDate: 'Jan 15, 2026', link: 'https://legiscan.com/NY/bill/A09316' },
-      { id: 'i3', billNumber: 'S08762', title: 'Allows the removal of criminal actions to a mental health court in an adjoining county.', status: 'Intro 25%', lastAction: 'To Senate Codes Committee', lastActionDate: 'Jan 14, 2026', link: 'https://legiscan.com/NY/bill/S08762' },
-      { id: 'i4', billNumber: 'S08824', title: 'Clarifies standards for glass repair and calibration of advanced driver assistance systems.', status: 'Intro 25%', lastAction: 'To Senate Transportation Committee', lastActionDate: 'Jan 14, 2026', link: 'https://legiscan.com/NY/bill/S08824' },
-      { id: 'i5', billNumber: 'A07654', title: 'Relates to the regulation of short-term rental properties in residential zones.', status: 'Intro 25%', lastAction: 'To Assembly Housing Committee', lastActionDate: 'Jan 14, 2026', link: 'https://legiscan.com/NY/bill/A07654' },
-      { id: 'i6', billNumber: 'S09123', title: 'Relates to the use of automated lending decision-making tools by banks.', status: 'Intro 25%', lastAction: 'To Senate Banks Committee', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/S09123' },
-      { id: 'i7', billNumber: 'A06543', title: 'Establishes guidelines for the use of artificial intelligence in state agencies.', status: 'Intro 25%', lastAction: 'To Assembly Governmental Operations Committee', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/A06543' },
-      { id: 'i8', billNumber: 'S07891', title: 'Establishes the New York state climate adaptation fund.', status: 'Intro 25%', lastAction: 'To Senate Environmental Conservation Committee', lastActionDate: 'Jan 13, 2026', link: 'https://legiscan.com/NY/bill/S07891' },
-      { id: 'i9', billNumber: 'A05432', title: 'Provides for the establishment of a statewide broadband infrastructure program.', status: 'Intro 25%', lastAction: 'To Assembly Energy Committee', lastActionDate: 'Jan 12, 2026', link: 'https://legiscan.com/NY/bill/A05432' },
-      { id: 'i10', billNumber: 'A04321', title: 'Amends the vehicle and traffic law relating to electric vehicle charging stations.', status: 'Intro 25%', lastAction: 'To Assembly Transportation Committee', lastActionDate: 'Jan 12, 2026', link: 'https://legiscan.com/NY/bill/A04321' },
-    ];
-
-    // Filter based on status first
-    if (statusVal === 'passed') return passedBills;
-    if (statusVal === 'enrolled') return enrolledBills;
-    if (statusVal === 'engrossed') return engrossedBills;
-    if (statusVal === 'introduced') return introducedBills;
-
-    // Filter based on chamber
-    if (chamberVal === 'senate') return senateBills;
-    if (chamberVal === 'house') return assemblyBills;
-
-    // Both chambers, any status - interleave
-    const combined: LegislativeBill[] = [];
-    for (let i = 0; i < Math.max(senateBills.length, assemblyBills.length); i++) {
-      if (senateBills[i]) combined.push(senateBills[i]);
-      if (assemblyBills[i]) combined.push(assemblyBills[i]);
+    // Filter by chamber
+    if (chamber === 'senate') {
+      filtered = filtered.filter(bill => bill.billNumber.startsWith('S'));
+    } else if (chamber === 'house') {
+      filtered = filtered.filter(bill => bill.billNumber.startsWith('A') || bill.billNumber.startsWith('K'));
     }
-    return combined.slice(0, 10);
-  };
+
+    // Filter by status
+    if (status !== 'any') {
+      filtered = filtered.filter(bill => {
+        const billStatus = bill.status.toLowerCase();
+        if (status === 'introduced') {
+          return billStatus.includes('intro');
+        } else if (status === 'engrossed') {
+          return billStatus.includes('engross');
+        } else if (status === 'enrolled') {
+          return billStatus.includes('enroll');
+        } else if (status === 'passed') {
+          return billStatus.includes('pass');
+        }
+        return true;
+      });
+    }
+
+    return filtered;
+  }, [allBills, chamber, status]);
+
+  // Get paginated bills
+  const getPaginatedBills = useCallback(() => {
+    const filtered = getFilteredBills();
+    const startIndex = (page - 1) * BILLS_PER_PAGE;
+    return filtered.slice(startIndex, startIndex + BILLS_PER_PAGE);
+  }, [getFilteredBills, page]);
 
   // Reset page when filters change
   const handleChamberChange = (newChamber: string) => {
@@ -334,26 +319,22 @@ export default function CompactMetricList() {
 
   // Refresh current data
   const handleRefresh = () => {
-    fetchData(chamber, status, page, true);
+    fetchRSSFeed(true);
   };
 
-  // Fetch data when filters or page change
+  // Initial fetch on mount
   useEffect(() => {
-    fetchData(chamber, status, page);
-  }, [chamber, status, page, fetchData]);
-
-  // Initial fetch
-  useEffect(() => {
-    fetchData('both', 'any', 1);
+    fetchRSSFeed();
   }, []);
 
-  const cacheKey = getCacheKey(chamber, status, page);
-  const currentBills = bills[cacheKey] || [];
-  const isLoading = loading[cacheKey];
-  const isEndOfResults = endOfResults[cacheKey];
+  // Get current bills for display
+  const currentBills = getPaginatedBills();
+  const filteredBills = getFilteredBills();
+  const isLoading = loading;
 
-  // Check if there might be more pages (full page and not marked as end)
-  const hasMorePages = currentBills.length === BILLS_PER_PAGE && !isEndOfResults;
+  // Check if there are more pages
+  const totalPages = Math.ceil(filteredBills.length / BILLS_PER_PAGE);
+  const hasMorePages = page < totalPages;
 
   return (
     <section className="bg-background w-full py-12 md:py-24">
