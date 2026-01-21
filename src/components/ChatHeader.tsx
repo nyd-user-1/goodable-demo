@@ -125,13 +125,16 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
 
         {/* Center - Marketing Navigation (desktop only) */}
         <nav className="hidden md:flex items-center gap-1">
-          {/* About - dropdown */}
+          {/* About - dropdown with clickable trigger */}
           <div
             onMouseEnter={() => setAboutOpen(true)}
             onMouseLeave={() => setAboutOpen(false)}
           >
             <DropdownMenu open={aboutOpen} onOpenChange={setAboutOpen} modal={false}>
-              <DropdownMenuTrigger className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none">
+              <DropdownMenuTrigger
+                className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none"
+                onClick={() => navigate('/about')}
+              >
                 About
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" sideOffset={4} className="min-w-[180px]">
