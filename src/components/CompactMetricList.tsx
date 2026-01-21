@@ -109,9 +109,19 @@ export default function CompactMetricList() {
       // Clean up the title to remove any "NY XXXXX" prefix that might be duplicating the bill number
       // This handles cases where bill number was extracted from link but title still has the prefix
       billTitle = billTitle
-        .replace(/^NY\s+[A-Z]\d+\s*[-:]\s*/i, '')
-        .replace(/^[A-Z]\d+\s*[-:]\s*/i, '')
+        .replace(/^NY\s+[A-Z]\d+\s*[-:]?\s*/i, '')
+        .replace(/^[A-Z]\d+\s*[-:]?\s*/i, '')
         .trim();
+
+      // If title is now empty, use the description instead
+      if (!billTitle && description) {
+        billTitle = description.replace(/<[^>]*>/g, '').substring(0, 200).trim();
+      }
+
+      // If still empty, use a placeholder
+      if (!billTitle) {
+        billTitle = 'View bill details';
+      }
 
       // Parse description for status and action info
       let billStatus = 'Intro 25%';
