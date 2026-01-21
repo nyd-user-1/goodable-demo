@@ -118,7 +118,7 @@ const UseCasesCommittees = () => {
             <UseCasesTabs />
 
             <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-4">
-              Seasoned public policy experts shared issues from their own experience.
+              Prompts to clarify each committee’s focus and responsibilities.
             </p>
             <p className="text-muted-foreground">
               Tap a chat to get started.
