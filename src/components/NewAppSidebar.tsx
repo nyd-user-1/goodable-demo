@@ -407,56 +407,98 @@ export function NewAppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive("/bills")}>
-                      <NavLink to="/bills">
-                        <ScrollText className="h-4 w-4" />
-                        <span>Bills</span>
-                      </NavLink>
-                    </SidebarMenuButton>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild isActive={isActive("/bills")}>
+                          <NavLink to="/bills">
+                            <ScrollText className="h-4 w-4" />
+                            <span>Bills</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>Bills</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive("/committees")}>
-                      <NavLink to="/committees">
-                        <Landmark className="h-4 w-4" />
-                        <span>Committees</span>
-                      </NavLink>
-                    </SidebarMenuButton>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild isActive={isActive("/committees")}>
+                          <NavLink to="/committees">
+                            <Landmark className="h-4 w-4" />
+                            <span>Committees</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>Committees</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive("/members")}>
-                      <NavLink to="/members">
-                        <Users className="h-4 w-4" />
-                        <span>Members</span>
-                      </NavLink>
-                    </SidebarMenuButton>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild isActive={isActive("/members")}>
+                          <NavLink to="/members">
+                            <Users className="h-4 w-4" />
+                            <span>Members</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>Members</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </SidebarMenuItem>
 
                   {/* Separator */}
                   <div className="my-2 mx-2 border-t border-border/50" />
 
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive("/contracts")}>
-                      <NavLink to="/contracts">
-                        <Wallet className="h-4 w-4" />
-                        <span>Contracts</span>
-                      </NavLink>
-                    </SidebarMenuButton>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild isActive={isActive("/contracts")}>
+                          <NavLink to="/contracts">
+                            <Wallet className="h-4 w-4" />
+                            <span>Contracts</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>Contracts</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive("/school-funding")}>
-                      <NavLink to="/school-funding">
-                        <GraduationCap className="h-4 w-4" />
-                        <span>School Funding</span>
-                      </NavLink>
-                    </SidebarMenuButton>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild isActive={isActive("/school-funding")}>
+                          <NavLink to="/school-funding">
+                            <GraduationCap className="h-4 w-4" />
+                            <span>School Funding</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>School Funding</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive("/dashboard")}>
-                      <NavLink to="/dashboard">
-                        <TrendingUp className="h-4 w-4" />
-                        <span>Dashboard</span>
-                      </NavLink>
-                    </SidebarMenuButton>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild isActive={isActive("/dashboard")}>
+                          <NavLink to="/dashboard">
+                            <TrendingUp className="h-4 w-4" />
+                            <span>Dashboard</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>Dashboard</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
