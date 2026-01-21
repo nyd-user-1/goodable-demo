@@ -115,18 +115,41 @@ export default function CompactMetricList() {
 
       // If title is now empty, use the description instead
       if (!billTitle && description) {
-        billTitle = description.replace(/<[^>]*>/g, '').substring(0, 200).trim();
-      }
-
-      // If still empty, use a placeholder
-      if (!billTitle) {
-        billTitle = 'View bill details';
+        billTitle = description.replace(/<[^>]*>/g, '').trim();
       }
 
       // Parse description for status and action info
       let billStatus = 'Intro 25%';
       let lastAction = '';
       let lastActionDate = '';
+
+      // Extract "REFERRED TO XXXXX" action from the title/description
+      const referredMatch = billTitle.match(/\s*REFERRED TO\s+([A-Z\s,]+)/i);
+      if (referredMatch) {
+        // Format as "Referred to Housing" instead of "REFERRED TO HOUSING"
+        const committee = referredMatch[1].replace(/,\s*$/, '').trim();
+        lastAction = 'Referred to ' + committee.charAt(0).toUpperCase() + committee.slice(1).toLowerCase();
+      }
+
+      // Extract date from title (format: YYYY/MM/DD)
+      const dateMatch = billTitle.match(/\s*(\d{4})\/(\d{2})\/(\d{2})\s*/);
+      if (dateMatch) {
+        const [, year, month, day] = dateMatch;
+        lastActionDate = `${month}-${day}-${year}`;
+      }
+
+      // Clean up the title - remove date, "REFERRED TO XXXXX", and "introduced"
+      billTitle = billTitle
+        .replace(/\s*\d{4}\/\d{2}\/\d{2}\s*/g, ' ')  // Remove dates like 2026/01/21
+        .replace(/\s*REFERRED TO\s+[A-Z\s,]+/gi, '') // Remove "REFERRED TO HOUSING,"
+        .replace(/\s*introduced\s*$/i, '')           // Remove trailing "introduced"
+        .replace(/\s+/g, ' ')                        // Normalize whitespace
+        .trim();
+
+      // If still empty, use a placeholder
+      if (!billTitle) {
+        billTitle = 'View bill details';
+      }
 
       // Extract status from description or title
       const statusPatterns = [
@@ -151,25 +174,7 @@ export default function CompactMetricList() {
         }
       }
 
-      // Extract last action date
-      const datePatterns = [
-        /Last Action:\s*(\d{4}-\d{2}-\d{2})\s*(.*?)(?:\||$)/i,
-        /(\d{4}-\d{2}-\d{2})/,
-      ];
-
-      for (const pattern of datePatterns) {
-        const match = description.match(pattern);
-        if (match) {
-          const [year, month, day] = match[1].split('-');
-          lastActionDate = `${month}-${day}-${year}`;
-          if (match[2]) {
-            lastAction = match[2].trim();
-          }
-          break;
-        }
-      }
-
-      // Fallback to pubDate
+      // Fallback date to pubDate
       if (!lastActionDate && pubDate) {
         const date = new Date(pubDate);
         if (!isNaN(date.getTime())) {
@@ -177,14 +182,9 @@ export default function CompactMetricList() {
         }
       }
 
-      // Extract action from description if not found
+      // Fallback action
       if (!lastAction) {
-        const actionMatch = description.match(/To\s+(Senate|Assembly)\s+[\w\s]+Committee/i);
-        if (actionMatch) {
-          lastAction = actionMatch[0];
-        } else {
-          lastAction = 'To Committee';
-        }
+        lastAction = 'To Committee';
       }
 
       parsedBills.push({
