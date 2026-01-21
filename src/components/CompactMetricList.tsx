@@ -73,55 +73,110 @@ export default function CompactMetricList() {
       const description = item.querySelector('description')?.textContent || '';
       const pubDate = item.querySelector('pubDate')?.textContent || '';
 
-      // Parse bill number from title (e.g., "NY S08952 - Prohibits a seller...")
-      const billMatch = title.match(/^NY\s+([A-Z]\d+)\s+-\s+(.*)$/);
-      if (!billMatch) return;
+      // Try multiple patterns to extract bill number
+      // Pattern 1: "NY S08952 - Title..."
+      // Pattern 2: "S08952 - Title..."
+      // Pattern 3: Extract from link like "/NY/bill/S08952"
+      let billNumber = '';
+      let billTitle = title;
 
-      const billNumber = billMatch[1];
-      const billTitle = billMatch[2];
+      const patterns = [
+        /^NY\s+([A-Z]\d+)\s*[-:]\s*(.*)$/i,
+        /^([A-Z]\d+)\s*[-:]\s*(.*)$/i,
+        /^([SAKJ]\d+)\s*[-:]\s*(.*)$/i,
+      ];
+
+      for (const pattern of patterns) {
+        const match = title.match(pattern);
+        if (match) {
+          billNumber = match[1].toUpperCase();
+          billTitle = match[2] || title;
+          break;
+        }
+      }
+
+      // Try to extract from link if not found in title
+      if (!billNumber && link) {
+        const linkMatch = link.match(/\/bill\/([A-Z]\d+)/i);
+        if (linkMatch) {
+          billNumber = linkMatch[1].toUpperCase();
+        }
+      }
+
+      // Skip if we couldn't extract a bill number
+      if (!billNumber) return;
 
       // Parse description for status and action info
-      // Description typically contains: "Status: Intro | Last Action: 2026-01-21 To Senate..."
       let billStatus = 'Intro 25%';
       let lastAction = '';
       let lastActionDate = '';
 
-      // Extract status from description
-      const statusMatch = description.match(/Status:\s*(\w+)/i);
-      if (statusMatch) {
-        const rawStatus = statusMatch[1].toLowerCase();
-        if (rawStatus === 'intro' || rawStatus === 'introduced') {
-          billStatus = 'Intro 25%';
-        } else if (rawStatus === 'engross' || rawStatus === 'engrossed') {
-          billStatus = 'Engross 50%';
-        } else if (rawStatus === 'enroll' || rawStatus === 'enrolled') {
-          billStatus = 'Enrolled';
-        } else if (rawStatus === 'pass' || rawStatus === 'passed') {
-          billStatus = 'Passed';
-        } else {
-          billStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
+      // Extract status from description or title
+      const statusPatterns = [
+        /Status:\s*(\w+)/i,
+        /\b(Intro|Introduced|Engross|Engrossed|Enroll|Enrolled|Pass|Passed)\b/i,
+      ];
+
+      for (const pattern of statusPatterns) {
+        const match = (description + ' ' + title).match(pattern);
+        if (match) {
+          const rawStatus = match[1].toLowerCase();
+          if (rawStatus.startsWith('intro')) {
+            billStatus = 'Intro 25%';
+          } else if (rawStatus.startsWith('engross')) {
+            billStatus = 'Engross 50%';
+          } else if (rawStatus.startsWith('enroll')) {
+            billStatus = 'Enrolled';
+          } else if (rawStatus.startsWith('pass')) {
+            billStatus = 'Passed';
+          }
+          break;
         }
       }
 
-      // Extract last action from description
-      const actionMatch = description.match(/Last Action:\s*(\d{4}-\d{2}-\d{2})\s*(.*?)(?:\||$)/i);
-      if (actionMatch) {
-        const [year, month, day] = actionMatch[1].split('-');
-        lastActionDate = `${month}-${day}-${year}`;
-        lastAction = actionMatch[2]?.trim() || 'Action taken';
-      } else if (pubDate) {
-        // Fallback to pubDate
+      // Extract last action date
+      const datePatterns = [
+        /Last Action:\s*(\d{4}-\d{2}-\d{2})\s*(.*?)(?:\||$)/i,
+        /(\d{4}-\d{2}-\d{2})/,
+      ];
+
+      for (const pattern of datePatterns) {
+        const match = description.match(pattern);
+        if (match) {
+          const [year, month, day] = match[1].split('-');
+          lastActionDate = `${month}-${day}-${year}`;
+          if (match[2]) {
+            lastAction = match[2].trim();
+          }
+          break;
+        }
+      }
+
+      // Fallback to pubDate
+      if (!lastActionDate && pubDate) {
         const date = new Date(pubDate);
-        lastActionDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        if (!isNaN(date.getTime())) {
+          lastActionDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+      }
+
+      // Extract action from description if not found
+      if (!lastAction) {
+        const actionMatch = description.match(/To\s+(Senate|Assembly)\s+[\w\s]+Committee/i);
+        if (actionMatch) {
+          lastAction = actionMatch[0];
+        } else {
+          lastAction = 'To Committee';
+        }
       }
 
       parsedBills.push({
         id: `${billNumber}-${index}`,
-        billNumber: billNumber.toUpperCase(),
-        title: billTitle.substring(0, 200),
+        billNumber,
+        title: billTitle.substring(0, 200).trim(),
         status: billStatus,
-        lastAction: lastAction || 'To Committee',
-        lastActionDate,
+        lastAction,
+        lastActionDate: lastActionDate || 'Recent',
         link: link || `https://legiscan.com/NY/bill/${billNumber}`,
       });
     });
@@ -208,10 +263,22 @@ export default function CompactMetricList() {
       }
     });
 
-    return parsedBills.slice(0, BILLS_PER_PAGE);
+    return parsedBills.slice(0, 50); // Return more bills for client-side filtering
   };
 
-  // Fetch data from RSS feed
+  // Helper function to fetch HTML and parse it
+  const fetchHTMLFallback = async (): Promise<LegislativeBill[]> => {
+    const htmlUrl = 'https://legiscan.com/NY/legislation';
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(htmlUrl)}`;
+    const response = await fetch(proxyUrl);
+    if (response.ok) {
+      const htmlText = await response.text();
+      return parseHTMLPage(htmlText);
+    }
+    return [];
+  };
+
+  // Fetch data from RSS feed with HTML fallback
   const fetchRSSFeed = useCallback(async (forceRefresh = false) => {
     // Don't refetch if we already have data (unless forced)
     if (allBills.length > 0 && !forceRefresh) {
@@ -219,53 +286,43 @@ export default function CompactMetricList() {
     }
 
     setLoading(true);
+    let parsedBills: LegislativeBill[] = [];
 
+    // Try RSS feed first
     try {
-      // Use a CORS proxy for client-side fetching
       const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(RSS_FEED_URL)}`;
       const response = await fetch(proxyUrl);
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch RSS feed');
+      if (response.ok) {
+        const xmlText = await response.text();
+        parsedBills = parseRSSFeed(xmlText);
       }
-
-      const xmlText = await response.text();
-      const parsedBills = parseRSSFeed(xmlText);
-
-      if (parsedBills.length > 0) {
-        setAllBills(parsedBills);
-      }
-
-      setLastUpdated(new Date().toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZoneName: 'short'
-      }));
     } catch (err) {
       console.error('Error fetching RSS feed:', err);
-      // Try fallback to HTML scraping if RSS fails
-      try {
-        const htmlUrl = 'https://legiscan.com/NY/legislation';
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(htmlUrl)}`;
-        const response = await fetch(proxyUrl);
-        if (response.ok) {
-          const htmlText = await response.text();
-          const parsedBills = parseHTMLPage(htmlText);
-          if (parsedBills.length > 0) {
-            setAllBills(parsedBills);
-            setLastUpdated(new Date().toLocaleTimeString('en-US', {
-              hour: '2-digit',
-              minute: '2-digit',
-              timeZoneName: 'short'
-            }));
-          }
-        }
-      } catch (fallbackErr) {
-        console.error('Fallback HTML fetch also failed:', fallbackErr);
-      }
-    } finally {
-      setLoading(false);
     }
+
+    // If RSS returned no results, try HTML scraping
+    if (parsedBills.length === 0) {
+      console.log('RSS returned no results, trying HTML fallback...');
+      try {
+        parsedBills = await fetchHTMLFallback();
+      } catch (fallbackErr) {
+        console.error('HTML fallback also failed:', fallbackErr);
+      }
+    }
+
+    // Update state with whatever we got
+    if (parsedBills.length > 0) {
+      setAllBills(parsedBills);
+    }
+
+    setLastUpdated(new Date().toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    }));
+
+    setLoading(false);
   }, [allBills.length]);
 
   // Filter bills based on chamber and status
@@ -353,6 +410,11 @@ export default function CompactMetricList() {
           <p className="text-muted-foreground max-w-[700px] md:text-lg">
             Real-time bills from the New York State Senate and Assembly.
           </p>
+        </div>
+
+        {/* Last updated indicator */}
+        <div className="text-muted-foreground text-sm mb-4">
+          <span className="font-medium">Last updated:</span> {lastUpdated || 'Loading...'}
         </div>
 
         <Card className="border p-0 shadow-sm">
@@ -549,15 +611,11 @@ export default function CompactMetricList() {
           </CardContent>
         </Card>
 
-        <div className="mt-8 flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <div className="text-muted-foreground order-2 text-sm sm:order-1">
-            <span className="font-medium">Last updated:</span> {lastUpdated || 'Loading...'}
-          </div>
-
+        <div className="mt-8 flex justify-end">
           <Button
             variant="outline"
             size="sm"
-            className="group order-1 sm:order-2"
+            className="group"
             asChild
           >
             <Link to="/bills">
