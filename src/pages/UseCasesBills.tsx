@@ -118,7 +118,7 @@ const UseCasesBills = () => {
             <UseCasesTabs />
 
             <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-4">
-              Seasoned public policy experts shared issues from their own experience.
+              Prompts based on active Senate and Assembly legislation.
             </p>
             <p className="text-muted-foreground">
               Tap a chat to get started.
