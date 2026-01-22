@@ -73,11 +73,12 @@ export function useBillsSearch() {
         .select('committee')
         .not('committee', 'is', null);
 
-      // Get unique session years
+      // Get unique session years - order descending so newest sessions appear first
       const { data: sessionData } = await supabase
         .from('Bills')
         .select('session_id')
-        .not('session_id', 'is', null);
+        .not('session_id', 'is', null)
+        .order('session_id', { ascending: false });
 
       const statuses = [...new Set(statusData?.map(s => s.status_desc))].filter(Boolean).sort() as string[];
       const committees = [...new Set(committeeData?.map(c => c.committee))].filter(Boolean).sort() as string[];
