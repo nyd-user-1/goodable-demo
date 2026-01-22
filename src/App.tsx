@@ -77,6 +77,7 @@ import SchoolFundingDetail from "./pages/SchoolFundingDetail";
 import Committees2 from "./pages/Committees2";
 import Members2 from "./pages/Members2";
 import Bills2 from "./pages/Bills2";
+import BillDetail from "./components/BillDetail";
 import Chats2 from "./pages/Chats2";
 import Constitution from "./pages/Constitution";
 import DigitalBillOfRights from "./pages/DigitalBillOfRights";
@@ -105,7 +106,7 @@ const AppLayout = () => {
               <Route path="/policy-portal" element={<PolicyPortal />} />
               <Route path="/policy-lab" element={<PolicyLab />} />
               <Route path="/bills" element={<Bills2 />} />
-              <Route path="/bills/:billNumber" element={<Bills />} />
+              <Route path="/bills/:billNumber" element={<BillDetail />} />
               <Route path="/contracts" element={<Contracts />} />
               <Route path="/contracts/:contractNumber" element={<ContractDetail />} />
               <Route path="/school-funding" element={<SchoolFunding />} />
