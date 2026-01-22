@@ -4,6 +4,8 @@ import { BillDetail } from "@/components/BillDetail";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useBillsData } from "@/hooks/useBillsData";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 import { 
   BillsHeader, 
   BillsSearchFilters, 
@@ -64,21 +66,36 @@ const Bills = () => {
     const fetchBillByNumber = async () => {
       if (billNumber) {
         try {
-          const { data, error } = await supabase
+          // Try exact match first
+          let { data, error } = await supabase
             .from("Bills")
             .select("*")
             .ilike("bill_number", billNumber)
             .single();
 
+          // If not found, try without leading zeros (e.g., S00270 -> S270)
+          if (!data && !error?.message?.includes('multiple')) {
+            const strippedNumber = billNumber.replace(/^([A-Z]+)0+/, '$1');
+            if (strippedNumber !== billNumber) {
+              const result = await supabase
+                .from("Bills")
+                .select("*")
+                .ilike("bill_number", strippedNumber)
+                .single();
+              data = result.data;
+              error = result.error;
+            }
+          }
+
           if (data && !error) {
             setSelectedBill(data);
           } else {
             console.error("Bill not found:", billNumber);
-            // Optionally navigate back to /bills if bill not found
-            // navigate('/bills');
+            setSelectedBill(null);
           }
         } catch (error) {
           console.error("Error fetching bill:", error);
+          setSelectedBill(null);
         }
       } else {
         // If no billNumber in URL, clear selected bill
@@ -169,6 +186,18 @@ const Bills = () => {
     setDateRangeFilter("");
     fetchBills();
   };
+
+  // Show "Bill not found" when URL has billNumber but no bill was found
+  if (billNumber && !selectedBill && !loading) {
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <Button variant="ghost" onClick={() => navigate('/bills')} className="mb-4">
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Bills
+        </Button>
+        <p className="text-muted-foreground">Bill not found: {billNumber}</p>
+      </div>
+    );
+  }
 
   if (selectedBill) {
     return (
