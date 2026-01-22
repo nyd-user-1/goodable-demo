@@ -12,6 +12,7 @@ const features = [
     reverse: false,
     imagePosition: 'object-top',
     zoomImage: '/bill-tracking-zoom.png',
+    zoomSize: { width: 340, height: 214 },
   },
   {
     title: 'Citations',
@@ -22,6 +23,7 @@ const features = [
     reverse: true,
     imagePosition: 'object-bottom',
     zoomImage: '/citations-zoom.png',
+    zoomSize: { width: 380, height: 134 },
   },
   {
     title: 'Contracts',
@@ -156,11 +158,17 @@ const Features = () => {
                   </div>
                   {/* Zoom overlay image */}
                   {feature.zoomImage && (
-                    <div className="absolute -bottom-4 -right-4 w-[380px] h-[134px] rounded-xl border border-gray-200 shadow-lg overflow-hidden bg-white flex items-center justify-center">
+                    <div
+                      className="absolute -bottom-4 -right-4 rounded-xl border border-gray-200 shadow-lg overflow-hidden bg-white"
+                      style={{
+                        width: feature.zoomSize?.width || 380,
+                        height: feature.zoomSize?.height || 134
+                      }}
+                    >
                       <img
                         src={feature.zoomImage}
                         alt={`${feature.title} detail view`}
-                        className="object-contain w-full h-full"
+                        className="object-cover w-full h-full"
                       />
                     </div>
                   )}
