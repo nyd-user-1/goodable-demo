@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChatPersistence } from "@/hooks/useChatPersistence";
-import { Paperclip, ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, X } from "lucide-react";
+import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X } from "lucide-react";
+import { Contract } from "@/types/contracts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -197,6 +198,12 @@ const NewChat = () => {
   const [committeesSearch, setCommitteesSearch] = useState("");
   const [availableCommittees, setAvailableCommittees] = useState<any[]>([]);
   const [committeesLoading, setCommitteesLoading] = useState(false);
+
+  const [contractsDialogOpen, setContractsDialogOpen] = useState(false);
+  const [contractsSearch, setContractsSearch] = useState("");
+  const [availableContracts, setAvailableContracts] = useState<Contract[]>([]);
+  const [contractsLoading, setContractsLoading] = useState(false);
+  const [selectedContracts, setSelectedContracts] = useState<Contract[]>([]);
 
   // Check if user is at the bottom of scroll container
   const checkIfAtBottom = () => {
@@ -500,6 +507,32 @@ const NewChat = () => {
     }
   }, [committeesDialogOpen]);
 
+  // Fetch contracts for dialog
+  const fetchContractsForSelection = async () => {
+    setContractsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("Contracts")
+        .select("id, vendor_name, department_facility, contract_number, current_contract_amount, contract_description")
+        .order("vendor_name", { ascending: true })
+        .limit(100);
+
+      if (error) throw error;
+      setAvailableContracts(data || []);
+    } catch (error) {
+      console.error("Error fetching contracts:", error);
+    } finally {
+      setContractsLoading(false);
+    }
+  };
+
+  // Load contracts when dialog opens
+  useEffect(() => {
+    if (contractsDialogOpen && availableContracts.length === 0) {
+      fetchContractsForSelection();
+    }
+  }, [contractsDialogOpen]);
+
   // Note: Real streaming is now handled by the edge functions
   // The fake client-side streaming has been removed for better performance
 
@@ -648,7 +681,7 @@ const NewChat = () => {
     }
 
     // Auto-generate prompt if no text but items are selected
-    if (!userQuery && (selectedMembers.length > 0 || selectedBills.length > 0 || selectedCommittees.length > 0)) {
+    if (!userQuery && (selectedMembers.length > 0 || selectedBills.length > 0 || selectedCommittees.length > 0 || selectedContracts.length > 0)) {
       const promptParts: string[] = [];
 
       if (selectedMembers.length > 0) {
@@ -664,6 +697,11 @@ const NewChat = () => {
       if (selectedCommittees.length > 0) {
         const committeeNames = selectedCommittees.map(c => c.committee_name).join(", ");
         promptParts.push(`Tell me about the ${committeeNames} ${selectedCommittees.length === 1 ? 'committee' : 'committees'}, including focus areas and current bills`);
+      }
+
+      if (selectedContracts.length > 0) {
+        const vendorNames = selectedContracts.map(c => c.vendor_name || 'Unknown vendor').join(", ");
+        promptParts.push(`Tell me about ${selectedContracts.length === 1 ? 'contract with' : 'contracts with'} ${vendorNames}, including contract details, amounts, and department information`);
       }
 
       userQuery = promptParts.join(". Also, ");
@@ -1442,7 +1480,7 @@ const NewChat = () => {
               {/* Larger input box - Fintool/Claude style */}
               <div className="rounded-2xl bg-muted/50 border-0 p-3 shadow-lg">
                 {/* Selected Items Chips */}
-                {(selectedBills.length > 0 || selectedMembers.length > 0 || selectedCommittees.length > 0) && (
+                {(selectedBills.length > 0 || selectedMembers.length > 0 || selectedCommittees.length > 0 || selectedContracts.length > 0) && (
                   <div className="flex flex-wrap gap-2 mb-3">
                     {selectedBills.map((bill) => (
                       <div
@@ -1487,6 +1525,22 @@ const NewChat = () => {
                           type="button"
                           onClick={() => setSelectedCommittees(prev => prev.filter(c => c.committee_id !== committee.committee_id))}
                           className="hover:bg-orange-500/20 rounded-sm p-0.5"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                    {selectedContracts.map((contract) => (
+                      <div
+                        key={contract.id}
+                        className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-500/10 text-purple-700 dark:text-purple-400 rounded-md text-xs font-medium"
+                      >
+                        <Wallet className="h-3 w-3" />
+                        <span>{contract.vendor_name || 'Contract'}</span>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedContracts(prev => prev.filter(c => c.id !== contract.id))}
+                          className="hover:bg-purple-500/20 rounded-sm p-0.5"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -1539,33 +1593,8 @@ const NewChat = () => {
 
                 {/* Bottom Row with Buttons */}
                 <div className="flex items-center justify-between">
-                  {/* Left Side - Attachment + Filter Buttons */}
+                  {/* Left Side - Filter Buttons */}
                   <div className="flex gap-1">
-                    {/* Attachment Button */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          onClick={handleAttachClick}
-                          className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent transition-colors"
-                        >
-                          <Paperclip className="h-4 w-4" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        <p>Attach files</p>
-                      </TooltipContent>
-                    </Tooltip>
-                    {/* Hidden file input */}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      multiple
-                      className="hidden"
-                      onChange={handleFileSelect}
-                      accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.csv,.xlsx"
-                    />
-
                     <Dialog open={membersDialogOpen} onOpenChange={setMembersDialogOpen}>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -1898,6 +1927,121 @@ const NewChat = () => {
                         </div>
                       </DialogContent>
                     </Dialog>
+
+                    <Dialog open={contractsDialogOpen} onOpenChange={setContractsDialogOpen}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <DialogTrigger asChild>
+                            <button
+                              type="button"
+                              className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent transition-colors"
+                            >
+                              <Wallet className="h-4 w-4" />
+                            </button>
+                          </DialogTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p>Select Contracts</p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+                        <DialogHeader>
+                          <DialogTitle>Select Contracts</DialogTitle>
+                        </DialogHeader>
+
+                        {/* Search Input */}
+                        <div className="px-6 pb-4">
+                          <Input
+                            placeholder="Search contracts by vendor or description..."
+                            value={contractsSearch}
+                            onChange={(e) => setContractsSearch(e.target.value)}
+                            className="w-full"
+                          />
+                        </div>
+
+                        {/* Contracts Table */}
+                        <div className="flex-1 overflow-y-auto px-6 pb-6">
+                          {contractsLoading ? (
+                            <div className="flex items-center justify-center py-8 text-muted-foreground">
+                              Loading contracts...
+                            </div>
+                          ) : (
+                            <div className="border rounded-lg overflow-hidden">
+                              <table className="w-full text-sm">
+                                <thead className="bg-muted/50">
+                                  <tr>
+                                    <th className="text-left p-3 font-medium">Vendor</th>
+                                    <th className="text-left p-3 font-medium">Department</th>
+                                    <th className="text-left p-3 font-medium">Amount</th>
+                                    <th className="text-center p-3 font-medium w-20">Select</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {availableContracts
+                                    .filter(contract =>
+                                      contractsSearch === "" ||
+                                      (contract.vendor_name?.toLowerCase().includes(contractsSearch.toLowerCase())) ||
+                                      (contract.contract_description?.toLowerCase().includes(contractsSearch.toLowerCase()))
+                                    )
+                                    .map((contract) => {
+                                      const isSelected = selectedContracts.some(c => c.id === contract.id);
+                                      return (
+                                        <tr
+                                          key={contract.id}
+                                          onClick={() => {
+                                            if (isSelected) {
+                                              setSelectedContracts(prev => prev.filter(c => c.id !== contract.id));
+                                            } else {
+                                              setSelectedContracts(prev => [...prev, contract]);
+                                            }
+                                          }}
+                                          className={cn(
+                                            "border-t hover:bg-muted/30 transition-colors cursor-pointer",
+                                            isSelected && "bg-purple-500/5"
+                                          )}
+                                        >
+                                          <td className="p-3 font-medium">{contract.vendor_name || 'N/A'}</td>
+                                          <td className="p-3 text-muted-foreground max-w-xs truncate">{contract.department_facility || 'N/A'}</td>
+                                          <td className="p-3 text-muted-foreground">
+                                            {contract.current_contract_amount
+                                              ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(contract.current_contract_amount)
+                                              : 'N/A'}
+                                          </td>
+                                          <td className="p-3 text-center">
+                                            <input
+                                              type="checkbox"
+                                              checked={isSelected}
+                                              onChange={(e) => {
+                                                e.stopPropagation();
+                                                if (isSelected) {
+                                                  setSelectedContracts(prev => prev.filter(c => c.id !== contract.id));
+                                                } else {
+                                                  setSelectedContracts(prev => [...prev, contract]);
+                                                }
+                                              }}
+                                              className="w-4 h-4 rounded pointer-events-none"
+                                            />
+                                          </td>
+                                        </tr>
+                                      );
+                                    })}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Footer with selected count */}
+                        <div className="px-6 py-3 border-t flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">
+                            {selectedContracts.length} contract{selectedContracts.length !== 1 ? 's' : ''} selected
+                          </span>
+                          <Button onClick={() => setContractsDialogOpen(false)} size="sm">
+                            Done
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
 
                   {/* Right Side - Submit/Stop Button */}
@@ -1910,7 +2054,7 @@ const NewChat = () => {
                         ? "bg-destructive hover:bg-destructive/90"
                         : "bg-foreground hover:bg-foreground/90"
                     )}
-                    disabled={!isTyping && !query.trim() && selectedMembers.length === 0 && selectedBills.length === 0 && selectedCommittees.length === 0}
+                    disabled={!isTyping && !query.trim() && selectedMembers.length === 0 && selectedBills.length === 0 && selectedCommittees.length === 0 && selectedContracts.length === 0}
                     onClick={isTyping ? stopStream : undefined}
                   >
                     {isTyping ? (
