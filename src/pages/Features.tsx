@@ -76,8 +76,8 @@ const Features = () => {
       <ChatHeader />
 
       {/* Main Content */}
-      <main className="flex-1 pt-20">
-        <section className="container mx-auto space-y-24 px-4 py-24 md:px-6 2xl:max-w-[1400px]">
+      <main className="flex-1 pt-16">
+        <section className="container mx-auto space-y-24 px-4 py-12 md:px-6 2xl:max-w-[1400px]">
           <div className="space-y-4 text-center">
             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
               Platform Features
@@ -101,7 +101,7 @@ const Features = () => {
                   <div className="space-y-4">
                     <h3 className="text-2xl font-bold">{feature.title}</h3>
                     <p className="text-muted-foreground">{feature.description}</p>
-                    <Button>Learn more</Button>
+                    <Button variant="ghost" className="text-muted-foreground hover:text-foreground hover:bg-muted px-3 h-9">Learn more</Button>
                   </div>
                 </div>
                 <div className="relative aspect-video overflow-hidden rounded-xl">
