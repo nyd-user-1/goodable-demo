@@ -128,7 +128,7 @@ const Features = () => {
                     <Button variant="ghost" className="text-muted-foreground hover:text-foreground hover:bg-muted px-3 h-9">Learn more</Button>
                   </div>
                 </div>
-                <div className="relative aspect-video overflow-hidden rounded-xl">
+                <div className="relative aspect-video overflow-hidden rounded-2xl border border-gray-200 shadow-lg">
                   <img
                     src={feature.image}
                     alt={feature.imageAlt}
