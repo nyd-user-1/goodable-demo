@@ -156,11 +156,11 @@ const Features = () => {
                   </div>
                   {/* Zoom overlay image */}
                   {feature.zoomImage && (
-                    <div className="absolute -bottom-4 -right-4 w-[360px] h-[220px] rounded-xl border border-gray-200 shadow-lg overflow-hidden bg-white">
+                    <div className="absolute -bottom-4 -right-4 w-[360px] h-[220px] rounded-xl border border-gray-200 shadow-lg overflow-hidden bg-white flex items-center justify-center">
                       <img
                         src={feature.zoomImage}
                         alt={`${feature.title} detail view`}
-                        className="object-cover object-top w-full h-full"
+                        className="object-contain w-full h-full"
                       />
                     </div>
                   )}
