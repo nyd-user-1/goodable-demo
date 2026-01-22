@@ -10,6 +10,7 @@ const features = [
     image: '/bill-tracking.png',
     imageAlt: 'Bill tracking dashboard screenshot',
     reverse: false,
+    imagePosition: 'object-top',
   },
   {
     title: 'Citations',
@@ -18,6 +19,7 @@ const features = [
     image: '/citations.png',
     imageAlt: 'Citations interface screenshot',
     reverse: true,
+    imagePosition: 'object-bottom',
   },
   {
     title: 'Contracts',
@@ -26,6 +28,7 @@ const features = [
     image: '/contracts-1.png',
     imageAlt: 'Contracts database screenshot',
     reverse: false,
+    imagePosition: 'object-top',
   },
   {
     title: 'Excerpts',
@@ -34,6 +37,7 @@ const features = [
     image: '/excerpts.png',
     imageAlt: 'Excerpts feature screenshot',
     reverse: true,
+    imagePosition: 'object-top',
   },
   {
     title: 'Letter Generation',
@@ -59,6 +63,7 @@ const features = [
     image: '/multi-engine-chat.png',
     imageAlt: 'Multi-engine chat interface screenshot',
     reverse: false,
+    imagePosition: 'object-top',
   },
   {
     title: 'Bill Prompts',
