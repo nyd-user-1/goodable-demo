@@ -66,29 +66,33 @@ const Bills = () => {
     const fetchBillByNumber = async () => {
       if (billNumber) {
         try {
-          // Try exact match first
+          // Query by bill_number, order by session_id descending to get most recent session first
+          // This handles cases where the same bill_number exists in multiple sessions (e.g., S00270 in 2025 and 2026)
           let { data, error } = await supabase
             .from("Bills")
             .select("*")
             .ilike("bill_number", billNumber)
-            .single();
+            .order("session_id", { ascending: false })
+            .limit(1);
+
+          let bill = data?.[0] || null;
 
           // If not found, try without leading zeros (e.g., S00270 -> S270)
-          if (!data && !error?.message?.includes('multiple')) {
+          if (!bill) {
             const strippedNumber = billNumber.replace(/^([A-Z]+)0+/, '$1');
             if (strippedNumber !== billNumber) {
               const result = await supabase
                 .from("Bills")
                 .select("*")
                 .ilike("bill_number", strippedNumber)
-                .single();
-              data = result.data;
-              error = result.error;
+                .order("session_id", { ascending: false })
+                .limit(1);
+              bill = result.data?.[0] || null;
             }
           }
 
-          if (data && !error) {
-            setSelectedBill(data);
+          if (bill) {
+            setSelectedBill(bill);
           } else {
             console.error("Bill not found:", billNumber);
             setSelectedBill(null);
