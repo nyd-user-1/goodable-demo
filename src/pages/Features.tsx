@@ -85,6 +85,7 @@ const features = [
     imageAlt: 'Bill prompts interface showing legislative research topics',
     reverse: true,
     zoomImage: '/bill-prompts-zoom.png',
+    zoomSize: { width: 340, height: 191 },
   },
   {
     title: 'Committee Prompts',
@@ -94,6 +95,7 @@ const features = [
     imageAlt: 'Committee prompts interface showing committee research topics',
     reverse: false,
     zoomImage: '/committee-prompts-zoom.png',
+    zoomSize: { width: 340, height: 169 },
   },
   {
     title: 'Member Prompts',
@@ -103,6 +105,7 @@ const features = [
     imageAlt: 'Member prompts interface showing legislator research topics',
     reverse: true,
     zoomImage: '/member-prompts-zoom.png',
+    zoomSize: { width: 340, height: 170 },
   },
   {
     title: 'Policy Prompts',
@@ -112,6 +115,7 @@ const features = [
     imageAlt: 'Policy prompts interface showing policy development topics',
     reverse: false,
     zoomImage: '/policy-prompts-zoom.png',
+    zoomSize: { width: 340, height: 193 },
   },
 ];
 
