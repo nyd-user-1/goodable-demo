@@ -255,9 +255,14 @@ function BillCard({ bill, onClick, onChatClick }: BillCardProps) {
       onClick={onClick}
       className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
     >
-      <h3 className="font-semibold text-base mb-3">
-        {bill.bill_number || 'Unknown Bill'}
-      </h3>
+      <div className="flex items-start justify-between mb-3">
+        <h3 className="font-semibold text-base">
+          {bill.bill_number || 'Unknown Bill'}
+        </h3>
+        {bill.session_id && (
+          <span className="text-sm text-muted-foreground">{bill.session_id}</span>
+        )}
+      </div>
       <p className="text-sm text-muted-foreground leading-relaxed">
         {previewText}
       </p>
