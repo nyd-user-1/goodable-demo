@@ -62,20 +62,20 @@ const features = [
     title: 'Live Feed',
     description:
       'Stay current with real-time legislative activity. Our live feed provides instant updates on bill movements, votes, committee actions, and other legislative events as they happen. Customize your feed to focus on the issues, committees, or legislators you care about most.',
-    image: '/live-feed-6.png',
+    image: '/live-feed-table-2.png',
     imageAlt: 'Live feed screenshot',
     reverse: true,
-    zoomImage: '/live-feed-zoom.png',
+    zoomImage: '/live-feed-zoom-2.png',
   },
   {
     title: 'Multi-Engine Chat',
     description:
       'Get intelligent answers to your legislative questions. Our multi-engine chat system combines advanced AI models to provide accurate, comprehensive responses about bills, policies, and the legislative process. Ask questions in plain English and receive clear, well-sourced answers.',
-    image: '/multi-engine-chat.png',
+    image: '/multi-engine-chat-main-2.png',
     imageAlt: 'Multi-engine chat interface screenshot',
     reverse: false,
     imagePosition: 'object-top',
-    zoomImage: '/multi-engine-chat-zoom.png',
+    zoomImage: '/multi-engine-chat-zoom-2.png',
   },
   {
     title: 'Bill Prompts',
