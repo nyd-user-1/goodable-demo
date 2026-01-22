@@ -11,6 +11,7 @@ const features = [
     imageAlt: 'Bill tracking dashboard screenshot',
     reverse: false,
     imagePosition: 'object-top',
+    zoomImage: '/bill-tracking-zoom.png',
   },
   {
     title: 'Citations',
@@ -20,6 +21,7 @@ const features = [
     imageAlt: 'Citations interface screenshot',
     reverse: true,
     imagePosition: 'object-bottom',
+    zoomImage: '/citations-zoom.png',
   },
   {
     title: 'Contracts',
@@ -29,6 +31,7 @@ const features = [
     imageAlt: 'Contracts database screenshot',
     reverse: false,
     imagePosition: 'object-top',
+    zoomImage: '/contracts-zoom.png',
   },
   {
     title: 'Excerpts',
@@ -38,6 +41,7 @@ const features = [
     imageAlt: 'Excerpts feature screenshot',
     reverse: true,
     imagePosition: 'object-top',
+    zoomImage: '/excerpts-zoom.png',
   },
   {
     title: 'Letter Generation',
@@ -47,6 +51,7 @@ const features = [
     imageAlt: 'Letter generation interface screenshot',
     reverse: false,
     imagePosition: 'object-top',
+    zoomImage: '/letter-generation-zoom.png',
   },
   {
     title: 'Live Feed',
@@ -55,6 +60,7 @@ const features = [
     image: '/live-feed-6.png',
     imageAlt: 'Live feed screenshot',
     reverse: true,
+    zoomImage: '/live-feed-zoom.png',
   },
   {
     title: 'Multi-Engine Chat',
@@ -64,6 +70,7 @@ const features = [
     imageAlt: 'Multi-engine chat interface screenshot',
     reverse: false,
     imagePosition: 'object-top',
+    zoomImage: '/multi-engine-chat-zoom.png',
   },
   {
     title: 'Bill Prompts',
@@ -72,6 +79,7 @@ const features = [
     image: '/bill-prompts.png',
     imageAlt: 'Bill prompts interface showing legislative research topics',
     reverse: true,
+    zoomImage: '/bill-prompts-zoom.png',
   },
   {
     title: 'Committee Prompts',
@@ -80,6 +88,7 @@ const features = [
     image: '/committe-prompts.png',
     imageAlt: 'Committee prompts interface showing committee research topics',
     reverse: false,
+    zoomImage: '/committee-prompts-zoom.png',
   },
   {
     title: 'Member Prompts',
@@ -88,6 +97,7 @@ const features = [
     image: '/member-prompts.png',
     imageAlt: 'Member prompts interface showing legislator research topics',
     reverse: true,
+    zoomImage: '/member-prompts-zoom.png',
   },
   {
     title: 'Policy Prompts',
@@ -96,6 +106,7 @@ const features = [
     image: '/policy-prompts.png',
     imageAlt: 'Policy prompts interface showing policy development topics',
     reverse: false,
+    zoomImage: '/policy-prompts-zoom.png',
   },
 ];
 
@@ -134,12 +145,25 @@ const Features = () => {
                     <Button variant="ghost" className="text-muted-foreground hover:text-foreground hover:bg-muted px-3 h-9">Learn more</Button>
                   </div>
                 </div>
-                <div className="relative aspect-video overflow-hidden rounded-2xl border border-gray-200 shadow-lg">
-                  <img
-                    src={feature.image}
-                    alt={feature.imageAlt}
-                    className={`object-cover ${feature.imagePosition || 'object-center'} w-full h-full`}
-                  />
+                <div className="relative">
+                  {/* Main image container */}
+                  <div className="relative aspect-video overflow-hidden rounded-2xl border border-gray-200 shadow-lg">
+                    <img
+                      src={feature.image}
+                      alt={feature.imageAlt}
+                      className={`object-cover ${feature.imagePosition || 'object-center'} w-full h-full`}
+                    />
+                  </div>
+                  {/* Zoom overlay image */}
+                  {feature.zoomImage && (
+                    <div className="absolute -bottom-4 -right-4 w-[33%] aspect-[3/4] rounded-xl border border-gray-200 shadow-lg overflow-hidden bg-white">
+                      <img
+                        src={feature.zoomImage}
+                        alt={`${feature.title} detail view`}
+                        className="object-cover object-top w-full h-full"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
