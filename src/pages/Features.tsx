@@ -7,7 +7,7 @@ const features = [
     title: 'Bill Tracking',
     description:
       'Stay informed on the legislation that matters most to you. Our comprehensive bill tracking system monitors thousands of bills across the New York State Legislature, providing real-time status updates, committee assignments, and voting records. Set up personalized alerts to receive notifications when bills you care about move through the legislative process.',
-    image: 'https://placehold.co/1024x768/f8f9fa/6c757d?text=Bill+Tracking',
+    image: '/bill-tracking.png',
     imageAlt: 'Bill tracking dashboard screenshot',
     reverse: false,
   },
@@ -15,7 +15,7 @@ const features = [
     title: 'Citations',
     description:
       'Build credible arguments with properly sourced information. Our citation system automatically generates accurate references for bills, legislative actions, and official documents. Citations include direct links to official legislative documents, making it easy for others to verify your sources.',
-    image: 'https://placehold.co/1024x768/f8f9fa/6c757d?text=Citations',
+    image: '/citations.png',
     imageAlt: 'Citations interface screenshot',
     reverse: true,
   },
@@ -23,7 +23,7 @@ const features = [
     title: 'Contracts',
     description:
       'Access and analyze government contracts with unprecedented transparency. Our contracts database provides detailed information on public spending, vendor relationships, and procurement patterns. Understand how tax dollars are being allocated and hold government accountable for spending decisions.',
-    image: 'https://placehold.co/1024x768/f8f9fa/6c757d?text=Contracts',
+    image: '/contracts-1.png',
     imageAlt: 'Contracts database screenshot',
     reverse: false,
   },
@@ -31,7 +31,7 @@ const features = [
     title: 'Excerpts',
     description:
       'Save and organize the most important parts of your research. Our excerpts feature lets you highlight and store key passages from bills, analyses, and documents. Build a personal library of legislative insights that you can reference, share, and use in your advocacy work.',
-    image: 'https://placehold.co/1024x768/f8f9fa/6c757d?text=Excerpts',
+    image: '/excerpts.png',
     imageAlt: 'Excerpts feature screenshot',
     reverse: true,
   },
@@ -39,7 +39,7 @@ const features = [
     title: 'Letter Generation',
     description:
       'Make your voice heard with professionally crafted correspondence. Our AI-powered letter generation tools help you write effective communications to your elected representatives. Choose from multiple letter formats including formal correspondence, email templates, and public comment submissions.',
-    image: 'https://placehold.co/1024x768/f8f9fa/6c757d?text=Letter+Generation',
+    image: '/letter-generation.png',
     imageAlt: 'Letter generation interface screenshot',
     reverse: false,
   },
@@ -47,7 +47,7 @@ const features = [
     title: 'Live Feed',
     description:
       'Stay current with real-time legislative activity. Our live feed provides instant updates on bill movements, votes, committee actions, and other legislative events as they happen. Customize your feed to focus on the issues, committees, or legislators you care about most.',
-    image: 'https://placehold.co/1024x768/f8f9fa/6c757d?text=Live+Feed',
+    image: '/live-feed-6.png',
     imageAlt: 'Live feed screenshot',
     reverse: true,
   },
@@ -55,7 +55,7 @@ const features = [
     title: 'Multi-Engine Chat',
     description:
       'Get intelligent answers to your legislative questions. Our multi-engine chat system combines advanced AI models to provide accurate, comprehensive responses about bills, policies, and the legislative process. Ask questions in plain English and receive clear, well-sourced answers.',
-    image: 'https://placehold.co/1024x768/f8f9fa/6c757d?text=Multi-Engine+Chat',
+    image: '/multi-engine-chat.png',
     imageAlt: 'Multi-engine chat interface screenshot',
     reverse: false,
   },
