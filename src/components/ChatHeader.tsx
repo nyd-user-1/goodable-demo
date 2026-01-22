@@ -155,13 +155,16 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
             Academy
           </Link>
 
-          {/* Features - dropdown */}
+          {/* Features - dropdown with clickable trigger */}
           <div
             onMouseEnter={() => setFeaturesOpen(true)}
             onMouseLeave={() => setFeaturesOpen(false)}
           >
             <DropdownMenu open={featuresOpen} onOpenChange={setFeaturesOpen} modal={false}>
-              <DropdownMenuTrigger className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none">
+              <DropdownMenuTrigger
+                className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none"
+                onClick={() => navigate('/features')}
+              >
                 Features
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" sideOffset={4} className="min-w-[180px]">
