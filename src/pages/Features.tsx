@@ -60,12 +60,36 @@ const features = [
     reverse: false,
   },
   {
-    title: 'Prompt Library',
+    title: 'Bill Prompts',
     description:
-      'Accelerate your research with pre-built query templates. Our prompt library contains carefully crafted prompts for common legislative research tasks. Whether you\'re analyzing a bill\'s potential impact or researching a legislator\'s voting history, our prompt library gives you a head start.',
-    image: 'https://placehold.co/1024x768/f8f9fa/6c757d?text=Prompt+Library',
-    imageAlt: 'Prompt library screenshot',
+      'Jump-start your legislative research with ready-made prompts based on active Senate and Assembly legislation. Explore topics like AI consumer protection, school safety, transportation funding, childcare affordability, rental assistance, and dozens more. Each prompt is designed to help you quickly understand pending legislation and its potential impact.',
+    image: '/bill-prompts.png',
+    imageAlt: 'Bill prompts interface showing legislative research topics',
     reverse: true,
+  },
+  {
+    title: 'Committee Prompts',
+    description:
+      'Understand what each legislative committee does and what issues they\'re currently tackling. Our committee prompts help you explore the focus areas of committees like Labor, Children and Families, Consumer Protection, Education, Transportation, Mental Health, and many more. Get instant clarity on committee responsibilities and active legislation.',
+    image: '/committe-prompts.png',
+    imageAlt: 'Committee prompts interface showing committee research topics',
+    reverse: false,
+  },
+  {
+    title: 'Member Prompts',
+    description:
+      'Research legislators and their priorities with targeted prompts. Find your representative, discover which legislators champion specific causes like housing, environment, or small business, and explore leadership roles across the Assembly and Senate. Whether you\'re interested in regional representation or issue-based advocacy, these prompts help you understand who\'s who in Albany.',
+    image: '/member-prompts.png',
+    imageAlt: 'Member prompts interface showing legislator research topics',
+    reverse: true,
+  },
+  {
+    title: 'Policy Prompts',
+    description:
+      'Tap into the expertise of seasoned policy professionals with prompts designed for policy development. Analyze potential impacts, anticipate unintended consequences, assess fiscal implications, map stakeholders, and build coalition support. These prompts bring professional policy analysis frameworks to your fingertips.',
+    image: '/policy-prompts.png',
+    imageAlt: 'Policy prompts interface showing policy development topics',
+    reverse: false,
   },
 ];
 
