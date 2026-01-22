@@ -1536,14 +1536,14 @@ const NewChat = () => {
                     ))}
                     {selectedContracts.map((contract) => (
                       <div
-                        key={contract.id}
+                        key={contract.contract_number}
                         className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-500/10 text-purple-700 dark:text-purple-400 rounded-md text-xs font-medium"
                       >
                         <Wallet className="h-3 w-3" />
                         <span>{contract.vendor_name || 'Contract'}</span>
                         <button
                           type="button"
-                          onClick={() => setSelectedContracts(prev => prev.filter(c => c.id !== contract.id))}
+                          onClick={() => setSelectedContracts(prev => prev.filter(c => c.contract_number !== contract.contract_number))}
                           className="hover:bg-purple-500/20 rounded-sm p-0.5"
                         >
                           <X className="h-3 w-3" />
@@ -1988,13 +1988,13 @@ const NewChat = () => {
                                       (contract.contract_description?.toLowerCase().includes(contractsSearch.toLowerCase()))
                                     )
                                     .map((contract) => {
-                                      const isSelected = selectedContracts.some(c => c.id === contract.id);
+                                      const isSelected = selectedContracts.some(c => c.contract_number === contract.contract_number);
                                       return (
                                         <tr
-                                          key={contract.id}
+                                          key={contract.contract_number}
                                           onClick={() => {
                                             if (isSelected) {
-                                              setSelectedContracts(prev => prev.filter(c => c.id !== contract.id));
+                                              setSelectedContracts(prev => prev.filter(c => c.contract_number !== contract.contract_number));
                                             } else {
                                               setSelectedContracts(prev => [...prev, contract]);
                                             }
@@ -2018,7 +2018,7 @@ const NewChat = () => {
                                               onChange={(e) => {
                                                 e.stopPropagation();
                                                 if (isSelected) {
-                                                  setSelectedContracts(prev => prev.filter(c => c.id !== contract.id));
+                                                  setSelectedContracts(prev => prev.filter(c => c.contract_number !== contract.contract_number));
                                                 } else {
                                                   setSelectedContracts(prev => [...prev, contract]);
                                                 }
