@@ -30,12 +30,15 @@ const Bills2 = () => {
     error,
     statuses,
     committees,
+    sessions,
     searchTerm,
     setSearchTerm,
     statusFilter,
     setStatusFilter,
     committeeFilter,
     setCommitteeFilter,
+    sessionFilter,
+    setSessionFilter,
   } = useBillsSearch();
 
   // Focus search on mount and keyboard shortcut
@@ -86,9 +89,10 @@ const Bills2 = () => {
     setSearchTerm('');
     setStatusFilter('');
     setCommitteeFilter('');
+    setSessionFilter('');
   };
 
-  const hasActiveFilters = searchTerm || statusFilter || committeeFilter;
+  const hasActiveFilters = searchTerm || statusFilter || committeeFilter || sessionFilter;
 
   return (
     <div className="min-h-screen bg-background">
@@ -160,6 +164,20 @@ const Bills2 = () => {
                   {committees.map((committee) => (
                     <SelectItem key={committee} value={committee} className="focus:bg-muted focus:text-foreground">
                       {committee}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={sessionFilter || "all"} onValueChange={(v) => setSessionFilter(v === "all" ? "" : v)}>
+                <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
+                  <SelectValue placeholder="All Sessions" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Sessions</SelectItem>
+                  {sessions.map((session) => (
+                    <SelectItem key={session} value={String(session)} className="focus:bg-muted focus:text-foreground">
+                      {session}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -246,30 +264,28 @@ function BillCard({ bill, onClick, onChatClick }: BillCardProps) {
 
       {/* Details and button - render on hover */}
       <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
-        {/* Bill details grid - balanced 2x2 layout */}
+        {/* Bill details grid */}
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
-          {/* Column 1 */}
+          {/* Row 1 */}
           {bill.status_desc && (
             <div>
               <span className="text-muted-foreground">Status</span>
               <p className="font-medium">{bill.status_desc}</p>
             </div>
           )}
-          {/* Column 2 */}
           {bill.committee && (
             <div>
               <span className="text-muted-foreground">Committee</span>
               <p className="font-medium truncate">{bill.committee}</p>
             </div>
           )}
-          {/* Column 1 */}
+          {/* Row 2 */}
           {bill.last_action_date && (
             <div>
-              <span className="text-muted-foreground">Last Action</span>
+              <span className="text-muted-foreground">Last Action Date</span>
               <p className="font-medium">{formatBillDate(bill.last_action_date)}</p>
             </div>
           )}
-          {/* Column 2 */}
           {bill.session_id && (
             <div>
               <span className="text-muted-foreground">Session</span>
@@ -277,6 +293,13 @@ function BillCard({ bill, onClick, onChatClick }: BillCardProps) {
             </div>
           )}
         </div>
+        {/* Last action text - full width */}
+        {bill.last_action && (
+          <div className="text-xs mb-4">
+            <span className="text-muted-foreground">Last Action</span>
+            <p className="font-medium">{bill.last_action}</p>
+          </div>
+        )}
 
         {/* Action button */}
         <div className="flex justify-end">

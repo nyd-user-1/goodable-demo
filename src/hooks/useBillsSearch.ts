@@ -7,10 +7,11 @@ export function useBillsSearch() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [committeeFilter, setCommitteeFilter] = useState('');
+  const [sessionFilter, setSessionFilter] = useState('');
 
   // Fetch bills - server-side search when there's a search term
   const { data, isLoading, error } = useQuery({
-    queryKey: ['bills-search', searchTerm, statusFilter, committeeFilter],
+    queryKey: ['bills-search', searchTerm, statusFilter, committeeFilter, sessionFilter],
     queryFn: async () => {
       let query = supabase
         .from('Bills')
@@ -33,6 +34,11 @@ export function useBillsSearch() {
         query = query.eq('committee', committeeFilter);
       }
 
+      // Server-side session filter
+      if (sessionFilter) {
+        query = query.eq('session_id', parseInt(sessionFilter));
+      }
+
       // Order by last action date (most recent first) and limit results
       query = query
         .order('last_action_date', { ascending: false, nullsFirst: false })
@@ -51,7 +57,7 @@ export function useBillsSearch() {
   const bills = data?.bills || [];
   const totalCount = data?.totalCount || 0;
 
-  // Get filter options (statuses and committees) from a separate query
+  // Get filter options (statuses, committees, sessions) from a separate query
   const { data: filterOptions } = useQuery({
     queryKey: ['bills-filter-options'],
     queryFn: async () => {
@@ -67,10 +73,17 @@ export function useBillsSearch() {
         .select('committee')
         .not('committee', 'is', null);
 
+      // Get unique session years
+      const { data: sessionData } = await supabase
+        .from('Bills')
+        .select('session_id')
+        .not('session_id', 'is', null);
+
       const statuses = [...new Set(statusData?.map(s => s.status_desc))].filter(Boolean).sort() as string[];
       const committees = [...new Set(committeeData?.map(c => c.committee))].filter(Boolean).sort() as string[];
+      const sessions = [...new Set(sessionData?.map(s => s.session_id))].filter(Boolean).sort((a, b) => b - a) as number[];
 
-      return { statuses, committees };
+      return { statuses, committees, sessions };
     },
     staleTime: 30 * 60 * 1000, // Cache filter options for 30 minutes
   });
@@ -82,12 +95,15 @@ export function useBillsSearch() {
     error,
     statuses: filterOptions?.statuses || [],
     committees: filterOptions?.committees || [],
+    sessions: filterOptions?.sessions || [],
     searchTerm,
     setSearchTerm,
     statusFilter,
     setStatusFilter,
     committeeFilter,
     setCommitteeFilter,
+    sessionFilter,
+    setSessionFilter,
   };
 }
 
