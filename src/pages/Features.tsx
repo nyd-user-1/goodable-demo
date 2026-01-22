@@ -66,6 +66,7 @@ const features = [
     imageAlt: 'Live feed screenshot',
     reverse: true,
     zoomImage: '/live-feed-zoom-2.png',
+    zoomSize: { width: 380, height: 130 },
   },
   {
     title: 'Multi-Engine Chat',
@@ -76,6 +77,7 @@ const features = [
     reverse: false,
     imagePosition: 'object-top',
     zoomImage: '/multi-engine-chat-zoom-2.png',
+    zoomSize: { width: 240, height: 365 },
   },
   {
     title: 'Bill Prompts',
