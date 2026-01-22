@@ -42,6 +42,7 @@ const features = [
     image: '/letter-generation.png',
     imageAlt: 'Letter generation interface screenshot',
     reverse: false,
+    imagePosition: 'object-top',
   },
   {
     title: 'Live Feed',
@@ -132,7 +133,7 @@ const Features = () => {
                   <img
                     src={feature.image}
                     alt={feature.imageAlt}
-                    className="object-cover object-center w-full h-full"
+                    className={`object-cover ${feature.imagePosition || 'object-center'} w-full h-full`}
                   />
                 </div>
               </div>
