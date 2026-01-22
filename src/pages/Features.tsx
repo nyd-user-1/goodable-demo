@@ -12,7 +12,7 @@ const features = [
     reverse: false,
     imagePosition: 'object-top',
     zoomImage: '/bill-tracking-zoom.png',
-    zoomSize: { width: 340, height: 214 },
+    zoomSize: { width: 320, height: 196 },
   },
   {
     title: 'Citations',
@@ -34,6 +34,7 @@ const features = [
     reverse: false,
     imagePosition: 'object-top',
     zoomImage: '/contracts-zoom.png',
+    zoomSize: { width: 320, height: 235 },
   },
   {
     title: 'Excerpts',
@@ -44,6 +45,7 @@ const features = [
     reverse: true,
     imagePosition: 'object-top',
     zoomImage: '/excerpts-zoom.png',
+    zoomSize: { width: 280, height: 246 },
   },
   {
     title: 'Letter Generation',
@@ -54,6 +56,7 @@ const features = [
     reverse: false,
     imagePosition: 'object-top',
     zoomImage: '/letter-generation-zoom.png',
+    zoomSize: { width: 280, height: 292 },
   },
   {
     title: 'Live Feed',
