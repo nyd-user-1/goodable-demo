@@ -513,12 +513,16 @@ const NewChat = () => {
     try {
       const { data, error } = await supabase
         .from("Contracts")
-        .select("id, vendor_name, department_facility, contract_number, current_contract_amount, contract_description")
-        .order("vendor_name", { ascending: true })
+        .select("*")
+        .order("current_contract_amount", { ascending: false, nullsFirst: false })
         .limit(100);
 
-      if (error) throw error;
-      setAvailableContracts(data || []);
+      if (error) {
+        console.error("Error fetching contracts:", error);
+        throw error;
+      }
+      console.log("Contracts fetched:", data?.length || 0);
+      setAvailableContracts((data as Contract[]) || []);
     } catch (error) {
       console.error("Error fetching contracts:", error);
     } finally {
