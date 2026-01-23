@@ -4,9 +4,10 @@
  */
 
 import { useState, ReactNode, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { FileText, ThumbsUp, ThumbsDown, Copy, Check, Mail, BookOpenCheck, MoreHorizontal, Star, FileDown, ScrollText, TextQuote, Loader2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { FileText, ThumbsUp, ThumbsDown, Copy, Check, Mail, BookOpenCheck, MoreHorizontal, Star, FileDown, ScrollText, TextQuote, Loader2, ExternalLink } from "lucide-react";
 import { useExcerptPersistence } from "@/hooks/useExcerptPersistence";
+import { useNotePersistence } from "@/hooks/useNotePersistence";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -80,7 +81,9 @@ export function ChatResponseFooter({
   const hasSources = sources && sources.length > 0;
   const hasRelated = relatedBills && relatedBills.length > 0;
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { createExcerpt, loading: excerptLoading } = useExcerptPersistence();
+  const { createNote, loading: noteLoading } = useNotePersistence();
   const [excerptSaved, setExcerptSaved] = useState(false);
 
   const [pdfOpen, setPdfOpen] = useState(false);
@@ -358,6 +361,46 @@ export function ChatResponseFooter({
     }
   };
 
+  const handleOpenAsNote = async () => {
+    if (!assistantMessageText) {
+      toast({
+        title: "Cannot create note",
+        description: "Missing message content",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Generate title from user message or first line of content
+    const title = userMessage
+      ? (userMessage.length > 50 ? userMessage.substring(0, 50) + '...' : userMessage)
+      : (assistantMessageText.split('\n')[0].substring(0, 50) + '...');
+
+    const note = await createNote({
+      parentSessionId,
+      title,
+      content: assistantMessageText,
+      userQuery: userMessage,
+    });
+
+    if (note) {
+      toast({
+        title: "Note created",
+        description: "Opening your note...",
+      });
+      // Refresh sidebar
+      window.dispatchEvent(new CustomEvent('refresh-sidebar-notes'));
+      // Navigate to the note
+      navigate(`/n/${note.id}`);
+    } else {
+      toast({
+        title: "Failed to create note",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Auto-scroll to accordion when Citations is toggled on
   useEffect(() => {
     if (showCitations && accordionRef.current) {
@@ -441,6 +484,27 @@ export function ChatResponseFooter({
               <TooltipContent>
                 {excerptSaved ? "Excerpt saved" : "Create Excerpt"}
               </TooltipContent>
+            </Tooltip>
+          )}
+
+          {/* Open as Note Badge */}
+          {!hideCreateExcerpt && assistantMessageText && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleOpenAsNote}
+                  disabled={noteLoading}
+                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors disabled:opacity-50"
+                >
+                  {noteLoading ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  )}
+                  <span>Open as Note</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Open this response as a standalone note</TooltipContent>
             </Tooltip>
           )}
 

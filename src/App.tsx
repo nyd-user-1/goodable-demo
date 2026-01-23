@@ -70,6 +70,7 @@ import DataPopulator from "./pages/DataPopulator";
 import RealABCPopulator from "./pages/RealABCPopulator";
 import FixABCStructure from "./pages/FixABCStructure";
 import ExcerptView from "./pages/ExcerptView";
+import NoteView from "./pages/NoteView";
 import FreeTrial from "./pages/FreeTrial";
 import Contracts from "./pages/Contracts";
 import ContractDetail from "./pages/ContractDetail";
@@ -100,6 +101,7 @@ const AppLayout = () => {
               <Route path="/new-chat" element={<NewChat />} />
               <Route path="/c/:sessionId" element={<NewChat />} />
               <Route path="/e/:excerptId" element={<ExcerptView />} />
+              <Route path="/n/:noteId" element={<NoteView />} />
               <Route path="/new-chat-2" element={<NewChat2 />} />
               <Route path="/chats" element={<Chats2 />} />
               <Route path="/playground" element={<Playground />} />
