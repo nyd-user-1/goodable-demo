@@ -59,10 +59,12 @@ const NoteView = () => {
   const [loading, setLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
   const [htmlContent, setHtmlContent] = useState("");
+  const [editableTitle, setEditableTitle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [, forceUpdate] = useState(0); // For re-rendering toolbar state
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const titleSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const editorRef = useRef<TipTapEditorRef>(null);
 
   // Get editor instance for toolbar
@@ -80,6 +82,7 @@ const NoteView = () => {
         // Convert markdown to HTML if needed for TipTap
         const html = ensureHtml(data.content);
         setHtmlContent(html);
+        setEditableTitle(data.title);
       }
 
       // Fetch associated bill if exists
@@ -153,14 +156,42 @@ const NoteView = () => {
     }, 1500);
   }, [handleSave]);
 
-  // Cleanup timeout on unmount
+  // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
+      if (titleSaveTimeoutRef.current) {
+        clearTimeout(titleSaveTimeoutRef.current);
+      }
     };
   }, []);
+
+  // Handle title change with auto-save
+  const handleTitleChange = useCallback((newTitle: string) => {
+    setEditableTitle(newTitle);
+    setHasUnsavedChanges(true);
+
+    // Clear existing timeout
+    if (titleSaveTimeoutRef.current) {
+      clearTimeout(titleSaveTimeoutRef.current);
+    }
+
+    // Auto-save title after 1.5 seconds
+    titleSaveTimeoutRef.current = setTimeout(async () => {
+      if (!noteId || !note) return;
+      setIsSaving(true);
+      const success = await updateNote(noteId, { title: newTitle });
+      if (success) {
+        setNote(prev => prev ? { ...prev, title: newTitle } : null);
+        setHasUnsavedChanges(false);
+        // Refresh sidebar to show updated title
+        window.dispatchEvent(new CustomEvent("refresh-sidebar-notes"));
+      }
+      setIsSaving(false);
+    }, 1500);
+  }, [noteId, note, updateNote]);
 
   // Handle blur - save immediately if there are unsaved changes
   const handleEditorBlur = useCallback(() => {
@@ -171,6 +202,26 @@ const NoteView = () => {
       handleSave(htmlContent, false);
     }
   }, [hasUnsavedChanges, htmlContent, handleSave]);
+
+  // Handle title blur - save immediately
+  const handleTitleBlur = useCallback(() => {
+    if (titleSaveTimeoutRef.current) {
+      clearTimeout(titleSaveTimeoutRef.current);
+    }
+    if (editableTitle && editableTitle !== note?.title) {
+      (async () => {
+        if (!noteId) return;
+        setIsSaving(true);
+        const success = await updateNote(noteId, { title: editableTitle });
+        if (success) {
+          setNote(prev => prev ? { ...prev, title: editableTitle } : null);
+          setHasUnsavedChanges(false);
+          window.dispatchEvent(new CustomEvent("refresh-sidebar-notes"));
+        }
+        setIsSaving(false);
+      })();
+    }
+  }, [editableTitle, note?.title, noteId, updateNote]);
 
   // Force re-render to update toolbar active states
   useEffect(() => {
@@ -248,7 +299,7 @@ const NoteView = () => {
             </Button>
             <div className="flex items-center gap-2 min-w-0">
               <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <h1 className="font-medium truncate">{note.title}</h1>
+              <h1 className="font-medium truncate">{editableTitle || note.title}</h1>
             </div>
           </div>
 
@@ -306,8 +357,15 @@ const NoteView = () => {
         {/* Document Content */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-[800px] mx-auto py-12 px-8">
-            {/* Note Title */}
-            <h1 className="text-3xl font-bold mb-8">{note.title}</h1>
+            {/* Note Title - Editable */}
+            <input
+              type="text"
+              value={editableTitle}
+              onChange={(e) => handleTitleChange(e.target.value)}
+              onBlur={handleTitleBlur}
+              className="text-3xl font-bold mb-8 w-full bg-transparent border-0 outline-none focus:outline-none focus:ring-0 p-0"
+              placeholder="Untitled"
+            />
 
             {/* Note Content - WYSIWYG TipTap Editor */}
             <TipTapEditor
