@@ -297,8 +297,8 @@ const NoteView = () => {
         </div>
 
         {/* Rich Text Toolbar */}
-        <div className="px-4 pb-5">
-          <div className="max-w-[800px] mx-auto flex items-center gap-0.5 bg-background border rounded-lg shadow-sm px-2 py-2">
+        <div className="flex justify-center pb-5">
+          <div className="flex items-center gap-0.5 bg-background border rounded-lg shadow-sm px-2 py-2 w-fit">
             {/* Grip Handle */}
             <div className="flex items-center px-1 cursor-grab text-muted-foreground/50">
               <GripVertical className="h-4 w-4" />
