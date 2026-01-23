@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useParams, NavLink } from "react-router-dom";
 import {
-  Trash2, FileText, MoreHorizontal, Bold, Italic,
+  ArrowLeft, Trash2, FileText, MoreHorizontal, Bold, Italic,
   Underline as UnderlineIcon, Strikethrough, Link2, AlignLeft,
   AlignCenter, AlignRight, Code, List, ListOrdered, Indent, Outdent,
   Table2, ChevronDown, MessageSquare, GripVertical, PanelLeft,
@@ -418,7 +418,18 @@ const NoteView = () => {
               <PanelLeft className="h-4 w-4" />
             </Button>
 
-            <span className="text-sm truncate">{editableTitle || note.title}</span>
+            {/* Title - clickable link back to parent chat */}
+            {parentChat ? (
+              <button
+                onClick={() => navigate(`/c/${parentChat.id}`)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm truncate hover:bg-muted transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4 flex-shrink-0" />
+                <span className="truncate">{editableTitle || note.title}</span>
+              </button>
+            ) : (
+              <span className="text-sm truncate px-3">{editableTitle || note.title}</span>
+            )}
           </div>
 
           <div className="flex items-center gap-1">
