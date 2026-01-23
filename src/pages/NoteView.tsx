@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Trash2, FileText, MoreHorizontal, Bold, Italic, Underline as UnderlineIcon, Strikethrough, Link2, AlignLeft, AlignCenter, AlignRight, Code, List, ListOrdered, Indent, Outdent, Table2, ChevronDown, X, MessageSquare, GripVertical } from "lucide-react";
+import { useNavigate, useParams, NavLink } from "react-router-dom";
+import {
+  ArrowLeft, Trash2, FileText, MoreHorizontal, Bold, Italic,
+  Underline as UnderlineIcon, Strikethrough, Link2, AlignLeft,
+  AlignCenter, AlignRight, Code, List, ListOrdered, Indent, Outdent,
+  Table2, ChevronDown, X, MessageSquare, GripVertical, PanelLeft,
+  PanelRight, ScrollText, Building2, Users, TrendingUp, Home, Heart,
+  Target, Search, ChevronRight, ExternalLink
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNotePersistence, ChatNote } from "@/hooks/useNotePersistence";
@@ -25,12 +32,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -38,6 +39,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
 
 interface BillData {
   bill_number: string;
@@ -48,6 +52,26 @@ interface BillData {
   session_id?: number;
 }
 
+interface ChatSession {
+  id: string;
+  title: string;
+}
+
+// Navigation items for the local sidebar
+const navigationItems = {
+  research: [
+    { title: "Bills", url: "/bills", icon: ScrollText },
+    { title: "Committees", url: "/committees", icon: Building2 },
+    { title: "Members", url: "/members", icon: Users },
+  ],
+  main: [
+    { title: "Dashboard", url: "/dashboard", icon: TrendingUp },
+    { title: "Explore", url: "/home", icon: Home },
+    { title: "The 100", url: "/problems", icon: Target },
+    { title: "Favorites", url: "/favorites", icon: Heart },
+  ],
+};
+
 const NoteView = () => {
   const navigate = useNavigate();
   const { noteId } = useParams<{ noteId: string }>();
@@ -57,21 +81,25 @@ const NoteView = () => {
   const [note, setNote] = useState<ChatNote | null>(null);
   const [bill, setBill] = useState<BillData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [chatOpen, setChatOpen] = useState(false);
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+  const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
   const [htmlContent, setHtmlContent] = useState("");
   const [editableTitle, setEditableTitle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [, forceUpdate] = useState(0); // For re-rendering toolbar state
+  const [, forceUpdate] = useState(0);
   const [toolbarPosition, setToolbarPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [parentChat, setParentChat] = useState<ChatSession | null>(null);
+  const [isResearchOpen, setIsResearchOpen] = useState(true);
+  const [isMainOpen, setIsMainOpen] = useState(true);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const titleSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const editorRef = useRef<TipTapEditorRef>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Get editor instance for toolbar
   const editor = editorRef.current?.editor;
 
   // Load note data
@@ -83,10 +111,21 @@ const NoteView = () => {
       const data = await fetchNoteById(noteId);
       setNote(data);
       if (data) {
-        // Convert markdown to HTML if needed for TipTap
         const html = ensureHtml(data.content);
         setHtmlContent(html);
         setEditableTitle(data.title);
+
+        // Fetch parent chat if exists
+        if (data.parent_session_id) {
+          const { data: chatData } = await supabase
+            .from("chat_sessions")
+            .select("id, title")
+            .eq("id", data.parent_session_id)
+            .single();
+          if (chatData) {
+            setParentChat(chatData);
+          }
+        }
       }
 
       // Fetch associated bill if exists
@@ -144,23 +183,19 @@ const NoteView = () => {
     setIsSaving(false);
   }, [noteId, note, updateNote, toast]);
 
-  // Handle content change from TipTap editor
   const handleContentChange = useCallback((newHtml: string) => {
     setHtmlContent(newHtml);
     setHasUnsavedChanges(true);
 
-    // Clear existing timeout
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
 
-    // Set new timeout for auto-save (1.5 seconds after last change)
     saveTimeoutRef.current = setTimeout(() => {
       handleSave(newHtml, false);
     }, 1500);
   }, [handleSave]);
 
-  // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
       if (saveTimeoutRef.current) {
@@ -172,17 +207,14 @@ const NoteView = () => {
     };
   }, []);
 
-  // Handle title change with auto-save
   const handleTitleChange = useCallback((newTitle: string) => {
     setEditableTitle(newTitle);
     setHasUnsavedChanges(true);
 
-    // Clear existing timeout
     if (titleSaveTimeoutRef.current) {
       clearTimeout(titleSaveTimeoutRef.current);
     }
 
-    // Auto-save title after 1.5 seconds
     titleSaveTimeoutRef.current = setTimeout(async () => {
       if (!noteId || !note) return;
       setIsSaving(true);
@@ -190,14 +222,12 @@ const NoteView = () => {
       if (success) {
         setNote(prev => prev ? { ...prev, title: newTitle } : null);
         setHasUnsavedChanges(false);
-        // Refresh sidebar to show updated title
         window.dispatchEvent(new CustomEvent("refresh-sidebar-notes"));
       }
       setIsSaving(false);
     }, 1500);
   }, [noteId, note, updateNote]);
 
-  // Handle blur - save immediately if there are unsaved changes
   const handleEditorBlur = useCallback(() => {
     if (hasUnsavedChanges && htmlContent) {
       if (saveTimeoutRef.current) {
@@ -207,7 +237,6 @@ const NoteView = () => {
     }
   }, [hasUnsavedChanges, htmlContent, handleSave]);
 
-  // Handle title blur - save immediately
   const handleTitleBlur = useCallback(() => {
     if (titleSaveTimeoutRef.current) {
       clearTimeout(titleSaveTimeoutRef.current);
@@ -227,7 +256,6 @@ const NoteView = () => {
     }
   }, [editableTitle, note?.title, noteId, updateNote]);
 
-  // Force re-render to update toolbar active states
   useEffect(() => {
     if (!editor) return;
     const updateToolbar = () => forceUpdate(n => n + 1);
@@ -239,12 +267,11 @@ const NoteView = () => {
     };
   }, [editor]);
 
-  // Handle link insertion
   const handleLinkClick = useCallback(() => {
     if (!editor) return;
     const currentUrl = editor.getAttributes('link').href || '';
     const url = window.prompt('Enter URL:', currentUrl);
-    if (url === null) return; // Cancelled
+    if (url === null) return;
     if (url === '') {
       editorCommands.unsetLink(editor);
     } else {
@@ -252,7 +279,6 @@ const NoteView = () => {
     }
   }, [editor]);
 
-  // Handle heading selection
   const handleHeadingChange = useCallback((value: string) => {
     if (!editor) return;
     if (value === 'paragraph') {
@@ -263,7 +289,6 @@ const NoteView = () => {
     }
   }, [editor]);
 
-  // Get current heading value for select
   const getCurrentHeadingValue = useCallback((): string => {
     if (!editor) return 'paragraph';
     if (isFormatActive.heading(editor, 1)) return 'h1';
@@ -272,7 +297,6 @@ const NoteView = () => {
     return 'paragraph';
   }, [editor]);
 
-  // Handle text color change
   const handleColorChange = useCallback((color: string | null) => {
     if (!editor) return;
     if (color === null) {
@@ -282,12 +306,10 @@ const NoteView = () => {
     }
   }, [editor]);
 
-  // Get current text color
   const getCurrentColor = useCallback((): string | null => {
     return isFormatActive.textColor(editor);
   }, [editor]);
 
-  // Toolbar drag handlers
   const handleDragStart = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!toolbarRef.current) return;
     e.preventDefault();
@@ -304,16 +326,19 @@ const NoteView = () => {
     if (!isDragging) return;
 
     const handleMouseMove = (e: MouseEvent) => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const containerRect = container.getBoundingClientRect();
       const newX = e.clientX - dragOffsetRef.current.x;
       const newY = e.clientY - dragOffsetRef.current.y;
 
-      // Keep toolbar within viewport bounds
-      const maxX = window.innerWidth - (toolbarRef.current?.offsetWidth || 0);
-      const maxY = window.innerHeight - (toolbarRef.current?.offsetHeight || 0);
+      const maxX = containerRect.right - (toolbarRef.current?.offsetWidth || 0);
+      const maxY = containerRect.bottom - (toolbarRef.current?.offsetHeight || 0);
 
       setToolbarPosition({
-        x: Math.max(0, Math.min(newX, maxX)),
-        y: Math.max(0, Math.min(newY, maxY)),
+        x: Math.max(containerRect.left, Math.min(newX, maxX)),
+        y: Math.max(containerRect.top, Math.min(newY, maxY)),
       });
     };
 
@@ -330,17 +355,20 @@ const NoteView = () => {
     };
   }, [isDragging]);
 
-  // Initialize toolbar position at bottom center
   useEffect(() => {
     const updatePosition = () => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const containerRect = container.getBoundingClientRect();
       const toolbarWidth = toolbarRef.current?.offsetWidth || 500;
+
       setToolbarPosition({
-        x: (window.innerWidth - toolbarWidth) / 2,
-        y: window.innerHeight - 80,
+        x: containerRect.left + (containerRect.width - toolbarWidth) / 2,
+        y: containerRect.bottom - 80,
       });
     };
 
-    // Small delay to ensure toolbar is rendered
     const timer = setTimeout(updatePosition, 100);
     window.addEventListener('resize', updatePosition);
 
@@ -348,37 +376,51 @@ const NoteView = () => {
       clearTimeout(timer);
       window.removeEventListener('resize', updatePosition);
     };
-  }, []);
+  }, [leftSidebarOpen, rightSidebarOpen]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-muted-foreground">Loading note...</div>
+      <div className="flex items-center justify-center h-screen p-2">
+        <div className="w-full h-full rounded-2xl border bg-background flex items-center justify-center">
+          <div className="text-muted-foreground">Loading note...</div>
+        </div>
       </div>
     );
   }
 
   if (!note) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen gap-4">
-        <div className="text-muted-foreground">Note not found</div>
-        <Button variant="outline" onClick={() => navigate("/new-chat")}>
-          Go to Chat
-        </Button>
+      <div className="flex items-center justify-center h-screen p-2">
+        <div className="w-full h-full rounded-2xl border bg-background flex flex-col items-center justify-center gap-4">
+          <div className="text-muted-foreground">Note not found</div>
+          <Button variant="outline" onClick={() => navigate("/new-chat")}>
+            Go to Chat
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+    <div className="h-screen w-screen p-2 bg-muted/30">
+      {/* Main Container with rounded corners and border */}
+      <div
+        ref={containerRef}
+        className="w-full h-full rounded-2xl border bg-background overflow-hidden flex flex-col"
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b bg-background">
-          <div className="flex items-center gap-3 min-w-0">
-            <Button variant="ghost" size="icon" onClick={handleBack} className="flex-shrink-0">
-              <ArrowLeft className="h-4 w-4" />
+        <div className="flex items-center justify-between px-4 py-3 border-b bg-background flex-shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            {/* Left Sidebar Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+              className={cn("flex-shrink-0", leftSidebarOpen && "bg-muted")}
+            >
+              <PanelLeft className="h-4 w-4" />
             </Button>
+
             <div className="flex items-center gap-2 min-w-0">
               <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <h1 className="font-medium truncate">{editableTitle || note.title}</h1>
@@ -391,14 +433,14 @@ const NoteView = () => {
               {isSaving ? "Saving..." : hasUnsavedChanges ? "Unsaved changes" : "Saved"}
             </span>
 
-            {/* Chat Toggle */}
+            {/* Right Sidebar Toggle */}
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setChatOpen(!chatOpen)}
-              className={chatOpen ? "bg-muted" : ""}
+              onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
+              className={cn(rightSidebarOpen && "bg-muted")}
             >
-              <MessageSquare className="h-4 w-4" />
+              <PanelRight className="h-4 w-4" />
             </Button>
 
             {/* More Menu */}
@@ -436,50 +478,254 @@ const NoteView = () => {
           </div>
         </div>
 
-        {/* Document Content */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-[800px] mx-auto py-12 px-8">
-            {/* Note Title - Editable */}
-            <input
-              type="text"
-              value={editableTitle}
-              onChange={(e) => handleTitleChange(e.target.value)}
-              onBlur={handleTitleBlur}
-              className="text-3xl font-bold mb-8 w-full bg-transparent border-0 outline-none focus:outline-none focus:ring-0 p-0"
-              placeholder="Untitled"
-            />
-
-            {/* Note Content - WYSIWYG TipTap Editor */}
-            <TipTapEditor
-              ref={editorRef}
-              content={htmlContent}
-              onChange={handleContentChange}
-              onBlur={handleEditorBlur}
-              editable={true}
-              className="min-h-[400px]"
-            />
-
-            {/* Associated Bill (if exists) */}
-            {bill && (
-              <div className="mt-12 pt-8 border-t">
-                <h3 className="text-sm font-medium text-muted-foreground mb-3">Related Bill</h3>
-                <div
-                  className="p-4 border rounded-lg hover:bg-muted/30 cursor-pointer transition-colors"
-                  onClick={() => navigate(`/bills/${bill.bill_number}`)}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="font-medium text-primary">{bill.bill_number}</p>
-                      <p className="text-sm text-muted-foreground mt-1">{bill.title}</p>
-                    </div>
-                    <span className="text-xs bg-muted px-2 py-1 rounded">{bill.status_desc}</span>
-                  </div>
+        {/* Main Content Area with Sidebars */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left Sidebar */}
+          <div
+            className={cn(
+              "border-r bg-background flex-shrink-0 overflow-y-auto transition-all duration-300",
+              leftSidebarOpen ? "w-64" : "w-0"
+            )}
+          >
+            {leftSidebarOpen && (
+              <div className="p-3 space-y-4">
+                {/* Quick Actions */}
+                <div className="space-y-1">
+                  <NavLink
+                    to="/new-chat"
+                    className="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    <span>New chat</span>
+                  </NavLink>
+                  <NavLink
+                    to="/chats"
+                    className="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors"
+                  >
+                    <Search className="h-4 w-4" />
+                    <span>Chat History</span>
+                  </NavLink>
                 </div>
+
+                {/* Your Research Section */}
+                <Collapsible open={isResearchOpen} onOpenChange={setIsResearchOpen}>
+                  <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Your research
+                    <ChevronDown className={cn("h-4 w-4 transition-transform", isResearchOpen && "rotate-180")} />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-1">
+                    {navigationItems.research.map((item) => (
+                      <NavLink
+                        key={item.title}
+                        to={item.url}
+                        className="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors"
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </NavLink>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Main Navigation Section */}
+                <Collapsible open={isMainOpen} onOpenChange={setIsMainOpen}>
+                  <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Navigate
+                    <ChevronDown className={cn("h-4 w-4 transition-transform", isMainOpen && "rotate-180")} />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-1">
+                    {navigationItems.main.map((item) => (
+                      <NavLink
+                        key={item.title}
+                        to={item.url}
+                        className="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors"
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </NavLink>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Back to chat link if parent exists */}
+                {parentChat && (
+                  <div className="pt-4 border-t">
+                    <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                      Source
+                    </p>
+                    <NavLink
+                      to={`/chats/${parentChat.id}`}
+                      className="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors text-primary"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      <span className="truncate flex-1">{parentChat.title || "Original Chat"}</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </NavLink>
+                  </div>
+                )}
               </div>
             )}
           </div>
-        </div>
 
+          {/* Document Content */}
+          <div className="flex-1 overflow-y-auto min-w-0">
+            <div className="max-w-[800px] mx-auto py-12 px-8">
+              {/* Note Title - Editable */}
+              <input
+                type="text"
+                value={editableTitle}
+                onChange={(e) => handleTitleChange(e.target.value)}
+                onBlur={handleTitleBlur}
+                className="text-3xl font-bold mb-8 w-full bg-transparent border-0 outline-none focus:outline-none focus:ring-0 p-0"
+                placeholder="Untitled"
+              />
+
+              {/* Note Content - WYSIWYG TipTap Editor */}
+              <TipTapEditor
+                ref={editorRef}
+                content={htmlContent}
+                onChange={handleContentChange}
+                onBlur={handleEditorBlur}
+                editable={true}
+                className="min-h-[400px]"
+              />
+
+              {/* Associated Bill (if exists) */}
+              {bill && (
+                <div className="mt-12 pt-8 border-t">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Related Bill</h3>
+                  <div
+                    className="p-4 border rounded-lg hover:bg-muted/30 cursor-pointer transition-colors"
+                    onClick={() => navigate(`/bills/${bill.bill_number}`)}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-medium text-primary">{bill.bill_number}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{bill.title}</p>
+                      </div>
+                      <span className="text-xs bg-muted px-2 py-1 rounded">{bill.status_desc}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Sidebar - Chat Panel */}
+          <div
+            className={cn(
+              "border-l bg-background flex-shrink-0 overflow-hidden transition-all duration-300 flex flex-col",
+              rightSidebarOpen ? "w-80" : "w-0"
+            )}
+          >
+            {rightSidebarOpen && (
+              <>
+                {/* Tabs Header */}
+                <Tabs defaultValue="chat" className="flex flex-col h-full">
+                  <TabsList className="w-full justify-start rounded-none border-b bg-transparent h-auto p-0">
+                    <TabsTrigger
+                      value="chat"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+                    >
+                      Chat
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="details"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+                    >
+                      Details
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="related"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+                    >
+                      Related
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="chat" className="flex-1 flex flex-col m-0 overflow-hidden">
+                    {/* Chat Selection */}
+                    <div className="p-4 border-b">
+                      <Select>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select a chat" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {parentChat && (
+                            <SelectItem value={parentChat.id}>{parentChat.title || "Original Chat"}</SelectItem>
+                          )}
+                          <SelectItem value="new">New chat</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Chat Content */}
+                    <div className="flex-1 overflow-y-auto p-4">
+                      <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
+                        <MessageSquare className="h-12 w-12 mb-4 opacity-20" />
+                        <p className="text-sm">Ask questions about this note</p>
+                        <p className="text-xs mt-1">Chat functionality coming soon</p>
+                      </div>
+                    </div>
+
+                    {/* Chat Input */}
+                    <div className="border-t p-4 flex-shrink-0">
+                      <div className="flex items-center gap-2">
+                        <Textarea
+                          placeholder="Ask this note a question..."
+                          className="min-h-[40px] max-h-[120px] resize-none"
+                          rows={1}
+                        />
+                        <Button size="icon" disabled>
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="details" className="flex-1 m-0 p-4 overflow-y-auto">
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Created</p>
+                        <p className="text-sm">{new Date(note.created_at).toLocaleDateString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Last Updated</p>
+                        <p className="text-sm">{new Date(note.updated_at).toLocaleDateString()}</p>
+                      </div>
+                      {parentChat && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Source Chat</p>
+                          <NavLink
+                            to={`/chats/${parentChat.id}`}
+                            className="text-sm text-primary hover:underline flex items-center gap-1"
+                          >
+                            {parentChat.title || "Original Chat"}
+                            <ExternalLink className="h-3 w-3" />
+                          </NavLink>
+                        </div>
+                      )}
+                      {bill && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Related Bill</p>
+                          <p className="text-sm text-primary">{bill.bill_number}</p>
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="related" className="flex-1 m-0 p-4 overflow-y-auto">
+                    <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
+                      <FileText className="h-12 w-12 mb-4 opacity-20" />
+                      <p className="text-sm">Related notes will appear here</p>
+                      <p className="text-xs mt-1">Coming soon</p>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Draggable Rich Text Toolbar */}
@@ -675,50 +921,6 @@ const NoteView = () => {
           </Button>
         </div>
       </div>
-
-      {/* Right Side Chat Sheet */}
-      <Sheet open={chatOpen} onOpenChange={setChatOpen} modal={false}>
-        <SheetContent
-          side="right"
-          className="w-[400px] sm:w-[450px] p-0 border-l shadow-lg"
-          style={{ position: 'relative' }}
-        >
-          <div className="flex flex-col h-full">
-            {/* Chat Header */}
-            <SheetHeader className="px-4 py-3 border-b">
-              <div className="flex items-center justify-between">
-                <SheetTitle className="text-base font-medium">Chat</SheetTitle>
-                <Button variant="ghost" size="icon" onClick={() => setChatOpen(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </SheetHeader>
-
-            {/* Chat Content */}
-            <div className="flex-1 overflow-y-auto p-4">
-              <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-                <MessageSquare className="h-12 w-12 mb-4 opacity-20" />
-                <p className="text-sm">Ask questions about this note</p>
-                <p className="text-xs mt-1">Chat functionality coming soon</p>
-              </div>
-            </div>
-
-            {/* Chat Input */}
-            <div className="border-t p-4">
-              <div className="flex items-center gap-2">
-                <Textarea
-                  placeholder="Ask this note a question..."
-                  className="min-h-[40px] max-h-[120px] resize-none"
-                  rows={1}
-                />
-                <Button size="icon" disabled>
-                  <ArrowLeft className="h-4 w-4 rotate-180" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
     </div>
   );
 };
