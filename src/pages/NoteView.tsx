@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Trash2, FileText, MoreHorizontal, Bold, Italic, Underline, Strikethrough, Link2, AlignLeft, Code, List, ListOrdered, Indent, Outdent, Table2, ChevronDown, X, MessageSquare } from "lucide-react";
+import { ArrowLeft, Trash2, FileText, MoreHorizontal, Bold, Italic, Underline, Strikethrough, Link2, AlignLeft, Code, List, ListOrdered, Indent, Outdent, Table2, ChevronDown, X, MessageSquare, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNotePersistence, ChatNote } from "@/hooks/useNotePersistence";
@@ -59,6 +59,9 @@ const NoteView = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load note data
   useEffect(() => {
@@ -110,18 +113,53 @@ const NoteView = () => {
     navigate(-1);
   };
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async (content: string, showToast = false) => {
     if (!noteId || !note) return;
+    setIsSaving(true);
 
-    const success = await updateNote(noteId, { content: editContent });
+    const success = await updateNote(noteId, { content });
     if (success) {
-      setNote({ ...note, content: editContent });
-      setIsEditing(false);
-      toast({ title: "Note saved" });
+      setNote(prev => prev ? { ...prev, content } : null);
+      setHasUnsavedChanges(false);
+      if (showToast) {
+        toast({ title: "Note saved" });
+      }
     } else {
       toast({ title: "Failed to save", variant: "destructive" });
     }
-  };
+    setIsSaving(false);
+  }, [noteId, note, updateNote, toast]);
+
+  // Auto-save with debounce when content changes
+  useEffect(() => {
+    if (!isEditing || !note || editContent === note.content) return;
+
+    setHasUnsavedChanges(true);
+
+    // Clear existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Set new timeout for auto-save (1.5 seconds after last change)
+    saveTimeoutRef.current = setTimeout(() => {
+      handleSave(editContent, false);
+    }, 1500);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [editContent, isEditing, note, handleSave]);
+
+  // Save on blur/exit editing mode
+  const handleExitEditing = useCallback(() => {
+    if (hasUnsavedChanges && note) {
+      handleSave(editContent, false);
+    }
+    setIsEditing(false);
+  }, [hasUnsavedChanges, note, editContent, handleSave]);
 
   if (loading) {
     return (
@@ -159,6 +197,13 @@ const NoteView = () => {
           </div>
 
           <div className="flex items-center gap-1">
+            {/* Save indicator when editing */}
+            {isEditing && (
+              <span className="text-xs text-muted-foreground mr-2">
+                {isSaving ? "Saving..." : hasUnsavedChanges ? "Unsaved changes" : "Saved"}
+              </span>
+            )}
+
             {/* Chat Toggle */}
             <Button
               variant="ghost"
@@ -212,11 +257,14 @@ const NoteView = () => {
 
             {/* Note Content - Editable or Rendered */}
             {isEditing ? (
-              <Textarea
+              <textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                className="min-h-[500px] text-base leading-relaxed resize-none border-0 shadow-none focus-visible:ring-0 p-0"
+                onBlur={handleExitEditing}
+                autoFocus
+                className="w-full min-h-[500px] text-base leading-relaxed resize-none border-0 shadow-none focus:outline-none focus:ring-0 p-0 bg-transparent overflow-hidden"
                 placeholder="Start writing..."
+                style={{ height: 'auto' }}
               />
             ) : (
               <div
@@ -251,6 +299,11 @@ const NoteView = () => {
         {/* Rich Text Toolbar */}
         <div className="px-4 pb-5">
           <div className="max-w-[800px] mx-auto flex items-center gap-0.5 bg-background border rounded-lg shadow-sm px-2 py-2">
+            {/* Grip Handle */}
+            <div className="flex items-center px-1 cursor-grab text-muted-foreground/50">
+              <GripVertical className="h-4 w-4" />
+            </div>
+
             {/* Text Style Dropdown */}
             <Select defaultValue="paragraph">
               <SelectTrigger className="w-[140px] h-8 text-sm border-0 shadow-none hover:bg-muted focus:ring-0">
@@ -320,22 +373,6 @@ const NoteView = () => {
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <Table2 className="h-4 w-4" />
             </Button>
-
-            {/* Save button when editing */}
-            {isEditing && (
-              <>
-                <div className="flex-1" />
-                <Button size="sm" onClick={handleSave}>
-                  Save
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => {
-                  setEditContent(note.content);
-                  setIsEditing(false);
-                }}>
-                  Cancel
-                </Button>
-              </>
-            )}
           </div>
         </div>
       </div>
