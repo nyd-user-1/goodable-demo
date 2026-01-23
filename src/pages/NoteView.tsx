@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useParams, NavLink } from "react-router-dom";
 import {
-  ArrowLeft, Trash2, FileText, MoreHorizontal, Bold, Italic,
+  Trash2, FileText, MoreHorizontal, Bold, Italic,
   Underline as UnderlineIcon, Strikethrough, Link2, AlignLeft,
   AlignCenter, AlignRight, Code, List, ListOrdered, Indent, Outdent,
-  Table2, ChevronDown, X, MessageSquare, GripVertical, PanelLeft,
-  PanelRight, ScrollText, Building2, Users, TrendingUp, Home, Heart,
-  Target, Search, ChevronRight, ExternalLink
+  Table2, ChevronDown, MessageSquare, GripVertical, PanelLeft,
+  PanelRight, ChevronRight, ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -40,8 +39,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 
 interface BillData {
   bill_number: string;
@@ -56,21 +55,6 @@ interface ChatSession {
   id: string;
   title: string;
 }
-
-// Navigation items for the local sidebar
-const navigationItems = {
-  research: [
-    { title: "Bills", url: "/bills", icon: ScrollText },
-    { title: "Committees", url: "/committees", icon: Building2 },
-    { title: "Members", url: "/members", icon: Users },
-  ],
-  main: [
-    { title: "Dashboard", url: "/dashboard", icon: TrendingUp },
-    { title: "Explore", url: "/home", icon: Home },
-    { title: "The 100", url: "/problems", icon: Target },
-    { title: "Favorites", url: "/favorites", icon: Heart },
-  ],
-};
 
 const NoteView = () => {
   const navigate = useNavigate();
@@ -91,8 +75,7 @@ const NoteView = () => {
   const [toolbarPosition, setToolbarPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [parentChat, setParentChat] = useState<ChatSession | null>(null);
-  const [isResearchOpen, setIsResearchOpen] = useState(true);
-  const [isMainOpen, setIsMainOpen] = useState(true);
+  const [toolbarInitialized, setToolbarInitialized] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const titleSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const editorRef = useRef<TipTapEditorRef>(null);
@@ -160,10 +143,6 @@ const NoteView = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const handleBack = () => {
-    navigate(-1);
   };
 
   const handleSave = useCallback(async (content: string, showToast = false) => {
@@ -355,28 +334,46 @@ const NoteView = () => {
     };
   }, [isDragging]);
 
+  // Initialize toolbar position: centered horizontally, bottom-aligned with 30px margin
   useEffect(() => {
-    const updatePosition = () => {
-      const container = containerRef.current;
-      if (!container) return;
+    const initializePosition = () => {
+      if (toolbarInitialized) return;
 
-      const containerRect = container.getBoundingClientRect();
-      const toolbarWidth = toolbarRef.current?.offsetWidth || 500;
+      const toolbarWidth = toolbarRef.current?.offsetWidth || 560;
+      const toolbarHeight = toolbarRef.current?.offsetHeight || 48;
 
-      setToolbarPosition({
-        x: containerRect.left + (containerRect.width - toolbarWidth) / 2,
-        y: containerRect.bottom - 80,
-      });
+      // Center horizontally on viewport
+      const x = (window.innerWidth - toolbarWidth) / 2;
+      // Position at bottom of viewport with 30px margin
+      const y = window.innerHeight - toolbarHeight - 30;
+
+      setToolbarPosition({ x, y });
+      setToolbarInitialized(true);
     };
 
-    const timer = setTimeout(updatePosition, 100);
-    window.addEventListener('resize', updatePosition);
+    // Wait for toolbar to render
+    const timer = setTimeout(initializePosition, 100);
 
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('resize', updatePosition);
+    return () => clearTimeout(timer);
+  }, [toolbarInitialized]);
+
+  // Handle window resize - keep toolbar within bounds
+  useEffect(() => {
+    const handleResize = () => {
+      if (!toolbarInitialized) return;
+
+      const toolbarWidth = toolbarRef.current?.offsetWidth || 560;
+      const toolbarHeight = toolbarRef.current?.offsetHeight || 48;
+
+      setToolbarPosition(prev => ({
+        x: Math.min(prev.x, window.innerWidth - toolbarWidth),
+        y: Math.min(prev.y, window.innerHeight - toolbarHeight - 10),
+      }));
     };
-  }, [leftSidebarOpen, rightSidebarOpen]);
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [toolbarInitialized]);
 
   if (loading) {
     return (
@@ -421,10 +418,7 @@ const NoteView = () => {
               <PanelLeft className="h-4 w-4" />
             </Button>
 
-            <div className="flex items-center gap-2 min-w-0">
-              <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <h1 className="font-medium truncate">{editableTitle || note.title}</h1>
-            </div>
+            <span className="text-sm truncate">{editableTitle || note.title}</span>
           </div>
 
           <div className="flex items-center gap-1">
@@ -483,87 +477,12 @@ const NoteView = () => {
           {/* Left Sidebar */}
           <div
             className={cn(
-              "border-r bg-background flex-shrink-0 overflow-y-auto transition-all duration-300",
+              "border-r bg-background flex-shrink-0 overflow-hidden transition-all duration-300",
               leftSidebarOpen ? "w-64" : "w-0"
             )}
           >
             {leftSidebarOpen && (
-              <div className="p-3 space-y-4">
-                {/* Quick Actions */}
-                <div className="space-y-1">
-                  <NavLink
-                    to="/new-chat"
-                    className="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors"
-                  >
-                    <MessageSquare className="h-4 w-4" />
-                    <span>New chat</span>
-                  </NavLink>
-                  <NavLink
-                    to="/chats"
-                    className="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors"
-                  >
-                    <Search className="h-4 w-4" />
-                    <span>Chat History</span>
-                  </NavLink>
-                </div>
-
-                {/* Your Research Section */}
-                <Collapsible open={isResearchOpen} onOpenChange={setIsResearchOpen}>
-                  <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Your research
-                    <ChevronDown className={cn("h-4 w-4 transition-transform", isResearchOpen && "rotate-180")} />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="space-y-1">
-                    {navigationItems.research.map((item) => (
-                      <NavLink
-                        key={item.title}
-                        to={item.url}
-                        className="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors"
-                      >
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </NavLink>
-                    ))}
-                  </CollapsibleContent>
-                </Collapsible>
-
-                {/* Main Navigation Section */}
-                <Collapsible open={isMainOpen} onOpenChange={setIsMainOpen}>
-                  <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Navigate
-                    <ChevronDown className={cn("h-4 w-4 transition-transform", isMainOpen && "rotate-180")} />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="space-y-1">
-                    {navigationItems.main.map((item) => (
-                      <NavLink
-                        key={item.title}
-                        to={item.url}
-                        className="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors"
-                      >
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </NavLink>
-                    ))}
-                  </CollapsibleContent>
-                </Collapsible>
-
-                {/* Back to chat link if parent exists */}
-                {parentChat && (
-                  <div className="pt-4 border-t">
-                    <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                      Source
-                    </p>
-                    <NavLink
-                      to={`/chats/${parentChat.id}`}
-                      className="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors text-primary"
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                      <span className="truncate flex-1">{parentChat.title || "Original Chat"}</span>
-                      <ExternalLink className="h-3 w-3" />
-                    </NavLink>
-                  </div>
-                )}
-              </div>
+              <NoteViewSidebar parentChat={parentChat} />
             )}
           </div>
 
