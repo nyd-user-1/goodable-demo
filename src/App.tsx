@@ -101,7 +101,6 @@ const AppLayout = () => {
               <Route path="/new-chat" element={<NewChat />} />
               <Route path="/c/:sessionId" element={<NewChat />} />
               <Route path="/e/:excerptId" element={<ExcerptView />} />
-              <Route path="/n/:noteId" element={<NoteView />} />
               <Route path="/new-chat-2" element={<NewChat2 />} />
               <Route path="/chats" element={<Chats2 />} />
               <Route path="/playground" element={<Playground />} />
@@ -187,6 +186,7 @@ const App = () => {
                   <Route path="/nonprofits/social-advocacy" element={<NonprofitSocialAdvocacy />} />
                   <Route path="/nonprofits/directory" element={<NonprofitDirectory />} />
                   <Route path="/problems/:problemSlug" element={<ProblemPage />} />
+                  <Route path="/n/:noteId" element={<ProtectedRoute><NoteView /></ProtectedRoute>} />
                   <Route path="*" element={<AppLayout />} />
                 </Routes>
               </PageTransition>

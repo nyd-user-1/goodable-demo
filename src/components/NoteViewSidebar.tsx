@@ -107,7 +107,7 @@ export function NoteViewSidebar({ parentChat }: NoteViewSidebarProps) {
             onMouseLeave={() => setNewChatHover(false)}
             className={cn(
               "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-              isActive("/new-chat") ? "bg-accent" : "hover:bg-accent"
+              isActive("/new-chat") ? "bg-muted" : "hover:bg-muted"
             )}
           >
             <div className="relative w-4 h-4 flex-shrink-0">
@@ -131,7 +131,7 @@ export function NoteViewSidebar({ parentChat }: NoteViewSidebarProps) {
             to="/chats"
             className={cn(
               "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-              isActive("/chats") ? "bg-accent" : "hover:bg-accent"
+              isActive("/chats") ? "bg-muted" : "hover:bg-muted"
             )}
           >
             <Clock className="h-4 w-4" />
@@ -152,7 +152,7 @@ export function NoteViewSidebar({ parentChat }: NoteViewSidebarProps) {
               to="/bills"
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                isActive("/bills") ? "bg-accent" : "hover:bg-accent"
+                isActive("/bills") ? "bg-muted" : "hover:bg-muted"
               )}
             >
               <ScrollText className="h-4 w-4" />
@@ -162,7 +162,7 @@ export function NoteViewSidebar({ parentChat }: NoteViewSidebarProps) {
               to="/committees"
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                isActive("/committees") ? "bg-accent" : "hover:bg-accent"
+                isActive("/committees") ? "bg-muted" : "hover:bg-muted"
               )}
             >
               <Landmark className="h-4 w-4" />
@@ -172,7 +172,7 @@ export function NoteViewSidebar({ parentChat }: NoteViewSidebarProps) {
               to="/members"
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                isActive("/members") ? "bg-accent" : "hover:bg-accent"
+                isActive("/members") ? "bg-muted" : "hover:bg-muted"
               )}
             >
               <Users className="h-4 w-4" />
@@ -186,7 +186,7 @@ export function NoteViewSidebar({ parentChat }: NoteViewSidebarProps) {
               to="/contracts"
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                isActive("/contracts") ? "bg-accent" : "hover:bg-accent"
+                isActive("/contracts") ? "bg-muted" : "hover:bg-muted"
               )}
             >
               <Wallet className="h-4 w-4" />
@@ -196,7 +196,7 @@ export function NoteViewSidebar({ parentChat }: NoteViewSidebarProps) {
               to="/school-funding"
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                isActive("/school-funding") ? "bg-accent" : "hover:bg-accent"
+                isActive("/school-funding") ? "bg-muted" : "hover:bg-muted"
               )}
             >
               <GraduationCap className="h-4 w-4" />
@@ -206,7 +206,7 @@ export function NoteViewSidebar({ parentChat }: NoteViewSidebarProps) {
               to="/dashboard"
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                isActive("/dashboard") ? "bg-accent" : "hover:bg-accent"
+                isActive("/dashboard") ? "bg-muted" : "hover:bg-muted"
               )}
             >
               <TrendingUp className="h-4 w-4" />
@@ -231,7 +231,7 @@ export function NoteViewSidebar({ parentChat }: NoteViewSidebarProps) {
                   to={`/c/${chat.id}`}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                    location.pathname === `/c/${chat.id}` ? "bg-accent" : "hover:bg-accent"
+                    location.pathname === `/c/${chat.id}` ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
                   <MessagesSquare className="h-4 w-4 flex-shrink-0" />
@@ -258,7 +258,7 @@ export function NoteViewSidebar({ parentChat }: NoteViewSidebarProps) {
                   to={`/e/${excerpt.id}`}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                    location.pathname === `/e/${excerpt.id}` ? "bg-accent" : "hover:bg-accent"
+                    location.pathname === `/e/${excerpt.id}` ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
                   <TextQuote className="h-4 w-4 flex-shrink-0" />
@@ -278,7 +278,7 @@ export function NoteViewSidebar({ parentChat }: NoteViewSidebarProps) {
           </p>
           <NavLink
             to={`/c/${parentChat.id}`}
-            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-primary hover:bg-accent transition-colors"
+            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-primary hover:bg-muted transition-colors"
           >
             <MessageSquare className="h-4 w-4 flex-shrink-0" />
             <span className="truncate flex-1">{parentChat.title || "Original Chat"}</span>
