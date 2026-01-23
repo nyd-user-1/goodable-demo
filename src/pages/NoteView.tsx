@@ -249,8 +249,8 @@ const NoteView = () => {
         </div>
 
         {/* Rich Text Toolbar */}
-        <div className="border-t bg-background px-4 py-2">
-          <div className="max-w-[800px] mx-auto flex items-center gap-0.5">
+        <div className="px-4 pb-5">
+          <div className="max-w-[800px] mx-auto flex items-center gap-0.5 bg-background border rounded-lg shadow-sm px-2 py-2">
             {/* Text Style Dropdown */}
             <Select defaultValue="paragraph">
               <SelectTrigger className="w-[140px] h-8 text-sm border-0 shadow-none hover:bg-muted focus:ring-0">
