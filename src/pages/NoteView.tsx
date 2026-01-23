@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Trash2, FileText, MoreHorizontal, Bold, Italic, Underline, Strikethrough, Link2, AlignLeft, Code, List, ListOrdered, Indent, Outdent, Table2, ChevronDown, X, MessageSquare, GripVertical } from "lucide-react";
+import { ArrowLeft, Trash2, FileText, MoreHorizontal, Bold, Italic, Underline as UnderlineIcon, Strikethrough, Link2, AlignLeft, AlignCenter, AlignRight, Code, List, ListOrdered, Indent, Outdent, Table2, ChevronDown, X, MessageSquare, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNotePersistence, ChatNote } from "@/hooks/useNotePersistence";
 import { supabase } from "@/integrations/supabase/client";
-import ReactMarkdown from "react-markdown";
+import { TipTapEditor, TipTapEditorRef, editorCommands, isFormatActive } from "@/components/TipTapEditor";
+import { ensureHtml } from "@/utils/markdownUtils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,11 +58,15 @@ const NoteView = () => {
   const [bill, setBill] = useState<BillData | null>(null);
   const [loading, setLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState("");
+  const [htmlContent, setHtmlContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [, forceUpdate] = useState(0); // For re-rendering toolbar state
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const editorRef = useRef<TipTapEditorRef>(null);
+
+  // Get editor instance for toolbar
+  const editor = editorRef.current?.editor;
 
   // Load note data
   useEffect(() => {
@@ -72,7 +77,9 @@ const NoteView = () => {
       const data = await fetchNoteById(noteId);
       setNote(data);
       if (data) {
-        setEditContent(data.content);
+        // Convert markdown to HTML if needed for TipTap
+        const html = ensureHtml(data.content);
+        setHtmlContent(html);
       }
 
       // Fetch associated bill if exists
@@ -130,10 +137,9 @@ const NoteView = () => {
     setIsSaving(false);
   }, [noteId, note, updateNote, toast]);
 
-  // Auto-save with debounce when content changes
-  useEffect(() => {
-    if (!isEditing || !note || editContent === note.content) return;
-
+  // Handle content change from TipTap editor
+  const handleContentChange = useCallback((newHtml: string) => {
+    setHtmlContent(newHtml);
     setHasUnsavedChanges(true);
 
     // Clear existing timeout
@@ -143,23 +149,73 @@ const NoteView = () => {
 
     // Set new timeout for auto-save (1.5 seconds after last change)
     saveTimeoutRef.current = setTimeout(() => {
-      handleSave(editContent, false);
+      handleSave(newHtml, false);
     }, 1500);
+  }, [handleSave]);
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [editContent, isEditing, note, handleSave]);
+  }, []);
 
-  // Save on blur/exit editing mode
-  const handleExitEditing = useCallback(() => {
-    if (hasUnsavedChanges && note) {
-      handleSave(editContent, false);
+  // Handle blur - save immediately if there are unsaved changes
+  const handleEditorBlur = useCallback(() => {
+    if (hasUnsavedChanges && htmlContent) {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      handleSave(htmlContent, false);
     }
-    setIsEditing(false);
-  }, [hasUnsavedChanges, note, editContent, handleSave]);
+  }, [hasUnsavedChanges, htmlContent, handleSave]);
+
+  // Force re-render to update toolbar active states
+  useEffect(() => {
+    if (!editor) return;
+    const updateToolbar = () => forceUpdate(n => n + 1);
+    editor.on('selectionUpdate', updateToolbar);
+    editor.on('transaction', updateToolbar);
+    return () => {
+      editor.off('selectionUpdate', updateToolbar);
+      editor.off('transaction', updateToolbar);
+    };
+  }, [editor]);
+
+  // Handle link insertion
+  const handleLinkClick = useCallback(() => {
+    if (!editor) return;
+    const currentUrl = editor.getAttributes('link').href || '';
+    const url = window.prompt('Enter URL:', currentUrl);
+    if (url === null) return; // Cancelled
+    if (url === '') {
+      editorCommands.unsetLink(editor);
+    } else {
+      editorCommands.setLink(editor, url);
+    }
+  }, [editor]);
+
+  // Handle heading selection
+  const handleHeadingChange = useCallback((value: string) => {
+    if (!editor) return;
+    if (value === 'paragraph') {
+      editorCommands.setParagraph(editor);
+    } else {
+      const level = parseInt(value.replace('h', '')) as 1 | 2 | 3;
+      editorCommands.setHeading(editor, level);
+    }
+  }, [editor]);
+
+  // Get current heading value for select
+  const getCurrentHeadingValue = useCallback((): string => {
+    if (!editor) return 'paragraph';
+    if (isFormatActive.heading(editor, 1)) return 'h1';
+    if (isFormatActive.heading(editor, 2)) return 'h2';
+    if (isFormatActive.heading(editor, 3)) return 'h3';
+    return 'paragraph';
+  }, [editor]);
 
   if (loading) {
     return (
@@ -197,12 +253,10 @@ const NoteView = () => {
           </div>
 
           <div className="flex items-center gap-1">
-            {/* Save indicator when editing */}
-            {isEditing && (
-              <span className="text-xs text-muted-foreground mr-2">
-                {isSaving ? "Saving..." : hasUnsavedChanges ? "Unsaved changes" : "Saved"}
-              </span>
-            )}
+            {/* Save indicator */}
+            <span className="text-xs text-muted-foreground mr-2">
+              {isSaving ? "Saving..." : hasUnsavedChanges ? "Unsaved changes" : "Saved"}
+            </span>
 
             {/* Chat Toggle */}
             <Button
@@ -255,25 +309,15 @@ const NoteView = () => {
             {/* Note Title */}
             <h1 className="text-3xl font-bold mb-8">{note.title}</h1>
 
-            {/* Note Content - Editable or Rendered */}
-            {isEditing ? (
-              <textarea
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                onBlur={handleExitEditing}
-                autoFocus
-                className="w-full min-h-[500px] text-base leading-relaxed resize-none border-0 shadow-none focus:outline-none focus:ring-0 p-0 bg-transparent overflow-hidden"
-                placeholder="Start writing..."
-                style={{ height: 'auto' }}
-              />
-            ) : (
-              <div
-                className="prose prose-lg dark:prose-invert max-w-none cursor-text"
-                onClick={() => setIsEditing(true)}
-              >
-                <ReactMarkdown>{note.content}</ReactMarkdown>
-              </div>
-            )}
+            {/* Note Content - WYSIWYG TipTap Editor */}
+            <TipTapEditor
+              ref={editorRef}
+              content={htmlContent}
+              onChange={handleContentChange}
+              onBlur={handleEditorBlur}
+              editable={true}
+              className="min-h-[400px]"
+            />
 
             {/* Associated Bill (if exists) */}
             {bill && (
@@ -305,7 +349,7 @@ const NoteView = () => {
             </div>
 
             {/* Text Style Dropdown */}
-            <Select defaultValue="paragraph">
+            <Select value={getCurrentHeadingValue()} onValueChange={handleHeadingChange}>
               <SelectTrigger className="w-[140px] h-8 text-sm border-0 shadow-none hover:bg-muted focus:ring-0">
                 <span className="flex items-center gap-2">
                   <span className="text-muted-foreground">Aa</span>
@@ -321,56 +365,135 @@ const NoteView = () => {
             </Select>
 
             {/* Format Buttons */}
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 ${isFormatActive.bold(editor) ? 'bg-muted' : ''}`}
+              onClick={() => editorCommands.toggleBold(editor)}
+            >
               <Bold className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 ${isFormatActive.italic(editor) ? 'bg-muted' : ''}`}
+              onClick={() => editorCommands.toggleItalic(editor)}
+            >
               <Italic className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Underline className="h-4 w-4" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 ${isFormatActive.underline(editor) ? 'bg-muted' : ''}`}
+              onClick={() => editorCommands.toggleUnderline(editor)}
+            >
+              <UnderlineIcon className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 ${isFormatActive.strike(editor) ? 'bg-muted' : ''}`}
+              onClick={() => editorCommands.toggleStrike(editor)}
+            >
               <Strikethrough className="h-4 w-4" />
             </Button>
 
-            {/* Text Color */}
+            {/* Text Color - placeholder for now */}
             <Button variant="ghost" size="sm" className="h-8 px-2 gap-0.5">
               <span className="text-sm font-medium border-b-2 border-foreground">A</span>
               <ChevronDown className="h-3 w-3" />
             </Button>
 
             {/* Link */}
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 ${isFormatActive.link(editor) ? 'bg-muted' : ''}`}
+              onClick={handleLinkClick}
+            >
               <Link2 className="h-4 w-4" />
             </Button>
 
             {/* Alignment */}
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <AlignLeft className="h-4 w-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  {isFormatActive.textAlign(editor, 'center') ? (
+                    <AlignCenter className="h-4 w-4" />
+                  ) : isFormatActive.textAlign(editor, 'right') ? (
+                    <AlignRight className="h-4 w-4" />
+                  ) : (
+                    <AlignLeft className="h-4 w-4" />
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center">
+                <DropdownMenuItem onClick={() => editorCommands.setTextAlign(editor, 'left')}>
+                  <AlignLeft className="h-4 w-4 mr-2" />
+                  Left
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editorCommands.setTextAlign(editor, 'center')}>
+                  <AlignCenter className="h-4 w-4 mr-2" />
+                  Center
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => editorCommands.setTextAlign(editor, 'right')}>
+                  <AlignRight className="h-4 w-4 mr-2" />
+                  Right
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Code */}
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 ${isFormatActive.code(editor) ? 'bg-muted' : ''}`}
+              onClick={() => editorCommands.toggleCode(editor)}
+            >
               <Code className="h-4 w-4" />
             </Button>
 
             {/* Lists */}
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 ${isFormatActive.bulletList(editor) ? 'bg-muted' : ''}`}
+              onClick={() => editorCommands.toggleBulletList(editor)}
+            >
               <List className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 ${isFormatActive.orderedList(editor) ? 'bg-muted' : ''}`}
+              onClick={() => editorCommands.toggleOrderedList(editor)}
+            >
               <ListOrdered className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => editorCommands.outdent(editor)}
+            >
               <Outdent className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => editorCommands.indent(editor)}
+            >
               <Indent className="h-4 w-4" />
             </Button>
 
             {/* Table */}
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => editorCommands.insertTable(editor)}
+            >
               <Table2 className="h-4 w-4" />
             </Button>
           </div>
