@@ -5,14 +5,16 @@ import {
   Underline as UnderlineIcon, Strikethrough, Link2, AlignLeft,
   AlignCenter, AlignRight, Code, List, ListOrdered, Indent, Outdent,
   Table2, ChevronDown, MessageSquare, GripVertical, PanelLeft,
-  PanelRight, ChevronRight, ExternalLink
+  PanelRight, ChevronRight, ExternalLink, Clock, Copy, Clipboard,
+  Download, FileCode, FileType
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNotePersistence, ChatNote } from "@/hooks/useNotePersistence";
 import { supabase } from "@/integrations/supabase/client";
 import { TipTapEditor, TipTapEditorRef, editorCommands, isFormatActive, TEXT_COLORS } from "@/components/TipTapEditor";
-import { ensureHtml } from "@/utils/markdownUtils";
+import { ensureHtml, htmlToMarkdown } from "@/utils/markdownUtils";
+import { jsPDF } from "jspdf";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +31,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   Select,
@@ -301,6 +307,113 @@ const NoteView = () => {
     setIsDragging(true);
   }, []);
 
+  // Get plain text from HTML for word/character count
+  const getPlainText = useCallback((html: string): string => {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.textContent || div.innerText || '';
+  }, []);
+
+  // Calculate word and character count
+  const wordCount = htmlContent ? getPlainText(htmlContent).trim().split(/\s+/).filter(Boolean).length : 0;
+  const characterCount = htmlContent ? getPlainText(htmlContent).length : 0;
+
+  // Export functions
+  const handleExportPDF = useCallback(() => {
+    const plainText = getPlainText(htmlContent);
+    const doc = new jsPDF();
+    const title = editableTitle || note?.title || 'Untitled';
+
+    doc.setFontSize(18);
+    doc.text(title, 20, 20);
+    doc.setFontSize(12);
+
+    // Split text into lines that fit the page width
+    const lines = doc.splitTextToSize(plainText, 170);
+    doc.text(lines, 20, 35);
+
+    doc.save(`${title}.pdf`);
+    toast({ title: "Exported as PDF" });
+  }, [htmlContent, editableTitle, note?.title, getPlainText, toast]);
+
+  const handleExportHTML = useCallback(() => {
+    const title = editableTitle || note?.title || 'Untitled';
+    const fullHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>${title}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }
+    h1 { margin-bottom: 24px; }
+  </style>
+</head>
+<body>
+  <h1>${title}</h1>
+  ${htmlContent}
+</body>
+</html>`;
+
+    const blob = new Blob([fullHtml], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Exported as HTML" });
+  }, [htmlContent, editableTitle, note?.title, toast]);
+
+  const handleExportWord = useCallback(() => {
+    const title = editableTitle || note?.title || 'Untitled';
+    // Create a simple Word-compatible HTML document
+    const wordHtml = `
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word">
+<head>
+  <meta charset="UTF-8">
+  <title>${title}</title>
+</head>
+<body>
+  <h1>${title}</h1>
+  ${htmlContent}
+</body>
+</html>`;
+
+    const blob = new Blob([wordHtml], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title}.doc`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Exported as Word" });
+  }, [htmlContent, editableTitle, note?.title, toast]);
+
+  const handleExportMarkdown = useCallback(() => {
+    const title = editableTitle || note?.title || 'Untitled';
+    const markdown = `# ${title}\n\n${htmlToMarkdown(htmlContent)}`;
+
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Exported as Markdown" });
+  }, [htmlContent, editableTitle, note?.title, toast]);
+
+  const handleCopyContents = useCallback(async () => {
+    const plainText = getPlainText(htmlContent);
+    await navigator.clipboard.writeText(plainText);
+    toast({ title: "Contents copied to clipboard" });
+  }, [htmlContent, getPlainText, toast]);
+
+  const handleDuplicate = useCallback(() => {
+    // For now, just show a toast - this would need backend support
+    toast({ title: "Duplicate feature coming soon" });
+  }, [toast]);
+
   useEffect(() => {
     if (!isDragging) return;
 
@@ -455,7 +568,41 @@ const NoteView = () => {
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={handleDuplicate}>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Duplicate
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleCopyContents}>
+                  <Clipboard className="h-4 w-4 mr-2" />
+                  Copy contents
+                </DropdownMenuItem>
+
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={handleExportPDF}>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Export as PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportHTML}>
+                      <FileCode className="h-4 w-4 mr-2" />
+                      Export as HTML
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportWord}>
+                      <FileType className="h-4 w-4 mr-2" />
+                      Export as Word
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportMarkdown}>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Export as Markdown
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
@@ -478,6 +625,20 @@ const NoteView = () => {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
+
+                <DropdownMenuSeparator />
+
+                {/* Word and Character Count */}
+                <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                  <div className="flex justify-between">
+                    <span>Word count</span>
+                    <span>{wordCount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Character count</span>
+                    <span>{characterCount.toLocaleString()}</span>
+                  </div>
+                </div>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
