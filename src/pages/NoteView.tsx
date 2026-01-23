@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNotePersistence, ChatNote } from "@/hooks/useNotePersistence";
 import { supabase } from "@/integrations/supabase/client";
-import { TipTapEditor, TipTapEditorRef, editorCommands, isFormatActive } from "@/components/TipTapEditor";
+import { TipTapEditor, TipTapEditorRef, editorCommands, isFormatActive, TEXT_COLORS } from "@/components/TipTapEditor";
 import { ensureHtml } from "@/utils/markdownUtils";
 import {
   AlertDialog,
@@ -63,9 +63,13 @@ const NoteView = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [, forceUpdate] = useState(0); // For re-rendering toolbar state
+  const [toolbarPosition, setToolbarPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const titleSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const editorRef = useRef<TipTapEditorRef>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
 
   // Get editor instance for toolbar
   const editor = editorRef.current?.editor;
@@ -268,6 +272,84 @@ const NoteView = () => {
     return 'paragraph';
   }, [editor]);
 
+  // Handle text color change
+  const handleColorChange = useCallback((color: string | null) => {
+    if (!editor) return;
+    if (color === null) {
+      editorCommands.unsetColor(editor);
+    } else {
+      editorCommands.setColor(editor, color);
+    }
+  }, [editor]);
+
+  // Get current text color
+  const getCurrentColor = useCallback((): string | null => {
+    return isFormatActive.textColor(editor);
+  }, [editor]);
+
+  // Toolbar drag handlers
+  const handleDragStart = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!toolbarRef.current) return;
+    e.preventDefault();
+
+    const rect = toolbarRef.current.getBoundingClientRect();
+    dragOffsetRef.current = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    };
+    setIsDragging(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newX = e.clientX - dragOffsetRef.current.x;
+      const newY = e.clientY - dragOffsetRef.current.y;
+
+      // Keep toolbar within viewport bounds
+      const maxX = window.innerWidth - (toolbarRef.current?.offsetWidth || 0);
+      const maxY = window.innerHeight - (toolbarRef.current?.offsetHeight || 0);
+
+      setToolbarPosition({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY)),
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
+  // Initialize toolbar position at bottom center
+  useEffect(() => {
+    const updatePosition = () => {
+      const toolbarWidth = toolbarRef.current?.offsetWidth || 500;
+      setToolbarPosition({
+        x: (window.innerWidth - toolbarWidth) / 2,
+        y: window.innerHeight - 80,
+      });
+    };
+
+    // Small delay to ensure toolbar is rendered
+    const timer = setTimeout(updatePosition, 100);
+    window.addEventListener('resize', updatePosition);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, []);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -398,163 +480,199 @@ const NoteView = () => {
           </div>
         </div>
 
-        {/* Rich Text Toolbar */}
-        <div className="flex justify-center pb-5">
-          <div className="flex items-center gap-0.5 bg-background border rounded-lg shadow-sm px-2 py-2 w-fit">
-            {/* Grip Handle */}
-            <div className="flex items-center px-1 cursor-grab text-muted-foreground/50">
-              <GripVertical className="h-4 w-4" />
-            </div>
+      </div>
 
-            {/* Text Style Dropdown */}
-            <Select value={getCurrentHeadingValue()} onValueChange={handleHeadingChange}>
-              <SelectTrigger className="w-[140px] h-8 text-sm border-0 shadow-none hover:bg-muted focus:ring-0">
-                <span className="flex items-center gap-2">
-                  <span className="text-muted-foreground">Aa</span>
-                  <SelectValue placeholder="Regular text" />
-                </span>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="paragraph">Regular text</SelectItem>
-                <SelectItem value="h1">Heading 1</SelectItem>
-                <SelectItem value="h2">Heading 2</SelectItem>
-                <SelectItem value="h3">Heading 3</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Format Buttons */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`h-8 w-8 ${isFormatActive.bold(editor) ? 'bg-muted' : ''}`}
-              onClick={() => editorCommands.toggleBold(editor)}
-            >
-              <Bold className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`h-8 w-8 ${isFormatActive.italic(editor) ? 'bg-muted' : ''}`}
-              onClick={() => editorCommands.toggleItalic(editor)}
-            >
-              <Italic className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`h-8 w-8 ${isFormatActive.underline(editor) ? 'bg-muted' : ''}`}
-              onClick={() => editorCommands.toggleUnderline(editor)}
-            >
-              <UnderlineIcon className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`h-8 w-8 ${isFormatActive.strike(editor) ? 'bg-muted' : ''}`}
-              onClick={() => editorCommands.toggleStrike(editor)}
-            >
-              <Strikethrough className="h-4 w-4" />
-            </Button>
-
-            {/* Text Color - placeholder for now */}
-            <Button variant="ghost" size="sm" className="h-8 px-2 gap-0.5">
-              <span className="text-sm font-medium border-b-2 border-foreground">A</span>
-              <ChevronDown className="h-3 w-3" />
-            </Button>
-
-            {/* Link */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`h-8 w-8 ${isFormatActive.link(editor) ? 'bg-muted' : ''}`}
-              onClick={handleLinkClick}
-            >
-              <Link2 className="h-4 w-4" />
-            </Button>
-
-            {/* Alignment */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  {isFormatActive.textAlign(editor, 'center') ? (
-                    <AlignCenter className="h-4 w-4" />
-                  ) : isFormatActive.textAlign(editor, 'right') ? (
-                    <AlignRight className="h-4 w-4" />
-                  ) : (
-                    <AlignLeft className="h-4 w-4" />
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="center">
-                <DropdownMenuItem onClick={() => editorCommands.setTextAlign(editor, 'left')}>
-                  <AlignLeft className="h-4 w-4 mr-2" />
-                  Left
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editorCommands.setTextAlign(editor, 'center')}>
-                  <AlignCenter className="h-4 w-4 mr-2" />
-                  Center
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => editorCommands.setTextAlign(editor, 'right')}>
-                  <AlignRight className="h-4 w-4 mr-2" />
-                  Right
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Code */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`h-8 w-8 ${isFormatActive.code(editor) ? 'bg-muted' : ''}`}
-              onClick={() => editorCommands.toggleCode(editor)}
-            >
-              <Code className="h-4 w-4" />
-            </Button>
-
-            {/* Lists */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`h-8 w-8 ${isFormatActive.bulletList(editor) ? 'bg-muted' : ''}`}
-              onClick={() => editorCommands.toggleBulletList(editor)}
-            >
-              <List className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`h-8 w-8 ${isFormatActive.orderedList(editor) ? 'bg-muted' : ''}`}
-              onClick={() => editorCommands.toggleOrderedList(editor)}
-            >
-              <ListOrdered className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => editorCommands.outdent(editor)}
-            >
-              <Outdent className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => editorCommands.indent(editor)}
-            >
-              <Indent className="h-4 w-4" />
-            </Button>
-
-            {/* Table */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => editorCommands.insertTable(editor)}
-            >
-              <Table2 className="h-4 w-4" />
-            </Button>
+      {/* Draggable Rich Text Toolbar */}
+      <div
+        ref={toolbarRef}
+        className="fixed z-50"
+        style={{
+          left: toolbarPosition.x,
+          top: toolbarPosition.y,
+          cursor: isDragging ? 'grabbing' : 'auto',
+        }}
+      >
+        <div className="flex items-center gap-0.5 bg-background border rounded-lg shadow-lg px-2 py-2 w-fit">
+          {/* Grip Handle - Draggable */}
+          <div
+            className="flex items-center px-1 cursor-grab text-muted-foreground/50 hover:text-muted-foreground"
+            onMouseDown={handleDragStart}
+          >
+            <GripVertical className="h-4 w-4" />
           </div>
+
+          {/* Text Style Dropdown */}
+          <Select value={getCurrentHeadingValue()} onValueChange={handleHeadingChange}>
+            <SelectTrigger className="w-[140px] h-8 text-sm border-0 shadow-none hover:bg-muted focus:ring-0">
+              <span className="flex items-center gap-2">
+                <span className="text-muted-foreground">Aa</span>
+                <SelectValue placeholder="Regular text" />
+              </span>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="paragraph">Regular text</SelectItem>
+              <SelectItem value="h1">Heading 1</SelectItem>
+              <SelectItem value="h2">Heading 2</SelectItem>
+              <SelectItem value="h3">Heading 3</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Format Buttons */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`h-8 w-8 ${isFormatActive.bold(editor) ? 'bg-muted' : ''}`}
+            onClick={() => editorCommands.toggleBold(editor)}
+          >
+            <Bold className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`h-8 w-8 ${isFormatActive.italic(editor) ? 'bg-muted' : ''}`}
+            onClick={() => editorCommands.toggleItalic(editor)}
+          >
+            <Italic className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`h-8 w-8 ${isFormatActive.underline(editor) ? 'bg-muted' : ''}`}
+            onClick={() => editorCommands.toggleUnderline(editor)}
+          >
+            <UnderlineIcon className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`h-8 w-8 ${isFormatActive.strike(editor) ? 'bg-muted' : ''}`}
+            onClick={() => editorCommands.toggleStrike(editor)}
+          >
+            <Strikethrough className="h-4 w-4" />
+          </Button>
+
+          {/* Text Color Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 px-2 gap-0.5">
+                <span
+                  className="text-sm font-medium border-b-2"
+                  style={{ borderColor: getCurrentColor() || 'currentColor' }}
+                >
+                  A
+                </span>
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="min-w-[120px]">
+              {TEXT_COLORS.map((item) => (
+                <DropdownMenuItem
+                  key={item.name}
+                  onClick={() => handleColorChange(item.color)}
+                  className="flex items-center gap-2"
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full border ${item.color ? '' : 'bg-background'}`}
+                    style={item.color ? { backgroundColor: item.color } : undefined}
+                  />
+                  {item.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Link */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`h-8 w-8 ${isFormatActive.link(editor) ? 'bg-muted' : ''}`}
+            onClick={handleLinkClick}
+          >
+            <Link2 className="h-4 w-4" />
+          </Button>
+
+          {/* Alignment */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                {isFormatActive.textAlign(editor, 'center') ? (
+                  <AlignCenter className="h-4 w-4" />
+                ) : isFormatActive.textAlign(editor, 'right') ? (
+                  <AlignRight className="h-4 w-4" />
+                ) : (
+                  <AlignLeft className="h-4 w-4" />
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center">
+              <DropdownMenuItem onClick={() => editorCommands.setTextAlign(editor, 'left')}>
+                <AlignLeft className="h-4 w-4 mr-2" />
+                Left
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => editorCommands.setTextAlign(editor, 'center')}>
+                <AlignCenter className="h-4 w-4 mr-2" />
+                Center
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => editorCommands.setTextAlign(editor, 'right')}>
+                <AlignRight className="h-4 w-4 mr-2" />
+                Right
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Code */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`h-8 w-8 ${isFormatActive.code(editor) ? 'bg-muted' : ''}`}
+            onClick={() => editorCommands.toggleCode(editor)}
+          >
+            <Code className="h-4 w-4" />
+          </Button>
+
+          {/* Lists */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`h-8 w-8 ${isFormatActive.bulletList(editor) ? 'bg-muted' : ''}`}
+            onClick={() => editorCommands.toggleBulletList(editor)}
+          >
+            <List className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`h-8 w-8 ${isFormatActive.orderedList(editor) ? 'bg-muted' : ''}`}
+            onClick={() => editorCommands.toggleOrderedList(editor)}
+          >
+            <ListOrdered className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => editorCommands.outdent(editor)}
+          >
+            <Outdent className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => editorCommands.indent(editor)}
+          >
+            <Indent className="h-4 w-4" />
+          </Button>
+
+          {/* Table */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => editorCommands.insertTable(editor)}
+          >
+            <Table2 className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 

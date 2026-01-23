@@ -7,6 +7,8 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
+import { Color } from '@tiptap/extension-color';
+import { TextStyle } from '@tiptap/extension-text-style';
 import { useEffect, forwardRef, useImperativeHandle } from 'react';
 
 export interface TipTapEditorRef {
@@ -47,6 +49,8 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
         TableRow,
         TableHeader,
         TableCell,
+        TextStyle,
+        Color,
       ],
       content,
       editable,
@@ -131,6 +135,12 @@ export const editorCommands = {
   // Indent/Outdent for lists
   indent: (editor: Editor | null) => editor?.chain().focus().sinkListItem('listItem').run(),
   outdent: (editor: Editor | null) => editor?.chain().focus().liftListItem('listItem').run(),
+
+  // Text color
+  setColor: (editor: Editor | null, color: string) =>
+    editor?.chain().focus().setColor(color).run(),
+  unsetColor: (editor: Editor | null) =>
+    editor?.chain().focus().unsetColor().run(),
 };
 
 // Check if a format is active
@@ -146,4 +156,16 @@ export const isFormatActive = {
   heading: (editor: Editor | null, level: number) => editor?.isActive('heading', { level }) ?? false,
   link: (editor: Editor | null) => editor?.isActive('link') ?? false,
   textAlign: (editor: Editor | null, alignment: string) => editor?.isActive({ textAlign: alignment }) ?? false,
+  textColor: (editor: Editor | null) => editor?.getAttributes('textStyle').color ?? null,
 };
+
+// Color options for the color picker
+export const TEXT_COLORS = [
+  { name: 'Yellow', color: '#FCD34D' },
+  { name: 'Orange', color: '#FB923C' },
+  { name: 'Green', color: '#4ADE80' },
+  { name: 'Blue', color: '#60A5FA' },
+  { name: 'Purple', color: '#A78BFA' },
+  { name: 'Red', color: '#F87171' },
+  { name: 'Default', color: null },
+] as const;
