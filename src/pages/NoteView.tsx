@@ -36,7 +36,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
 interface BillData {
@@ -208,15 +207,6 @@ const NoteView = () => {
         {/* Document Content */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-[800px] mx-auto py-12 px-8">
-            {/* User Query Block */}
-            {note.user_query && (
-              <div className="mb-8 p-6 bg-muted/30 rounded-lg border-l-4 border-muted-foreground/30">
-                <p className="text-foreground/80 leading-relaxed">
-                  {note.user_query}
-                </p>
-              </div>
-            )}
-
             {/* Note Title */}
             <h1 className="text-3xl font-bold mb-8">{note.title}</h1>
 
@@ -260,12 +250,12 @@ const NoteView = () => {
 
         {/* Rich Text Toolbar */}
         <div className="border-t bg-background px-4 py-2">
-          <div className="max-w-[800px] mx-auto flex items-center gap-1 flex-wrap">
+          <div className="max-w-[800px] mx-auto flex items-center gap-0.5">
             {/* Text Style Dropdown */}
             <Select defaultValue="paragraph">
-              <SelectTrigger className="w-[130px] h-8 text-xs">
-                <span className="flex items-center gap-1">
-                  <span className="font-medium">Aa</span>
+              <SelectTrigger className="w-[140px] h-8 text-sm border-0 shadow-none hover:bg-muted focus:ring-0">
+                <span className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Aa</span>
                   <SelectValue placeholder="Regular text" />
                 </span>
               </SelectTrigger>
@@ -276,8 +266,6 @@ const NoteView = () => {
                 <SelectItem value="h3">Heading 3</SelectItem>
               </SelectContent>
             </Select>
-
-            <Separator orientation="vertical" className="h-6 mx-1" />
 
             {/* Format Buttons */}
             <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -293,17 +281,11 @@ const NoteView = () => {
               <Strikethrough className="h-4 w-4" />
             </Button>
 
-            <Separator orientation="vertical" className="h-6 mx-1" />
-
             {/* Text Color */}
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <span className="flex items-center">
-                <span className="text-sm font-bold">A</span>
-                <ChevronDown className="h-3 w-3" />
-              </span>
+            <Button variant="ghost" size="sm" className="h-8 px-2 gap-0.5">
+              <span className="text-sm font-medium border-b-2 border-foreground">A</span>
+              <ChevronDown className="h-3 w-3" />
             </Button>
-
-            <Separator orientation="vertical" className="h-6 mx-1" />
 
             {/* Link */}
             <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -320,8 +302,6 @@ const NoteView = () => {
               <Code className="h-4 w-4" />
             </Button>
 
-            <Separator orientation="vertical" className="h-6 mx-1" />
-
             {/* Lists */}
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <List className="h-4 w-4" />
@@ -335,8 +315,6 @@ const NoteView = () => {
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <Indent className="h-4 w-4" />
             </Button>
-
-            <Separator orientation="vertical" className="h-6 mx-1" />
 
             {/* Table */}
             <Button variant="ghost" size="icon" className="h-8 w-8">
