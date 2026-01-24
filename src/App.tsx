@@ -21,6 +21,7 @@ import Home2 from "./pages/Home-2";
 import Index from "./pages/Index";
 import { Auth } from "./pages/Auth";
 import Auth2 from "./pages/Auth2";
+import Auth3 from "./pages/Auth3";
 import ShadcnShowcase from "./pages/ShadcnShowcase";
 import Profile from "./pages/Profile";
 import Bills from "./pages/Bills";
@@ -168,6 +169,7 @@ const App = () => {
                               <Route path="/features" element={<Features />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/auth-2" element={<Auth2 />} />
+                  <Route path="/auth-3" element={<Auth3 />} />
                   <Route path="/free-trial" element={<FreeTrial />} />
                   <Route path="/live-feed" element={<LiveFeed />} />
                   <Route path="/about" element={<About />} />
