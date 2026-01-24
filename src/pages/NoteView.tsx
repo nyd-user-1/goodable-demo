@@ -6,7 +6,7 @@ import {
   AlignCenter, AlignRight, Code, List, ListOrdered, Indent, Outdent,
   Table2, ChevronDown, MessageSquare, GripVertical, PanelLeft,
   PanelRight, ChevronRight, ExternalLink, Clock, Copy, Clipboard,
-  Download, FileCode, FileType, ArrowUp, Settings2, Plus, Sparkles
+  Download, FileCode, FileType, ArrowUp, Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -721,7 +721,7 @@ const NoteView = () => {
           <div
             className={cn(
               "border-l bg-background flex-shrink-0 overflow-hidden transition-all duration-300 flex flex-col",
-              rightSidebarOpen ? "w-80" : "w-0"
+              rightSidebarOpen ? "w-[500px]" : "w-0"
             )}
           >
             {rightSidebarOpen && (
@@ -906,16 +906,6 @@ const NoteView = () => {
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
-
-                            {/* Settings Button */}
-                            <Button variant="ghost" size="icon" className="h-7 w-7">
-                              <Settings2 className="h-3.5 w-3.5" />
-                            </Button>
-
-                            {/* Plus Button */}
-                            <Button variant="ghost" size="icon" className="h-7 w-7">
-                              <Plus className="h-3.5 w-3.5" />
-                            </Button>
                           </div>
 
                           {/* Send Button */}
