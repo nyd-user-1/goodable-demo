@@ -6,14 +6,23 @@
 import { useState, useEffect, useCallback } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
-  Home,
-  Library,
-  Bot,
-  FolderClosed,
-  Search,
-  Plus,
+  MessageSquare,
+  MessagesSquare,
+  ScrollText,
+  Users,
+  Landmark,
+  TrendingUp,
+  Clock,
+  ChevronRight,
   ChevronDown,
   ChevronUp,
+  PenSquare,
+  TextQuote,
+  Wallet,
+  GraduationCap,
+  NotebookPen,
+  Search,
+  Plus,
   X,
   Settings,
   UserPlus,
@@ -25,12 +34,9 @@ import {
   ThumbsUp,
   HelpCircle,
   FileText,
-  MessageSquare,
   Mail,
   Zap,
   ArrowUpRight,
-  NotebookPen,
-  MessagesSquare,
   FileUp,
   FolderUp,
   Download,
@@ -65,12 +71,17 @@ interface NoteViewSidebarProps {
   onClose?: () => void;
 }
 
-interface Note {
+interface ChatSession {
   id: string;
   title: string;
 }
 
-interface ChatSession {
+interface Excerpt {
+  id: string;
+  title: string;
+}
+
+interface Note {
   id: string;
   title: string;
 }
@@ -79,8 +90,10 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const [recentNotes, setRecentNotes] = useState<Note[]>([]);
   const [recentChats, setRecentChats] = useState<ChatSession[]>([]);
+  const [recentExcerpts, setRecentExcerpts] = useState<Excerpt[]>([]);
+  const [recentNotes, setRecentNotes] = useState<Note[]>([]);
+  const [newChatHover, setNewChatHover] = useState(false);
   const [showCommunityCard, setShowCommunityCard] = useState(true);
   const [planUsageOpen, setPlanUsageOpen] = useState(true);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -92,10 +105,37 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
     setIsDarkMode(document.documentElement.classList.contains('dark'));
   }, []);
 
-  const toggleTheme = () => {
-    document.documentElement.classList.toggle('dark');
-    setIsDarkMode(!isDarkMode);
-  };
+  // Fetch recent chats
+  const fetchRecentChats = useCallback(async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("chat_sessions")
+      .select("id, title, updated_at")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false })
+      .limit(10);
+
+    if (!error && data) {
+      setRecentChats(data);
+    }
+  }, [user]);
+
+  // Fetch recent excerpts
+  const fetchRecentExcerpts = useCallback(async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("chat_excerpts")
+      .select("id, title, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(5);
+
+    if (!error && data) {
+      setRecentExcerpts(data);
+    }
+  }, [user]);
 
   // Fetch recent notes
   const fetchRecentNotes = useCallback(async () => {
@@ -113,36 +153,22 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
     }
   }, [user]);
 
-  // Fetch recent chats
-  const fetchRecentChats = useCallback(async () => {
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from("chat_sessions")
-      .select("id, title, updated_at")
-      .eq("user_id", user.id)
-      .order("updated_at", { ascending: false })
-      .limit(5);
-
-    if (!error && data) {
-      setRecentChats(data);
-    }
-  }, [user]);
-
   useEffect(() => {
-    fetchRecentNotes();
     fetchRecentChats();
-  }, [fetchRecentNotes, fetchRecentChats]);
+    fetchRecentExcerpts();
+    fetchRecentNotes();
+  }, [fetchRecentChats, fetchRecentExcerpts, fetchRecentNotes]);
 
   // Listen for refresh events
   useEffect(() => {
     const handleRefresh = () => {
-      fetchRecentNotes();
       fetchRecentChats();
+      fetchRecentExcerpts();
+      fetchRecentNotes();
     };
     window.addEventListener("refresh-sidebar-notes", handleRefresh);
     return () => window.removeEventListener("refresh-sidebar-notes", handleRefresh);
-  }, [fetchRecentNotes, fetchRecentChats]);
+  }, [fetchRecentChats, fetchRecentExcerpts, fetchRecentNotes]);
 
   const isActive = (url: string) => location.pathname === url;
 
@@ -152,7 +178,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   };
 
   const handleFeedbackSubmit = () => {
-    // TODO: Submit feedback to backend
     console.log("Feedback submitted:", feedbackText);
     setFeedbackText("");
     setFeedbackOpen(false);
@@ -273,7 +298,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
 
               <DropdownMenuSeparator />
 
-              <DropdownMenuItem onClick={() => navigate('/new-chat')}>
+              <DropdownMenuItem onClick={() => { navigate('/new-chat'); onClose?.(); }}>
                 <MessageSquarePlus className="h-4 w-4 mr-2" />
                 Chat
               </DropdownMenuItem>
@@ -297,19 +322,35 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
         </div>
       </div>
 
-      {/* Main Navigation */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="px-2 py-2 space-y-1">
+      {/* Scrollable Content Area */}
+      <div className="flex-1 overflow-y-auto py-2">
+        {/* New Chat and Chat History */}
+        <div className="px-2 space-y-1">
           <NavLink
             to="/new-chat"
             onClick={onClose}
+            onMouseEnter={() => setNewChatHover(true)}
+            onMouseLeave={() => setNewChatHover(false)}
             className={cn(
               "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
               isActive("/new-chat") ? "bg-muted" : "hover:bg-muted"
             )}
           >
-            <Home className="h-4 w-4" />
-            <span>Home</span>
+            <div className="relative w-4 h-4 flex-shrink-0">
+              <MessageSquare
+                className={cn(
+                  "absolute inset-0 w-4 h-4 transition-opacity duration-200",
+                  newChatHover ? "opacity-0" : "opacity-100"
+                )}
+              />
+              <PenSquare
+                className={cn(
+                  "absolute inset-0 w-4 h-4 transition-opacity duration-200",
+                  newChatHover ? "opacity-100" : "opacity-0"
+                )}
+              />
+            </div>
+            <span>New chat</span>
           </NavLink>
 
           <NavLink
@@ -320,45 +361,104 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               isActive("/chats") ? "bg-muted" : "hover:bg-muted"
             )}
           >
-            <Library className="h-4 w-4" />
-            <span>Library</span>
-          </NavLink>
-
-          <NavLink
-            to="/playground"
-            onClick={onClose}
-            className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-              isActive("/playground") ? "bg-muted" : "hover:bg-muted"
-            )}
-          >
-            <Bot className="h-4 w-4" />
-            <span>Agent</span>
+            <Clock className="h-4 w-4" />
+            <span>Chat History</span>
           </NavLink>
         </div>
 
-        {/* Private Section - User's Notes and Chats */}
-        {(recentNotes.length > 0 || recentChats.length > 0) && (
-          <div className="mt-4">
-            <div className="px-5 py-2">
-              <span className="text-xs font-medium text-muted-foreground">Private</span>
+        {/* Your Research Section */}
+        <Collapsible defaultOpen className="group/research mt-4">
+          <div className="px-2">
+            <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
+              Your research
+              <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/research:rotate-90" />
+            </CollapsibleTrigger>
+          </div>
+          <CollapsibleContent className="px-2 space-y-1">
+            <NavLink
+              to="/bills"
+              onClick={onClose}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                isActive("/bills") ? "bg-muted" : "hover:bg-muted"
+              )}
+            >
+              <ScrollText className="h-4 w-4" />
+              <span>Bills</span>
+            </NavLink>
+            <NavLink
+              to="/committees"
+              onClick={onClose}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                isActive("/committees") ? "bg-muted" : "hover:bg-muted"
+              )}
+            >
+              <Landmark className="h-4 w-4" />
+              <span>Committees</span>
+            </NavLink>
+            <NavLink
+              to="/members"
+              onClick={onClose}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                isActive("/members") ? "bg-muted" : "hover:bg-muted"
+              )}
+            >
+              <Users className="h-4 w-4" />
+              <span>Members</span>
+            </NavLink>
+
+            {/* Separator */}
+            <div className="my-2 mx-3 border-t border-border/50" />
+
+            <NavLink
+              to="/contracts"
+              onClick={onClose}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                isActive("/contracts") ? "bg-muted" : "hover:bg-muted"
+              )}
+            >
+              <Wallet className="h-4 w-4" />
+              <span>Contracts</span>
+            </NavLink>
+            <NavLink
+              to="/school-funding"
+              onClick={onClose}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                isActive("/school-funding") ? "bg-muted" : "hover:bg-muted"
+              )}
+            >
+              <GraduationCap className="h-4 w-4" />
+              <span>School Funding</span>
+            </NavLink>
+            <NavLink
+              to="/dashboard"
+              onClick={onClose}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                isActive("/dashboard") ? "bg-muted" : "hover:bg-muted"
+              )}
+            >
+              <TrendingUp className="h-4 w-4" />
+              <span>Dashboard</span>
+            </NavLink>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Your Chats Section */}
+        {recentChats.length > 0 && (
+          <Collapsible className="group/chats mt-4">
+            <div className="px-2">
+              <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
+                Your chats
+                <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/chats:rotate-90" />
+              </CollapsibleTrigger>
             </div>
-            <div className="px-2 space-y-1">
-              {recentNotes.map((note) => (
-                <NavLink
-                  key={note.id}
-                  to={`/n/${note.id}`}
-                  onClick={onClose}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                    location.pathname === `/n/${note.id}` ? "bg-muted" : "hover:bg-muted"
-                  )}
-                >
-                  <FolderClosed className="h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">{note.title}</span>
-                </NavLink>
-              ))}
-              {recentChats.slice(0, 3).map((chat) => (
+            <CollapsibleContent className="px-2 space-y-1">
+              {recentChats.map((chat) => (
                 <NavLink
                   key={chat.id}
                   to={`/c/${chat.id}`}
@@ -372,13 +472,69 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   <span className="truncate">{chat.title}</span>
                 </NavLink>
               ))}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
+        {/* Your Excerpts Section */}
+        {recentExcerpts.length > 0 && (
+          <Collapsible className="group/excerpts mt-4">
+            <div className="px-2">
+              <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
+                Your excerpts
+                <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/excerpts:rotate-90" />
+              </CollapsibleTrigger>
             </div>
-          </div>
+            <CollapsibleContent className="px-2 space-y-1">
+              {recentExcerpts.map((excerpt) => (
+                <NavLink
+                  key={excerpt.id}
+                  to={`/e/${excerpt.id}`}
+                  onClick={onClose}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                    location.pathname === `/e/${excerpt.id}` ? "bg-muted" : "hover:bg-muted"
+                  )}
+                >
+                  <TextQuote className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{excerpt.title}</span>
+                </NavLink>
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
+        {/* Your Notes Section */}
+        {recentNotes.length > 0 && (
+          <Collapsible className="group/notes mt-4">
+            <div className="px-2">
+              <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
+                Your notes
+                <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/notes:rotate-90" />
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent className="px-2 space-y-1">
+              {recentNotes.map((note) => (
+                <NavLink
+                  key={note.id}
+                  to={`/n/${note.id}`}
+                  onClick={onClose}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                    location.pathname === `/n/${note.id}` ? "bg-muted" : "hover:bg-muted"
+                  )}
+                >
+                  <NotebookPen className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{note.title}</span>
+                </NavLink>
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
         )}
       </div>
 
       {/* Bottom Section */}
-      <div className="flex-shrink-0 p-3 space-y-3">
+      <div className="flex-shrink-0 p-3 space-y-3 border-t">
         {/* Community Card - Dismissible */}
         {showCommunityCard && (
           <div className="relative p-3 border rounded-lg bg-muted/30">
@@ -437,7 +593,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                 {/* Upgrade Button */}
                 <Button
                   className="w-full bg-foreground hover:bg-foreground/90 text-background"
-                  onClick={() => navigate('/plans')}
+                  onClick={() => { navigate('/plans'); onClose?.(); }}
                 >
                   Upgrade
                 </Button>
@@ -503,7 +659,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               <Zap className="h-4 w-4 mr-2" />
               <span className="truncate">Academic citations, add files ...</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/changelog')}>
+            <DropdownMenuItem onClick={() => { navigate('/changelog'); onClose?.(); }}>
               <ArrowUpRight className="h-4 w-4 mr-2" />
               Full changelog
             </DropdownMenuItem>
