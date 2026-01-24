@@ -137,15 +137,7 @@ const Contracts = () => {
                     >
                       <PanelLeft className="h-4 w-4" />
                     </Button>
-                    <div>
-                      <h1 className="text-xl font-semibold">Contracts</h1>
-                      <p className="text-sm text-muted-foreground">
-                        {isLoading
-                          ? 'Loading...'
-                          : `Showing ${contracts.length.toLocaleString()} of ${totalCount.toLocaleString()} contracts`
-                        }
-                      </p>
-                    </div>
+                    <h1 className="text-xl font-semibold">Contracts</h1>
                   </div>
                   <div className="flex items-center gap-2">
                     {hasActiveFilters && (

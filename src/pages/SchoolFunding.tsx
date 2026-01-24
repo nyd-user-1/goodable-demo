@@ -169,15 +169,7 @@ const SchoolFundingPage = () => {
                     >
                       <PanelLeft className="h-4 w-4" />
                     </Button>
-                    <div>
-                      <h1 className="text-xl font-semibold">School Funding</h1>
-                      <p className="text-sm text-muted-foreground">
-                        {isLoading
-                          ? 'Loading...'
-                          : `Showing ${records.length.toLocaleString()} of ${totalCount.toLocaleString()} districts`
-                        }
-                      </p>
-                    </div>
+                    <h1 className="text-xl font-semibold">School Funding</h1>
                   </div>
                   <div className="flex items-center gap-2">
                     {hasActiveFilters && (

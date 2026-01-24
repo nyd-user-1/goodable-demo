@@ -148,15 +148,7 @@ const Committees2 = () => {
                     >
                       <PanelLeft className="h-4 w-4" />
                     </Button>
-                    <div>
-                      <h1 className="text-xl font-semibold">Committees</h1>
-                      <p className="text-sm text-muted-foreground">
-                        {isLoading
-                          ? 'Loading...'
-                          : `Showing ${committees.length.toLocaleString()} of ${totalCount.toLocaleString()} committees`
-                        }
-                      </p>
-                    </div>
+                    <h1 className="text-xl font-semibold">Committees</h1>
                   </div>
                   <div className="flex items-center gap-2">
                     {hasActiveFilters && (

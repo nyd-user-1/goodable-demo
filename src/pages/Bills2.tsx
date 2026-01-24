@@ -153,15 +153,7 @@ const Bills2 = () => {
                     >
                       <PanelLeft className="h-4 w-4" />
                     </Button>
-                    <div>
-                      <h1 className="text-xl font-semibold">Bills</h1>
-                      <p className="text-sm text-muted-foreground">
-                        {isLoading
-                          ? 'Loading...'
-                          : `Showing ${bills.length.toLocaleString()} of ${totalCount.toLocaleString()} bills`
-                        }
-                      </p>
-                    </div>
+                    <h1 className="text-xl font-semibold">Bills</h1>
                   </div>
                   <div className="flex items-center gap-2">
                     {hasActiveFilters && (
