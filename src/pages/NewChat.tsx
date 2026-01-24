@@ -1597,7 +1597,7 @@ const NewChat = () => {
       {/* Bottom Input Area - fixed for public, flex for authenticated */}
       <div className={cn(
         "bg-background",
-        isPublicPage ? "fixed bottom-0 left-0 right-0 z-[5]" : "flex-shrink-0 border-t"
+        isPublicPage ? "fixed bottom-0 left-0 right-0 z-[5]" : "flex-shrink-0"
       )}>
         <div className={cn("w-full px-4 py-4", !isPublicPage && "py-3")}>
           <div className="max-w-[720px] mx-auto">
