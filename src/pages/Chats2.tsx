@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, MessageSquare, ScrollText, Users, Landmark, Wallet, GraduationCap, Trash2 } from 'lucide-react';
+import { Search, X, MessageSquare, ScrollText, Users, Landmark, Wallet, GraduationCap, Trash2, PanelLeft, Command } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,6 +38,14 @@ const Chats2 = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+  const [sidebarMounted, setSidebarMounted] = useState(false);
+
+  // Enable sidebar transitions after mount to prevent flash
+  useEffect(() => {
+    const timer = setTimeout(() => setSidebarMounted(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   const { chatSessions, loading, deleteSession } = useChatSessions();
   const [searchTerm, setSearchTerm] = useState('');
@@ -118,6 +128,15 @@ const Chats2 = () => {
 
   const hasActiveFilters = searchTerm || typeFilter !== 'all';
 
+  const openCommandPalette = () => {
+    const event = new KeyboardEvent('keydown', {
+      key: 'k',
+      metaKey: true,
+      bubbles: true,
+    });
+    document.dispatchEvent(event);
+  };
+
   // Get counts by type using getChatType for consistency
   const typeCounts = {
     all: chatSessions.length,
@@ -130,101 +149,138 @@ const Chats2 = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col gap-4">
-            {/* Title and stats */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-xl font-semibold">Chat History</h1>
-                <p className="text-sm text-muted-foreground">
-                  {loading
-                    ? 'Loading...'
-                    : `Showing ${filteredChats.length.toLocaleString()} of ${chatSessions.length.toLocaleString()} conversations`
-                  }
-                </p>
-              </div>
-              {hasActiveFilters && (
-                <Button variant="ghost" size="sm" onClick={clearFilters}>
-                  <X className="h-4 w-4 mr-1" />
-                  Clear filters
-                </Button>
-              )}
-            </div>
-
-            {/* Search bar */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                ref={searchInputRef}
-                placeholder="Search chats by title or content... (press / to focus)"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 h-12 text-base"
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-
-            {/* Filters row */}
-            <div className="flex flex-wrap gap-2">
-              <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as ChatType)}>
-                <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
-                  <SelectValue placeholder="All Types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Types ({typeCounts.all})</SelectItem>
-                  <SelectItem value="bill" className="focus:bg-muted focus:text-foreground">Bills ({typeCounts.bill})</SelectItem>
-                  <SelectItem value="member" className="focus:bg-muted focus:text-foreground">Members ({typeCounts.member})</SelectItem>
-                  <SelectItem value="committee" className="focus:bg-muted focus:text-foreground">Committees ({typeCounts.committee})</SelectItem>
-                  <SelectItem value="school-funding" className="focus:bg-muted focus:text-foreground">School Funding ({typeCounts['school-funding']})</SelectItem>
-                  <SelectItem value="contract" className="focus:bg-muted focus:text-foreground">Contracts ({typeCounts.contract})</SelectItem>
-                  <SelectItem value="general" className="focus:bg-muted focus:text-foreground">General ({typeCounts.general})</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
+    <div className="fixed inset-0 overflow-hidden">
+      {/* Left Sidebar - slides in from off-screen */}
+      <div
+        className={cn(
+          "fixed left-0 top-0 bottom-0 w-64 bg-background border-r z-50",
+          sidebarMounted && "transition-transform duration-300 ease-in-out",
+          leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <NoteViewSidebar onClose={() => setLeftSidebarOpen(false)} />
       </div>
 
-      {/* Results - Grid */}
-      <div className="container mx-auto px-4 py-6">
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="h-32 bg-muted/30 rounded-2xl animate-pulse" />
-            ))}
+      {/* Backdrop overlay when sidebar is open */}
+      {leftSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 z-40 transition-opacity"
+          onClick={() => setLeftSidebarOpen(false)}
+        />
+      )}
+
+      {/* Main Container with padding */}
+      <div className="h-full p-2 bg-muted/30">
+        {/* Inner container with rounded corners and border */}
+        <div className="w-full h-full rounded-2xl border bg-background overflow-hidden flex flex-col">
+          {/* Header */}
+          <div className="flex-shrink-0 bg-background">
+            <div className="px-4 py-4">
+              <div className="flex flex-col gap-4">
+                {/* Title row with sidebar toggle and command button */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+                      className={cn("flex-shrink-0", leftSidebarOpen && "bg-muted")}
+                    >
+                      <PanelLeft className="h-4 w-4" />
+                    </Button>
+                    <h1 className="text-xl font-semibold">Chat History</h1>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {hasActiveFilters && (
+                      <Button variant="ghost" size="sm" onClick={clearFilters}>
+                        <X className="h-4 w-4 mr-1" />
+                        Clear filters
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={openCommandPalette}
+                      className="flex-shrink-0"
+                    >
+                      <Command className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Search bar */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    ref={searchInputRef}
+                    placeholder="Search chats by title or content... (press / to focus)"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 pr-4 h-12 text-base"
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Filters row */}
+                <div className="flex flex-wrap gap-2">
+                  <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as ChatType)}>
+                    <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
+                      <SelectValue placeholder="All Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Types ({typeCounts.all})</SelectItem>
+                      <SelectItem value="bill" className="focus:bg-muted focus:text-foreground">Bills ({typeCounts.bill})</SelectItem>
+                      <SelectItem value="member" className="focus:bg-muted focus:text-foreground">Members ({typeCounts.member})</SelectItem>
+                      <SelectItem value="committee" className="focus:bg-muted focus:text-foreground">Committees ({typeCounts.committee})</SelectItem>
+                      <SelectItem value="school-funding" className="focus:bg-muted focus:text-foreground">School Funding ({typeCounts['school-funding']})</SelectItem>
+                      <SelectItem value="contract" className="focus:bg-muted focus:text-foreground">Contracts ({typeCounts.contract})</SelectItem>
+                      <SelectItem value="general" className="focus:bg-muted focus:text-foreground">General ({typeCounts.general})</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
           </div>
-        ) : filteredChats.length === 0 ? (
-          <div className="text-center py-12">
-            <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No chats found matching your criteria.</p>
-            {hasActiveFilters && (
-              <Button variant="link" onClick={clearFilters} className="mt-2">
-                Clear filters
-              </Button>
+
+          {/* Results - Grid (Scrollable) */}
+          <div className="flex-1 overflow-y-auto px-4 py-6">
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div key={i} className="h-32 bg-muted/30 rounded-2xl animate-pulse" />
+                ))}
+              </div>
+            ) : filteredChats.length === 0 ? (
+              <div className="text-center py-12">
+                <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No chats found matching your criteria.</p>
+                {hasActiveFilters && (
+                  <Button variant="link" onClick={clearFilters} className="mt-2">
+                    Clear filters
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredChats.map((session) => (
+                  <ChatCard
+                    key={session.id}
+                    session={session}
+                    onClick={() => handleChatClick(session)}
+                    onDeleteClick={(e) => handleDeleteClick(session.id, e)}
+                  />
+                ))}
+              </div>
             )}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredChats.map((session) => (
-              <ChatCard
-                key={session.id}
-                session={session}
-                onClick={() => handleChatClick(session)}
-                onDeleteClick={(e) => handleDeleteClick(session.id, e)}
-              />
-            ))}
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Delete Confirmation Dialog */}

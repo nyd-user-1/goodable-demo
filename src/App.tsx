@@ -196,6 +196,7 @@ const App = () => {
                   <Route path="/members" element={<ProtectedRoute><Members2 /></ProtectedRoute>} />
                   <Route path="/school-funding" element={<ProtectedRoute><SchoolFunding /></ProtectedRoute>} />
                   <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
+                  <Route path="/chats" element={<ProtectedRoute><Chats2 /></ProtectedRoute>} />
                   <Route path="*" element={<AppLayout />} />
                 </Routes>
               </PageTransition>
