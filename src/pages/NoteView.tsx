@@ -6,7 +6,7 @@ import {
   AlignCenter, AlignRight, Code, List, ListOrdered, Indent, Outdent,
   Table2, ChevronDown, MessageSquare, GripVertical, PanelLeft,
   PanelRight, ChevronRight, ExternalLink, Clock, Copy, Clipboard,
-  Download, FileCode, FileType
+  Download, FileCode, FileType, ArrowUp, Settings2, Plus, Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -47,6 +47,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
+import { useModel, ModelType } from "@/contexts/ModelContext";
 
 interface BillData {
   bill_number: string;
@@ -82,6 +83,9 @@ const NoteView = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [parentChat, setParentChat] = useState<ChatSession | null>(null);
   const [toolbarInitialized, setToolbarInitialized] = useState(false);
+  const [wordCountLimit, setWordCountLimit] = useState<number>(250);
+  const [chatInput, setChatInput] = useState("");
+  const { selectedModel, setSelectedModel } = useModel();
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const titleSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const editorRef = useRef<TipTapEditorRef>(null);
@@ -551,17 +555,7 @@ const NoteView = () => {
               {isSaving ? "Saving..." : hasUnsavedChanges ? "Unsaved changes" : "Saved"}
             </span>
 
-            {/* Right Sidebar Toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
-              className={cn(rightSidebarOpen && "bg-muted")}
-            >
-              <PanelRight className="h-4 w-4" />
-            </Button>
-
-            {/* More Menu */}
+            {/* More Menu (three-dot) - now before sidebar toggle */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -641,6 +635,16 @@ const NoteView = () => {
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Right Sidebar Toggle - now after three-dot menu */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
+              className={cn(rightSidebarOpen && "bg-muted")}
+            >
+              <PanelRight className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
@@ -661,13 +665,24 @@ const NoteView = () => {
           {/* Document Content */}
           <div className="flex-1 overflow-y-auto min-w-0">
             <div className="max-w-[800px] mx-auto py-12 px-8">
-              {/* Note Title - Editable */}
-              <input
-                type="text"
+              {/* Note Title - Editable (auto-grows and wraps) */}
+              <textarea
                 value={editableTitle}
-                onChange={(e) => handleTitleChange(e.target.value)}
+                onChange={(e) => {
+                  handleTitleChange(e.target.value);
+                  // Auto-resize
+                  e.target.style.height = 'auto';
+                  e.target.style.height = e.target.scrollHeight + 'px';
+                }}
                 onBlur={handleTitleBlur}
-                className="text-3xl font-bold mb-8 w-full bg-transparent border-0 outline-none focus:outline-none focus:ring-0 p-0"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.currentTarget.blur();
+                  }
+                }}
+                rows={1}
+                className="text-3xl font-bold mb-8 w-full bg-transparent border-0 outline-none focus:outline-none focus:ring-0 p-0 resize-none overflow-hidden"
                 placeholder="Untitled"
               />
 
@@ -735,41 +750,183 @@ const NoteView = () => {
                   </TabsList>
 
                   <TabsContent value="chat" className="flex-1 flex flex-col m-0 overflow-hidden">
-                    {/* Chat Selection */}
-                    <div className="p-4 border-b">
-                      <Select>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select a chat" />
-                        </SelectTrigger>
-                        <SelectContent>
+                    {/* Chat Header with Selector and Three-dot Menu */}
+                    <div className="px-3 py-2 border-b flex items-center justify-between">
+                      {/* Chat Selector Dropdown */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 gap-1 font-normal max-w-[180px]">
+                            <span className="truncate text-sm">
+                              {parentChat?.title || "New chat"}
+                            </span>
+                            <ChevronDown className="h-3 w-3 flex-shrink-0 opacity-50" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-56">
+                          <DropdownMenuItem>
+                            <MessageSquare className="h-4 w-4 mr-2" />
+                            New chat
+                          </DropdownMenuItem>
                           {parentChat && (
-                            <SelectItem value={parentChat.id}>{parentChat.title || "Original Chat"}</SelectItem>
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem>
+                                <MessageSquare className="h-4 w-4 mr-2" />
+                                {parentChat.title || "Original Chat"}
+                              </DropdownMenuItem>
+                            </>
                           )}
-                          <SelectItem value="new">New chat</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+
+                      {/* Three-dot Menu */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem>
+                            <MessageSquare className="h-4 w-4 mr-2" />
+                            New chat
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Copy className="h-4 w-4 mr-2" />
+                            Copy messages
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Download className="h-4 w-4 mr-2" />
+                            Export messages
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
 
                     {/* Chat Content */}
                     <div className="flex-1 overflow-y-auto p-4">
-                      <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
+                      {/* Note Reference Card */}
+                      <div className="mb-4 p-3 bg-muted/50 rounded-lg border">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          <span className="text-sm font-medium truncate">{editableTitle || note.title}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Source</p>
+                      </div>
+
+                      {/* Empty State */}
+                      <div className="flex flex-col items-center justify-center h-[calc(100%-80px)] text-center text-muted-foreground">
                         <MessageSquare className="h-12 w-12 mb-4 opacity-20" />
                         <p className="text-sm">Ask questions about this note</p>
-                        <p className="text-xs mt-1">Chat functionality coming soon</p>
                       </div>
                     </div>
 
-                    {/* Chat Input */}
-                    <div className="border-t p-4 flex-shrink-0">
-                      <div className="flex items-center gap-2">
+                    {/* Enhanced Chat Input */}
+                    <div className="border-t p-3 flex-shrink-0">
+                      <div className="border rounded-lg bg-background">
+                        {/* Note Reference Pill */}
+                        <div className="px-3 py-2 border-b bg-muted/30">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground truncate">
+                              {editableTitle || note.title}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Input Area */}
                         <Textarea
+                          value={chatInput}
+                          onChange={(e) => setChatInput(e.target.value)}
                           placeholder="Ask this note a question..."
-                          className="min-h-[40px] max-h-[120px] resize-none"
-                          rows={1}
+                          className="min-h-[60px] max-h-[120px] resize-none border-0 focus-visible:ring-0 rounded-none"
+                          rows={2}
                         />
-                        <Button size="icon" disabled>
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
+
+                        {/* Toolbar */}
+                        <div className="px-2 py-2 flex items-center justify-between border-t bg-muted/20">
+                          <div className="flex items-center gap-1">
+                            {/* Model Selector */}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs px-2">
+                                  <Sparkles className="h-3.5 w-3.5" />
+                                  <span className="hidden sm:inline">
+                                    {selectedModel === "gpt-4o" ? "GPT-4o" :
+                                     selectedModel === "gpt-4o-mini" ? "GPT-4o Mini" :
+                                     selectedModel === "claude-3-5-sonnet-20241022" ? "Claude Sonnet" :
+                                     selectedModel === "claude-3-5-haiku-20241022" ? "Claude Haiku" :
+                                     selectedModel === "sonar" ? "Sonar" :
+                                     selectedModel === "sonar-pro" ? "Sonar Pro" : "Model"}
+                                  </span>
+                                  <ChevronDown className="h-3 w-3 opacity-50" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start" className="w-48">
+                                <DropdownMenuItem onClick={() => setSelectedModel("gpt-4o")}>
+                                  GPT-4o
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSelectedModel("gpt-4o-mini")}>
+                                  GPT-4o Mini
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => setSelectedModel("claude-3-5-sonnet-20241022")}>
+                                  Claude Sonnet
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSelectedModel("claude-3-5-haiku-20241022")}>
+                                  Claude Haiku
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => setSelectedModel("sonar")}>
+                                  Sonar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSelectedModel("sonar-pro")}>
+                                  Sonar Pro
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+
+                            {/* Word Count Selector */}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs px-2">
+                                  <span>{wordCountLimit} words</span>
+                                  <ChevronDown className="h-3 w-3 opacity-50" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start">
+                                <DropdownMenuItem onClick={() => setWordCountLimit(100)}>
+                                  100 words
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setWordCountLimit(250)}>
+                                  250 words
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setWordCountLimit(500)}>
+                                  500 words
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+
+                            {/* Settings Button */}
+                            <Button variant="ghost" size="icon" className="h-7 w-7">
+                              <Settings2 className="h-3.5 w-3.5" />
+                            </Button>
+
+                            {/* Plus Button */}
+                            <Button variant="ghost" size="icon" className="h-7 w-7">
+                              <Plus className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+
+                          {/* Send Button */}
+                          <Button
+                            size="icon"
+                            className="h-7 w-7 rounded-full"
+                            disabled={!chatInput.trim()}
+                          >
+                            <ArrowUp className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </TabsContent>
