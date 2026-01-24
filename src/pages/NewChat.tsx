@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChatPersistence } from "@/hooks/useChatPersistence";
-import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X } from "lucide-react";
+import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Contract } from "@/types/contracts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,6 +80,18 @@ const samplePrompts = [
   {
     title: "What protections does Assemblyman Bores' A00768, the 'NY Artificial Intelligence Consumer Protection Act', establish against algorithmic discrimination?",
     category: "AI & Technology"
+  },
+  {
+    title: "How does Senator Hoylman-Sigal's S00930 expand New York's climate leadership through the NY HEAT Act's building emissions standards?",
+    category: "Environment & Climate"
+  },
+  {
+    title: "What healthcare cost protections does Assemblymember Paulin's A02019 provide for patients through surprise billing reforms?",
+    category: "Healthcare Policy"
+  },
+  {
+    title: "How would Senator Gounardes' S01369 address housing affordability through good cause eviction protections for tenants?",
+    category: "Housing & Tenant Rights"
   }
 ];
 
@@ -142,6 +154,7 @@ interface Message {
 const NewChat = () => {
   const [query, setQuery] = useState("");
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+  const [promptPage, setPromptPage] = useState(0);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [chatStarted, setChatStarted] = useState(false);
@@ -1082,27 +1095,61 @@ const NewChat = () => {
               What are you researching?
             </h1>
 
-            <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
-              {samplePrompts.map((prompt, index) => (
-                <Card
-                  key={index}
+            {/* Prompt Carousel */}
+            <div className="w-full max-w-3xl mb-8">
+              {/* Header with navigation arrows */}
+              <div className="flex items-center justify-end mb-3 gap-1">
+                <button
+                  onClick={() => setPromptPage(Math.max(0, promptPage - 1))}
+                  disabled={promptPage === 0}
                   className={cn(
-                    "p-5 cursor-pointer transition-all duration-200 border",
-                    "hover:border-foreground hover:shadow-md",
-                    hoveredCard === index && "border-foreground shadow-md"
+                    "p-1.5 rounded-md transition-colors",
+                    promptPage === 0
+                      ? "text-muted-foreground/30 cursor-not-allowed"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   )}
-                  onClick={() => handlePromptClick(prompt.title)}
-                  onMouseEnter={() => setHoveredCard(index)}
-                  onMouseLeave={() => setHoveredCard(null)}
+                  aria-label="Previous prompts"
                 >
-                  <p className="text-xs text-muted-foreground mb-2 font-medium">
-                    {prompt.category}
-                  </p>
-                  <p className="text-sm leading-relaxed text-foreground">
-                    {prompt.title}
-                  </p>
-                </Card>
-              ))}
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setPromptPage(Math.min(Math.ceil(samplePrompts.length / 2) - 1, promptPage + 1))}
+                  disabled={promptPage >= Math.ceil(samplePrompts.length / 2) - 1}
+                  className={cn(
+                    "p-1.5 rounded-md transition-colors",
+                    promptPage >= Math.ceil(samplePrompts.length / 2) - 1
+                      ? "text-muted-foreground/30 cursor-not-allowed"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                  aria-label="Next prompts"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Prompt Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {samplePrompts.slice(promptPage * 2, promptPage * 2 + 2).map((prompt, index) => (
+                  <Card
+                    key={promptPage * 2 + index}
+                    className={cn(
+                      "p-5 cursor-pointer transition-all duration-200 border",
+                      "hover:border-foreground hover:shadow-md",
+                      hoveredCard === promptPage * 2 + index && "border-foreground shadow-md"
+                    )}
+                    onClick={() => handlePromptClick(prompt.title)}
+                    onMouseEnter={() => setHoveredCard(promptPage * 2 + index)}
+                    onMouseLeave={() => setHoveredCard(null)}
+                  >
+                    <p className="text-xs text-muted-foreground mb-2 font-medium">
+                      {prompt.category}
+                    </p>
+                    <p className="text-sm leading-relaxed text-foreground">
+                      {prompt.title}
+                    </p>
+                  </Card>
+                ))}
+              </div>
             </div>
           </div>
         ) : (
