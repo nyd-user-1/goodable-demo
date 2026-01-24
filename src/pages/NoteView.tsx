@@ -871,7 +871,7 @@ ${chatInput}`;
           </div>
 
           {/* Document Content */}
-          <div ref={documentContentRef} className="flex-1 overflow-y-auto min-w-0 relative">
+          <div ref={documentContentRef} className="flex-1 overflow-y-auto min-w-0 relative [scrollbar-gutter:stable]">
             <div className="max-w-[800px] mx-auto py-12 px-8">
               {/* Note Title - Editable (auto-grows and wraps) */}
               <textarea
