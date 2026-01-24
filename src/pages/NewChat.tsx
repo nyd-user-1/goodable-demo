@@ -1108,7 +1108,7 @@ const NewChat = () => {
             </h1>
 
             {/* Prompt Carousel */}
-            <div className="w-full max-w-4xl mb-8">
+            <div className="w-full max-w-3xl mb-8">
               {/* Header with navigation arrows */}
               <div className="flex items-center justify-end mb-3 gap-1">
                 <button
