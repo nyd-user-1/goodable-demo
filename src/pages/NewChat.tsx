@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChatPersistence } from "@/hooks/useChatPersistence";
-import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, ChevronLeft, ChevronRight, PanelLeft } from "lucide-react";
+import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { Contract } from "@/types/contracts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -171,6 +172,8 @@ const NewChat = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [chatStarted, setChatStarted] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+  const [sidebarMounted, setSidebarMounted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const userScrolledRef = useRef(false);
@@ -271,6 +274,12 @@ const NewChat = () => {
 
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
+
+  // Enable sidebar transitions after mount to prevent flash
+  useEffect(() => {
+    const timer = setTimeout(() => setSidebarMounted(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Scroll to bottom function for the button
   const scrollToBottom = () => {
@@ -1084,21 +1093,65 @@ const NewChat = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background">
-      {/* Header - only show on public root page */}
-      {isPublicPage && <ChatHeader onNewChat={handleNewChat} onWhatIsGoodable={handleWhatIsGoodable} />}
+    <div className="fixed inset-0 overflow-hidden bg-background">
+      {/* Left Sidebar - OUTSIDE container, slides in from off-screen (only for authenticated pages) */}
+      {!isPublicPage && (
+        <div
+          className={cn(
+            "fixed left-0 top-0 bottom-0 w-64 bg-background border-r z-50",
+            sidebarMounted && "transition-transform duration-300 ease-in-out",
+            leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          )}
+        >
+          <NoteViewSidebar onClose={() => setLeftSidebarOpen(false)} />
+        </div>
+      )}
 
-      {/* Main Content Area - add top padding only when header is shown */}
-      <div
-        ref={scrollContainerRef}
-        className={cn("flex-1 overflow-y-auto pb-32", isPublicPage && "pt-14")}
-      >
-        {/* Engine Selection - ChatGPT style top-left (desktop only, mobile uses PageHeader) */}
-        {!isPublicPage && (
-          <div className="hidden md:block sticky top-0 z-10 bg-background pt-4 pb-2 px-8">
-            <EngineSelection />
-          </div>
-        )}
+      {/* Backdrop overlay when sidebar is open */}
+      {!isPublicPage && leftSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 z-40 transition-opacity"
+          onClick={() => setLeftSidebarOpen(false)}
+        />
+      )}
+
+      {/* Main Content Container */}
+      <div className="flex flex-col h-full">
+        {/* Header - only show on public root page */}
+        {isPublicPage && <ChatHeader onNewChat={handleNewChat} onWhatIsGoodable={handleWhatIsGoodable} />}
+
+        {/* Main Content Area - add top padding only when header is shown */}
+        <div
+          ref={scrollContainerRef}
+          className={cn("flex-1 overflow-y-auto pb-32", isPublicPage && "pt-14")}
+        >
+          {/* Sidebar Toggle + Engine Selection - ChatGPT style top-left (desktop only) */}
+          {!isPublicPage && (
+            <div className="hidden md:flex items-center gap-2 sticky top-0 z-10 bg-background pt-4 pb-2 px-8">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+                className={cn("flex-shrink-0", leftSidebarOpen && "bg-muted")}
+              >
+                <PanelLeft className="h-4 w-4" />
+              </Button>
+              <EngineSelection />
+            </div>
+          )}
+          {/* Mobile Sidebar Toggle */}
+          {!isPublicPage && (
+            <div className="md:hidden sticky top-0 z-10 bg-background pt-4 pb-2 px-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+                className={cn("flex-shrink-0", leftSidebarOpen && "bg-muted")}
+              >
+                <PanelLeft className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
 
         {!chatStarted ? (
           /* Initial State - Prompt Cards */
@@ -2146,6 +2199,7 @@ const NewChat = () => {
               </span>
             </div>
           </div>
+        </div>
         </div>
       </div>
 
