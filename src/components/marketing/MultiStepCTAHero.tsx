@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const benefits = [
   'Track legislation that matters to you',
@@ -31,7 +34,10 @@ const socialProof = [
 ];
 
 export default function MultiStepCTAHero() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     role: '',
@@ -62,7 +68,104 @@ export default function MultiStepCTAHero() {
     },
   ];
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    // Validation for each step
+    if (currentStep === 0) {
+      if (!formData.email || !formData.email.includes('@')) {
+        toast({
+          title: "Invalid email",
+          description: "Please enter a valid email address",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    if (currentStep === 1) {
+      if (!formData.role || !formData.interests) {
+        toast({
+          title: "Please complete all fields",
+          description: "Select your role and policy interests",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    // On step 2 (clicking "Start My Trial"), create the account
+    if (currentStep === 2) {
+      if (!formData.name.trim()) {
+        toast({
+          title: "Name required",
+          description: "Please enter your full name",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setIsLoading(true);
+
+      try {
+        // Generate a temporary password for signup
+        const tempPassword = crypto.randomUUID();
+
+        const { data, error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: tempPassword,
+          options: {
+            data: {
+              full_name: formData.name,
+              user_type: formData.role,
+              policy_interests: formData.interests,
+            }
+          }
+        });
+
+        if (error) {
+          if (error.message.includes('already registered')) {
+            toast({
+              title: "Account exists",
+              description: "This email is already registered. Please log in instead.",
+              variant: "destructive"
+            });
+            setIsLoading(false);
+            return;
+          }
+          throw error;
+        }
+
+        // Update profile with additional data
+        if (data.user) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+              user_id: data.user.id,
+              display_name: formData.name,
+              user_type: formData.role,
+              policy_interests: formData.interests,
+            }, {
+              onConflict: 'user_id'
+            });
+
+          if (profileError) {
+            console.error('Profile update error:', profileError);
+          }
+        }
+
+        setIsLoading(false);
+        setCurrentStep(3); // Move to complete step
+        return;
+      } catch (error: any) {
+        toast({
+          title: "Error creating account",
+          description: error.message || "Please try again",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+    }
+
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     }
@@ -312,13 +415,17 @@ export default function MultiStepCTAHero() {
                   {currentStep < 3 && (
                     <Button
                       onClick={handleNext}
+                      disabled={isLoading}
                       className="flex-1 bg-foreground text-background hover:bg-foreground/90"
                     >
-                      {currentStep === 2 ? 'Start My Trial' : 'Continue'}
+                      {isLoading ? 'Creating account...' : currentStep === 2 ? 'Start My Trial' : 'Continue'}
                     </Button>
                   )}
                   {currentStep === 3 && (
-                    <Button className="w-full bg-foreground text-background hover:bg-foreground/90">
+                    <Button
+                      className="w-full bg-foreground text-background hover:bg-foreground/90"
+                      onClick={() => navigate('/new-chat')}
+                    >
                       Explore the Platform
                     </Button>
                   )}
