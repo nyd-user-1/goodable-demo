@@ -13,7 +13,7 @@ export const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -131,7 +131,7 @@ export const Auth = () => {
               </div>
             </div>
 
-            <Button variant="outline" className="w-full py-3" type="button">
+            <Button variant="outline" className="w-full py-3" type="button" onClick={signInWithGoogle}>
               <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"

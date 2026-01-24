@@ -10,6 +10,7 @@ interface AuthContextType {
   isAdmin: boolean;
   signUp: (email: string, password: string, username?: string, displayName?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -87,6 +88,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return { error };
   };
 
+  const signInWithGoogle = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/new-chat`
+      }
+    });
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -98,6 +108,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     isAdmin: isAdmin(user?.email),
     signUp,
     signIn,
+    signInWithGoogle,
     signOut,
   };
 
