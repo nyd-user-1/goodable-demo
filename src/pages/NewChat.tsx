@@ -92,6 +92,18 @@ const samplePrompts = [
   {
     title: "How would Senator Gounardes' S01369 address housing affordability through good cause eviction protections for tenants?",
     category: "Housing & Tenant Rights"
+  },
+  {
+    title: "What mental health parity requirements does Assemblymember Rosenthal's A01066 establish for insurance coverage of behavioral health services?",
+    category: "Mental Health"
+  },
+  {
+    title: "How does Senator Myrie's S01457 expand voting access through automatic voter registration at state agencies?",
+    category: "Voting Rights"
+  },
+  {
+    title: "What worker protections does Assemblymember Reyes' A02118 provide through warehouse worker safety standards and quota transparency?",
+    category: "Labor Rights"
   }
 ];
 
@@ -154,7 +166,7 @@ interface Message {
 const NewChat = () => {
   const [query, setQuery] = useState("");
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
-  const [promptPage, setPromptPage] = useState(0);
+  const promptScrollRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [chatStarted, setChatStarted] = useState(false);
@@ -1096,59 +1108,68 @@ const NewChat = () => {
             </h1>
 
             {/* Prompt Carousel */}
-            <div className="w-full max-w-3xl mb-8">
+            <div className="w-full max-w-4xl mb-8">
               {/* Header with navigation arrows */}
               <div className="flex items-center justify-end mb-3 gap-1">
                 <button
-                  onClick={() => setPromptPage(Math.max(0, promptPage - 1))}
-                  disabled={promptPage === 0}
-                  className={cn(
-                    "p-1.5 rounded-md transition-colors",
-                    promptPage === 0
-                      ? "text-muted-foreground/30 cursor-not-allowed"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )}
+                  onClick={() => {
+                    if (promptScrollRef.current) {
+                      promptScrollRef.current.scrollBy({ left: -340, behavior: 'smooth' });
+                    }
+                  }}
+                  className="p-1.5 rounded-md transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
                   aria-label="Previous prompts"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
                 <button
-                  onClick={() => setPromptPage(Math.min(Math.ceil(samplePrompts.length / 2) - 1, promptPage + 1))}
-                  disabled={promptPage >= Math.ceil(samplePrompts.length / 2) - 1}
-                  className={cn(
-                    "p-1.5 rounded-md transition-colors",
-                    promptPage >= Math.ceil(samplePrompts.length / 2) - 1
-                      ? "text-muted-foreground/30 cursor-not-allowed"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )}
+                  onClick={() => {
+                    if (promptScrollRef.current) {
+                      promptScrollRef.current.scrollBy({ left: 340, behavior: 'smooth' });
+                    }
+                  }}
+                  className="p-1.5 rounded-md transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
                   aria-label="Next prompts"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
 
-              {/* Prompt Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {samplePrompts.slice(promptPage * 2, promptPage * 2 + 2).map((prompt, index) => (
-                  <Card
-                    key={promptPage * 2 + index}
-                    className={cn(
-                      "p-5 cursor-pointer transition-all duration-200 border",
-                      "hover:border-foreground hover:shadow-md",
-                      hoveredCard === promptPage * 2 + index && "border-foreground shadow-md"
-                    )}
-                    onClick={() => handlePromptClick(prompt.title)}
-                    onMouseEnter={() => setHoveredCard(promptPage * 2 + index)}
-                    onMouseLeave={() => setHoveredCard(null)}
-                  >
-                    <p className="text-xs text-muted-foreground mb-2 font-medium">
-                      {prompt.category}
-                    </p>
-                    <p className="text-sm leading-relaxed text-foreground">
-                      {prompt.title}
-                    </p>
-                  </Card>
-                ))}
+              {/* Scrollable container with fade edges */}
+              <div className="relative">
+                {/* Left fade */}
+                <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+                {/* Right fade */}
+                <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+
+                {/* Scrollable prompt cards */}
+                <div
+                  ref={promptScrollRef}
+                  className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 px-1 scroll-smooth"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
+                  {samplePrompts.map((prompt, index) => (
+                    <Card
+                      key={index}
+                      className={cn(
+                        "p-5 cursor-pointer transition-all duration-200 border flex-shrink-0",
+                        "hover:border-foreground hover:shadow-md",
+                        "w-[320px] h-[140px]",
+                        hoveredCard === index && "border-foreground shadow-md"
+                      )}
+                      onClick={() => handlePromptClick(prompt.title)}
+                      onMouseEnter={() => setHoveredCard(index)}
+                      onMouseLeave={() => setHoveredCard(null)}
+                    >
+                      <p className="text-xs text-muted-foreground mb-2 font-medium">
+                        {prompt.category}
+                      </p>
+                      <p className="text-sm leading-relaxed text-foreground line-clamp-4">
+                        {prompt.title}
+                      </p>
+                    </Card>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
