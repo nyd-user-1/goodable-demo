@@ -8,10 +8,11 @@ export function useBillsSearch() {
   const [statusFilter, setStatusFilter] = useState('');
   const [committeeFilter, setCommitteeFilter] = useState('');
   const [sessionFilter, setSessionFilter] = useState('');
+  const [sponsorFilter, setSponsorFilter] = useState('');
 
   // Fetch bills - server-side search when there's a search term
   const { data, isLoading, error } = useQuery({
-    queryKey: ['bills-search', searchTerm, statusFilter, committeeFilter, sessionFilter],
+    queryKey: ['bills-search', searchTerm, statusFilter, committeeFilter, sessionFilter, sponsorFilter],
     queryFn: async () => {
       let query = supabase
         .from('Bills')
@@ -37,6 +38,24 @@ export function useBillsSearch() {
       // Server-side session filter
       if (sessionFilter) {
         query = query.eq('session_id', parseInt(sessionFilter));
+      }
+
+      // If filtering by sponsor, get bill IDs for that sponsor first
+      let sponsorBillIds: number[] | null = null;
+      if (sponsorFilter) {
+        const { data: sponsorBills } = await supabase
+          .from('Sponsors')
+          .select('bill_id')
+          .eq('people_id', parseInt(sponsorFilter))
+          .eq('position', 1);
+        sponsorBillIds = (sponsorBills || []).map(s => s.bill_id).filter(Boolean) as number[];
+
+        // If no bills for this sponsor, return empty
+        if (sponsorBillIds.length === 0) {
+          return { bills: [], totalCount: 0 };
+        }
+
+        query = query.in('bill_id', sponsorBillIds);
       }
 
       // Order by last action date (most recent first) and limit results
@@ -88,7 +107,7 @@ export function useBillsSearch() {
   const bills = data?.bills || [];
   const totalCount = data?.totalCount || 0;
 
-  // Get filter options (statuses, committees, sessions) from a separate query
+  // Get filter options (statuses, committees, sessions, sponsors) from a separate query
   const { data: filterOptions } = useQuery({
     queryKey: ['bills-filter-options'],
     queryFn: async () => {
@@ -111,11 +130,34 @@ export function useBillsSearch() {
         .not('session_id', 'is', null)
         .order('session_id', { ascending: false });
 
+      // Get unique sponsors (primary sponsors only, position = 1)
+      const { data: sponsorData } = await supabase
+        .from('Sponsors')
+        .select('people_id')
+        .eq('position', 1)
+        .not('people_id', 'is', null);
+
+      const uniquePeopleIds = [...new Set((sponsorData || []).map(s => s.people_id))].filter(Boolean) as number[];
+
+      // Get people names for sponsors
+      const { data: peopleData } = await supabase
+        .from('People')
+        .select('people_id, name, first_name, last_name')
+        .in('people_id', uniquePeopleIds);
+
+      const sponsors = (peopleData || [])
+        .map(p => ({
+          id: p.people_id,
+          name: p.name || `${p.first_name || ''} ${p.last_name || ''}`.trim(),
+        }))
+        .filter(s => s.name)
+        .sort((a, b) => a.name.localeCompare(b.name));
+
       const statuses = [...new Set(statusData?.map(s => s.status_desc))].filter(Boolean).sort() as string[];
       const committees = [...new Set(committeeData?.map(c => c.committee))].filter(Boolean).sort() as string[];
       const sessions = [...new Set(sessionData?.map(s => s.session_id))].filter(Boolean).sort((a, b) => b - a) as number[];
 
-      return { statuses, committees, sessions };
+      return { statuses, committees, sessions, sponsors };
     },
     staleTime: 30 * 60 * 1000, // Cache filter options for 30 minutes
   });
@@ -128,6 +170,7 @@ export function useBillsSearch() {
     statuses: filterOptions?.statuses || [],
     committees: filterOptions?.committees || [],
     sessions: filterOptions?.sessions || [],
+    sponsors: filterOptions?.sponsors || [],
     searchTerm,
     setSearchTerm,
     statusFilter,
@@ -136,6 +179,8 @@ export function useBillsSearch() {
     setCommitteeFilter,
     sessionFilter,
     setSessionFilter,
+    sponsorFilter,
+    setSponsorFilter,
   };
 }
 

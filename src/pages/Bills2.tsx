@@ -41,6 +41,7 @@ const Bills2 = () => {
     statuses,
     committees,
     sessions,
+    sponsors,
     searchTerm,
     setSearchTerm,
     statusFilter,
@@ -49,6 +50,8 @@ const Bills2 = () => {
     setCommitteeFilter,
     sessionFilter,
     setSessionFilter,
+    sponsorFilter,
+    setSponsorFilter,
   } = useBillsSearch();
 
   // Focus search on mount and keyboard shortcut
@@ -100,9 +103,10 @@ const Bills2 = () => {
     setStatusFilter('');
     setCommitteeFilter('');
     setSessionFilter('');
+    setSponsorFilter('');
   };
 
-  const hasActiveFilters = searchTerm || statusFilter || committeeFilter || sessionFilter;
+  const hasActiveFilters = searchTerm || statusFilter || committeeFilter || sessionFilter || sponsorFilter;
 
   const openCommandPalette = () => {
     const event = new KeyboardEvent('keydown', {
@@ -232,6 +236,20 @@ const Bills2 = () => {
                       {sessions.map((session) => (
                         <SelectItem key={session} value={String(session)} className="focus:bg-muted focus:text-foreground">
                           {session}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={sponsorFilter || "all"} onValueChange={(v) => setSponsorFilter(v === "all" ? "" : v)}>
+                    <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
+                      <SelectValue placeholder="All Sponsors" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Sponsors</SelectItem>
+                      {sponsors.map((sponsor) => (
+                        <SelectItem key={sponsor.id} value={String(sponsor.id)} className="focus:bg-muted focus:text-foreground">
+                          {sponsor.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
