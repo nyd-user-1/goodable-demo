@@ -11,7 +11,6 @@ import {
   ScrollText,
   Users,
   Landmark,
-  TrendingUp,
   Clock,
   ChevronRight,
   ChevronDown,
@@ -450,17 +449,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               <GraduationCap className="h-4 w-4" />
               <span>School Funding</span>
             </NavLink>
-            <NavLink
-              to="/dashboard"
-              onClick={onClose}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                isActive("/dashboard") ? "bg-muted" : "hover:bg-muted"
-              )}
-            >
-              <TrendingUp className="h-4 w-4" />
-              <span>Dashboard</span>
-            </NavLink>
           </CollapsibleContent>
         </Collapsible>
 
@@ -553,18 +541,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                     <span className="text-muted-foreground">836/1000</span>
                   </div>
                   <Progress value={83.6} className="h-1.5" />
-                </div>
-
-                {/* Imports Usage */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1">
-                      <span className="text-muted-foreground">Imports/day</span>
-                      <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                    </div>
-                    <span className="text-muted-foreground">0/5</span>
-                  </div>
-                  <Progress value={0} className="h-1.5 bg-green-100 [&>div]:bg-green-500" />
                 </div>
 
                 {/* Upgrade Button */}
