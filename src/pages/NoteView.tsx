@@ -724,12 +724,32 @@ ${chatInput}`;
   }
 
   return (
-    <div className="fixed inset-0 p-2 bg-muted/30 overflow-hidden box-border">
-      {/* Main Container with rounded corners and border */}
+    <div className="fixed inset-0 overflow-hidden">
+      {/* Left Sidebar - OUTSIDE container, slides in from off-screen */}
       <div
-        ref={containerRef}
-        className="w-full h-full rounded-2xl border bg-background overflow-hidden flex flex-col"
+        className={cn(
+          "fixed left-0 top-0 bottom-0 w-64 bg-background border-r z-50 transition-transform duration-300 ease-in-out",
+          leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
       >
+        <NoteViewSidebar onClose={() => setLeftSidebarOpen(false)} />
+      </div>
+
+      {/* Backdrop overlay when sidebar is open */}
+      {leftSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 z-40 transition-opacity"
+          onClick={() => setLeftSidebarOpen(false)}
+        />
+      )}
+
+      {/* Main Container with padding */}
+      <div className="h-full p-2 bg-muted/30">
+        {/* Inner container with rounded corners and border */}
+        <div
+          ref={containerRef}
+          className="w-full h-full rounded-2xl border bg-background overflow-hidden flex flex-col"
+        >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b bg-background flex-shrink-0">
           <div className="flex items-center gap-2 min-w-0">
@@ -856,20 +876,8 @@ ${chatInput}`;
           </div>
         </div>
 
-        {/* Main Content Area with Sidebars */}
+        {/* Main Content Area */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Left Sidebar */}
-          <div
-            className={cn(
-              "border-r bg-background flex-shrink-0 overflow-hidden transition-all duration-300",
-              leftSidebarOpen ? "w-64" : "w-0"
-            )}
-          >
-            {leftSidebarOpen && (
-              <NoteViewSidebar />
-            )}
-          </div>
-
           {/* Document Content */}
           <div ref={documentContentRef} className="flex-1 overflow-y-auto min-w-0 relative">
             <div className="max-w-[800px] mx-auto py-12 px-8">
@@ -1370,6 +1378,7 @@ ${chatInput}`;
             )}
           </div>
         </div>
+      </div>
       </div>
 
       {/* Draggable Rich Text Toolbar */}
