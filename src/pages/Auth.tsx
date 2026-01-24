@@ -32,42 +32,12 @@ export const Auth = () => {
   };
 
   return (
-    <div className="bg-muted/20 flex min-h-screen">
-      {/* Left side - Testimonial */}
-      <div className="relative hidden lg:flex lg:w-1/2">
-        <div className="relative h-full w-full">
-          <img
-            src="https://images.unsplash.com/photo-1734336056841-8f4dd3ca6e32?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            alt="Testimonial background"
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/20" />
-
-          {/* Logo */}
-          <Link to="/" className="absolute top-8 left-8 flex items-center gap-2 text-white">
-            <span className="text-xl font-semibold">Goodable</span>
-          </Link>
-
-          {/* Testimonial */}
-          <div className="absolute right-8 bottom-8 left-8 text-white">
-            <blockquote className="mb-4 text-2xl font-medium">
-              &quot;Goodable transformed how we track legislation and engage with our representatives.&quot;
-            </blockquote>
-            <div>
-              <div className="font-medium">Policy Advocate</div>
-              <div className="text-sm opacity-90">
-                Nonprofit Organization
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right side - Login form */}
-      <div className="flex w-full items-center justify-center p-8 lg:w-1/2">
+    <div className="bg-muted/20 flex min-h-screen items-center justify-center">
+      {/* Centered Login form */}
+      <div className="flex w-full items-center justify-center p-8">
         <div className="w-full max-w-md space-y-8">
-          {/* Mobile logo */}
-          <Link to="/" className="mb-8 flex items-center justify-center gap-2 lg:hidden">
+          {/* Logo */}
+          <Link to="/" className="mb-8 flex items-center justify-center gap-2">
             <span className="text-xl font-semibold">Goodable</span>
           </Link>
 
@@ -118,7 +88,7 @@ export const Auth = () => {
               <div className="text-right">
                 <a
                   href="#"
-                  className="text-primary hover:text-primary/80 text-sm"
+                  className="text-foreground hover:text-foreground/80 text-sm"
                 >
                   Forgot password?
                 </a>
@@ -136,7 +106,7 @@ export const Auth = () => {
                 id="remember"
                 checked={rememberMe}
                 onCheckedChange={setRememberMe}
-                className="data-[state=checked]:bg-primary"
+                className="data-[state=checked]:bg-black"
               />
             </div>
 
@@ -146,7 +116,7 @@ export const Auth = () => {
               </div>
             )}
 
-            <Button type="submit" className="w-full py-3" disabled={loading}>
+            <Button type="submit" className="w-full py-3 bg-black hover:bg-black/90 text-white" disabled={loading}>
               {loading ? 'Signing in...' : 'Log In'}
             </Button>
 
@@ -187,7 +157,7 @@ export const Auth = () => {
               Don&apos;t have an account?{' '}
               <Link
                 to="/auth-4"
-                className="text-primary hover:text-primary/80 font-medium"
+                className="text-foreground hover:text-foreground/80 font-medium"
               >
                 Sign up
               </Link>
