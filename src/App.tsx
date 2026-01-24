@@ -47,6 +47,7 @@ import Problems from "./pages/Problems";
 import About from "./pages/About";
 import Academy from "./pages/Academy";
 import Features from "./pages/Features";
+import Features2 from "./pages/Features-2";
 import Pricing from "./pages/Pricing";
 import AIFluency from "./pages/AIFluency";
 import UseCasesBills from "./pages/UseCasesBills";
@@ -167,6 +168,7 @@ const App = () => {
                 <Routes>
             <Route path="/" element={<NewChat />} />                  <Route path="/alt" element={<Landing />} />
                               <Route path="/features" element={<Features />} />
+                  <Route path="/features-2" element={<Features2 />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/auth-2" element={<Auth2 />} />
                   <Route path="/auth-4" element={<Auth4 />} />
