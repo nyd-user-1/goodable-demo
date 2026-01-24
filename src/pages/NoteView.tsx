@@ -48,6 +48,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { useModel, ModelType } from "@/contexts/ModelContext";
+import ReactMarkdown from "react-markdown";
 
 interface BillData {
   bill_number: string;
@@ -446,18 +447,19 @@ const NoteView = () => {
     setChatMessages([...updatedMessages, streamingMessage]);
 
     try {
-      const noteContext = `
-Note Title: ${editableTitle || note.title}
-Note Content: ${getPlainText(htmlContent)}
-      `.trim();
+      const noteContent = getPlainText(htmlContent);
+      const noteTitle = editableTitle || note.title;
 
-      const systemPrompt = `You are a helpful assistant answering questions about a note.
-The user wants responses limited to approximately ${wordCountLimit} words.
-Here is the note content for context:
+      // Build a comprehensive prompt that includes the full note context
+      const contextualPrompt = `I have a note titled "${noteTitle}" with the following content:
 
-${noteContext}
+---
+${noteContent}
+---
 
-Answer the user's question based on this note content.`;
+Based on this note, please answer the following question (limit response to approximately ${wordCountLimit} words):
+
+${chatInput}`;
 
       const supabaseUrl = supabase.supabaseUrl;
       const { data: { session } } = await supabase.auth.getSession();
@@ -472,12 +474,16 @@ Answer the user's question based on this note content.`;
           'apikey': supabase.supabaseKey,
         },
         body: JSON.stringify({
-          prompt: chatInput,
-          systemPrompt,
-          type: 'note',
+          prompt: contextualPrompt,
+          type: 'chat',
           stream: true,
           fastMode: true,
-          model: selectedModel
+          context: {
+            chatType: 'note',
+            title: noteTitle,
+            noteContent: noteContent.slice(0, 8000), // Limit context size
+            previousMessages: chatMessages.slice(-5)
+          }
         }),
         signal: abortControllerRef.current.signal
       });
@@ -971,29 +977,43 @@ Answer the user's question based on this note content.`;
                       ) : (
                         <div className="space-y-4">
                           {chatMessages.map((message) => (
-                            <div
-                              key={message.id}
-                              className={cn(
-                                "flex",
-                                message.role === "user" ? "justify-end" : "justify-start"
+                            <div key={message.id}>
+                              {message.role === "user" ? (
+                                /* User message - right-aligned dark bubble */
+                                <div className="flex justify-end">
+                                  <div className="max-w-[85%] rounded-2xl px-4 py-2 bg-slate-700 text-white text-sm">
+                                    {message.content}
+                                  </div>
+                                </div>
+                              ) : (
+                                /* Assistant message - full-width markdown, no bubble */
+                                <div className="w-full">
+                                  {!message.content ? (
+                                    <div className="flex items-center gap-2 text-muted-foreground text-sm py-2">
+                                      <span className="animate-pulse">●</span>
+                                      <span className="animate-pulse" style={{ animationDelay: '0.2s' }}>●</span>
+                                      <span className="animate-pulse" style={{ animationDelay: '0.4s' }}>●</span>
+                                    </div>
+                                  ) : (
+                                    <div className="prose prose-sm dark:prose-invert max-w-none text-sm">
+                                      <ReactMarkdown
+                                        components={{
+                                          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                          h1: ({ children }) => <h1 className="text-lg font-bold mt-4 mb-2">{children}</h1>,
+                                          h2: ({ children }) => <h2 className="text-base font-bold mt-3 mb-2">{children}</h2>,
+                                          h3: ({ children }) => <h3 className="text-sm font-bold mt-2 mb-1">{children}</h3>,
+                                          ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>,
+                                          ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-1">{children}</ol>,
+                                          li: ({ children }) => <li className="text-sm">{children}</li>,
+                                          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                                        }}
+                                      >
+                                        {message.content}
+                                      </ReactMarkdown>
+                                    </div>
+                                  )}
+                                </div>
                               )}
-                            >
-                              <div
-                                className={cn(
-                                  "max-w-[85%] rounded-lg px-3 py-2 text-sm",
-                                  message.role === "user"
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-muted"
-                                )}
-                              >
-                                {message.content || (
-                                  <span className="inline-flex items-center gap-1">
-                                    <span className="animate-pulse">●</span>
-                                    <span className="animate-pulse animation-delay-200">●</span>
-                                    <span className="animate-pulse animation-delay-400">●</span>
-                                  </span>
-                                )}
-                              </div>
                             </div>
                           ))}
                         </div>
