@@ -6,7 +6,8 @@ import {
   AlignCenter, AlignRight, Code, List, ListOrdered, Indent, Outdent,
   Table2, ChevronDown, MessageSquare, GripVertical, PanelLeft,
   PanelRight, ChevronRight, ExternalLink, Clock, Copy, Clipboard,
-  Download, FileCode, FileType, ArrowUp, ArrowDown, Check
+  Download, FileCode, FileType, ArrowUp, ArrowDown, Check, Square,
+  Volume2, ListTree
 } from "lucide-react";
 
 // Model provider icons
@@ -120,6 +121,7 @@ const NoteView = () => {
   const { selectedModel, setSelectedModel } = useModel();
   const abortControllerRef = useRef<AbortController | null>(null);
   const documentContentRef = useRef<HTMLDivElement>(null);
+  const chatContentRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom of document
   const scrollToBottom = useCallback(() => {
@@ -128,6 +130,31 @@ const NoteView = () => {
         top: documentContentRef.current.scrollHeight,
         behavior: 'smooth'
       });
+    }
+  }, []);
+
+  // Scroll to bottom of chat
+  const scrollChatToBottom = useCallback(() => {
+    if (chatContentRef.current) {
+      chatContentRef.current.scrollTo({
+        top: chatContentRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, []);
+
+  // Copy message to clipboard
+  const copyMessageToClipboard = useCallback((content: string) => {
+    navigator.clipboard.writeText(content);
+    toast({ title: "Copied to clipboard" });
+  }, [toast]);
+
+  // Stop streaming
+  const stopStreaming = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setIsChatLoading(false);
     }
   }, []);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -981,6 +1008,7 @@ ${chatInput}`;
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
                           <DropdownMenuItem onClick={() => setChatMessages([])}>
+                            <MessageSquare className="h-4 w-4 mr-2" />
                             New chat
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => {
@@ -988,6 +1016,7 @@ ${chatInput}`;
                             navigator.clipboard.writeText(text);
                             toast({ title: "Messages copied" });
                           }}>
+                            <Copy className="h-4 w-4 mr-2" />
                             Copy messages
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => {
@@ -1000,6 +1029,7 @@ ${chatInput}`;
                             a.click();
                             URL.revokeObjectURL(url);
                           }}>
+                            <Download className="h-4 w-4 mr-2" />
                             Export messages
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -1007,7 +1037,7 @@ ${chatInput}`;
                     </div>
 
                     {/* Chat Content */}
-                    <div className="flex-1 overflow-y-auto p-4">
+                    <div ref={chatContentRef} className="flex-1 overflow-y-auto p-4 relative">
                       {/* Note Reference Card */}
                       <div className="mb-4 p-3 bg-muted/50 rounded-lg border">
                         <div className="flex items-center gap-2">
@@ -1024,7 +1054,7 @@ ${chatInput}`;
                           <p className="text-sm">Ask questions about this note</p>
                         </div>
                       ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-4 pb-12">
                           {chatMessages.map((message, index) => (
                             <div key={message.id}>
                               {message.role === "user" ? (
@@ -1040,35 +1070,100 @@ ${chatInput}`;
                                   {!message.content && isChatLoading ? (
                                     /* Blinking typewriter cursor when waiting for response */
                                     <div className="text-sm py-2">
-                                      <span className="inline-block w-0.5 h-4 bg-foreground animate-pulse" />
+                                      <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1">|</span>
                                     </div>
                                   ) : (
-                                    <div className="prose prose-sm dark:prose-invert max-w-none text-sm">
-                                      <ReactMarkdown
-                                        components={{
-                                          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                                          h1: ({ children }) => <h1 className="text-lg font-bold mt-4 mb-2">{children}</h1>,
-                                          h2: ({ children }) => <h2 className="text-base font-bold mt-3 mb-2">{children}</h2>,
-                                          h3: ({ children }) => <h3 className="text-sm font-bold mt-2 mb-1">{children}</h3>,
-                                          ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>,
-                                          ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-1">{children}</ol>,
-                                          li: ({ children }) => <li className="text-sm">{children}</li>,
-                                          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                                        }}
-                                      >
-                                        {message.content}
-                                      </ReactMarkdown>
-                                      {/* Streaming cursor - shows at end of content while loading */}
-                                      {isChatLoading && index === chatMessages.length - 1 && message.content && (
-                                        <span className="inline-block w-0.5 h-4 bg-foreground animate-pulse ml-0.5" />
+                                    <>
+                                      <div className="prose prose-sm dark:prose-invert max-w-none text-sm">
+                                        <ReactMarkdown
+                                          components={{
+                                            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                            h1: ({ children }) => <h1 className="text-lg font-bold mt-4 mb-2">{children}</h1>,
+                                            h2: ({ children }) => <h2 className="text-base font-bold mt-3 mb-2">{children}</h2>,
+                                            h3: ({ children }) => <h3 className="text-sm font-bold mt-2 mb-1">{children}</h3>,
+                                            ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>,
+                                            ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-1">{children}</ol>,
+                                            li: ({ children }) => <li className="text-sm">{children}</li>,
+                                            strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                                          }}
+                                        >
+                                          {message.content}
+                                        </ReactMarkdown>
+                                        {/* Streaming cursor - shows at end of content while loading */}
+                                        {isChatLoading && index === chatMessages.length - 1 && message.content && (
+                                          <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1">|</span>
+                                        )}
+                                      </div>
+
+                                      {/* Footer Actions - only show when not streaming */}
+                                      {!(isChatLoading && index === chatMessages.length - 1) && (
+                                        <div className="flex items-center gap-1 mt-2 pt-2 border-t border-transparent hover:border-muted">
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                            title="Read aloud"
+                                          >
+                                            <Volume2 className="h-3.5 w-3.5" />
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                            onClick={() => copyMessageToClipboard(message.content)}
+                                            title="Copy"
+                                          >
+                                            <Copy className="h-3.5 w-3.5" />
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                            title="List view"
+                                          >
+                                            <ListTree className="h-3.5 w-3.5" />
+                                          </Button>
+                                          <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                              <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                              >
+                                                <MoreHorizontal className="h-3.5 w-3.5" />
+                                              </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="start">
+                                              <DropdownMenuItem onClick={() => copyMessageToClipboard(message.content)}>
+                                                <Copy className="h-4 w-4 mr-2" />
+                                                Copy message
+                                              </DropdownMenuItem>
+                                              <DropdownMenuItem>
+                                                <ExternalLink className="h-4 w-4 mr-2" />
+                                                Share
+                                              </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                          </DropdownMenu>
+                                        </div>
                                       )}
-                                    </div>
+                                    </>
                                   )}
                                 </div>
                               )}
                             </div>
                           ))}
                         </div>
+                      )}
+
+                      {/* Scroll to bottom button - inside chat area */}
+                      {chatMessages.length > 0 && (
+                        <button
+                          onClick={scrollChatToBottom}
+                          className="sticky bottom-2 left-1/2 -translate-x-1/2 w-8 h-8 bg-background border rounded-full shadow-md flex items-center justify-center hover:bg-muted transition-colors z-10"
+                          title="Scroll to bottom"
+                        >
+                          <ArrowDown className="h-3.5 w-3.5 text-muted-foreground" />
+                        </button>
                       )}
                     </div>
 
@@ -1207,16 +1302,26 @@ ${chatInput}`;
                             </DropdownMenu>
                           </div>
 
-                          {/* Send Button */}
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className="h-7 w-7 rounded-full bg-primary/10 border-primary/20 hover:bg-primary hover:text-primary-foreground"
-                            disabled={!chatInput.trim() || isChatLoading}
-                            onClick={sendChatMessage}
-                          >
-                            <ArrowUp className="h-3.5 w-3.5" />
-                          </Button>
+                          {/* Send/Stop Button */}
+                          {isChatLoading ? (
+                            <Button
+                              size="icon"
+                              variant="destructive"
+                              className="h-7 w-7 rounded-full"
+                              onClick={stopStreaming}
+                            >
+                              <Square className="h-3 w-3 fill-current" />
+                            </Button>
+                          ) : (
+                            <Button
+                              size="icon"
+                              className="h-7 w-7 rounded-full bg-foreground hover:bg-foreground/90 text-background"
+                              disabled={!chatInput.trim()}
+                              onClick={sendChatMessage}
+                            >
+                              <ArrowUp className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>
