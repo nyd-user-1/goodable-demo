@@ -125,30 +125,32 @@ const Bills2 = () => {
         />
       )}
 
+      {/* Sidebar Toggle - Fixed position at top left */}
+      <div className="fixed top-4 left-4 z-30">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+          className={cn("flex-shrink-0", leftSidebarOpen && "bg-muted")}
+        >
+          <PanelLeft className="h-4 w-4" />
+        </Button>
+      </div>
+
       {/* Header */}
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col gap-4">
             {/* Title and stats */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-                  className={cn("flex-shrink-0", leftSidebarOpen && "bg-muted")}
-                >
-                  <PanelLeft className="h-4 w-4" />
-                </Button>
-                <div>
-                  <h1 className="text-xl font-semibold">Bills</h1>
-                  <p className="text-sm text-muted-foreground">
-                    {isLoading
-                      ? 'Loading...'
-                      : `Showing ${bills.length.toLocaleString()} of ${totalCount.toLocaleString()} bills`
-                    }
-                  </p>
-                </div>
+              <div>
+                <h1 className="text-xl font-semibold">Bills</h1>
+                <p className="text-sm text-muted-foreground">
+                  {isLoading
+                    ? 'Loading...'
+                    : `Showing ${bills.length.toLocaleString()} of ${totalCount.toLocaleString()} bills`
+                  }
+                </p>
               </div>
               {hasActiveFilters && (
                 <Button variant="ghost" size="sm" onClick={clearFilters}>
