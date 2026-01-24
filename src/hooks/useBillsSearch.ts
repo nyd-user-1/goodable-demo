@@ -44,11 +44,42 @@ export function useBillsSearch() {
         .order('last_action_date', { ascending: false, nullsFirst: false })
         .limit(500);
 
-      const { data, error, count } = await query;
+      const { data: billsData, error, count } = await query;
 
       if (error) throw error;
 
-      return { bills: data as Bill[], totalCount: count || 0 };
+      // Fetch primary sponsors for all bills (position = 1 is typically primary sponsor)
+      const billIds = (billsData || []).map(b => b.bill_id);
+
+      // Get sponsors with people info
+      const { data: sponsorsData } = await supabase
+        .from('Sponsors')
+        .select('bill_id, people_id, position')
+        .in('bill_id', billIds)
+        .eq('position', 1);
+
+      // Get people names for sponsors
+      const peopleIds = [...new Set((sponsorsData || []).map(s => s.people_id).filter(Boolean))];
+      const { data: peopleData } = await supabase
+        .from('People')
+        .select('people_id, name, first_name, last_name')
+        .in('people_id', peopleIds);
+
+      // Create lookup maps
+      const peopleMap = new Map((peopleData || []).map(p => [p.people_id, p]));
+      const sponsorMap = new Map((sponsorsData || []).map(s => {
+        const person = peopleMap.get(s.people_id);
+        const name = person?.name || (person ? `${person.first_name || ''} ${person.last_name || ''}`.trim() : null);
+        return [s.bill_id, name];
+      }));
+
+      // Merge sponsor names into bills
+      const bills = (billsData || []).map(bill => ({
+        ...bill,
+        sponsor_name: sponsorMap.get(bill.bill_id) || null,
+      })) as Bill[];
+
+      return { bills, totalCount: count || 0 };
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     gcTime: 10 * 60 * 1000,

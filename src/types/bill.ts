@@ -14,4 +14,5 @@ export interface Bill {
   session_id: number | null;
   state_link: string | null;
   url: string | null;
+  sponsor_name?: string | null;
 }

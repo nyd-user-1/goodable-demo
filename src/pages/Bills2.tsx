@@ -327,40 +327,25 @@ function BillCard({ bill, onClick, onChatClick }: BillCardProps) {
       <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
         {/* Bill details grid */}
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
-          {/* Row 1 */}
-          {bill.status_desc && (
-            <div>
-              <span className="text-muted-foreground">Status</span>
-              <p className="font-medium">{bill.status_desc}</p>
-            </div>
-          )}
-          {bill.committee && (
-            <div>
-              <span className="text-muted-foreground">Committee</span>
-              <p className="font-medium truncate">{bill.committee}</p>
-            </div>
-          )}
-          {/* Row 2 */}
-          {bill.last_action_date && (
-            <div>
-              <span className="text-muted-foreground">Last Action Date</span>
-              <p className="font-medium">{formatBillDate(bill.last_action_date)}</p>
-            </div>
-          )}
-          {bill.session_id && (
-            <div>
-              <span className="text-muted-foreground">Session</span>
-              <p className="font-medium">{bill.session_id}</p>
-            </div>
-          )}
-        </div>
-        {/* Last action text - full width */}
-        {bill.last_action && (
-          <div className="text-xs mb-4">
-            <span className="text-muted-foreground">Last Action</span>
-            <p className="font-medium">{bill.last_action}</p>
+          {/* Row 1: Sponsor, Status */}
+          <div>
+            <span className="text-muted-foreground">Sponsor</span>
+            <p className="font-medium">{bill.sponsor_name || '—'}</p>
           </div>
-        )}
+          <div>
+            <span className="text-muted-foreground">Status</span>
+            <p className="font-medium">{bill.status_desc || '—'}</p>
+          </div>
+          {/* Row 2: Last Action Date, Last Action */}
+          <div>
+            <span className="text-muted-foreground">Last Action Date</span>
+            <p className="font-medium">{bill.last_action_date ? formatBillDate(bill.last_action_date) : '—'}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Last Action</span>
+            <p className="font-medium">{bill.last_action || '—'}</p>
+          </div>
+        </div>
 
         {/* Action button */}
         <div className="flex justify-end">
