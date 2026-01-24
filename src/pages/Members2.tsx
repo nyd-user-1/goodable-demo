@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, Users, ArrowUp, PanelLeft } from 'lucide-react';
+import { Search, X, Users, ArrowUp, PanelLeft, Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Input } from '@/components/ui/input';
@@ -104,6 +104,15 @@ const Members2 = () => {
 
   const hasActiveFilters = searchTerm || chamberFilter || partyFilter;
 
+  const openCommandPalette = () => {
+    const event = new KeyboardEvent('keydown', {
+      key: 'k',
+      metaKey: true,
+      bubbles: true,
+    });
+    document.dispatchEvent(event);
+  };
+
   return (
     <div className="fixed inset-0 overflow-hidden">
       {/* Left Sidebar - slides in from off-screen */}
@@ -133,7 +142,7 @@ const Members2 = () => {
           <div className="flex-shrink-0 bg-background">
             <div className="px-4 py-4">
               <div className="flex flex-col gap-4">
-                {/* Title row with sidebar toggle */}
+                {/* Title row with sidebar toggle and command button */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Button
@@ -154,12 +163,22 @@ const Members2 = () => {
                       </p>
                     </div>
                   </div>
-                  {hasActiveFilters && (
-                    <Button variant="ghost" size="sm" onClick={clearFilters}>
-                      <X className="h-4 w-4 mr-1" />
-                      Clear filters
+                  <div className="flex items-center gap-2">
+                    {hasActiveFilters && (
+                      <Button variant="ghost" size="sm" onClick={clearFilters}>
+                        <X className="h-4 w-4 mr-1" />
+                        Clear filters
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={openCommandPalette}
+                      className="flex-shrink-0"
+                    >
+                      <Command className="h-4 w-4" />
                     </Button>
-                  )}
+                  </div>
                 </div>
 
                 {/* Search bar */}
