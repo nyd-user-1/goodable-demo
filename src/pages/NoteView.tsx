@@ -866,7 +866,7 @@ ${chatInput}`;
             )}
           >
             {leftSidebarOpen && (
-              <NoteViewSidebar parentChat={parentChat} />
+              <NoteViewSidebar />
             )}
           </div>
 

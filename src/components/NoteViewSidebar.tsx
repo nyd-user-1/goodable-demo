@@ -19,7 +19,7 @@ import {
   TextQuote,
   Wallet,
   GraduationCap,
-  ExternalLink,
+  User,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,16 +41,7 @@ interface Excerpt {
   title: string;
 }
 
-interface ParentChat {
-  id: string;
-  title: string;
-}
-
-interface NoteViewSidebarProps {
-  parentChat?: ParentChat | null;
-}
-
-export function NoteViewSidebar({ parentChat }: NoteViewSidebarProps) {
+export function NoteViewSidebar() {
   const location = useLocation();
   const { user } = useAuth();
   const [recentChats, setRecentChats] = useState<ChatSession[]>([]);
@@ -270,22 +261,19 @@ export function NoteViewSidebar({ parentChat }: NoteViewSidebarProps) {
         )}
       </div>
 
-      {/* Source Chat Link - Fixed at bottom */}
-      {parentChat && (
-        <div className="border-t p-2 flex-shrink-0">
-          <p className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Source
-          </p>
-          <NavLink
-            to={`/c/${parentChat.id}`}
-            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-primary hover:bg-muted transition-colors"
-          >
-            <MessageSquare className="h-4 w-4 flex-shrink-0" />
-            <span className="truncate flex-1">{parentChat.title || "Original Chat"}</span>
-            <ExternalLink className="h-3 w-3 flex-shrink-0" />
-          </NavLink>
-        </div>
-      )}
+      {/* Account Link - Fixed at bottom */}
+      <div className="border-t p-2 flex-shrink-0">
+        <NavLink
+          to="/profile"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+            isActive("/profile") ? "bg-muted" : "hover:bg-muted"
+          )}
+        >
+          <User className="h-4 w-4 flex-shrink-0" />
+          <span>Account</span>
+        </NavLink>
+      </div>
     </div>
   );
 }
