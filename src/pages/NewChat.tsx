@@ -1601,11 +1601,15 @@ const NewChat = () => {
 
       {/* Bottom Input Area - fixed for public, absolute for authenticated */}
       <div className={cn(
-        "bg-background",
-        isPublicPage ? "fixed bottom-0 left-0 right-0 z-[5]" : "absolute bottom-0 left-0 right-0"
+        isPublicPage
+          ? "fixed bottom-0 left-0 right-0 z-[5] bg-background"
+          : "absolute bottom-0 left-0 right-0 flex justify-center pointer-events-none"
       )}>
-        <div className={cn("w-full px-4 py-4", !isPublicPage && "py-3")}>
-          <div className="max-w-[720px] mx-auto">
+        <div className={cn(
+          "w-full px-4 py-4",
+          !isPublicPage && "py-3 max-w-[780px] pointer-events-auto"
+        )}>
+          <div className={cn("max-w-[720px] mx-auto", !isPublicPage && "bg-background rounded-t-xl pt-3 px-3")}>
             <form onSubmit={handleSubmit} className="relative">
               {/* Larger input box - Fintool/Claude style */}
               <div className="rounded-2xl bg-muted/50 border-0 p-3 shadow-lg">
