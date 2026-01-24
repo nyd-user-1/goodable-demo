@@ -20,6 +20,7 @@ import {
   Wallet,
   GraduationCap,
   User,
+  NotebookPen,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,11 +42,17 @@ interface Excerpt {
   title: string;
 }
 
+interface Note {
+  id: string;
+  title: string;
+}
+
 export function NoteViewSidebar() {
   const location = useLocation();
   const { user } = useAuth();
   const [recentChats, setRecentChats] = useState<ChatSession[]>([]);
   const [recentExcerpts, setRecentExcerpts] = useState<Excerpt[]>([]);
+  const [recentNotes, setRecentNotes] = useState<Note[]>([]);
   const [newChatHover, setNewChatHover] = useState(false);
 
   // Fetch recent chats
@@ -80,10 +87,27 @@ export function NoteViewSidebar() {
     }
   }, [user]);
 
+  // Fetch recent notes
+  const fetchRecentNotes = useCallback(async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("chat_notes")
+      .select("id, title, updated_at")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false })
+      .limit(5);
+
+    if (!error && data) {
+      setRecentNotes(data);
+    }
+  }, [user]);
+
   useEffect(() => {
     fetchRecentChats();
     fetchRecentExcerpts();
-  }, [fetchRecentChats, fetchRecentExcerpts]);
+    fetchRecentNotes();
+  }, [fetchRecentChats, fetchRecentExcerpts, fetchRecentNotes]);
 
   const isActive = (url: string) => location.pathname === url;
 
@@ -254,6 +278,33 @@ export function NoteViewSidebar() {
                 >
                   <TextQuote className="h-4 w-4 flex-shrink-0" />
                   <span className="truncate">{excerpt.title}</span>
+                </NavLink>
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
+        {/* Your Notes Section */}
+        {recentNotes.length > 0 && (
+          <Collapsible className="group/notes mt-4">
+            <div className="px-2">
+              <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
+                Your notes
+                <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/notes:rotate-90" />
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent className="px-2 space-y-1">
+              {recentNotes.map((note) => (
+                <NavLink
+                  key={note.id}
+                  to={`/n/${note.id}`}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                    location.pathname === `/n/${note.id}` ? "bg-muted" : "hover:bg-muted"
+                  )}
+                >
+                  <NotebookPen className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{note.title}</span>
                 </NavLink>
               ))}
             </CollapsibleContent>
