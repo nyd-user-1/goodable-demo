@@ -1115,19 +1115,18 @@ const NewChat = () => {
         />
       )}
 
-      {/* Main Content Container */}
-      <div className="flex flex-col h-full">
-        {/* Header - only show on public root page */}
-        {isPublicPage && <ChatHeader onNewChat={handleNewChat} onWhatIsGoodable={handleWhatIsGoodable} />}
-
-        {/* Main Content Area - add top padding only when header is shown */}
-        <div
-          ref={scrollContainerRef}
-          className={cn("flex-1 overflow-y-auto pb-32", isPublicPage && "pt-14")}
-        >
-          {/* Sidebar Toggle + Engine Selection - ChatGPT style top-left (desktop only) */}
-          {!isPublicPage && (
-            <div className="hidden md:flex items-center gap-2 sticky top-0 z-10 bg-background pt-4 pb-2 px-8">
+      {/* Main Content Container - different structure for public vs authenticated */}
+      <div className={cn("h-full", !isPublicPage && "p-2 bg-muted/30")}>
+        {/* Inner container - rounded with border for authenticated pages */}
+        <div className={cn(
+          "h-full flex flex-col relative",
+          !isPublicPage && "rounded-2xl border bg-background overflow-hidden"
+        )}>
+          {/* Header - ChatHeader for public, sidebar toggle + engine for authenticated */}
+          {isPublicPage ? (
+            <ChatHeader onNewChat={handleNewChat} onWhatIsGoodable={handleWhatIsGoodable} />
+          ) : (
+            <div className="flex items-center gap-2 px-4 py-3 border-b bg-background flex-shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
@@ -1139,19 +1138,12 @@ const NewChat = () => {
               <EngineSelection />
             </div>
           )}
-          {/* Mobile Sidebar Toggle */}
-          {!isPublicPage && (
-            <div className="md:hidden sticky top-0 z-10 bg-background pt-4 pb-2 px-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-                className={cn("flex-shrink-0", leftSidebarOpen && "bg-muted")}
-              >
-                <PanelLeft className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+
+          {/* Scrollable Content Area */}
+          <div
+            ref={scrollContainerRef}
+            className={cn("flex-1 overflow-y-auto", isPublicPage ? "pb-32 pt-14" : "pb-4")}
+          >
 
         {!chatStarted ? (
           /* Initial State - Prompt Cards */
@@ -1590,16 +1582,24 @@ const NewChat = () => {
       {showScrollButton && chatStarted && (
         <button
           onClick={scrollToBottom}
-          className="fixed left-1/2 -translate-x-1/2 bottom-44 z-10 bg-background border border-border rounded-full p-2 shadow-lg hover:bg-muted transition-all duration-200 hover:shadow-xl"
+          className={cn(
+            "z-10 bg-background border border-border rounded-full p-2 shadow-lg hover:bg-muted transition-all duration-200 hover:shadow-xl",
+            isPublicPage
+              ? "fixed left-1/2 -translate-x-1/2 bottom-44"
+              : "absolute left-1/2 -translate-x-1/2 bottom-4"
+          )}
           aria-label="Scroll to bottom"
         >
           <ArrowDown className="h-4 w-4 text-muted-foreground" />
         </button>
       )}
 
-      {/* Fixed Bottom Input Area - Always Visible */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background z-[5]">
-        <div className="w-full px-4 py-4">
+      {/* Bottom Input Area - fixed for public, flex for authenticated */}
+      <div className={cn(
+        "bg-background",
+        isPublicPage ? "fixed bottom-0 left-0 right-0 z-[5]" : "flex-shrink-0 border-t"
+      )}>
+        <div className={cn("w-full px-4 py-4", !isPublicPage && "py-3")}>
           <div className="max-w-[720px] mx-auto">
             <form onSubmit={handleSubmit} className="relative">
               {/* Larger input box - Fintool/Claude style */}
@@ -2199,6 +2199,7 @@ const NewChat = () => {
               </span>
             </div>
           </div>
+        </div>
         </div>
         </div>
       </div>
