@@ -104,6 +104,7 @@ const NoteView = () => {
   const [bill, setBill] = useState<BillData | null>(null);
   const [loading, setLoading] = useState(true);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+  const [sidebarMounted, setSidebarMounted] = useState(false);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
   const [htmlContent, setHtmlContent] = useState("");
   const [editableTitle, setEditableTitle] = useState("");
@@ -165,6 +166,13 @@ const NoteView = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const editor = editorRef.current?.editor;
+
+  // Enable sidebar transitions after mount to prevent flash
+  useEffect(() => {
+    // Small delay to ensure CSS is ready
+    const timer = setTimeout(() => setSidebarMounted(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Load note data
   useEffect(() => {
@@ -728,7 +736,8 @@ ${chatInput}`;
       {/* Left Sidebar - OUTSIDE container, slides in from off-screen */}
       <div
         className={cn(
-          "fixed left-0 top-0 bottom-0 w-64 bg-background border-r z-50 transition-transform duration-300 ease-in-out",
+          "fixed left-0 top-0 bottom-0 w-64 bg-background border-r z-50",
+          sidebarMounted && "transition-transform duration-300 ease-in-out",
           leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >

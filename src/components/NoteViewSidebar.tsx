@@ -23,7 +23,6 @@ import {
   NotebookPen,
   Search,
   Plus,
-  X,
   Settings,
   UserPlus,
   Briefcase,
@@ -94,7 +93,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const [recentExcerpts, setRecentExcerpts] = useState<Excerpt[]>([]);
   const [recentNotes, setRecentNotes] = useState<Note[]>([]);
   const [newChatHover, setNewChatHover] = useState(false);
-  const [showCommunityCard, setShowCommunityCard] = useState(true);
   const [planUsageOpen, setPlanUsageOpen] = useState(true);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
@@ -177,8 +175,26 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
     navigate("/auth");
   };
 
-  const handleFeedbackSubmit = () => {
-    console.log("Feedback submitted:", feedbackText);
+  const handleFeedbackSubmit = async () => {
+    if (!feedbackText.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from("feedback")
+        .insert({
+          user_id: user?.id || null,
+          content: feedbackText,
+          page_url: window.location.href,
+          user_agent: navigator.userAgent,
+        });
+
+      if (error) {
+        console.error("Error submitting feedback:", error);
+      }
+    } catch (err) {
+      console.error("Error submitting feedback:", err);
+    }
+
     setFeedbackText("");
     setFeedbackOpen(false);
   };
@@ -448,8 +464,8 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           </CollapsibleContent>
         </Collapsible>
 
-        {/* Your Chats Section */}
-        {recentChats.length > 0 && (
+        {/* Your Chats Section - Combined chats, excerpts, and notes */}
+        {(recentChats.length > 0 || recentExcerpts.length > 0 || recentNotes.length > 0) && (
           <Collapsible className="group/chats mt-4">
             <div className="px-2">
               <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
@@ -458,9 +474,25 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               </CollapsibleTrigger>
             </div>
             <CollapsibleContent className="px-2 space-y-1">
+              {/* Notes */}
+              {recentNotes.map((note) => (
+                <NavLink
+                  key={`note-${note.id}`}
+                  to={`/n/${note.id}`}
+                  onClick={onClose}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                    location.pathname === `/n/${note.id}` ? "bg-muted" : "hover:bg-muted"
+                  )}
+                >
+                  <NotebookPen className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{note.title}</span>
+                </NavLink>
+              ))}
+              {/* Chats */}
               {recentChats.map((chat) => (
                 <NavLink
-                  key={chat.id}
+                  key={`chat-${chat.id}`}
                   to={`/c/${chat.id}`}
                   onClick={onClose}
                   className={cn(
@@ -472,23 +504,10 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   <span className="truncate">{chat.title}</span>
                 </NavLink>
               ))}
-            </CollapsibleContent>
-          </Collapsible>
-        )}
-
-        {/* Your Excerpts Section */}
-        {recentExcerpts.length > 0 && (
-          <Collapsible className="group/excerpts mt-4">
-            <div className="px-2">
-              <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
-                Your excerpts
-                <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/excerpts:rotate-90" />
-              </CollapsibleTrigger>
-            </div>
-            <CollapsibleContent className="px-2 space-y-1">
+              {/* Excerpts */}
               {recentExcerpts.map((excerpt) => (
                 <NavLink
-                  key={excerpt.id}
+                  key={`excerpt-${excerpt.id}`}
                   to={`/e/${excerpt.id}`}
                   onClick={onClose}
                   className={cn(
@@ -503,52 +522,10 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             </CollapsibleContent>
           </Collapsible>
         )}
-
-        {/* Your Notes Section */}
-        {recentNotes.length > 0 && (
-          <Collapsible className="group/notes mt-4">
-            <div className="px-2">
-              <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
-                Your notes
-                <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/notes:rotate-90" />
-              </CollapsibleTrigger>
-            </div>
-            <CollapsibleContent className="px-2 space-y-1">
-              {recentNotes.map((note) => (
-                <NavLink
-                  key={note.id}
-                  to={`/n/${note.id}`}
-                  onClick={onClose}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                    location.pathname === `/n/${note.id}` ? "bg-muted" : "hover:bg-muted"
-                  )}
-                >
-                  <NotebookPen className="h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">{note.title}</span>
-                </NavLink>
-              ))}
-            </CollapsibleContent>
-          </Collapsible>
-        )}
       </div>
 
       {/* Bottom Section */}
       <div className="flex-shrink-0 p-3 space-y-3 border-t">
-        {/* Community Card - Dismissible */}
-        {showCommunityCard && (
-          <div className="relative p-3 border rounded-lg bg-muted/30">
-            <button
-              onClick={() => setShowCommunityCard(false)}
-              className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-            <p className="text-xs text-muted-foreground mb-1">Community</p>
-            <p className="text-sm font-medium">Join Discord for 20% off</p>
-          </div>
-        )}
-
         {/* Plan Usage Card - Collapsible */}
         <Collapsible open={planUsageOpen} onOpenChange={setPlanUsageOpen}>
           <div className="border rounded-lg overflow-hidden">
@@ -620,7 +597,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                 <Button variant="ghost" size="sm" onClick={() => setFeedbackOpen(false)}>
                   Cancel
                 </Button>
-                <Button size="sm" onClick={handleFeedbackSubmit}>
+                <Button size="sm" className="bg-foreground hover:bg-foreground/90 text-background" onClick={handleFeedbackSubmit}>
                   Submit
                 </Button>
               </div>
