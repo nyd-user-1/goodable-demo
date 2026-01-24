@@ -724,7 +724,7 @@ ${chatInput}`;
   }
 
   return (
-    <div className="h-screen w-screen p-2 bg-muted/30">
+    <div className="h-screen w-full p-2 bg-muted/30 overflow-hidden">
       {/* Main Container with rounded corners and border */}
       <div
         ref={containerRef}
