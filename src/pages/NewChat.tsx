@@ -1126,7 +1126,7 @@ const NewChat = () => {
           {isPublicPage ? (
             <ChatHeader onNewChat={handleNewChat} onWhatIsGoodable={handleWhatIsGoodable} />
           ) : (
-            <div className="flex items-center gap-2 px-4 py-3 border-b bg-background flex-shrink-0">
+            <div className="flex items-center gap-2 px-4 py-3 bg-background flex-shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
