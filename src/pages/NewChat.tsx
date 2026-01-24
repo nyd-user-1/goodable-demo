@@ -1142,7 +1142,12 @@ const NewChat = () => {
           {/* Scrollable Content Area */}
           <div
             ref={scrollContainerRef}
-            className={cn("flex-1 overflow-y-auto", isPublicPage ? "pb-32 pt-14" : "pb-40")}
+            className={cn(
+              "overflow-y-auto",
+              isPublicPage
+                ? "flex-1 pb-32 pt-14"
+                : "absolute top-[57px] bottom-0 left-0 right-0 pb-40"
+            )}
           >
 
         {!chatStarted ? (
