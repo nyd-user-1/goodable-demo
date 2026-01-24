@@ -1145,7 +1145,7 @@ const NewChat = () => {
                 {/* Scrollable prompt cards */}
                 <div
                   ref={promptScrollRef}
-                  className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 px-1 scroll-smooth"
+                  className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 pl-8 pr-8 scroll-smooth"
                   style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
                   {samplePrompts.map((prompt, index) => (
