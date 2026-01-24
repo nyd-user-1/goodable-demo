@@ -1142,7 +1142,7 @@ const NewChat = () => {
           {/* Scrollable Content Area */}
           <div
             ref={scrollContainerRef}
-            className={cn("flex-1 overflow-y-auto", isPublicPage ? "pb-32 pt-14" : "pb-4")}
+            className={cn("flex-1 overflow-y-auto", isPublicPage ? "pb-32 pt-14" : "pb-40")}
           >
 
         {!chatStarted ? (
@@ -1594,10 +1594,10 @@ const NewChat = () => {
         </button>
       )}
 
-      {/* Bottom Input Area - fixed for public, flex for authenticated */}
+      {/* Bottom Input Area - fixed for public, absolute for authenticated */}
       <div className={cn(
         "bg-background",
-        isPublicPage ? "fixed bottom-0 left-0 right-0 z-[5]" : "flex-shrink-0"
+        isPublicPage ? "fixed bottom-0 left-0 right-0 z-[5]" : "absolute bottom-0 left-0 right-0"
       )}>
         <div className={cn("w-full px-4 py-4", !isPublicPage && "py-3")}>
           <div className="max-w-[720px] mx-auto">
