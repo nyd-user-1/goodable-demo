@@ -724,7 +724,7 @@ ${chatInput}`;
   }
 
   return (
-    <div className="h-screen w-full p-2 bg-muted/30 overflow-hidden">
+    <div className="fixed inset-0 p-2 bg-muted/30 overflow-hidden box-border">
       {/* Main Container with rounded corners and border */}
       <div
         ref={containerRef}
@@ -871,7 +871,7 @@ ${chatInput}`;
           </div>
 
           {/* Document Content */}
-          <div ref={documentContentRef} className="flex-1 overflow-y-auto min-w-0 relative [scrollbar-gutter:stable]">
+          <div ref={documentContentRef} className="flex-1 overflow-y-auto min-w-0 relative">
             <div className="max-w-[800px] mx-auto py-12 px-8">
               {/* Note Title - Editable (auto-grows and wraps) */}
               <textarea
