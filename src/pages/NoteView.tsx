@@ -85,7 +85,10 @@ const NoteView = () => {
   const [toolbarInitialized, setToolbarInitialized] = useState(false);
   const [wordCountLimit, setWordCountLimit] = useState<number>(250);
   const [chatInput, setChatInput] = useState("");
+  const [chatMessages, setChatMessages] = useState<Array<{ id: string; role: 'user' | 'assistant'; content: string }>>([]);
+  const [isChatLoading, setIsChatLoading] = useState(false);
   const { selectedModel, setSelectedModel } = useModel();
+  const abortControllerRef = useRef<AbortController | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const titleSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const editorRef = useRef<TipTapEditorRef>(null);
@@ -417,6 +420,138 @@ const NoteView = () => {
     // For now, just show a toast - this would need backend support
     toast({ title: "Duplicate feature coming soon" });
   }, [toast]);
+
+  // Send chat message about the note
+  const sendChatMessage = useCallback(async () => {
+    if (!chatInput.trim() || !note) return;
+
+    const userMessage = {
+      id: crypto.randomUUID(),
+      role: 'user' as const,
+      content: chatInput
+    };
+
+    const updatedMessages = [...chatMessages, userMessage];
+    setChatMessages(updatedMessages);
+    setChatInput("");
+    setIsChatLoading(true);
+
+    // Create streaming message placeholder
+    const assistantMessageId = crypto.randomUUID();
+    const streamingMessage = {
+      id: assistantMessageId,
+      role: 'assistant' as const,
+      content: ""
+    };
+    setChatMessages([...updatedMessages, streamingMessage]);
+
+    try {
+      const noteContext = `
+Note Title: ${editableTitle || note.title}
+Note Content: ${getPlainText(htmlContent)}
+      `.trim();
+
+      const systemPrompt = `You are a helpful assistant answering questions about a note.
+The user wants responses limited to approximately ${wordCountLimit} words.
+Here is the note content for context:
+
+${noteContext}
+
+Answer the user's question based on this note content.`;
+
+      const supabaseUrl = supabase.supabaseUrl;
+      const { data: { session } } = await supabase.auth.getSession();
+
+      abortControllerRef.current = new AbortController();
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/generate-with-openai`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token || supabase.supabaseKey}`,
+          'apikey': supabase.supabaseKey,
+        },
+        body: JSON.stringify({
+          prompt: chatInput,
+          systemPrompt,
+          type: 'note',
+          stream: true,
+          fastMode: true,
+          model: selectedModel
+        }),
+        signal: abortControllerRef.current.signal
+      });
+
+      if (!response.ok) {
+        throw new Error(`Edge function error: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let aiResponse = '';
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
+
+              try {
+                const parsed = JSON.parse(data);
+                let content = '';
+                if (parsed.choices?.[0]?.delta?.content) {
+                  content = parsed.choices[0].delta.content;
+                } else if (parsed.delta?.text) {
+                  content = parsed.delta.text;
+                }
+
+                if (content) {
+                  aiResponse += content;
+                  setChatMessages(prev => prev.map(msg =>
+                    msg.id === assistantMessageId
+                      ? { ...msg, content: aiResponse }
+                      : msg
+                  ));
+                }
+              } catch {
+                // Skip invalid JSON chunks
+              }
+            }
+          }
+        }
+      }
+
+      if (!aiResponse) {
+        aiResponse = 'Unable to generate response. Please try again.';
+        setChatMessages(prev => prev.map(msg =>
+          msg.id === assistantMessageId
+            ? { ...msg, content: aiResponse }
+            : msg
+        ));
+      }
+
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        toast({
+          title: "Error",
+          description: "Failed to send message. Please try again.",
+          variant: "destructive"
+        });
+        // Remove streaming message on error
+        setChatMessages(updatedMessages);
+      }
+    } finally {
+      setIsChatLoading(false);
+      abortControllerRef.current = null;
+    }
+  }, [chatInput, chatMessages, note, editableTitle, htmlContent, getPlainText, wordCountLimit, selectedModel, toast]);
 
   useEffect(() => {
     if (!isDragging) return;
@@ -755,24 +890,27 @@ const NoteView = () => {
                       {/* Chat Selector Dropdown */}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 gap-1 font-normal max-w-[180px]">
+                          <Button variant="ghost" size="sm" className="h-8 gap-1 font-normal max-w-[220px]">
                             <span className="truncate text-sm">
-                              {parentChat?.title || "New chat"}
+                              {chatMessages.length > 0
+                                ? (chatMessages[0]?.content?.slice(0, 30) + (chatMessages[0]?.content?.length > 30 ? '...' : ''))
+                                : "New chat"}
                             </span>
                             <ChevronDown className="h-3 w-3 flex-shrink-0 opacity-50" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="w-56">
-                          <DropdownMenuItem>
-                            <MessageSquare className="h-4 w-4 mr-2" />
+                        <DropdownMenuContent align="start" className="w-64">
+                          <DropdownMenuItem onClick={() => setChatMessages([])}>
                             New chat
                           </DropdownMenuItem>
-                          {parentChat && (
+                          {chatMessages.length > 0 && (
                             <>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem>
-                                <MessageSquare className="h-4 w-4 mr-2" />
-                                {parentChat.title || "Original Chat"}
+                              <DropdownMenuItem className="flex flex-col items-start gap-0.5">
+                                <span className="text-xs text-muted-foreground">Current</span>
+                                <span className="truncate w-full">
+                                  {chatMessages[0]?.content?.slice(0, 40)}{chatMessages[0]?.content?.length > 40 ? '...' : ''}
+                                </span>
                               </DropdownMenuItem>
                             </>
                           )}
@@ -787,16 +925,26 @@ const NoteView = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuItem>
-                            <MessageSquare className="h-4 w-4 mr-2" />
+                          <DropdownMenuItem onClick={() => setChatMessages([])}>
                             New chat
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Copy className="h-4 w-4 mr-2" />
+                          <DropdownMenuItem onClick={() => {
+                            const text = chatMessages.map(m => `${m.role}: ${m.content}`).join('\n\n');
+                            navigator.clipboard.writeText(text);
+                            toast({ title: "Messages copied" });
+                          }}>
                             Copy messages
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Download className="h-4 w-4 mr-2" />
+                          <DropdownMenuItem onClick={() => {
+                            const text = chatMessages.map(m => `${m.role}: ${m.content}`).join('\n\n');
+                            const blob = new Blob([text], { type: 'text/plain' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `chat-${editableTitle || 'note'}.txt`;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                          }}>
                             Export messages
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -814,22 +962,53 @@ const NoteView = () => {
                         <p className="text-xs text-muted-foreground mt-1">Source</p>
                       </div>
 
-                      {/* Empty State */}
-                      <div className="flex flex-col items-center justify-center h-[calc(100%-80px)] text-center text-muted-foreground">
-                        <MessageSquare className="h-12 w-12 mb-4 opacity-20" />
-                        <p className="text-sm">Ask questions about this note</p>
-                      </div>
+                      {/* Messages or Empty State */}
+                      {chatMessages.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-[calc(100%-80px)] text-center text-muted-foreground">
+                          <MessageSquare className="h-12 w-12 mb-4 opacity-20" />
+                          <p className="text-sm">Ask questions about this note</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {chatMessages.map((message) => (
+                            <div
+                              key={message.id}
+                              className={cn(
+                                "flex",
+                                message.role === "user" ? "justify-end" : "justify-start"
+                              )}
+                            >
+                              <div
+                                className={cn(
+                                  "max-w-[85%] rounded-lg px-3 py-2 text-sm",
+                                  message.role === "user"
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-muted"
+                                )}
+                              >
+                                {message.content || (
+                                  <span className="inline-flex items-center gap-1">
+                                    <span className="animate-pulse">●</span>
+                                    <span className="animate-pulse animation-delay-200">●</span>
+                                    <span className="animate-pulse animation-delay-400">●</span>
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Enhanced Chat Input */}
                     <div className="border-t p-3 flex-shrink-0">
-                      <div className="border rounded-lg bg-background">
+                      <div className="border rounded-t-lg rounded-b-lg bg-background overflow-hidden">
                         {/* Note Reference Pill */}
-                        <div className="px-3 py-2 border-b bg-muted/30">
+                        <div className="px-3 py-2 border-b bg-muted/30 rounded-t-lg">
                           <div className="flex items-center gap-2">
                             <FileText className="h-3.5 w-3.5 text-muted-foreground" />
                             <span className="text-xs text-muted-foreground truncate">
-                              {editableTitle || note.title}
+                              {(editableTitle || note.title).slice(0, 50)}{(editableTitle || note.title).length > 50 ? '...' : ''}
                             </span>
                           </div>
                         </div>
@@ -838,13 +1017,20 @@ const NoteView = () => {
                         <Textarea
                           value={chatInput}
                           onChange={(e) => setChatInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              sendChatMessage();
+                            }
+                          }}
                           placeholder="Ask this note a question..."
-                          className="min-h-[60px] max-h-[120px] resize-none border-0 focus-visible:ring-0 rounded-none"
+                          className="min-h-[60px] max-h-[120px] resize-none border-0 border-x border-transparent focus-visible:ring-0 focus-visible:border-x focus-visible:border-transparent rounded-none bg-background"
                           rows={2}
+                          disabled={isChatLoading}
                         />
 
                         {/* Toolbar */}
-                        <div className="px-2 py-2 flex items-center justify-between border-t bg-muted/20">
+                        <div className="px-2 py-2 flex items-center justify-between border-t bg-background">
                           <div className="flex items-center gap-1">
                             {/* Model Selector */}
                             <DropdownMenu>
@@ -911,8 +1097,10 @@ const NoteView = () => {
                           {/* Send Button */}
                           <Button
                             size="icon"
-                            className="h-7 w-7 rounded-full"
-                            disabled={!chatInput.trim()}
+                            variant="outline"
+                            className="h-7 w-7 rounded-full bg-primary/10 border-primary/20 hover:bg-primary hover:text-primary-foreground"
+                            disabled={!chatInput.trim() || isChatLoading}
+                            onClick={sendChatMessage}
                           >
                             <ArrowUp className="h-3.5 w-3.5" />
                           </Button>
