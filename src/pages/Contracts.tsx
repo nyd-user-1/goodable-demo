@@ -1,6 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, FileText, ArrowUp } from 'lucide-react';
+import { Search, X, FileText, ArrowUp, PanelLeft } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,6 +18,14 @@ import { Contract } from '@/types/contracts';
 const Contracts = () => {
   const navigate = useNavigate();
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+  const [sidebarMounted, setSidebarMounted] = useState(false);
+
+  // Enable sidebar transitions after mount to prevent flash
+  useEffect(() => {
+    const timer = setTimeout(() => setSidebarMounted(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   const {
     contracts,
@@ -80,20 +90,49 @@ const Contracts = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Left Sidebar - slides in from off-screen */}
+      <div
+        className={cn(
+          "fixed left-0 top-0 bottom-0 w-64 bg-background border-r z-50",
+          sidebarMounted && "transition-transform duration-300 ease-in-out",
+          leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <NoteViewSidebar onClose={() => setLeftSidebarOpen(false)} />
+      </div>
+
+      {/* Backdrop overlay when sidebar is open */}
+      {leftSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 z-40 transition-opacity"
+          onClick={() => setLeftSidebarOpen(false)}
+        />
+      )}
+
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col gap-4">
             {/* Title and stats */}
             <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-xl font-semibold">Contracts</h1>
-                <p className="text-sm text-muted-foreground">
-                  {isLoading
-                    ? 'Loading...'
-                    : `Showing ${contracts.length.toLocaleString()} of ${totalCount.toLocaleString()} contracts`
-                  }
-                </p>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+                  className={cn("flex-shrink-0", leftSidebarOpen && "bg-muted")}
+                >
+                  <PanelLeft className="h-4 w-4" />
+                </Button>
+                <div>
+                  <h1 className="text-xl font-semibold">Contracts</h1>
+                  <p className="text-sm text-muted-foreground">
+                    {isLoading
+                      ? 'Loading...'
+                      : `Showing ${contracts.length.toLocaleString()} of ${totalCount.toLocaleString()} contracts`
+                    }
+                  </p>
+                </div>
               </div>
               {hasActiveFilters && (
                 <Button variant="ghost" size="sm" onClick={clearFilters}>

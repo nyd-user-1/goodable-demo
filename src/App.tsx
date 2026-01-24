@@ -191,6 +191,11 @@ const App = () => {
                   <Route path="/e/:excerptId" element={<ProtectedRoute><ExcerptView /></ProtectedRoute>} />
                   <Route path="/new-chat" element={<ProtectedRoute><NewChat /></ProtectedRoute>} />
                   <Route path="/c/:sessionId" element={<ProtectedRoute><NewChat /></ProtectedRoute>} />
+                  <Route path="/bills" element={<ProtectedRoute><Bills2 /></ProtectedRoute>} />
+                  <Route path="/committees" element={<ProtectedRoute><Committees2 /></ProtectedRoute>} />
+                  <Route path="/members" element={<ProtectedRoute><Members2 /></ProtectedRoute>} />
+                  <Route path="/school-funding" element={<ProtectedRoute><SchoolFunding /></ProtectedRoute>} />
+                  <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
                   <Route path="*" element={<AppLayout />} />
                 </Routes>
               </PageTransition>
