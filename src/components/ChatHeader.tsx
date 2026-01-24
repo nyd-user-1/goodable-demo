@@ -263,10 +263,10 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
           >
             Log In
           </button>
-          {/* Sign Up button - routes to /auth-2 */}
+          {/* Sign Up button - routes to /auth-4 */}
           <button
             className="inline-flex items-center justify-center h-9 rounded-md px-3 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-medium"
-            onClick={() => navigate('/auth-2')}
+            onClick={() => navigate('/auth-4')}
           >
             Sign Up
           </button>
