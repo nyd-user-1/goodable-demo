@@ -224,7 +224,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] p-0 gap-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[724px] p-0 gap-0 overflow-hidden">
         {/* Search Input */}
         <div className="flex items-center border-b px-3">
           <Search className="h-4 w-4 text-muted-foreground mr-2" />
@@ -284,7 +284,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
         </div>
 
         {/* Results */}
-        <div className="max-h-[400px] overflow-y-auto">
+        <div className="max-h-[304px] overflow-y-auto">
           {/* Recents Section */}
           {recents.length > 0 && (
             <div className="p-2">
