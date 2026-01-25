@@ -41,7 +41,7 @@ export const Auth = () => {
             <img
               src="/nysgpt-badge.png"
               alt="NYSgpt"
-              className="h-8"
+              className="h-8 transition-shadow duration-200 hover:shadow-lg hover:shadow-black/20 rounded-md"
             />
           </Link>
 
