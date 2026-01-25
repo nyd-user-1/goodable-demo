@@ -122,3 +122,6 @@ export function AskNYSgptSelectionPopup({ onAsk }: AskNYSgptSelectionPopupProps)
     document.body
   );
 }
+
+// Export alias for backwards compatibility with existing imports
+export { AskNYSgptSelectionPopup as AskGoodableSelectionPopup };
