@@ -46,7 +46,7 @@ export const Auth = () => {
               Welcome Back
             </h1>
             <p className="text-muted-foreground">
-              Track legislation, engage with democracy, and make your voice heard.
+              Learn. Track. Engage. Impact.
             </p>
           </div>
 
