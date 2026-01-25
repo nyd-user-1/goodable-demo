@@ -257,11 +257,11 @@ export default function UnifiedChatSheet({
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Avatar className="h-8 w-8">
-              <AvatarImage src="/goodable%20pwa.jpg" alt="Goodable Assistant" />
+              <AvatarImage src="/goodable%20pwa.jpg" alt="NYSgpt Assistant" />
               <AvatarFallback className="bg-red-50">❤️</AvatarFallback>
             </Avatar>
             <div className="text-left">
-              <div className="font-semibold">Goodable.dev</div>
+              <div className="font-semibold">NYSgpt.dev</div>
               <div className="text-sm text-muted-foreground">
                 {subtitle || `Chat about ${title}`}
               </div>

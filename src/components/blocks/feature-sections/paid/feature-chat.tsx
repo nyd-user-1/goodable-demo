@@ -389,14 +389,14 @@ Ready to explore actionable steps for addressing these root causes in the Policy
             <Avatar className="h-10 w-10">
               <AvatarImage
                 src="/goodable%20pwa.jpg"
-                alt="Goodable Assistant"
+                alt="NYSgpt Assistant"
               />
               <AvatarFallback className="bg-red-50 text-red-500">
                 ❤️
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <h3 className="font-semibold">Goodable.dev</h3>
+              <h3 className="font-semibold">NYSgpt</h3>
               <p className="text-muted-foreground text-xs">
                 A policy playground for problems and proposals.
               </p>

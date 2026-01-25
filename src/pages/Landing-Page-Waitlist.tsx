@@ -464,7 +464,7 @@ const LandingPageWaitlist = () => {
             <div className="w-8 h-8 bg-card border rounded-lg flex items-center justify-center">
               <span className="text-lg">❤️</span>
             </div>
-            <span className="text-xl font-bold">Goodable</span>
+            <span className="text-xl font-bold">NYSgpt</span>
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -546,7 +546,7 @@ const LandingPageWaitlist = () => {
               animationStyle="from-center"
               videoSrc="https://www.loom.com/embed/ae7a56105d3e44529caee8593c1a3ffe"
               thumbnailSrc="/goodable-analytics-demo.png"
-              thumbnailAlt="Goodable Analytics Dashboard Demo"
+              thumbnailAlt="NYSgpt Analytics Dashboard Demo"
               onPlayClick={() => navigate('/auth-2')}
             />
             <HeroVideoDialog
@@ -554,7 +554,7 @@ const LandingPageWaitlist = () => {
               animationStyle="from-center"
               videoSrc="https://www.loom.com/embed/ae7a56105d3e44529caee8593c1a3ffe"
               thumbnailSrc="/goodable-analytics-demo.png"
-              thumbnailAlt="Goodable Analytics Dashboard Demo"
+              thumbnailAlt="NYSgpt Analytics Dashboard Demo"
               onPlayClick={() => navigate('/auth-2')}
             />
           </div>
@@ -584,7 +584,7 @@ const LandingPageWaitlist = () => {
                   New
                 </Badge>
                 <span className="text-sm sm:text-base font-medium text-foreground">
-                  Goodable is now in alpha.
+                  NYSgpt is now in alpha.
                 </span>
                 <span className="hidden sm:flex text-sm text-[#3D63DD] hover:text-[#2D53CD] font-medium transition-colors items-center gap-1">
                   Learn More
@@ -920,7 +920,7 @@ const LandingPageWaitlist = () => {
               <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent leading-tight">
                 Good trouble?<br />
                 <span className="bg-gradient-to-r from-[#3D63DD] to-[#5A7FDB] bg-clip-text text-transparent">
-                  That's Goodable.
+                  That's NYSgpt.
                 </span>
               </h2>
               <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
@@ -973,7 +973,7 @@ const LandingPageWaitlist = () => {
                   </div>
                   
                   <p className="text-xs text-muted-foreground">
-                    Be the first to know when Goodable launches. No spam, ever.
+                    Be the first to know when NYSgpt launches. No spam, ever.
                   </p>
                 </form>
               </Card>
@@ -1018,7 +1018,7 @@ const LandingPageWaitlist = () => {
                 <div className="w-8 h-8 bg-card border rounded-lg flex items-center justify-center">
                   <span className="text-lg">❤️</span>
                 </div>
-                <span className="text-xl font-bold">Goodable</span>
+                <span className="text-xl font-bold">NYSgpt</span>
               </div>
               <p className="text-muted-foreground text-sm" style={{ textAlign: 'left' }}>
                 Do something,<br />
@@ -1061,7 +1061,7 @@ const LandingPageWaitlist = () => {
           </div>
           
           <div className="border-t border-border/50 mt-6 sm:mt-8 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-muted-foreground">
-            <p>&copy; 2025 Goodable. All rights reserved.</p>
+            <p>&copy; 2025 NYSgpt. All rights reserved.</p>
           </div>
         </div>
       </footer>

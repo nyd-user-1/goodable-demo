@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 
-interface AskGoodableSelectionPopupProps {
+interface AskNYSgptSelectionPopupProps {
   onAsk: (selectedText: string) => void;
 }
 
-export function AskGoodableSelectionPopup({ onAsk }: AskGoodableSelectionPopupProps) {
+export function AskNYSgptSelectionPopup({ onAsk }: AskNYSgptSelectionPopupProps) {
   const [popup, setPopup] = useState<{
     visible: boolean;
     x: number;
@@ -116,7 +116,7 @@ export function AskGoodableSelectionPopup({ onAsk }: AskGoodableSelectionPopupPr
         className="flex items-center gap-2 px-3 py-2 bg-white text-foreground rounded-full shadow-md border border-border/50 hover:bg-gray-100 transition-colors text-sm font-normal cursor-pointer select-none"
       >
         <span className="text-base">❤️</span>
-        Ask Goodable
+        Ask NYSgpt
       </button>
     </div>,
     document.body

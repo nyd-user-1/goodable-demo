@@ -392,7 +392,7 @@ export default function MultiStepCTAHero() {
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold">
-                        Welcome to Goodable, {formData.name}!
+                        Welcome to NYSgpt, {formData.name}!
                       </h3>
                       <p className="text-muted-foreground text-sm">
                         Check your email to start tracking legislation and making your voice heard.

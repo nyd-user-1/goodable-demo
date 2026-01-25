@@ -108,8 +108,8 @@ const samplePrompts = [
   }
 ];
 
-// Context for the "What is Goodable.dev?" prompt
-const GOODABLE_CONTEXT = `You are answering "What is Goodable.dev?" for a new user. Goodable is a civic engagement platform focused on New York State legislation. Describe it naturally and highlight these unique features:
+// Context for the "What is NYSgpt?" prompt
+const GOODABLE_CONTEXT = `You are answering "What is NYSgpt?" for a new user. NYSgpt is a civic engagement platform focused on New York State legislation. Describe it naturally and highlight these unique features:
 
 - Research any bill and get AI-powered analysis with stakeholder impact, political context, and likelihood of passage
 - Email legislators directly - send letters to bill sponsors and CC all co-sponsors with one click
@@ -445,7 +445,7 @@ const NewChat = () => {
     isGoodablePromptRef.current = true;
     // Small delay to ensure state is reset, then submit the prompt with Goodable context
     setTimeout(() => {
-      handleSubmit(null, "What is Goodable.dev?", GOODABLE_CONTEXT);
+      handleSubmit(null, "What is NYSgpt?", GOODABLE_CONTEXT);
     }, 100);
   };
 
@@ -1532,7 +1532,7 @@ const NewChat = () => {
                           {
                             number: (message.perplexityCitations?.length || 0) + 1,
                             url: 'https://www.goodable.dev',
-                            title: 'Goodable - Legislative Policy Platform',
+                            title: 'NYSgpt - Legislative Policy Platform',
                             excerpt: 'AI-powered legislative research and policy analysis platform.'
                           },
                           {
@@ -2204,7 +2204,7 @@ const NewChat = () => {
             {/* Disclaimer */}
             <div className="flex items-center justify-center gap-1 mt-3">
               <span className="text-xs text-muted-foreground/70">
-                Goodable is an Alpha stage product and can make mistakes. Please double-check responses.
+                NYSgpt is an Alpha stage product and can make mistakes. Please double-check responses.
               </span>
             </div>
           </div>

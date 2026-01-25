@@ -12,7 +12,7 @@ export default function HeroSectionWithFeatureTimeline() {
     },
     {
       category: "Research",
-      title: '"Ask Goodable" Text Selection',
+      title: '"Ask NYSgpt" Text Selection',
       description:
         "Select any text on the page and instantly ask our AI about it. Removes friction from research by enabling contextual questions without switching screens.",
     },
@@ -90,7 +90,7 @@ export default function HeroSectionWithFeatureTimeline() {
                 Building the future of public policy
               </h1>
               <p className="text-xl text-muted-foreground mb-8">
-                From research to action, Goodable provides a complete toolkit for understanding legislation, tracking your positions, and making your voice heard.
+                From research to action, NYSgpt provides a complete toolkit for understanding legislation, tracking your positions, and making your voice heard.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-3">
                 <Button size="lg" className="bg-foreground text-background hover:bg-foreground/90">
@@ -153,10 +153,10 @@ export default function HeroSectionWithFeatureTimeline() {
             <Card className="mt-16 p-8 text-center max-w-2xl mx-auto bg-muted/50">
               <h3 className="font-semibold mb-2">Ready to get started?</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Join thousands of policy professionals, advocates, and engaged citizens using Goodable to understand and influence legislation.
+                Join thousands of policy professionals, advocates, and engaged citizens using NYSgpt to understand and influence legislation.
               </p>
               <Button size="lg" className="bg-foreground text-background hover:bg-foreground/90">
-                Try Goodable Free
+                Try NYSgpt Free
               </Button>
             </Card>
           </div>

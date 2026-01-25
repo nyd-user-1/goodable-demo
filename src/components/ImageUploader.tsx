@@ -52,7 +52,7 @@ export const ImageUploader: React.FC = () => {
                 url: `/goodable-heart-terrarium.png`, // Use public path for now
                 mime_type: file.type,
                 size_bytes: file.size,
-                alt_text: 'Beautiful heart-shaped terrarium with Goodable branding in a greenhouse setting',
+                alt_text: 'Beautiful heart-shaped terrarium with NYSgpt branding in a greenhouse setting',
                 caption: 'Heart terrarium background for authentication page',
                 updated_at: new Date().toISOString(),
                 metadata: {
@@ -75,7 +75,7 @@ export const ImageUploader: React.FC = () => {
                 type: 'image',
                 mime_type: file.type,
                 size_bytes: file.size,
-                alt_text: 'Beautiful heart-shaped terrarium with Goodable branding in a greenhouse setting',
+                alt_text: 'Beautiful heart-shaped terrarium with NYSgpt branding in a greenhouse setting',
                 caption: 'Heart terrarium background for authentication page',
                 uploaded_by: user.id,
                 metadata: {

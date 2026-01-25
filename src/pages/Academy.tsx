@@ -26,10 +26,10 @@ const Academy = () => {
             <section className="mb-10">
               <h2 className="text-2xl font-semibold mb-4">What is the Citizen Legislator's Academy?</h2>
               <p>
-                The Citizen Legislator's Academy is Goodable's educational initiative designed to transform ordinary citizens into effective policy advocates. We believe that everyone has the capacity to shape the policies that affect their lives—they just need the right knowledge, tools, and support to do it effectively.
+                The Citizen Legislator's Academy is NYSgpt's educational initiative designed to transform ordinary citizens into effective policy advocates. We believe that everyone has the capacity to shape the policies that affect their lives—they just need the right knowledge, tools, and support to do it effectively.
               </p>
               <p>
-                Our curriculum combines practical platform training with deep insights into the legislative process. You'll learn not just how to use Goodable's tools, but how to think strategically about advocacy, build coalitions, and make your voice heard at every level of government. Whether you're tracking your first bill or organizing a statewide campaign, the Academy will meet you where you are and help you grow.
+                Our curriculum combines practical platform training with deep insights into the legislative process. You'll learn not just how to use NYSgpt's tools, but how to think strategically about advocacy, build coalitions, and make your voice heard at every level of government. Whether you're tracking your first bill or organizing a statewide campaign, the Academy will meet you where you are and help you grow.
               </p>
             </section>
 
@@ -60,7 +60,7 @@ const Academy = () => {
 
               <h3 className="text-xl font-semibold mt-6 mb-3">Mastering the Platform</h3>
               <p>
-                Learn to use every feature of Goodable to its full potential. Track bills that matter to you, set up smart alerts, use AI-powered analysis to understand complex legislation, and organize your advocacy work efficiently. We'll show you how professional lobbyists use these same techniques—and how you can too.
+                Learn to use every feature of NYSgpt to its full potential. Track bills that matter to you, set up smart alerts, use AI-powered analysis to understand complex legislation, and organize your advocacy work efficiently. We'll show you how professional lobbyists use these same techniques—and how you can too.
               </p>
 
               <h3 className="text-xl font-semibold mt-6 mb-3">Understanding the Legislative Process</h3>
@@ -75,7 +75,7 @@ const Academy = () => {
 
               <h3 className="text-xl font-semibold mt-6 mb-3">Building Coalitions</h3>
               <p>
-                No one changes policy alone. Learn to identify potential allies, build relationships across difference, coordinate campaigns, and leverage collective power. We'll show you how to use Goodable's networking features to find and connect with others who share your concerns.
+                No one changes policy alone. Learn to identify potential allies, build relationships across difference, coordinate campaigns, and leverage collective power. We'll show you how to use NYSgpt's networking features to find and connect with others who share your concerns.
               </p>
 
               <h3 className="text-xl font-semibold mt-6 mb-3">Strategic Thinking</h3>
@@ -165,7 +165,7 @@ const Academy = () => {
                 Ready to become a citizen legislator? Here's how to begin:
               </p>
               <ol className="list-decimal pl-6 space-y-2">
-                <li><strong>Create your Goodable account</strong> if you haven't already—it's free to start</li>
+                <li><strong>Create your NYSgpt account</strong> if you haven't already—it's free to start</li>
                 <li><strong>Explore the platform</strong> by tracking a bill or researching your representatives</li>
                 <li><strong>Enroll in the Academy</strong> through your dashboard to access courses and upcoming events</li>
                 <li><strong>Join the community</strong> by introducing yourself in our forums and connecting with fellow citizen legislators</li>

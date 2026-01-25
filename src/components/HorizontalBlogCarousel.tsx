@@ -94,7 +94,7 @@ export default function HorizontalBlogCarousel() {
   ];
 
   const title = "Good Trouble?";
-  const description = "Browse Goodable's original policy proposals";
+  const description = "Browse NYSgpt's original policy proposals";
 
   return (
     <section className="w-full py-12">

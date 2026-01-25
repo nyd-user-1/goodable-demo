@@ -22,7 +22,7 @@ export interface SourceValidation {
 
 // Legislative & Government Sources (Tier 1)
 export const LEGISLATIVE_SOURCES: DomainSource[] = [
-  { domain: "goodable.dev", tier: 1, label: "Goodable (NYS API)", category: "Legislative", icon: "❤️", description: "NYS Open Legislation API data" },
+  { domain: "goodable.dev", tier: 1, label: "NYSgpt (NYS API)", category: "Legislative", icon: "❤️", description: "NYS Open Legislation API data" },
   { domain: "congress.gov", tier: 1, label: "US Congress", category: "Legislative", icon: "🏛️", description: "Federal legislative information" },
   { domain: "senate.gov", tier: 1, label: "US Senate", category: "Legislative", icon: "🏛️", description: "US Senate official" },
   { domain: "house.gov", tier: 1, label: "US House", category: "Legislative", icon: "🏛️", description: "US House of Representatives" },
@@ -189,11 +189,11 @@ export function validateSourceMix(sources: string[]): SourceValidation {
   
   // Generate warnings
   if (hasGoodable && externalCount === 0) {
-    warnings.push('Goodable cannot be the only source. Add external authoritative sources.');
+    warnings.push('NYSgpt cannot be the only source. Add external authoritative sources.');
   }
   
   if (goodablePercentage > 40) {
-    warnings.push('Goodable should not exceed 40% of sources. Add more external sources.');
+    warnings.push('NYSgpt should not exceed 40% of sources. Add more external sources.');
   }
   
   if (diversityScore < 2 && sources.length > 2) {

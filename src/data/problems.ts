@@ -78,7 +78,7 @@ export const problems: Problem[] = [
       }
     ],
     metadata: {
-      title: "Childcare Crisis Solutions | Goodable",
+      title: "Childcare Crisis Solutions | NYSgpt",
       description: "Explore comprehensive solutions to the childcare crisis affecting millions of families. From universal pre-K to workplace centers.",
       keywords: ["childcare", "early childhood education", "working families", "affordable childcare", "universal pre-k"]
     }
@@ -115,7 +115,7 @@ export const problems: Problem[] = [
       }
     ],
     metadata: {
-      title: "Quality Time Solutions | Goodable",
+      title: "Quality Time Solutions | NYSgpt",
       description: "Discover ways to increase meaningful family and community time in our busy modern world.",
       keywords: ["quality time", "family time", "work-life balance", "community connection", "flexible work"]
     }
@@ -152,7 +152,7 @@ export const problems: Problem[] = [
       }
     ],
     metadata: {
-      title: "Third Place Solutions | Goodable",
+      title: "Third Place Solutions | NYSgpt",
       description: "Explore solutions for creating vibrant community spaces that bring people together.",
       keywords: ["third place", "community spaces", "social connection", "urban planning", "public spaces"]
     }
@@ -189,7 +189,7 @@ export const problems: Problem[] = [
       }
     ],
     metadata: {
-      title: "Climate Change Solutions | Goodable",
+      title: "Climate Change Solutions | NYSgpt",
       description: "Explore evidence-based solutions to combat climate change and build a sustainable future.",
       keywords: ["climate change", "carbon emissions", "renewable energy", "sustainability", "environmental policy"]
     }
@@ -285,7 +285,7 @@ additionalProblems.forEach((problem) => {
       }
     ],
     metadata: {
-      title: `${problem.title} Solutions | Goodable`,
+      title: `${problem.title} Solutions | NYSgpt`,
       description: `Find innovative solutions and policy proposals for ${problem.title.toLowerCase()} challenges.`,
       keywords: [problem.title.toLowerCase(), "policy", "solutions", "community", "social issues"]
     }

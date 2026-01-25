@@ -92,7 +92,7 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
       <div className="flex items-center justify-between">
         {/* Left side - Heart Logo + New Chat Pencil */}
         <div className="flex items-center space-x-1">
-          {/* Heart logo - triggers "What is Goodable?" */}
+          {/* Heart logo - triggers "What is NYSgpt?" */}
           <Tooltip>
             <TooltipTrigger asChild>
               <button

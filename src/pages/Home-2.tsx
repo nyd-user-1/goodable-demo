@@ -307,9 +307,9 @@ const Home2 = () => {
                 {loading ? (
                   <span>Loading visitor count...</span>
                 ) : count ? (
-                  <span>{formatVisitorCount(count)}+ visited Goodable today</span>
+                  <span>{formatVisitorCount(count)}+ visited NYSgpt today</span>
                 ) : (
-                  <span>183+ visited Goodable today</span>
+                  <span>183+ visited NYSgpt today</span>
                 )}
               </div>
               
@@ -383,7 +383,7 @@ const Home2 = () => {
                 <div className="w-8 h-8 bg-card border rounded-lg flex items-center justify-center">
                   <span className="text-lg">❤️</span>
                 </div>
-                <span className="text-xl font-bold">Goodable</span>
+                <span className="text-xl font-bold">NYSgpt</span>
               </div>
               <p className="text-muted-foreground text-sm" style={{ textAlign: 'left' }}>
                 Do something,<br />
@@ -422,7 +422,7 @@ const Home2 = () => {
           </div>
           
           <div className="border-t border-border/50 mt-8 pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; 2024 Goodable. All rights reserved.</p>
+            <p>&copy; 2024 NYSgpt. All rights reserved.</p>
           </div>
         </div>
       </footer>

@@ -381,7 +381,7 @@ const ShadcnShowcase = () => {
           <div className="text-center space-y-4">
             <h1 className="text-4xl font-bold">shadcn/ui Component Showcase</h1>
             <p className="text-muted-foreground text-lg">
-              Complete collection of all shadcn/ui components integrated into Goodable
+              Complete collection of all shadcn/ui components integrated into NYSgpt
             </p>
           </div>
 
@@ -2231,7 +2231,7 @@ const table = useReactTable({
 
               {/* Use Cases */}
               <div className="space-y-3">
-                <h4 className="font-semibold">Perfect Use Cases for Goodable</h4>
+                <h4 className="font-semibold">Perfect Use Cases for NYSgpt</h4>
                 <div className="grid gap-3 md:grid-cols-2">
                   <div className="p-3 bg-muted/50 rounded-lg">
                     <h5 className="text-sm font-medium mb-2">🏛️ Legislator Profiles</h5>
@@ -2462,7 +2462,7 @@ const table = useReactTable({
                               >
                                 <Heart className="h-6 w-6" />
                                 <div className="mb-2 mt-4 text-lg font-medium">
-                                  Goodable
+                                  NYSgpt
                                 </div>
                                 <p className="text-sm leading-tight text-muted-foreground">
                                   Legislative policy analysis and tracking platform
@@ -3124,7 +3124,7 @@ const [value, setValue] = useState([50])
 
               {/* Use Cases */}
               <div className="space-y-3">
-                <h4 className="font-semibold">Perfect Use Cases for Goodable</h4>
+                <h4 className="font-semibold">Perfect Use Cases for NYSgpt</h4>
                 <div className="grid gap-3 md:grid-cols-2">
                   <div className="p-3 bg-muted/50 rounded-lg">
                     <h5 className="text-sm font-medium mb-2">🔍 Global Search</h5>
@@ -3161,7 +3161,7 @@ const [value, setValue] = useState([50])
               <div className="text-center space-y-2">
                 <h3 className="font-semibold">All shadcn/ui Components Loaded!</h3>
                 <p className="text-sm text-muted-foreground">
-                  This showcase demonstrates the complete shadcn/ui component library integrated into Goodable.
+                  This showcase demonstrates the complete shadcn/ui component library integrated into NYSgpt.
                   All components are now available throughout the application.
                 </p>
               </div>

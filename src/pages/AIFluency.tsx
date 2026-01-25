@@ -24,10 +24,10 @@ const AIFluency = () => {
           <article className="prose prose-lg dark:prose-invert max-w-none">
             <section className="mb-10">
               <p>
-                At Goodable, we believe that technology should expand human agency, not replace it. This belief is especially important when it comes to artificial intelligence. AI is becoming deeply embedded in how decisions are made—about work, policy, communication, and civic life—but too often people are handed powerful tools without a clear framework for using them responsibly.
+                At NYSgpt, we believe that technology should expand human agency, not replace it. This belief is especially important when it comes to artificial intelligence. AI is becoming deeply embedded in how decisions are made—about work, policy, communication, and civic life—but too often people are handed powerful tools without a clear framework for using them responsibly.
               </p>
               <p>
-                That's why Goodable is grounded in what we call the 4C Framework: Choice, Clarity, Critical Thinking, and Coherence.
+                That's why NYSgpt is grounded in what we call the 4C Framework: Choice, Clarity, Critical Thinking, and Coherence.
               </p>
               <p>
                 These four principles are not abstract ideals or marketing language. They are practical disciplines that help people collaborate with AI in ways that are effective, ethical, and grounded in shared reality. Together, they form the foundation of how we design our tools, train our systems, and support citizen participation in democratic life.
@@ -43,7 +43,7 @@ const AIFluency = () => {
                 AI should never be the default decision-maker. The most important skill in an AI-enabled world is not knowing how to ask the perfect prompt—it's knowing when to use AI at all, and when not to. Choice means preserving human agency at every step of the process.
               </p>
               <p>
-                At Goodable, we treat AI as an assistant, not an authority. Our tools are designed to support human judgment, not override it. Users decide what questions to ask, what issues matter to them, and how they want to engage. AI helps illuminate options and surface information, but the responsibility for decisions always remains with people.
+                At NYSgpt, we treat AI as an assistant, not an authority. Our tools are designed to support human judgment, not override it. Users decide what questions to ask, what issues matter to them, and how they want to engage. AI helps illuminate options and surface information, but the responsibility for decisions always remains with people.
               </p>
               <p>
                 This matters deeply in civic life. Democracy depends on informed choice, not automated outcomes. By centering choice, we ensure that AI strengthens participation rather than quietly steering it.
@@ -59,7 +59,7 @@ const AIFluency = () => {
                 Legislation, policy, and civic processes are often inaccessible by design. Legal language is dense. Procedures are opaque. Important decisions happen in ways that are hard for ordinary people to follow. Without clarity, participation becomes a privilege reserved for those with time, money, or specialized knowledge.
               </p>
               <p>
-                Goodable exists to change that.
+                NYSgpt exists to change that.
               </p>
               <p>
                 Clarity means translating complexity without distorting it. It means presenting information in plain language while preserving nuance. It means helping users understand not just what is happening, but why it matters and how it connects to their lives.
@@ -81,7 +81,7 @@ const AIFluency = () => {
                 AI systems are powerful, but they are not infallible. They can reflect bias, amplify errors, or present incomplete information with unwarranted confidence. Without critical thinking, users risk mistaking fluency for truth.
               </p>
               <p>
-                Goodable's approach to AI is explicitly designed to support skepticism, reflection, and inquiry. Our tools encourage users to ask follow-up questions, compare perspectives, and examine assumptions. We do not present AI outputs as final answers, but as starting points for deeper understanding.
+                NYSgpt's approach to AI is explicitly designed to support skepticism, reflection, and inquiry. Our tools encourage users to ask follow-up questions, compare perspectives, and examine assumptions. We do not present AI outputs as final answers, but as starting points for deeper understanding.
               </p>
               <p>
                 Critical thinking is especially vital in civic contexts, where policies affect real lives and competing values are often at stake. Democracy requires disagreement, debate, and judgment—not automation. By embedding critical thinking into our platform, we help users remain active participants rather than passive consumers of information.
@@ -100,7 +100,7 @@ const AIFluency = () => {
                 Coherence is about maintaining alignment across systems, narratives, and decisions. It ensures that information makes sense not just in isolation, but as part of a larger whole. In civic life, coherence is what allows people with different perspectives to operate within a shared reality, even when they disagree on outcomes.
               </p>
               <p>
-                At Goodable, coherence means that our tools speak the same language across contexts. A bill summary aligns with its legislative history. An impact analysis connects to real-world implications. AI explanations are consistent with primary sources and clearly traceable back to them. Nothing exists as a disconnected fragment.
+                At NYSgpt, coherence means that our tools speak the same language across contexts. A bill summary aligns with its legislative history. An impact analysis connects to real-world implications. AI explanations are consistent with primary sources and clearly traceable back to them. Nothing exists as a disconnected fragment.
               </p>
               <p>
                 Coherence also applies to values. Our use of AI is guided by the same principles everywhere it appears: transparency, accountability, and respect for human judgment. This alignment prevents confusion, manipulation, and the erosion of trust that occurs when systems behave unpredictably or contradict themselves.
@@ -125,7 +125,7 @@ const AIFluency = () => {
                 <li>Civic engagement is grounded in shared meaning and intelligibility.</li>
               </ul>
               <p>
-                This framework guides every feature we build at Goodable. It shapes how we design interfaces, how we train AI models, how we present uncertainty, and how we protect user trust. It is the reason our tools aim to empower citizen legislators rather than manipulate behavior or fragment public discourse.
+                This framework guides every feature we build at NYSgpt. It shapes how we design interfaces, how we train AI models, how we present uncertainty, and how we protect user trust. It is the reason our tools aim to empower citizen legislators rather than manipulate behavior or fragment public discourse.
               </p>
               <p>
                 Democracy does not fail because people don't care. It fails when systems become too complex, too opaque, or too disconnected from lived experience. We believe that with the right tools—and the right principles—technology can help reverse that trend.

@@ -576,7 +576,7 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
               ))}
               <div className="pt-2 mt-3 border-t border-border">
                 <p className="text-xs text-muted-foreground">
-                  All sources are pre-filtered for credibility. Goodable data requires external validation.
+                  All sources are pre-filtered for credibility. NYSgpt data requires external validation.
                 </p>
               </div>
             </div>

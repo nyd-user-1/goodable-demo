@@ -266,8 +266,8 @@ const ExcerptView = () => {
               sources={[
                 {
                   number: 1,
-                  url: "https://www.goodable.dev",
-                  title: "Goodable - Legislative Policy Platform",
+                  url: "https://www.nysgpt.com",
+                  title: "NYSgpt - Legislative Policy Platform",
                   excerpt: "AI-powered legislative research and policy analysis platform.",
                 },
                 {

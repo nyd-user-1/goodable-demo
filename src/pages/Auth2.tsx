@@ -75,7 +75,7 @@ export const Auth2: React.FC = () => {
         {/* Header */}
         <div className="flex justify-between items-center p-6 lg:p-8">
           <a href="/" className="flex items-center gap-2 font-medium text-foreground">
-            ❤️ Goodable
+            ❤️ NYSgpt
           </a>
           <a 
             href="/auth" 
@@ -129,7 +129,7 @@ export const Auth2: React.FC = () => {
                 </blockquote>
                 <div className="flex items-center gap-1 text-sm font-medium drop-shadow-lg">
                   <span className="text-red-500">❤️</span>
-                  <span>Goodable</span>
+                  <span>NYSgpt</span>
                 </div>
               </div>
             </div>

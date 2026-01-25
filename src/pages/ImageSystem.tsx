@@ -55,7 +55,7 @@ const PlaceholderImage: React.FC<{
     )}>
       <img 
         src="/goodable%2015.avif" 
-        alt="Goodable site placeholder" 
+        alt="NYSgpt site placeholder" 
         className="w-full h-full object-cover"
       />
     </div>
@@ -227,8 +227,8 @@ const ImageSystem = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-4xl font-bold mb-2">Goodable Image System</h1>
-              <p className="text-muted-foreground">Visual assets, components, and animations for Goodable platform</p>
+              <h1 className="text-4xl font-bold mb-2">NYSgpt Image System</h1>
+              <p className="text-muted-foreground">Visual assets, components, and animations for NYSgpt platform</p>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="flex items-center gap-1">
@@ -274,7 +274,7 @@ const ImageSystem = () => {
               <CardHeader>
                 <CardTitle>Placeholder Image Component</CardTitle>
                 <CardDescription>
-                  Reusable image component with multiple size and variant options for Goodable content
+                  Reusable image component with multiple size and variant options for NYSgpt content
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -302,13 +302,13 @@ const ImageSystem = () => {
 
                 <div className="space-y-4">
                   <h4 className="font-semibold">Blog Image Examples</h4>
-                  <p className="text-sm text-muted-foreground">Sample blog images for Goodable policy content</p>
+                  <p className="text-sm text-muted-foreground">Sample blog images for NYSgpt policy content</p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="text-center space-y-2">
                       <div className="aspect-video rounded-lg overflow-hidden border">
                         <img 
                           src="/goodable-heart.avif" 
-                          alt="Goodable heart" 
+                          alt="NYSgpt heart" 
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -318,7 +318,7 @@ const ImageSystem = () => {
                       <div className="aspect-video rounded-lg overflow-hidden border">
                         <img 
                           src="/goodable-night.avif" 
-                          alt="Goodable night" 
+                          alt="NYSgpt night" 
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -328,7 +328,7 @@ const ImageSystem = () => {
                       <div className="aspect-video rounded-lg overflow-hidden border">
                         <img 
                           src="/goodable-botanical.avif" 
-                          alt="Goodable botanical" 
+                          alt="NYSgpt botanical" 
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -338,7 +338,7 @@ const ImageSystem = () => {
                       <div className="aspect-video rounded-lg overflow-hidden border">
                         <img 
                           src="/goodable%2015.avif" 
-                          alt="Goodable 15" 
+                          alt="NYSgpt 15" 
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -385,9 +385,9 @@ const ImageSystem = () => {
           <TabsContent value="assets" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Goodable Asset Library</CardTitle>
+                <CardTitle>NYSgpt Asset Library</CardTitle>
                 <CardDescription>
-                  All visual assets for the Goodable platform ({loading ? 'Loading...' : assets.length} items)
+                  All visual assets for the NYSgpt platform ({loading ? 'Loading...' : assets.length} items)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -670,7 +670,7 @@ const ImageSystem = () => {
             {/* Animation Guidelines */}
             <Card>
               <CardHeader>
-                <CardTitle>Goodable Animation Guidelines</CardTitle>
+                <CardTitle>NYSgpt Animation Guidelines</CardTitle>
                 <CardDescription>Animation principles for civic engagement platform experiences</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -700,7 +700,7 @@ const ImageSystem = () => {
                 </div>
                 <div className="pt-4 border-t">
                   <p className="text-sm text-muted-foreground">
-                    <strong>Goodable Philosophy:</strong> Animations should make civic engagement feel approachable and delightful, 
+                    <strong>NYSgpt Philosophy:</strong> Animations should make civic engagement feel approachable and delightful, 
                     encouraging users to participate in democracy through subtle, unexpected moments of joy.
                   </p>
                 </div>

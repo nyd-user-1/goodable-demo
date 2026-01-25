@@ -806,7 +806,7 @@ const Admin = () => {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Site Name</label>
-                    <Input defaultValue="Goodable" />
+                    <Input defaultValue="NYSgpt" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Site Description</label>

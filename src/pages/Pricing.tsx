@@ -26,7 +26,7 @@ const Pricing = () => {
             <section className="mb-10">
               <h2 className="text-2xl font-semibold mb-4">Our Pricing Philosophy</h2>
               <p>
-                We believe that access to legislative information should be a right, not a privilege. That's why Goodable offers a robust free tier that gives everyone the ability to explore bills, track legislation, and understand what their government is doing. Democracy works better when citizens are informed, and we're committed to keeping that foundation accessible to all.
+                We believe that access to legislative information should be a right, not a privilege. That's why NYSgpt offers a robust free tier that gives everyone the ability to explore bills, track legislation, and understand what their government is doing. Democracy works better when citizens are informed, and we're committed to keeping that foundation accessible to all.
               </p>
               <p>
                 For those who want to go deeper—whether you're advocating for causes you care about, working in government, conducting research, or advising clients on policy matters—our paid tiers unlock increasingly powerful tools. Each tier is designed for a specific type of user, with features that match how you actually engage with the legislative process.
@@ -42,7 +42,7 @@ const Pricing = () => {
                 Our <strong>Staffer</strong> tier is built specifically for the people who make government work—legislative aides, committee staff, and policy analysts who need to track dozens of bills, collaborate with colleagues, and stay on top of committee agendas. The <strong>Researcher</strong> tier adds historical data access, advanced analytics, and export capabilities for academics, journalists, and think tank analysts who need to dig deeper into policy trends.
               </p>
               <p>
-                For <strong>Professional</strong> advocates, lobbyists, and consultants, we offer full API access, custom integrations, and white-label options that let you build Goodable's intelligence into your own workflows. And for organizations that need multi-user management, custom workflows, and dedicated support, our <strong>Enterprise</strong> tier provides everything you need to equip your entire team.
+                For <strong>Professional</strong> advocates, lobbyists, and consultants, we offer full API access, custom integrations, and white-label options that let you build NYSgpt's intelligence into your own workflows. And for organizations that need multi-user management, custom workflows, and dedicated support, our <strong>Enterprise</strong> tier provides everything you need to equip your entire team.
               </p>
             </section>
 

@@ -14,7 +14,7 @@ const Constitution = () => {
           {/* Hero Section */}
           <div className="mb-12">
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
-              The Goodable Constitution
+              The NYSgpt Constitution
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed">
               Explicit principles that govern how our AI systems behave, what values they embody, and whose interests they serve.
@@ -32,7 +32,7 @@ const Constitution = () => {
                 These are questions that every AI company must answer, whether explicitly or implicitly. Most AI systems have their values determined through opaque processes—through the biases in their training data, the preferences of their creators, or the economic incentives of their business model. The result is AI that often serves the interests of the powerful while claiming to be neutral.
               </p>
               <p>
-                At Goodable, we've chosen a different path. We believe that an AI system designed to strengthen democracy should itself be governed democratically—with explicit principles that anyone can read, understand, and hold us accountable to. This document is our constitution: the foundational values that guide every feature we build, every response our AI generates, and every decision we make as a company.
+                At NYSgpt, we've chosen a different path. We believe that an AI system designed to strengthen democracy should itself be governed democratically—with explicit principles that anyone can read, understand, and hold us accountable to. This document is our constitution: the foundational values that guide every feature we build, every response our AI generates, and every decision we make as a company.
               </p>
             </section>
 

@@ -175,7 +175,7 @@ export const validateResponseQuality = (content: string): {
   }
   
   if (validation.goodablePercentage > 40) {
-    issues.push('Too much reliance on Goodable data');
+    issues.push('Too much reliance on NYSgpt data');
     suggestions.push('Add more external authoritative sources');
     score -= 20;
   }

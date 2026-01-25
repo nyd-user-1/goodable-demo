@@ -126,7 +126,7 @@ export const LegislativeFeedContainer: React.FC<LegislativeFeedContainerProps> =
             summaryPoints: [
               'Committee members expressed strong support for increased mental health funding allocation (NYS Senate Records).',
               'Proposed $50M investment would expand community mental health services statewide (CBO Analysis).',
-              'Public hearing scheduled for next week to gather stakeholder input (Goodable Legislative Database).'
+              'Public hearing scheduled for next week to gather stakeholder input (NYSgpt Legislative Database).'
             ],
             lastAction: 'Committee hearing held',
             timestamp: '2 hours ago',
@@ -142,7 +142,7 @@ export const LegislativeFeedContainer: React.FC<LegislativeFeedContainerProps> =
             summaryPoints: [
               'Independent analysis shows proposed climate adaptation measures could reduce flood damage by 40% (Urban Institute).',
               'Economic impact study reveals potential for 2,000 new green jobs over five-year period (Economic Policy Institute).',
-              'Cross-state collaboration opportunities identified with Connecticut and New Jersey (Goodable Database).'
+              'Cross-state collaboration opportunities identified with Connecticut and New Jersey (NYSgpt Database).'
             ],
             lastAction: 'Analysis published',
             timestamp: '4 hours ago',
@@ -277,7 +277,7 @@ export const LegislativeFeedContainer: React.FC<LegislativeFeedContainerProps> =
             <div className="text-sm text-green-800 dark:text-green-200">
               <p className="font-medium mb-1">High-Quality Sources Enabled</p>
               <p className="text-xs">
-                All results are filtered for credibility using Tier 1 sources. Goodable data is supplemented with external authoritative sources for comprehensive analysis.
+                All results are filtered for credibility using Tier 1 sources. NYSgpt data is supplemented with external authoritative sources for comprehensive analysis.
               </p>
             </div>
           </div>

@@ -596,7 +596,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           <CollapsibleContent>
             <div className="mt-2 p-3 border rounded-lg space-y-3">
               <Textarea
-                placeholder="How can we improve Goodable?"
+                placeholder="How can we improve NYSgpt?"
                 value={feedbackText}
                 onChange={(e) => setFeedbackText(e.target.value)}
                 className="min-h-[80px] resize-none"

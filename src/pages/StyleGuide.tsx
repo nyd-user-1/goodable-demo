@@ -56,7 +56,7 @@ const PlaceholderImage: React.FC<{
     )}>
       <img 
         src="/goodable%2015.avif" 
-        alt="Goodable site placeholder" 
+        alt="NYSgpt site placeholder" 
         className="w-full h-full object-cover"
       />
     </div>
@@ -172,7 +172,7 @@ const StyleGuide = () => {
             <div>
               <h1 className="text-4xl font-bold mb-2">Design System</h1>
               <p className="text-muted-foreground text-lg">
-                Living style guide and component library for Goodable
+                Living style guide and component library for NYSgpt
               </p>
             </div>
             <div className="flex items-center gap-2">

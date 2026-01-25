@@ -27,7 +27,7 @@ export default function HeroFormContactWithBackground() {
         <div className="absolute inset-0 z-0">
           <img
             src="/goodable-night.avif"
-            alt="Goodable night background"
+            alt="NYSgpt night background"
             className="w-full h-full object-cover brightness-[0.6]"
           />
         </div>

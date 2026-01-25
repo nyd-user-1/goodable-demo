@@ -49,7 +49,7 @@ export const useModerationQueue = () => {
 
       if (draftPosts) {
         draftPosts.forEach((post, index) => {
-          const authorName = post.profiles?.display_name || post.profiles?.username || 'Goodable';
+          const authorName = post.profiles?.display_name || post.profiles?.username || 'NYSgpt';
           
           // Simulate different priorities based on content length and recency
           let priority: 'high' | 'medium' | 'low' = 'medium';

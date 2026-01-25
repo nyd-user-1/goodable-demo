@@ -100,7 +100,7 @@ export default function BlogPage() {
         if (data) {
           data = data.map((post: any) => ({
             ...post,
-            author_name: post.profiles?.display_name || post.profiles?.username || 'Goodable',
+            author_name: post.profiles?.display_name || post.profiles?.username || 'NYSgpt',
             author_avatar: post.profiles?.avatar_url,
             up_votes: 0,
             down_votes: 0,

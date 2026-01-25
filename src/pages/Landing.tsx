@@ -205,7 +205,7 @@ const Landing = () => {
               <div className="w-8 h-8 bg-card border rounded-lg flex items-center justify-center">
                 <span className="text-lg">❤️</span>
               </div>
-              <span className="text-xl font-bold">Goodable</span>
+              <span className="text-xl font-bold">NYSgpt</span>
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
@@ -311,9 +311,9 @@ const Landing = () => {
                 {loading ? (
                   <span>Loading visitor count...</span>
                 ) : count ? (
-                  <span>{formatVisitorCount(count)}+ visited Goodable today</span>
+                  <span>{formatVisitorCount(count)}+ visited NYSgpt today</span>
                 ) : (
-                  <span>183+ visited Goodable today</span>
+                  <span>183+ visited NYSgpt today</span>
                 )}
               </div>
             </div>
@@ -419,7 +419,7 @@ const Landing = () => {
                   Ready to do something good?
                 </h2>
                 <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                  Join thousands of people who are collaborating on a future that's Goodable.
+                  Join thousands of people who are collaborating on a future that's NYSgpt.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                   <Button 
@@ -453,7 +453,7 @@ const Landing = () => {
                 <div className="w-8 h-8 bg-card border rounded-lg flex items-center justify-center">
                   <span className="text-lg">❤️</span>
                 </div>
-                <span className="text-xl font-bold">Goodable</span>
+                <span className="text-xl font-bold">NYSgpt</span>
               </div>
               <p className="text-muted-foreground text-sm" style={{ textAlign: 'left' }}>
                 Do something,<br />
@@ -495,7 +495,7 @@ const Landing = () => {
           </div>
           
           <div className="border-t border-border/50 mt-8 pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; 2024 Goodable. All rights reserved.</p>
+            <p>&copy; 2024 NYSgpt. All rights reserved.</p>
           </div>
         </div>
       </footer>
@@ -508,7 +508,7 @@ const Landing = () => {
               <div className="w-12 h-12 bg-card border rounded-lg flex items-center justify-center mx-auto mb-4">
                 <Heart className="w-6 h-6 text-red-500" />
               </div>
-              <h2 className="text-xl font-bold mb-2">Welcome to Goodable</h2>
+              <h2 className="text-xl font-bold mb-2">Welcome to NYSgpt</h2>
               <p className="text-muted-foreground">Sign in to continue with your problem statement</p>
             </div>
             <div className="space-y-3">

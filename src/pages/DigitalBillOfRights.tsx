@@ -209,7 +209,7 @@ const DigitalBillOfRights = () => {
             <section className="mb-10">
               <h2 className="text-2xl font-semibold mb-4">Our Commitment</h2>
               <p>
-                At Goodable, we don't just advocate for these rights and freedoms—we build them into our platform. Every feature we develop, every algorithm we deploy, and every business decision we make is evaluated against these principles.
+                At NYSgpt, we don't just advocate for these rights and freedoms—we build them into our platform. Every feature we develop, every algorithm we deploy, and every business decision we make is evaluated against these principles.
               </p>
               <p>
                 We believe that technology companies have a responsibility to demonstrate that it's possible to build successful products while respecting human dignity. The Digital Bill of Rights isn't just an aspiration—it's a binding constraint on how we operate.
@@ -222,7 +222,7 @@ const DigitalBillOfRights = () => {
             <section className="mb-10">
               <h2 className="text-2xl font-semibold mb-4">A Call to Action</h2>
               <p>
-                These rights and freedoms should not be unique to Goodable users. They should be the birthright of every person who participates in the digital world. We call on other technology companies, policymakers, and citizens to join us in advocating for these protections.
+                These rights and freedoms should not be unique to NYSgpt users. They should be the birthright of every person who participates in the digital world. We call on other technology companies, policymakers, and citizens to join us in advocating for these protections.
               </p>
               <p>
                 The digital age is still young. The norms and rules that will govern it are still being written. If we act now—if we insist that technology must serve human values—we can build a digital future that enhances human flourishing rather than diminishing it.
