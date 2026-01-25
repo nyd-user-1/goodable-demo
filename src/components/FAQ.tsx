@@ -9,27 +9,27 @@ const faqs = [
   {
     question: "Can I cancel at anytime?",
     answer:
-      "Yes, you can cancel your subscription at any time with no questions asked. Your access will continue until the end of your current billing period. We'd appreciate any feedback you can share to help us improve Goodable.",
+      "Yes, you can cancel your subscription at any time with no questions asked. Your access will continue until the end of your current billing period. We'd appreciate any feedback you can share to help us improve NYSgpt.",
   },
   {
-    question: "How does Goodable's pricing work?",
+    question: "How does NYSgpt's pricing work?",
     answer:
-      "Goodable offers tiered subscriptions designed for different user types - from free accounts for basic access to enterprise plans for organizations. Each tier includes specific features like AI chat sessions, legislative drafting tools, and collaboration capabilities. You can switch between monthly and annual billing, with annual plans offering a 20% discount.",
+      "NYSgpt offers tiered subscriptions designed for different user types - from free accounts for basic access to enterprise plans for organizations. Each tier includes specific features like AI chat sessions, legislative drafting tools, and collaboration capabilities. You can switch between monthly and annual billing, with annual plans offering a 20% discount.",
   },
   {
-    question: "How secure is Goodable?",
+    question: "How secure is NYSgpt?",
     answer:
       "Security is our top priority. We use enterprise-grade encryption, secure data centers, and follow best practices for handling sensitive legislative information. All data is encrypted in transit and at rest, and we maintain strict access controls and regular security audits to protect your information.",
   },
   {
-    question: "What AI models does Goodable support?",
+    question: "What AI models does NYSgpt support?",
     answer:
-      "Goodable integrates with multiple AI models including GPT-4o, GPT-4o Mini, Claude 3.5 Sonnet, Claude 3.5 Haiku, and Perplexity Sonar models. You can select your preferred model for different tasks like bill analysis, legislative drafting, and policy research. Different subscription tiers may have varying access levels to these models.",
+      "NYSgpt integrates with multiple AI models including GPT-4o, GPT-4o Mini, Claude 3.5 Sonnet, Claude 3.5 Haiku, and Perplexity Sonar models. You can select your preferred model for different tasks like bill analysis, legislative drafting, and policy research. Different subscription tiers may have varying access levels to these models.",
   },
   {
     question: "Can I collaborate with others?",
     answer:
-      "Yes! Goodable includes powerful collaboration features. You can invite co-authors to work on legislative drafts, share problem statements, and collaborate on policy solutions. Higher-tier plans include advanced collaboration tools like real-time editing, comment systems, and workflow management.",
+      "Yes! NYSgpt includes powerful collaboration features. You can invite co-authors to work on legislative drafts, share problem statements, and collaborate on policy solutions. Higher-tier plans include advanced collaboration tools like real-time editing, comment systems, and workflow management.",
   },
   {
     question: "Do you offer student discounts?",
@@ -62,7 +62,7 @@ export default function FAQ() {
             Questions? Answers.
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-            Answers to the most frequently asked questions about Goodable.
+            Answers to the most frequently asked questions about NYSgpt.
           </p>
         </div>
 

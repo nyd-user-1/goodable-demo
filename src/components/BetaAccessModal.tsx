@@ -131,7 +131,7 @@ export function BetaAccessModal({ open, onOpenChange }: BetaAccessModalProps) {
             </div>
           </div>
           <DialogTitle className="text-center text-2xl">
-            Goodable.dev
+            NYSgpt
           </DialogTitle>
           <DialogDescription className="text-center space-y-4 pt-2">
             <p className="text-base">

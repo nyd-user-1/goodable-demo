@@ -56,7 +56,7 @@ export const CitationsDrawer = ({ open, onOpenChange, citations }: CitationsDraw
             <DrawerDescription>
               {citations.length} sources • Diversity score: {validation.diversityScore}
               {validation.goodablePercentage > 0 && (
-                <span className="ml-2">• Goodable: {Math.round(validation.goodablePercentage)}%</span>
+                <span className="ml-2">• NYSgpt: {Math.round(validation.goodablePercentage)}%</span>
               )}
             </DrawerDescription>
             {validation.warnings.length > 0 && (
@@ -134,7 +134,7 @@ export const CitationsDrawer = ({ open, onOpenChange, citations }: CitationsDraw
                   <p>• {citations.filter(c => getSourceCredibilityBadge(extractDomain(c.url)).tier === 2).length} Tier 2 (Reliable)</p>
                   <p>• {citations.filter(c => getSourceCredibilityBadge(extractDomain(c.url)).tier === 3).length} Tier 3+ (Standard)</p>
                   {validation.valid && (
-                    <p className="text-green-600 font-medium mt-2">✓ Meets Goodable quality standards</p>
+                    <p className="text-green-600 font-medium mt-2">✓ Meets NYSgpt quality standards</p>
                   )}
                 </div>
               </div>

@@ -84,7 +84,7 @@ export function SidebarHeader() {
               <div className="w-8 h-8 bg-card border rounded-lg flex items-center justify-center">
                 <span className="text-lg">❤️</span>
               </div>
-              <span className="text-sm font-semibold truncate">Goodable</span>
+              <span className="text-sm font-semibold truncate">NYSgpt</span>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>

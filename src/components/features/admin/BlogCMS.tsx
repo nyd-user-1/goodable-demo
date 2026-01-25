@@ -208,7 +208,7 @@ const BlogCMS = () => {
         if (data) {
           data = data.map((post: any) => ({
             ...post,
-            author_name: post.profiles?.display_name || post.profiles?.username || 'Goodable',
+            author_name: post.profiles?.display_name || post.profiles?.username || 'NYSgpt',
             author_avatar: post.profiles?.avatar_url,
             up_votes: 0,
             down_votes: 0,
@@ -778,10 +778,10 @@ const BlogCMS = () => {
                     <Avatar className="w-8 h-8">
                       <AvatarImage src={proposal.author_avatar} />
                       <AvatarFallback>
-                        {proposal.author_name === 'Goodable' ? '❤️' : (proposal.author_name?.[0] || 'G')}
+                        {proposal.author_name === 'NYSgpt' ? '❤️' : (proposal.author_name?.[0] || 'N')}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="text-sm">{proposal.author_name || 'Goodable'}</span>
+                    <span className="text-sm">{proposal.author_name || 'NYSgpt'}</span>
                   </div>
                 </TableCell>
                 <TableCell>
