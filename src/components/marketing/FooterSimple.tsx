@@ -40,7 +40,7 @@ export default function FooterSimple() {
             </a>
           </nav>
           <p className="text-muted-foreground text-center text-sm md:text-left">
-            &copy; {new Date().getFullYear()} Goodable.dev. All rights reserved.
+            &copy; {new Date().getFullYear()} NYSgpt.com. All rights reserved.
           </p>
         </div>
       </div>

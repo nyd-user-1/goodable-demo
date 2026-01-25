@@ -165,7 +165,7 @@ export function ChatResponseFooter({
     // Add title
     pdf.setFontSize(18);
     pdf.setFont("helvetica", "bold");
-    pdf.text("Goodable Response", margin, margin);
+    pdf.text("NYSgpt Response", margin, margin);
 
     // Add date
     pdf.setFontSize(10);
@@ -287,7 +287,7 @@ export function ChatResponseFooter({
     }
 
     // Save PDF
-    pdf.save(`goodable-response-${Date.now()}.pdf`);
+    pdf.save(`nysgpt-response-${Date.now()}.pdf`);
 
     toast({
       title: "Exported successfully",

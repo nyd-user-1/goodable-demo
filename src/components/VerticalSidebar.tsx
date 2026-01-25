@@ -62,7 +62,7 @@ export function VerticalSidebar() {
           onClick={() => setIsOpen(!isOpen)}
           className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors"
         >
-          <span className="font-semibold text-lg">Goodable</span>
+          <span className="font-semibold text-lg">NYSgpt</span>
           <ChevronDown className={cn(
             "h-4 w-4 transition-transform",
             isOpen && "rotate-180"

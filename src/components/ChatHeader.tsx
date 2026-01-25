@@ -83,8 +83,8 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
       colors: ['#ff6b6b', '#ff8e8e', '#ffb3b3', '#ffd4d4', '#3D63DD'],
     });
 
-    // Navigate to root with prompt to trigger "What is Goodable?" chat
-    navigate('/?prompt=What%20is%20Goodable%3F');
+    // Navigate to root with prompt to trigger "What is NYSgpt?" chat
+    navigate('/?prompt=What%20is%20NYSgpt%3F');
   };
 
   return (
@@ -103,7 +103,7 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
               </button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="font-medium">
-              What is Goodable?
+              What is NYSgpt?
             </TooltipContent>
           </Tooltip>
 

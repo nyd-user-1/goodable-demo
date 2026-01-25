@@ -230,7 +230,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
           <Search className="h-4 w-4 text-muted-foreground mr-2" />
           <Input
             ref={inputRef}
-            placeholder="Search Goodable..."
+            placeholder="Search NYSgpt..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-12"
