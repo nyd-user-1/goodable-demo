@@ -907,8 +907,8 @@ ${chatInput}`;
                   }
                 }}
                 rows={1}
-                className="text-3xl font-bold mb-8 w-full bg-transparent border-0 outline-none focus:outline-none focus:ring-0 p-0 resize-none overflow-hidden"
-                placeholder="Untitled"
+                className="text-3xl font-bold mb-8 w-full bg-transparent border-0 outline-none focus:outline-none focus:ring-0 p-0 resize-none overflow-hidden placeholder:text-muted-foreground/50"
+                placeholder="Give it a title..."
               />
 
               {/* Note Content - WYSIWYG TipTap Editor */}
@@ -919,6 +919,7 @@ ${chatInput}`;
                 onBlur={handleEditorBlur}
                 editable={true}
                 className="min-h-[400px]"
+                placeholder="Start writing..."
               />
 
               {/* Associated Bill (if exists) */}

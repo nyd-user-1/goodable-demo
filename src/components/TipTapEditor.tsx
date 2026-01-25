@@ -9,6 +9,7 @@ import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
 import { Color } from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
+import { Placeholder } from '@tiptap/extension-placeholder';
 import { useEffect, forwardRef, useImperativeHandle } from 'react';
 
 export interface TipTapEditorRef {
@@ -51,6 +52,10 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(
         TableCell,
         TextStyle,
         Color,
+        Placeholder.configure({
+          placeholder: placeholder || 'Start writing...',
+          emptyEditorClass: 'is-editor-empty',
+        }),
       ],
       content,
       editable,
