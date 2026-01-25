@@ -43,7 +43,7 @@ export const Auth = () => {
 
           <div className="space-y-2 text-center">
             <h1 className="text-foreground text-2xl font-bold">
-              Welcome back
+              Welcome Back
             </h1>
             <p className="text-muted-foreground">
               Track legislation, engage with democracy, and make your voice heard.
