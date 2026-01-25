@@ -64,6 +64,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { SearchModal } from "@/components/SearchModal";
 
 interface NoteViewSidebarProps {
   onClose?: () => void;
@@ -96,6 +97,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
 
   // Check current theme
   useEffect(() => {
@@ -280,7 +282,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
 
         {/* Search and Add buttons */}
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSearchModalOpen(true)}>
             <Search className="h-4 w-4" />
           </Button>
 
@@ -619,6 +621,9 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Search Modal */}
+      <SearchModal open={searchModalOpen} onOpenChange={setSearchModalOpen} />
     </div>
   );
 }
