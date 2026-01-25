@@ -182,7 +182,7 @@ const Bills2 = () => {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     ref={searchInputRef}
-                    placeholder="Search bills by number, title, or description... (press / to focus)"
+                    placeholder="Search bills by number, title, description, or sponsor... (press / to focus)"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10 pr-4 h-12 text-base"

@@ -14,15 +14,43 @@ export function useBillsSearch() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['bills-search', searchTerm, statusFilter, committeeFilter, sessionFilter, sponsorFilter],
     queryFn: async () => {
+      // If searching, also search by sponsor name
+      let sponsorSearchBillIds: number[] = [];
+      if (searchTerm && searchTerm.length >= 2) {
+        // Search for people matching the search term
+        const { data: matchingPeople } = await supabase
+          .from('People')
+          .select('people_id')
+          .or(`name.ilike.%${searchTerm}%,first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`);
+
+        if (matchingPeople && matchingPeople.length > 0) {
+          const peopleIds = matchingPeople.map(p => p.people_id);
+          // Get bills sponsored by matching people
+          const { data: sponsorBills } = await supabase
+            .from('Sponsors')
+            .select('bill_id')
+            .in('people_id', peopleIds)
+            .eq('position', 1);
+          sponsorSearchBillIds = (sponsorBills || []).map(s => s.bill_id).filter(Boolean) as number[];
+        }
+      }
+
       let query = supabase
         .from('Bills')
         .select('*', { count: 'exact' });
 
-      // Server-side search across bill number, title, description
+      // Server-side search across bill number, title, description, OR bills by matching sponsors
       if (searchTerm && searchTerm.length >= 2) {
-        query = query.or(
-          `bill_number.ilike.%${searchTerm}%,title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`
-        );
+        if (sponsorSearchBillIds.length > 0) {
+          // Search bill fields OR include bills from matching sponsors
+          query = query.or(
+            `bill_number.ilike.%${searchTerm}%,title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,bill_id.in.(${sponsorSearchBillIds.join(',')})`
+          );
+        } else {
+          query = query.or(
+            `bill_number.ilike.%${searchTerm}%,title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`
+          );
+        }
       }
 
       // Server-side status filter
@@ -41,14 +69,13 @@ export function useBillsSearch() {
       }
 
       // If filtering by sponsor, get bill IDs for that sponsor first
-      let sponsorBillIds: number[] | null = null;
       if (sponsorFilter) {
         const { data: sponsorBills } = await supabase
           .from('Sponsors')
           .select('bill_id')
           .eq('people_id', parseInt(sponsorFilter))
           .eq('position', 1);
-        sponsorBillIds = (sponsorBills || []).map(s => s.bill_id).filter(Boolean) as number[];
+        const sponsorBillIds = (sponsorBills || []).map(s => s.bill_id).filter(Boolean) as number[];
 
         // If no bills for this sponsor, return empty
         if (sponsorBillIds.length === 0) {

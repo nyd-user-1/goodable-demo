@@ -92,7 +92,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const [recentExcerpts, setRecentExcerpts] = useState<Excerpt[]>([]);
   const [recentNotes, setRecentNotes] = useState<Note[]>([]);
   const [newChatHover, setNewChatHover] = useState(false);
-  const [planUsageOpen, setPlanUsageOpen] = useState(true);
+  const [planUsageOpen, setPlanUsageOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -454,7 +454,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
 
         {/* Your Chats Section - Combined chats, excerpts, and notes */}
         {(recentChats.length > 0 || recentExcerpts.length > 0 || recentNotes.length > 0) && (
-          <Collapsible className="group/chats mt-4">
+          <Collapsible defaultOpen className="group/chats mt-4">
             <div className="px-2">
               <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
                 Your chats
