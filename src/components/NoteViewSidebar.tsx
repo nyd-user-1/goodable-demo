@@ -200,6 +200,36 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
     setFeedbackOpen(false);
   };
 
+  const handleCreateNote = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("chat_notes")
+        .insert({
+          user_id: user.id,
+          title: "Untitled",
+          content: "",
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error creating note:", error);
+        return;
+      }
+
+      if (data) {
+        // Refresh sidebar and navigate to the new note
+        window.dispatchEvent(new CustomEvent("refresh-sidebar-notes"));
+        navigate(`/n/${data.id}`);
+        onClose?.();
+      }
+    } catch (err) {
+      console.error("Error creating note:", err);
+    }
+  };
+
   // Get user display name
   const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
   const truncatedName = displayName.length > 14 ? displayName.slice(0, 14) + '...' : displayName;
@@ -319,7 +349,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                 <MessageSquarePlus className="h-4 w-4 mr-2" />
                 Chat
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleCreateNote}>
                 <FilePlus className="h-4 w-4 mr-2" />
                 Note
               </DropdownMenuItem>
