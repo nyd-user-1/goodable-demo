@@ -37,8 +37,12 @@ export const Auth = () => {
       <div className="flex w-full items-center justify-center p-8">
         <div className="w-full max-w-md space-y-8">
           {/* Logo */}
-          <Link to="/" className="mb-8 flex items-center justify-center gap-2">
-            <span className="text-xl font-semibold">NYSgpt</span>
+          <Link to="/" className="mb-8 flex items-center justify-center">
+            <img
+              src="/nysgpt-badge.png"
+              alt="NYSgpt"
+              className="h-8"
+            />
           </Link>
 
           <div className="space-y-2 text-center">
