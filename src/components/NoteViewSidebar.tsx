@@ -65,6 +65,8 @@ import {
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { SearchModal } from "@/components/SearchModal";
+import { useAIUsage } from "@/hooks/useAIUsage";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface NoteViewSidebarProps {
   onClose?: () => void;
@@ -89,6 +91,8 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { subscription } = useSubscription();
+  const { wordsUsed, dailyLimit, usagePercentage } = useAIUsage();
   const [recentChats, setRecentChats] = useState<ChatSession[]>([]);
   const [recentExcerpts, setRecentExcerpts] = useState<Excerpt[]>([]);
   const [recentNotes, setRecentNotes] = useState<Note[]>([]);
@@ -552,7 +556,9 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2 hover:bg-muted/50 transition-colors">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">Plan usage</span>
-                <span className="text-xs text-primary font-medium px-1.5 py-0.5 bg-primary/10 rounded">Free</span>
+                <span className="text-xs text-primary font-medium px-1.5 py-0.5 bg-primary/10 rounded capitalize">
+                  {subscription?.subscription_tier || 'Free'}
+                </span>
               </div>
               {planUsageOpen ? (
                 <ChevronUp className="h-4 w-4 text-muted-foreground" />
@@ -570,18 +576,28 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                       <span className="text-muted-foreground">AI words/day</span>
                       <HelpCircle className="h-3 w-3 text-muted-foreground" />
                     </div>
-                    <span className="text-muted-foreground">836/1000</span>
+                    <span className="text-muted-foreground">
+                      {dailyLimit === Infinity ? (
+                        `${wordsUsed.toLocaleString()} (unlimited)`
+                      ) : (
+                        `${wordsUsed.toLocaleString()}/${dailyLimit.toLocaleString()}`
+                      )}
+                    </span>
                   </div>
-                  <Progress value={83.6} className="h-1.5" />
+                  {dailyLimit !== Infinity && (
+                    <Progress value={usagePercentage} className="h-1.5" />
+                  )}
                 </div>
 
-                {/* Upgrade Button */}
-                <Button
-                  className="w-full bg-foreground hover:bg-foreground/90 text-background"
-                  onClick={() => { navigate('/plans'); onClose?.(); }}
-                >
-                  Upgrade
-                </Button>
+                {/* Upgrade Button - only show for free tier */}
+                {(subscription?.subscription_tier === 'free' || !subscription?.subscription_tier) && (
+                  <Button
+                    className="w-full bg-foreground hover:bg-foreground/90 text-background"
+                    onClick={() => { navigate('/plans'); onClose?.(); }}
+                  >
+                    Upgrade
+                  </Button>
+                )}
               </div>
             </CollapsibleContent>
           </div>

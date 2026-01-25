@@ -5,6 +5,8 @@ import { useMessageHandler } from './chat/useMessageHandler';
 import { useSessionInitializer } from './chat/useSessionInitializer';
 import { useChatState } from './chat/useChatState';
 import { useChatActions } from './chat/useChatActions';
+import { useAIUsage } from './useAIUsage';
+import { useToast } from './use-toast';
 
 export const useChatLogic = (entity: any, entityType: EntityType) => {
   const {
@@ -21,9 +23,13 @@ export const useChatLogic = (entity: any, entityType: EntityType) => {
   } = useChatState();
 
   const { handleShareChat, getTitle } = useChatActions(entity, entityType);
+  const { addWordsUsed, isLimitExceeded, remainingWords } = useAIUsage();
+  const { toast } = useToast();
 
   const { saveChatSession } = useSessionManager(entity, entityType);
-  const { sendMessage: handleSendMessage, stopStream } = useMessageHandler(entity, entityType);
+  const { sendMessage: handleSendMessage, stopStream } = useMessageHandler(entity, entityType, {
+    onWordsGenerated: addWordsUsed
+  });
   const { initializeSession: handleInitialization } = useSessionInitializer(entity, entityType);
 
   const wrappedSaveChatSession = useCallback(async (messages: any[], title?: string) => {
@@ -31,6 +37,16 @@ export const useChatLogic = (entity: any, entityType: EntityType) => {
   }, [saveChatSession, sessionId]);
 
   const sendMessage = useCallback(async (message: string) => {
+    // Check if daily word limit is exceeded
+    if (isLimitExceeded) {
+      toast({
+        title: "Daily limit reached",
+        description: "You've reached your daily AI word limit. Upgrade your plan for more words.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     await handleSendMessage(
       message,
       messages,
@@ -39,7 +55,7 @@ export const useChatLogic = (entity: any, entityType: EntityType) => {
       wrappedSaveChatSession,
       setCitations
     );
-  }, [handleSendMessage, messages, wrappedSaveChatSession, setMessages, setIsLoading, setCitations]);
+  }, [handleSendMessage, messages, wrappedSaveChatSession, setMessages, setIsLoading, setCitations, isLimitExceeded, toast]);
 
   const initializeSession = useCallback(async (withInitialMessage = false) => {
     await handleInitialization(
@@ -60,6 +76,8 @@ export const useChatLogic = (entity: any, entityType: EntityType) => {
     handleShareChat,
     getTitle,
     initializeSession,
-    stopStream
+    stopStream,
+    isLimitExceeded,
+    remainingWords
   };
 };

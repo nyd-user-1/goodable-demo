@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Message, EntityType, Citation } from './types';
 import { generateId } from './utils';
+import { countWords } from '@/hooks/useAIUsage';
 
 // Extract citations from response content and entity information
 const extractCitationsFromResponse = (content: string, entity: any, entityType: EntityType): Citation[] => {
@@ -67,10 +68,15 @@ const extractCitationsFromResponse = (content: string, entity: any, entityType: 
   return citations.filter(citation => citation.url); // Only return citations with valid URLs
 };
 
-export const useMessageHandler = (entity: any, entityType: EntityType) => {
+interface UseMessageHandlerOptions {
+  onWordsGenerated?: (wordCount: number) => void;
+}
+
+export const useMessageHandler = (entity: any, entityType: EntityType, options?: UseMessageHandlerOptions) => {
   const { toast } = useToast();
   const abortControllerRef = useRef<AbortController | null>(null);
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
+  const { onWordsGenerated } = options || {};
 
   const stopStream = useCallback(() => {
     // Cancel the fetch request
@@ -235,6 +241,12 @@ export const useMessageHandler = (entity: any, entityType: EntityType) => {
         setCitations(extractedCitations);
       }
 
+      // Track AI word usage
+      if (onWordsGenerated && aiResponse) {
+        const wordCount = countWords(aiResponse);
+        onWordsGenerated(wordCount);
+      }
+
       // Save updated messages to database
       await saveChatSession(finalMessages);
 
@@ -256,7 +268,7 @@ export const useMessageHandler = (entity: any, entityType: EntityType) => {
       abortControllerRef.current = null;
       readerRef.current = null;
     }
-  }, [entity, entityType, toast]);
+  }, [entity, entityType, toast, onWordsGenerated]);
 
   return { sendMessage, stopStream };
 };

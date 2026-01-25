@@ -51,6 +51,8 @@ import {
 } from "@/components/ui/tooltip";
 import { EngineSelection } from "@/components/EngineSelection";
 import { AskGoodableSelectionPopup } from "@/components/AskGoodableSelectionPopup";
+import { useAIUsage, countWords } from "@/hooks/useAIUsage";
+import { useToast } from "@/hooks/use-toast";
 
 // Thinking phrases that rotate per message instance
 const thinkingPhrases = [
@@ -186,6 +188,8 @@ const NewChat = () => {
   const { sessionId: routeSessionId } = useParams<{ sessionId: string }>();
   const { user } = useAuth();
   const { setOpen: setSidebarOpen } = useSidebarSafe();
+  const { addWordsUsed, isLimitExceeded } = useAIUsage();
+  const { toast } = useToast();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const {
@@ -691,6 +695,16 @@ const NewChat = () => {
       return;
     }
 
+    // Check if daily word limit is exceeded
+    if (isLimitExceeded) {
+      toast({
+        title: "Daily limit reached",
+        description: "You've reached your daily AI word limit. Upgrade your plan for more words.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     let userQuery = promptText || query.trim();
 
     // Process attached files
@@ -1011,6 +1025,12 @@ const NewChat = () => {
             }
           : msg
       ));
+
+      // Track AI word usage
+      if (aiResponse) {
+        const wordCount = countWords(aiResponse);
+        addWordsUsed(wordCount);
+      }
 
       // Fetch related bills based on the first cited bill's committee (progressive loading)
       let relatedBillsResult: typeof responseCitations = [];
