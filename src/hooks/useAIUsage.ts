@@ -19,6 +19,9 @@ const WORD_LIMITS: Record<string, number> = {
   government: Infinity,
 };
 
+// Custom event name for syncing usage across components
+const AI_USAGE_UPDATED_EVENT = 'ai-usage-updated';
+
 const getStorageKey = (userId: string) => `ai_usage_${userId}`;
 
 const getTodayDateString = () => {
@@ -95,20 +98,41 @@ export const useAIUsage = () => {
     const today = getTodayDateString();
     const dailyLimit = getDailyLimit();
 
-    setUsage(prev => {
-      // Reset if it's a new day
-      const isNewDay = prev.lastResetDate !== today;
-      const newWordsUsed = isNewDay ? wordCount : prev.wordsUsed + wordCount;
+    // Read current value from localStorage to get the latest
+    const stored = localStorage.getItem(storageKey);
+    let currentWordsUsed = 0;
+    let lastResetDate = today;
 
-      const newUsage = {
-        wordsUsed: newWordsUsed,
-        dailyLimit,
-        lastResetDate: today,
-      };
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored) as AIUsageData;
+        // Reset if it's a new day
+        if (parsed.lastResetDate === today) {
+          currentWordsUsed = parsed.wordsUsed;
+          lastResetDate = parsed.lastResetDate;
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
 
-      localStorage.setItem(storageKey, JSON.stringify(newUsage));
-      return newUsage;
-    });
+    const newWordsUsed = currentWordsUsed + wordCount;
+    const newUsage = {
+      wordsUsed: newWordsUsed,
+      dailyLimit,
+      lastResetDate: today,
+    };
+
+    // Save to localStorage
+    localStorage.setItem(storageKey, JSON.stringify(newUsage));
+
+    // Update local state
+    setUsage(newUsage);
+
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent(AI_USAGE_UPDATED_EVENT, {
+      detail: { userId: user.id, wordsUsed: newWordsUsed }
+    }));
   }, [user?.id, getDailyLimit]);
 
   // Check if user can make AI request
@@ -138,6 +162,21 @@ export const useAIUsage = () => {
   useEffect(() => {
     loadUsage();
   }, [loadUsage]);
+
+  // Listen for usage updates from other components
+  useEffect(() => {
+    const handleUsageUpdate = (event: CustomEvent) => {
+      // Only refresh if it's for the same user
+      if (event.detail?.userId === user?.id) {
+        loadUsage();
+      }
+    };
+
+    window.addEventListener(AI_USAGE_UPDATED_EVENT, handleUsageUpdate as EventListener);
+    return () => {
+      window.removeEventListener(AI_USAGE_UPDATED_EVENT, handleUsageUpdate as EventListener);
+    };
+  }, [user?.id, loadUsage]);
 
   // Update daily limit when subscription changes
   useEffect(() => {
