@@ -149,32 +149,6 @@ const Lobbying = () => {
                   </div>
                 </div>
 
-                {/* Segmented Control */}
-                <div className="flex bg-muted rounded-lg p-1">
-                  <button
-                    className={cn(
-                      "flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all",
-                      activeTab === 'spend'
-                        ? "bg-background shadow text-foreground"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                    onClick={() => setActiveTab('spend')}
-                  >
-                    Client Spending
-                  </button>
-                  <button
-                    className={cn(
-                      "flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all",
-                      activeTab === 'compensation'
-                        ? "bg-background shadow text-foreground"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                    onClick={() => setActiveTab('compensation')}
-                  >
-                    Lobbyist Earnings
-                  </button>
-                </div>
-
                 {/* Search bar */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -196,6 +170,32 @@ const Lobbying = () => {
                       <X className="h-4 w-4" />
                     </button>
                   )}
+                </div>
+
+                {/* Tab filters - styled like Contracts filter buttons */}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    className={cn(
+                      "px-3 py-2 rounded-lg text-sm transition-colors",
+                      activeTab === 'spend'
+                        ? "bg-muted text-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    )}
+                    onClick={() => setActiveTab('spend')}
+                  >
+                    Client Spending
+                  </button>
+                  <button
+                    className={cn(
+                      "px-3 py-2 rounded-lg text-sm transition-colors",
+                      activeTab === 'compensation'
+                        ? "bg-muted text-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    )}
+                    onClick={() => setActiveTab('compensation')}
+                  >
+                    Lobbyist Earnings
+                  </button>
                 </div>
               </div>
             </div>
