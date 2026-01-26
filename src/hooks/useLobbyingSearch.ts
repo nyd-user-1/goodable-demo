@@ -75,31 +75,41 @@ export function useLobbyingSearch() {
   });
 
   // Fetch all lobbyist clients (for the Earnings cards)
-  const { data: clientsData, error: clientsError } = useQuery({
+  // Note: Supabase default limit is 1000, so we need to fetch in batches or set a higher limit
+  const { data: clientsData } = useQuery({
     queryKey: ['lobbyists-clients'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('lobbyists_clients')
-        .select('*');
+      // Fetch all clients by paginating through results
+      let allClients: LobbyistClient[] = [];
+      let offset = 0;
+      const batchSize = 1000;
+      let hasMore = true;
 
-      if (error) {
-        console.error('Error fetching lobbyists_clients:', error);
-        throw error;
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('lobbyists_clients')
+          .select('*')
+          .range(offset, offset + batchSize - 1);
+
+        if (error) {
+          console.error('Error fetching lobbyists_clients:', error);
+          throw error;
+        }
+
+        if (data && data.length > 0) {
+          allClients = [...allClients, ...data];
+          offset += batchSize;
+          hasMore = data.length === batchSize; // If we got a full batch, there might be more
+        } else {
+          hasMore = false;
+        }
       }
-      console.log('Fetched lobbyists_clients count:', data?.length);
-      if (data && data.length > 0) {
-        console.log('Sample client entries:', data.slice(0, 5));
-      }
-      return data as LobbyistClient[];
+
+      return allClients as LobbyistClient[];
     },
     staleTime: 10 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
   });
-
-  // Log if there's an error with clients
-  if (clientsError) {
-    console.error('clientsError:', clientsError);
-  }
 
   const spendRecords = spendData?.records || [];
   const compensationRecords = compensationData?.records || [];
@@ -115,15 +125,6 @@ export function useLobbyingSearch() {
       }
       map.get(lobbyist)!.push(client);
     });
-    console.log('clientsByLobbyist map size:', map.size);
-    if (map.size > 0) {
-      console.log('Sample lobbyist keys:', Array.from(map.keys()).slice(0, 10));
-    }
-    // Check specifically for Greenberg and Kasirer
-    const greenbergKey = Array.from(map.keys()).find(k => k.includes('GREENBERG'));
-    const kasirerKey = Array.from(map.keys()).find(k => k.includes('KASIRER'));
-    console.log('Greenberg key found:', greenbergKey, 'count:', greenbergKey ? map.get(greenbergKey)?.length : 0);
-    console.log('Kasirer key found:', kasirerKey, 'count:', kasirerKey ? map.get(kasirerKey)?.length : 0);
     return map;
   }, [allClients]);
 
