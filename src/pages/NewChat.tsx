@@ -44,6 +44,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
   TooltipContent,
@@ -72,6 +73,30 @@ const getNextThinkingPhrase = () => {
   const phrase = thinkingPhrases[thinkingPhraseIndex % thinkingPhrases.length];
   thinkingPhraseIndex++;
   return phrase;
+};
+
+// Helper to parse and separate clients section from message content
+const parseClientsSection = (content: string): { mainContent: string; clients: string[] } => {
+  const startMarker = '---CLIENTS_START---';
+  const endMarker = '---CLIENTS_END---';
+
+  const startIndex = content.indexOf(startMarker);
+  const endIndex = content.indexOf(endMarker);
+
+  if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
+    return { mainContent: content, clients: [] };
+  }
+
+  const mainContent = content.substring(0, startIndex).trim();
+  const clientsSection = content.substring(startIndex + startMarker.length, endIndex).trim();
+
+  // Parse bullet points (handles both "- " and "* " formats)
+  const clients = clientsSection
+    .split('\n')
+    .map(line => line.replace(/^[-*]\s*/, '').trim())
+    .filter(line => line.length > 0);
+
+  return { mainContent, clients };
 };
 
 // Featuring real bills from our database
@@ -1509,40 +1534,72 @@ const NewChat = () => {
                               {message.content}
                             </ReactMarkdown>
                           ) : (
-                            <ReactMarkdown
-                              components={{
-                                p: ({ children }) => (
-                                  <p className="mb-3 leading-relaxed text-foreground">
-                                    {children}
-                                  </p>
-                                ),
-                                strong: ({ children }) => (
-                                  <strong className="font-semibold text-foreground">
-                                    {children}
-                                  </strong>
-                                ),
-                                h1: ({ children }) => (
-                                  <h1 className="text-xl font-semibold mb-3 text-foreground">
-                                    {children}
-                                  </h1>
-                                ),
-                                h2: ({ children }) => (
-                                  <h2 className="text-lg font-semibold mb-2 text-foreground">
-                                    {children}
-                                  </h2>
-                                ),
-                                ul: ({ children }) => (
-                                  <ul className="list-disc pl-5 mb-3 space-y-1">
-                                    {children}
-                                  </ul>
-                                ),
-                                li: ({ children }) => (
-                                  <li className="text-foreground text-sm">{children}</li>
-                                ),
-                              }}
-                            >
-                              {message.content}
-                            </ReactMarkdown>
+                            (() => {
+                              const { mainContent, clients } = parseClientsSection(message.content);
+                              return (
+                                <>
+                                  <ReactMarkdown
+                                    components={{
+                                      p: ({ children }) => (
+                                        <p className="mb-3 leading-relaxed text-foreground">
+                                          {children}
+                                        </p>
+                                      ),
+                                      strong: ({ children }) => (
+                                        <strong className="font-semibold text-foreground">
+                                          {children}
+                                        </strong>
+                                      ),
+                                      h1: ({ children }) => (
+                                        <h1 className="text-xl font-semibold mb-3 text-foreground">
+                                          {children}
+                                        </h1>
+                                      ),
+                                      h2: ({ children }) => (
+                                        <h2 className="text-lg font-semibold mb-2 text-foreground">
+                                          {children}
+                                        </h2>
+                                      ),
+                                      ul: ({ children }) => (
+                                        <ul className="list-disc pl-5 mb-3 space-y-1">
+                                          {children}
+                                        </ul>
+                                      ),
+                                      li: ({ children }) => (
+                                        <li className="text-foreground text-sm">{children}</li>
+                                      ),
+                                    }}
+                                  >
+                                    {mainContent}
+                                  </ReactMarkdown>
+                                  {clients.length > 0 && (
+                                    <Accordion type="single" collapsible className="mt-4 border rounded-lg">
+                                      <AccordionItem value="clients" className="border-none">
+                                        <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                                          <span className="text-sm font-medium">
+                                            Clients ({clients.length})
+                                          </span>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="px-4 pb-4">
+                                          <ScrollArea className="h-[350px] pr-4">
+                                            <ul className="space-y-1">
+                                              {clients.map((client, index) => (
+                                                <li
+                                                  key={index}
+                                                  className="text-sm text-muted-foreground py-1 border-b border-border/50 last:border-0"
+                                                >
+                                                  {client}
+                                                </li>
+                                              ))}
+                                            </ul>
+                                          </ScrollArea>
+                                        </AccordionContent>
+                                      </AccordionItem>
+                                    </Accordion>
+                                  )}
+                                </>
+                              );
+                            })()
                           )
                         }
                         bills={message.citations || []}

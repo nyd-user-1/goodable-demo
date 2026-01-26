@@ -103,7 +103,15 @@ Based on this official lobbying disclosure data, provide a helpful analysis:
 
 IMPORTANT: Do NOT include any section about "Impact on Working Families" or similar social impact analysis. Focus on the business and political aspects of lobbying.
 
-At the end of your response, include a collapsible section titled "## Clients" that lists the client names provided above. Format it so it can be rendered as an accordion/expandable section.`;
+At the end of your response, include the clients section in EXACTLY this format (this exact marker format is required):
+
+---CLIENTS_START---
+- CLIENT NAME 1
+- CLIENT NAME 2
+(continue for all clients)
+---CLIENTS_END---
+
+List ALL the client names provided above as bullet points between these markers. Do not add any other text or headings inside the markers.`;
 
     navigate(`/new-chat?prompt=${encodeURIComponent(displayPrompt)}&context=${encodeURIComponent(context)}`);
   };
