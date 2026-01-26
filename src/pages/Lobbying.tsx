@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X, HandCoins, ArrowUp, PanelLeft, Command, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -6,10 +6,12 @@ import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from '@/components/ui/hover-card';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLobbyingSearch, LobbyingTab, formatLobbyingCurrency, normalizeLobbyistName } from '@/hooks/useLobbyingSearch';
 import { LobbyingSpend, LobbyistCompensation, LobbyistClient } from '@/types/lobbying';
 
@@ -341,6 +343,118 @@ function SpendCard({ record, onClick, onChatClick }: SpendCardProps) {
   );
 }
 
+// Clients Dialog Component - Search-style interface for viewing all clients
+interface ClientsDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  lobbyistName: string;
+  clients: LobbyistClient[];
+  onViewDetails: () => void;
+}
+
+function ClientsDialog({ open, onOpenChange, lobbyistName, clients, onViewDetails }: ClientsDialogProps) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Filter clients based on search
+  const filteredClients = useMemo(() => {
+    if (!searchTerm) return clients;
+    const term = searchTerm.toLowerCase();
+    return clients.filter(client =>
+      client.contractual_client?.toLowerCase().includes(term) ||
+      client.start_date?.toLowerCase().includes(term)
+    );
+  }, [clients, searchTerm]);
+
+  // Focus search input when dialog opens
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    } else {
+      setSearchTerm(''); // Reset search when closing
+    }
+  }, [open]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg p-0 gap-0">
+        {/* Search Header */}
+        <div className="p-4 border-b">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              ref={searchInputRef}
+              placeholder="Search clients..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-10 h-11 bg-muted/50 border-0 focus-visible:ring-1"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Results Header */}
+        <div className="px-4 py-3 border-b bg-muted/30">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">{lobbyistName}</span>
+            <span className="text-xs text-muted-foreground">
+              {filteredClients.length} of {clients.length} clients
+            </span>
+          </div>
+        </div>
+
+        {/* Scrollable Client List */}
+        <ScrollArea className="h-[400px]">
+          {filteredClients.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground">
+              <Users className="h-8 w-8 mx-auto mb-3 opacity-50" />
+              <p className="text-sm">No clients found</p>
+            </div>
+          ) : (
+            <div className="divide-y">
+              {filteredClients.map((client, idx) => (
+                <div
+                  key={client.id || idx}
+                  className="px-4 py-3 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {client.contractual_client || 'Unknown Client'}
+                      </p>
+                    </div>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                      {client.start_date || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+
+        {/* Footer */}
+        <div className="p-3 border-t bg-muted/30 flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">
+            <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">esc</kbd>
+            {' '}Close
+          </span>
+          <Button variant="ghost" size="sm" onClick={onViewDetails} className="text-xs">
+            View Full Details →
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // Compensation Card Component
 interface CompensationCardProps {
   record: LobbyistCompensation;
@@ -350,6 +464,7 @@ interface CompensationCardProps {
 }
 
 function CompensationCard({ record, clients, onClick, onChatClick }: CompensationCardProps) {
+  const [clientsDialogOpen, setClientsDialogOpen] = useState(false);
   const lobbyist = record.principal_lobbyist || 'Unknown Lobbyist';
   const compensation = formatLobbyingCurrency(record.compensation);
   const expenses = formatLobbyingCurrency(record.reimbursed_expenses);
@@ -363,102 +478,77 @@ function CompensationCard({ record, clients, onClick, onChatClick }: Compensatio
 
   const handleClientsClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    setClientsDialogOpen(true);
   };
 
-  // Get preview clients (first 3)
-  const previewClients = clients.slice(0, 3);
-  const hasMoreClients = clients.length > 3;
-
   return (
-    <div
-      onClick={onClick}
-      className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
-    >
-      <h3 className="font-semibold text-base mb-3">{lobbyist}</h3>
-      <p className="text-sm text-muted-foreground leading-relaxed">{promptText}</p>
+    <>
+      <div
+        onClick={onClick}
+        className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
+      >
+        <h3 className="font-semibold text-base mb-3">{lobbyist}</h3>
+        <p className="text-sm text-muted-foreground leading-relaxed">{promptText}</p>
 
-      {/* Details and arrow - render on hover */}
-      <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
-        {/* Details grid */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
-          {record.compensation && (
-            <div>
-              <span className="text-muted-foreground">Compensation</span>
-              <p className="font-medium">{record.compensation}</p>
-            </div>
-          )}
-          {record.reimbursed_expenses && (
-            <div>
-              <span className="text-muted-foreground">Reimbursed Expenses</span>
-              <p className="font-medium">{record.reimbursed_expenses}</p>
-            </div>
-          )}
-          {record.grand_total_compensation_expenses && (
-            <div className="col-span-2">
-              <span className="text-muted-foreground">Grand Total</span>
-              <p className="font-medium text-green-600 dark:text-green-400">
-                {record.grand_total_compensation_expenses}
-              </p>
-            </div>
-          )}
-        </div>
+        {/* Details and arrow - render on hover */}
+        <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
+          {/* Details grid */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
+            {record.compensation && (
+              <div>
+                <span className="text-muted-foreground">Compensation</span>
+                <p className="font-medium">{record.compensation}</p>
+              </div>
+            )}
+            {record.reimbursed_expenses && (
+              <div>
+                <span className="text-muted-foreground">Reimbursed Expenses</span>
+                <p className="font-medium">{record.reimbursed_expenses}</p>
+              </div>
+            )}
+            {record.grand_total_compensation_expenses && (
+              <div className="col-span-2">
+                <span className="text-muted-foreground">Grand Total</span>
+                <p className="font-medium text-green-600 dark:text-green-400">
+                  {record.grand_total_compensation_expenses}
+                </p>
+              </div>
+            )}
+          </div>
 
-        {/* Buttons row */}
-        <div className="flex items-center justify-between">
-          {/* Clients button with hover card */}
-          {clients.length > 0 && (
-            <HoverCard>
-              <HoverCardTrigger asChild>
-                <button
-                  onClick={handleClientsClick}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-muted hover:bg-muted/80 rounded-lg transition-colors"
-                >
-                  <Users className="h-3.5 w-3.5" />
-                  {clients.length} Client{clients.length !== 1 ? 's' : ''}
-                </button>
-              </HoverCardTrigger>
-              <HoverCardContent className="w-80" align="start">
-                <div className="space-y-3">
-                  <h4 className="text-sm font-semibold">Clients</h4>
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left pb-2 font-medium text-muted-foreground">Client</th>
-                        <th className="text-left pb-2 font-medium text-muted-foreground">Start Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {previewClients.map((client, idx) => (
-                        <tr key={client.id || idx} className="border-b last:border-0">
-                          <td className="py-2 pr-2">{client.contractual_client || 'Unknown'}</td>
-                          <td className="py-2">{client.start_date || 'N/A'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {hasMoreClients && (
-                    <button
-                      onClick={onClick}
-                      className="text-xs text-primary hover:underline"
-                    >
-                      View all {clients.length} clients →
-                    </button>
-                  )}
-                </div>
-              </HoverCardContent>
-            </HoverCard>
-          )}
+          {/* Buttons row */}
+          <div className="flex items-center justify-between">
+            {/* Clients button - opens dialog */}
+            {clients.length > 0 && (
+              <button
+                onClick={handleClientsClick}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-muted hover:bg-muted/80 rounded-lg transition-colors"
+              >
+                <Users className="h-3.5 w-3.5" />
+                {clients.length} Client{clients.length !== 1 ? 's' : ''}
+              </button>
+            )}
 
-          {/* Arrow button - initiates chat */}
-          <button
-            onClick={handleChatClick}
-            className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors ml-auto"
-          >
-            <ArrowUp className="h-5 w-5" />
-          </button>
+            {/* Arrow button - initiates chat */}
+            <button
+              onClick={handleChatClick}
+              className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors ml-auto"
+            >
+              <ArrowUp className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Clients Dialog */}
+      <ClientsDialog
+        open={clientsDialogOpen}
+        onOpenChange={setClientsDialogOpen}
+        lobbyistName={lobbyist}
+        clients={clients}
+        onViewDetails={onClick}
+      />
+    </>
   );
 }
 
