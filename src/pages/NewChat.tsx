@@ -2221,12 +2221,6 @@ const NewChat = () => {
               </div>
             </form>
 
-            {/* Disclaimer */}
-            <div className="flex items-center justify-center gap-1 mt-3">
-              <span className="text-xs text-muted-foreground/70">
-                NYSgpt is an Alpha stage product and can make mistakes. Please double-check responses.
-              </span>
-            </div>
           </div>
         </div>
         </div>
