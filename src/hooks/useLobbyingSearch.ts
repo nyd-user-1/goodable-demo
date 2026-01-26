@@ -77,7 +77,7 @@ export function useLobbyingSearch() {
   // Fetch all lobbyist clients (for the Earnings cards)
   // Note: Supabase default limit is 1000, so we need to fetch in batches or set a higher limit
   const { data: clientsData } = useQuery({
-    queryKey: ['lobbyists-clients'],
+    queryKey: ['lobbyists-clients-v2'], // Changed key to bust cache
     queryFn: async () => {
       // Fetch all clients by paginating through results
       let allClients: LobbyistClient[] = [];

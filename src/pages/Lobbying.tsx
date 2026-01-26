@@ -380,14 +380,20 @@ function ClientsDialog({ open, onOpenChange, lobbyistName, clients, onViewDetail
     );
   }, [clients, searchTerm]);
 
-  // Focus search input when dialog opens
+  // Focus search input when dialog opens + debug logging
   useEffect(() => {
     if (open) {
+      console.log('[ClientsDialog] Dialog opened for:', lobbyistName);
+      console.log('[ClientsDialog] Clients count:', clients.length);
+      if (clients.length > 0) {
+        console.log('[ClientsDialog] First client object:', JSON.stringify(clients[0], null, 2));
+        console.log('[ClientsDialog] First client start_date:', clients[0].start_date);
+      }
       setTimeout(() => searchInputRef.current?.focus(), 100);
     } else {
       setSearchTerm(''); // Reset search when closing
     }
-  }, [open]);
+  }, [open, clients, lobbyistName]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -428,8 +434,6 @@ function ClientsDialog({ open, onOpenChange, lobbyistName, clients, onViewDetail
             </div>
           ) : (
             <div>
-              {/* Debug: log first client to see data structure */}
-              {filteredClients.length > 0 && console.log('[ClientsDialog] First client:', filteredClients[0])}
               {filteredClients.map((client, idx) => (
                 <div
                   key={client.id || idx}
