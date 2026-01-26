@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useLobbyingSearch, LobbyingTab, formatLobbyingCurrency, normalizeLobbyistName } from '@/hooks/useLobbyingSearch';
+import { useLobbyingSearch, LobbyingTab, formatLobbyingCurrency } from '@/hooks/useLobbyingSearch';
 import { LobbyingSpend, LobbyistCompensation, LobbyistClient } from '@/types/lobbying';
 
 const Lobbying = () => {
@@ -30,7 +30,7 @@ const Lobbying = () => {
   const {
     spendRecords,
     compensationRecords,
-    clientsByLobbyist,
+    getClientsForCompensation,
     isLoading,
     error,
     activeTab,
@@ -273,8 +273,7 @@ At the end of your response, include a collapsible section titled "## Clients" t
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {compensationRecords.map((record) => {
-                  const lobbyistName = normalizeLobbyistName(record.principal_lobbyist);
-                  const clients = clientsByLobbyist.get(lobbyistName) || [];
+                  const clients = getClientsForCompensation(record);
                   return (
                     <CompensationCard
                       key={record.id}

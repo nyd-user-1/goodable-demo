@@ -115,24 +115,51 @@ export function useLobbyingSearch() {
   const compensationRecords = compensationData?.records || [];
   const allClients = clientsData || [];
 
-  // Group clients by normalized lobbyist name for easy lookup
+  // Group clients by lobbyist_id for easy lookup (uses FK relationship)
+  // Falls back to normalized name for unmatched records
   const clientsByLobbyist = useMemo(() => {
-    const map = new Map<string, LobbyistClient[]>();
+    const mapById = new Map<number, LobbyistClient[]>();
+    const mapByName = new Map<string, LobbyistClient[]>();
+
     allClients.forEach(client => {
-      const lobbyist = normalizeLobbyistName(client.principal_lobbyist);
-      if (!map.has(lobbyist)) {
-        map.set(lobbyist, []);
+      // Primary: group by lobbyist_id (FK relationship)
+      if (client.lobbyist_id) {
+        if (!mapById.has(client.lobbyist_id)) {
+          mapById.set(client.lobbyist_id, []);
+        }
+        mapById.get(client.lobbyist_id)!.push(client);
       }
-      map.get(lobbyist)!.push(client);
+
+      // Also maintain name-based map for lookups
+      const normalizedName = client.normalized_lobbyist || normalizeLobbyistName(client.principal_lobbyist);
+      if (normalizedName) {
+        if (!mapByName.has(normalizedName)) {
+          mapByName.set(normalizedName, []);
+        }
+        mapByName.get(normalizedName)!.push(client);
+      }
     });
-    return map;
+
+    return { byId: mapById, byName: mapByName };
   }, [allClients]);
+
+  // Helper to get clients for a compensation record
+  const getClientsForCompensation = (record: LobbyistCompensation): LobbyistClient[] => {
+    // Try FK first
+    if (record.lobbyist_id && clientsByLobbyist.byId.has(record.lobbyist_id)) {
+      return clientsByLobbyist.byId.get(record.lobbyist_id)!;
+    }
+    // Fall back to normalized name
+    const normalizedName = record.normalized_lobbyist || normalizeLobbyistName(record.principal_lobbyist);
+    return clientsByLobbyist.byName.get(normalizedName) || [];
+  };
 
   return {
     // Data
     spendRecords,
     compensationRecords,
-    clientsByLobbyist,
+    clientsByLobbyist: clientsByLobbyist.byName, // Keep backwards compatibility
+    getClientsForCompensation, // New FK-based lookup
     spendCount: spendData?.totalCount || 0,
     compensationCount: compensationData?.totalCount || 0,
 

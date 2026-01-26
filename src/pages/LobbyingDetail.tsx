@@ -47,7 +47,7 @@ import {
 } from "@tanstack/react-table";
 import { supabase } from "@/integrations/supabase/client";
 import { LobbyingSpend, LobbyistCompensation, LobbyistClient } from "@/types/lobbying";
-import { formatLobbyingCurrency, normalizeLobbyistName } from "@/hooks/useLobbyingSearch";
+import { formatLobbyingCurrency } from "@/hooks/useLobbyingSearch";
 
 // Column definitions for the clients table
 const clientColumns: ColumnDef<LobbyistClient>[] = [
@@ -277,44 +277,38 @@ const LobbyingDetail = () => {
     enabled: isCompensation && !!recordId,
   });
 
-  // Fetch all clients and filter by normalized lobbyist name for consistent matching
-  // Note: Must paginate through all results since Supabase default limit is 1000
+  // Fetch clients using FK relationship (lobbyist_id) for efficient querying
+  // Falls back to normalized_lobbyist text match for records without FK
   const { data: lobbyistClients } = useQuery({
-    queryKey: ['lobbyist-clients-all', normalizeLobbyistName(compensationRecord?.principal_lobbyist)],
+    queryKey: ['lobbyist-clients-by-fk', compensationRecord?.lobbyist_id, compensationRecord?.normalized_lobbyist],
     queryFn: async () => {
-      if (!compensationRecord?.principal_lobbyist) return [];
+      if (!compensationRecord) return [];
 
-      const normalizedName = normalizeLobbyistName(compensationRecord.principal_lobbyist);
-
-      // Fetch all clients by paginating through results
-      let allClients: LobbyistClient[] = [];
-      let offset = 0;
-      const batchSize = 1000;
-      let hasMore = true;
-
-      while (hasMore) {
+      // Try FK-based lookup first (most efficient)
+      if (compensationRecord.lobbyist_id) {
         const { data, error } = await supabase
           .from('lobbyists_clients')
           .select('*')
-          .range(offset, offset + batchSize - 1);
+          .eq('lobbyist_id', compensationRecord.lobbyist_id);
 
         if (error) throw error;
-
-        if (data && data.length > 0) {
-          allClients = [...allClients, ...data];
-          offset += batchSize;
-          hasMore = data.length === batchSize;
-        } else {
-          hasMore = false;
-        }
+        return (data || []) as LobbyistClient[];
       }
 
-      // Filter using the same normalization function used in cards
-      return (allClients as LobbyistClient[]).filter(client =>
-        normalizeLobbyistName(client.principal_lobbyist) === normalizedName
-      );
+      // Fallback to normalized_lobbyist text match
+      if (compensationRecord.normalized_lobbyist) {
+        const { data, error } = await supabase
+          .from('lobbyists_clients')
+          .select('*')
+          .eq('normalized_lobbyist', compensationRecord.normalized_lobbyist);
+
+        if (error) throw error;
+        return (data || []) as LobbyistClient[];
+      }
+
+      return [];
     },
-    enabled: isCompensation && !!compensationRecord?.principal_lobbyist,
+    enabled: isCompensation && !!compensationRecord,
   });
 
   const isLoading = isSpend ? spendLoading : compensationLoading;
