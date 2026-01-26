@@ -99,12 +99,34 @@ const parseClientsSection = (content: string): { mainContent: string; clients: s
   return { mainContent, clients };
 };
 
-// Helper to strip clients section from streaming content (hide during assembly)
-const stripClientsSection = (content: string): string => {
+// Helper to strip clients section from streaming content and detect loading state
+const stripClientsSection = (content: string): { cleanContent: string; isLoadingClients: boolean; partialClients: string[] } => {
   const startMarker = '---CLIENTS_START---';
+  const endMarker = '---CLIENTS_END---';
+
   const startIndex = content.indexOf(startMarker);
-  if (startIndex === -1) return content;
-  return content.substring(0, startIndex).trim();
+
+  // No clients section started yet
+  if (startIndex === -1) {
+    return { cleanContent: content, isLoadingClients: false, partialClients: [] };
+  }
+
+  const cleanContent = content.substring(0, startIndex).trim();
+  const endIndex = content.indexOf(endMarker);
+
+  // Clients section started but not complete - parse partial clients
+  if (endIndex === -1) {
+    const partialSection = content.substring(startIndex + startMarker.length);
+    const partialClients = partialSection
+      .split('\n')
+      .map(line => line.replace(/^[-*]\s*/, '').trim())
+      .filter(line => line.length > 0);
+
+    return { cleanContent, isLoadingClients: true, partialClients };
+  }
+
+  // Section complete
+  return { cleanContent, isLoadingClients: false, partialClients: [] };
 };
 
 // Featuring real bills from our database
@@ -1449,44 +1471,78 @@ const NewChat = () => {
                             ),
                           }}
                         >
-                          {message.isStreaming ? stripClientsSection(message.streamedContent || '') : message.content}
+                          {message.isStreaming ? stripClientsSection(message.streamedContent || '').cleanContent : message.content}
                         </ReactMarkdown>
                       ) : (
-                        // Standard markdown rendering
-                        <ReactMarkdown
-                          components={{
-                            p: ({ children }) => (
-                              <p className="mb-3 leading-relaxed text-foreground">
-                                {children}
-                              </p>
-                            ),
-                            strong: ({ children }) => (
-                              <strong className="font-semibold text-foreground">
-                                {children}
-                              </strong>
-                            ),
-                            h1: ({ children }) => (
-                              <h1 className="text-xl font-semibold mb-3 text-foreground">
-                                {children}
-                              </h1>
-                            ),
-                            h2: ({ children }) => (
-                              <h2 className="text-lg font-semibold mb-2 text-foreground">
-                                {children}
-                              </h2>
-                            ),
-                            ul: ({ children }) => (
-                              <ul className="list-disc pl-5 mb-3 space-y-1">
-                                {children}
-                              </ul>
-                            ),
-                            li: ({ children }) => (
-                              <li className="text-foreground text-sm">{children}</li>
-                            ),
-                          }}
-                        >
-                          {message.isStreaming ? stripClientsSection(message.streamedContent || '') : message.content}
-                        </ReactMarkdown>
+                        // Standard markdown rendering with progressive clients accordion
+                        (() => {
+                          const streamContent = message.isStreaming ? message.streamedContent || '' : message.content;
+                          const { cleanContent, isLoadingClients, partialClients } = stripClientsSection(streamContent);
+                          return (
+                            <>
+                              <ReactMarkdown
+                                components={{
+                                  p: ({ children }) => (
+                                    <p className="mb-3 leading-relaxed text-foreground">
+                                      {children}
+                                    </p>
+                                  ),
+                                  strong: ({ children }) => (
+                                    <strong className="font-semibold text-foreground">
+                                      {children}
+                                    </strong>
+                                  ),
+                                  h1: ({ children }) => (
+                                    <h1 className="text-xl font-semibold mb-3 text-foreground">
+                                      {children}
+                                    </h1>
+                                  ),
+                                  h2: ({ children }) => (
+                                    <h2 className="text-lg font-semibold mb-2 text-foreground">
+                                      {children}
+                                    </h2>
+                                  ),
+                                  ul: ({ children }) => (
+                                    <ul className="list-disc pl-5 mb-3 space-y-1">
+                                      {children}
+                                    </ul>
+                                  ),
+                                  li: ({ children }) => (
+                                    <li className="text-foreground text-sm">{children}</li>
+                                  ),
+                                }}
+                              >
+                                {cleanContent}
+                              </ReactMarkdown>
+                              {isLoadingClients && partialClients.length > 0 && (
+                                <Accordion type="single" collapsible className="mt-4 border rounded-lg overflow-hidden" defaultValue="clients">
+                                  <AccordionItem value="clients" className="border-none">
+                                    <AccordionTrigger className="px-4 py-2 hover:no-underline hover:bg-muted/50">
+                                      <span className="text-sm font-medium flex items-center gap-2">
+                                        Clients ({partialClients.length})
+                                        <span className="inline-block w-1.5 h-3 bg-muted-foreground/50 animate-pulse rounded-sm"></span>
+                                      </span>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="px-4 pb-3 pt-0">
+                                      <ScrollArea className="h-[200px] pr-4">
+                                        <ul className="space-y-0.5">
+                                          {partialClients.map((client, index) => (
+                                            <li
+                                              key={index}
+                                              className="text-sm text-muted-foreground py-1 border-b border-border/30 last:border-0"
+                                            >
+                                              {client}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </ScrollArea>
+                                    </AccordionContent>
+                                  </AccordionItem>
+                                </Accordion>
+                              )}
+                            </>
+                          );
+                        })()
                       )}
                         <span className="inline-block w-1.5 h-4 bg-current animate-pulse ml-0.5">|</span>
                       </div>
@@ -1581,20 +1637,20 @@ const NewChat = () => {
                                     {mainContent}
                                   </ReactMarkdown>
                                   {clients.length > 0 && (
-                                    <Accordion type="single" collapsible className="mt-4 border rounded-lg">
+                                    <Accordion type="single" collapsible className="mt-4 border rounded-lg overflow-hidden">
                                       <AccordionItem value="clients" className="border-none">
-                                        <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                                        <AccordionTrigger className="px-4 py-2 hover:no-underline hover:bg-muted/50">
                                           <span className="text-sm font-medium">
                                             Clients ({clients.length})
                                           </span>
                                         </AccordionTrigger>
-                                        <AccordionContent className="px-4 pb-4">
+                                        <AccordionContent className="px-4 pb-3 pt-0">
                                           <ScrollArea className="h-[200px] pr-4">
-                                            <ul className="space-y-1">
+                                            <ul className="space-y-0.5">
                                               {clients.map((client, index) => (
                                                 <li
                                                   key={index}
-                                                  className="text-sm text-muted-foreground py-1 border-b border-border/50 last:border-0"
+                                                  className="text-sm text-muted-foreground py-1 border-b border-border/30 last:border-0"
                                                 >
                                                   {client}
                                                 </li>
