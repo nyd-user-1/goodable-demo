@@ -377,7 +377,7 @@ function ClientsDialog({ open, onOpenChange, lobbyistName, clients, onViewDetail
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl p-0 gap-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[700px] w-[calc(100%-2rem)] mx-auto p-0 gap-0 overflow-hidden [&>button]:hidden">
         {/* Search Header - matches sidebar search */}
         <div className="flex items-center gap-3 px-4 py-3 border-b">
           <Search className="h-5 w-5 text-muted-foreground flex-shrink-0" />
@@ -396,15 +396,18 @@ function ClientsDialog({ open, onOpenChange, lobbyistName, clients, onViewDetail
           </button>
         </div>
 
-        {/* Section label */}
-        <div className="px-4 py-2 border-b">
-          <span className="text-sm text-muted-foreground">
-            {filteredClients.length} Client{filteredClients.length !== 1 ? 's' : ''}
+        {/* Column headers */}
+        <div className="flex items-center gap-3 px-4 py-2 border-b bg-muted/30">
+          <span className="flex-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Client ({filteredClients.length})
+          </span>
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide w-24 text-right">
+            Start Date
           </span>
         </div>
 
         {/* Scrollable Client List */}
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[280px]">
           {filteredClients.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <p className="text-sm">No clients found</p>
@@ -414,15 +417,15 @@ function ClientsDialog({ open, onOpenChange, lobbyistName, clients, onViewDetail
               {filteredClients.map((client, idx) => (
                 <div
                   key={client.id || idx}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors cursor-default"
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 hover:shadow-sm transition-all cursor-default"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm truncate">
                       {client.contractual_client || 'Unknown Client'}
                     </p>
                   </div>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">
-                    {client.start_date || ''}
+                  <span className="text-xs text-muted-foreground w-24 text-right whitespace-nowrap">
+                    {client.start_date || '—'}
                   </span>
                 </div>
               ))}
