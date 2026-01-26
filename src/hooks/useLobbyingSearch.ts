@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { LobbyingSpend, LobbyistCompensation } from '@/types/lobbying';
+import { LobbyingSpend, LobbyistCompensation, LobbyistClient } from '@/types/lobbying';
 
 export type LobbyingTab = 'spend' | 'compensation';
 
@@ -74,13 +74,43 @@ export function useLobbyingSearch() {
     gcTime: 10 * 60 * 1000,
   });
 
+  // Fetch all lobbyist clients (for the Earnings cards)
+  const { data: clientsData } = useQuery({
+    queryKey: ['lobbyists-clients'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('lobbyists_clients')
+        .select('*');
+
+      if (error) throw error;
+      return data as LobbyistClient[];
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
   const spendRecords = spendData?.records || [];
   const compensationRecords = compensationData?.records || [];
+  const allClients = clientsData || [];
+
+  // Group clients by lobbyist name for easy lookup
+  const clientsByLobbyist = useMemo(() => {
+    const map = new Map<string, LobbyistClient[]>();
+    allClients.forEach(client => {
+      const lobbyist = client.principal_lobbyist?.toUpperCase() || '';
+      if (!map.has(lobbyist)) {
+        map.set(lobbyist, []);
+      }
+      map.get(lobbyist)!.push(client);
+    });
+    return map;
+  }, [allClients]);
 
   return {
     // Data
     spendRecords,
     compensationRecords,
+    clientsByLobbyist,
     spendCount: spendData?.totalCount || 0,
     compensationCount: compensationData?.totalCount || 0,
 

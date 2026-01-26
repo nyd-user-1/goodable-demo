@@ -10,15 +10,23 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowLeft, Plus, ExternalLink, Command, HandCoins, DollarSign, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, ExternalLink, Command, HandCoins, DollarSign, Pencil, Trash2, Users } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { LobbyingSpend, LobbyistCompensation } from "@/types/lobbying";
+import { LobbyingSpend, LobbyistCompensation, LobbyistClient } from "@/types/lobbying";
 import { formatLobbyingCurrency } from "@/hooks/useLobbyingSearch";
 
 const LobbyingDetail = () => {
@@ -61,6 +69,23 @@ const LobbyingDetail = () => {
       return data as LobbyistCompensation;
     },
     enabled: isCompensation && !!recordId,
+  });
+
+  // Fetch clients for this lobbyist
+  const { data: lobbyistClients } = useQuery({
+    queryKey: ['lobbyist-clients', compensationRecord?.principal_lobbyist],
+    queryFn: async () => {
+      if (!compensationRecord?.principal_lobbyist) return [];
+
+      const { data, error } = await supabase
+        .from('lobbyists_clients')
+        .select('*')
+        .ilike('principal_lobbyist', compensationRecord.principal_lobbyist);
+
+      if (error) throw error;
+      return data as LobbyistClient[];
+    },
+    enabled: isCompensation && !!compensationRecord?.principal_lobbyist,
   });
 
   const isLoading = isSpend ? spendLoading : compensationLoading;
@@ -450,6 +475,45 @@ const LobbyingDetail = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Clients Section */}
+          {lobbyistClients && lobbyistClients.length > 0 && (
+            <Card className="bg-card rounded-xl shadow-sm border">
+              <CardHeader className="px-6 py-4 border-b">
+                <div className="flex items-center gap-3">
+                  <Users className="h-5 w-5 text-muted-foreground" />
+                  <CardTitle className="text-lg font-semibold">
+                    Clients
+                  </CardTitle>
+                  <Badge variant="secondary" className="text-xs">
+                    {lobbyistClients.length} {lobbyistClients.length === 1 ? 'client' : 'clients'}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="pl-6">Client Name</TableHead>
+                      <TableHead>Start Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {lobbyistClients.map((client) => (
+                      <TableRow key={client.id}>
+                        <TableCell className="pl-6 font-medium">
+                          {client.contractual_client || 'Unknown Client'}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {client.start_date || 'N/A'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Related Chats Section */}
           <Card className="bg-card rounded-xl shadow-sm border">

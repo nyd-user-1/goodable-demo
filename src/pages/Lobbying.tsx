@@ -1,12 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, HandCoins, ArrowUp, PanelLeft, Command } from 'lucide-react';
+import { Search, X, HandCoins, ArrowUp, PanelLeft, Command, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card';
 import { useLobbyingSearch, LobbyingTab, formatLobbyingCurrency } from '@/hooks/useLobbyingSearch';
-import { LobbyingSpend, LobbyistCompensation } from '@/types/lobbying';
+import { LobbyingSpend, LobbyistCompensation, LobbyistClient } from '@/types/lobbying';
 
 const Lobbying = () => {
   const navigate = useNavigate();
@@ -23,6 +28,7 @@ const Lobbying = () => {
   const {
     spendRecords,
     compensationRecords,
+    clientsByLobbyist,
     isLoading,
     error,
     activeTab,
@@ -183,7 +189,7 @@ const Lobbying = () => {
                     )}
                     onClick={() => setActiveTab('spend')}
                   >
-                    Client Spending
+                    Spending
                   </button>
                   <button
                     className={cn(
@@ -194,7 +200,7 @@ const Lobbying = () => {
                     )}
                     onClick={() => setActiveTab('compensation')}
                   >
-                    Lobbyist Earnings
+                    Earnings
                   </button>
                 </div>
               </div>
@@ -236,14 +242,19 @@ const Lobbying = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {compensationRecords.map((record) => (
-                  <CompensationCard
-                    key={record.id}
-                    record={record}
-                    onClick={() => handleCompensationClick(record)}
-                    onChatClick={() => handleCompensationChatClick(record)}
-                  />
-                ))}
+                {compensationRecords.map((record) => {
+                  const lobbyistName = record.principal_lobbyist?.toUpperCase() || '';
+                  const clients = clientsByLobbyist.get(lobbyistName) || [];
+                  return (
+                    <CompensationCard
+                      key={record.id}
+                      record={record}
+                      clients={clients}
+                      onClick={() => handleCompensationClick(record)}
+                      onChatClick={() => handleCompensationChatClick(record)}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>
@@ -333,11 +344,12 @@ function SpendCard({ record, onClick, onChatClick }: SpendCardProps) {
 // Compensation Card Component
 interface CompensationCardProps {
   record: LobbyistCompensation;
+  clients: LobbyistClient[];
   onClick: () => void;
   onChatClick: () => void;
 }
 
-function CompensationCard({ record, onClick, onChatClick }: CompensationCardProps) {
+function CompensationCard({ record, clients, onClick, onChatClick }: CompensationCardProps) {
   const lobbyist = record.principal_lobbyist || 'Unknown Lobbyist';
   const compensation = formatLobbyingCurrency(record.compensation);
   const expenses = formatLobbyingCurrency(record.reimbursed_expenses);
@@ -348,6 +360,14 @@ function CompensationCard({ record, onClick, onChatClick }: CompensationCardProp
     e.stopPropagation();
     onChatClick();
   };
+
+  const handleClientsClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
+  // Get preview clients (first 3)
+  const previewClients = clients.slice(0, 3);
+  const hasMoreClients = clients.length > 3;
 
   return (
     <div
@@ -383,11 +403,56 @@ function CompensationCard({ record, onClick, onChatClick }: CompensationCardProp
           )}
         </div>
 
-        {/* Arrow button - initiates chat */}
-        <div className="flex justify-end">
+        {/* Buttons row */}
+        <div className="flex items-center justify-between">
+          {/* Clients button with hover card */}
+          {clients.length > 0 && (
+            <HoverCard>
+              <HoverCardTrigger asChild>
+                <button
+                  onClick={handleClientsClick}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-muted hover:bg-muted/80 rounded-lg transition-colors"
+                >
+                  <Users className="h-3.5 w-3.5" />
+                  {clients.length} Client{clients.length !== 1 ? 's' : ''}
+                </button>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-80" align="start">
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold">Clients</h4>
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left pb-2 font-medium text-muted-foreground">Client</th>
+                        <th className="text-left pb-2 font-medium text-muted-foreground">Start Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {previewClients.map((client, idx) => (
+                        <tr key={client.id || idx} className="border-b last:border-0">
+                          <td className="py-2 pr-2">{client.contractual_client || 'Unknown'}</td>
+                          <td className="py-2">{client.start_date || 'N/A'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {hasMoreClients && (
+                    <button
+                      onClick={onClick}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      View all {clients.length} clients →
+                    </button>
+                  )}
+                </div>
+              </HoverCardContent>
+            </HoverCard>
+          )}
+
+          {/* Arrow button - initiates chat */}
           <button
             onClick={handleChatClick}
-            className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors"
+            className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors ml-auto"
           >
             <ArrowUp className="h-5 w-5" />
           </button>
