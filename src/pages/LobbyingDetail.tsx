@@ -278,6 +278,7 @@ const LobbyingDetail = () => {
   });
 
   // Fetch all clients and filter by normalized lobbyist name for consistent matching
+  // Note: Must paginate through all results since Supabase default limit is 1000
   const { data: lobbyistClients } = useQuery({
     queryKey: ['lobbyist-clients-all', normalizeLobbyistName(compensationRecord?.principal_lobbyist)],
     queryFn: async () => {
@@ -285,15 +286,31 @@ const LobbyingDetail = () => {
 
       const normalizedName = normalizeLobbyistName(compensationRecord.principal_lobbyist);
 
-      // Fetch all clients and filter client-side for consistent matching
-      const { data, error } = await supabase
-        .from('lobbyists_clients')
-        .select('*');
+      // Fetch all clients by paginating through results
+      let allClients: LobbyistClient[] = [];
+      let offset = 0;
+      const batchSize = 1000;
+      let hasMore = true;
 
-      if (error) throw error;
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('lobbyists_clients')
+          .select('*')
+          .range(offset, offset + batchSize - 1);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          allClients = [...allClients, ...data];
+          offset += batchSize;
+          hasMore = data.length === batchSize;
+        } else {
+          hasMore = false;
+        }
+      }
 
       // Filter using the same normalization function used in cards
-      return (data as LobbyistClient[]).filter(client =>
+      return (allClients as LobbyistClient[]).filter(client =>
         normalizeLobbyistName(client.principal_lobbyist) === normalizedName
       );
     },

@@ -400,18 +400,23 @@ function ClientsDialog({ open, onOpenChange, lobbyistName, clients, onViewDetail
           </div>
         </div>
 
-        {/* Results Header */}
-        <div className="px-4 py-3 border-b bg-muted/30">
+        {/* Table Header Row - distinct styling */}
+        <div className="px-4 py-2 border-b bg-muted/50 sticky top-0">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">{lobbyistName}</span>
-            <span className="text-xs text-muted-foreground">
-              {filteredClients.length} of {clients.length} clients
-            </span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Client Name</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Start Date</span>
           </div>
         </div>
 
+        {/* Results count bar */}
+        <div className="px-4 py-2 border-b bg-background">
+          <span className="text-xs text-muted-foreground">
+            Showing {filteredClients.length} of {clients.length} clients for <span className="font-medium text-foreground">{lobbyistName}</span>
+          </span>
+        </div>
+
         {/* Scrollable Client List */}
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[350px]">
           {filteredClients.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <Users className="h-8 w-8 mx-auto mb-3 opacity-50" />
@@ -422,15 +427,15 @@ function ClientsDialog({ open, onOpenChange, lobbyistName, clients, onViewDetail
               {filteredClients.map((client, idx) => (
                 <div
                   key={client.id || idx}
-                  className="px-4 py-3 hover:bg-muted/50 transition-colors"
+                  className="px-4 py-3 hover:bg-muted/30 transition-colors"
                 >
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
+                      <p className="text-sm truncate">
                         {client.contractual_client || 'Unknown Client'}
                       </p>
                     </div>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">
                       {client.start_date || 'N/A'}
                     </span>
                   </div>
