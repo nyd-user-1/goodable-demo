@@ -343,7 +343,7 @@ function SpendCard({ record, onClick, onChatClick }: SpendCardProps) {
   );
 }
 
-// Clients Dialog Component - Search-style interface for viewing all clients
+// Clients Dialog Component - Matches sidebar search style
 interface ClientsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -377,83 +377,79 @@ function ClientsDialog({ open, onOpenChange, lobbyistName, clients, onViewDetail
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg p-0 gap-0">
-        {/* Search Header */}
-        <div className="p-4 border-b">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              ref={searchInputRef}
-              placeholder="Search clients..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-10 h-11 bg-muted/50 border-0 focus-visible:ring-1"
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
+      <DialogContent className="sm:max-w-xl p-0 gap-0 overflow-hidden">
+        {/* Search Header - matches sidebar search */}
+        <div className="flex items-center gap-3 px-4 py-3 border-b">
+          <Search className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+          <input
+            ref={searchInputRef}
+            placeholder={`Search ${lobbyistName}...`}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1 bg-transparent border-0 outline-none text-base placeholder:text-muted-foreground"
+          />
+          <button
+            onClick={() => onOpenChange(false)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
-        {/* Table Header Row - distinct styling */}
-        <div className="px-4 py-2 border-b bg-muted/50 sticky top-0">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Client Name</span>
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Start Date</span>
-          </div>
-        </div>
-
-        {/* Results count bar */}
-        <div className="px-4 py-2 border-b bg-background">
-          <span className="text-xs text-muted-foreground">
-            Showing {filteredClients.length} of {clients.length} clients for <span className="font-medium text-foreground">{lobbyistName}</span>
+        {/* Section label */}
+        <div className="px-4 py-2 border-b">
+          <span className="text-sm text-muted-foreground">
+            {filteredClients.length} Client{filteredClients.length !== 1 ? 's' : ''}
           </span>
         </div>
 
         {/* Scrollable Client List */}
-        <ScrollArea className="h-[350px]">
+        <ScrollArea className="h-[400px]">
           {filteredClients.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
-              <Users className="h-8 w-8 mx-auto mb-3 opacity-50" />
               <p className="text-sm">No clients found</p>
             </div>
           ) : (
-            <div className="divide-y">
+            <div>
               {filteredClients.map((client, idx) => (
                 <div
                   key={client.id || idx}
-                  className="px-4 py-3 hover:bg-muted/30 transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors cursor-default"
                 >
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm truncate">
-                        {client.contractual_client || 'Unknown Client'}
-                      </p>
-                    </div>
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">
-                      {client.start_date || 'N/A'}
-                    </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm truncate">
+                      {client.contractual_client || 'Unknown Client'}
+                    </p>
                   </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    {client.start_date || ''}
+                  </span>
                 </div>
               ))}
             </div>
           )}
         </ScrollArea>
 
-        {/* Footer */}
-        <div className="p-3 border-t bg-muted/30 flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">
-            <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">esc</kbd>
-            {' '}Close
-          </span>
-          <Button variant="ghost" size="sm" onClick={onViewDetails} className="text-xs">
-            View Full Details →
-          </Button>
+        {/* Footer - matches sidebar search */}
+        <div className="flex items-center justify-between px-4 py-3 border-t bg-muted/30">
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 bg-background border rounded text-[10px] font-mono">esc</kbd>
+              Close
+            </span>
+            <span className="flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 bg-background border rounded text-[10px] font-mono">↑</kbd>
+              <kbd className="px-1.5 py-0.5 bg-background border rounded text-[10px] font-mono">↓</kbd>
+              Navigate
+            </span>
+          </div>
+          <button
+            onClick={onViewDetails}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+          >
+            <span>↵</span>
+            <span>Open</span>
+          </button>
         </div>
       </DialogContent>
     </Dialog>
@@ -492,7 +488,18 @@ function CompensationCard({ record, clients, onClick, onChatClick }: Compensatio
         onClick={onClick}
         className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
       >
-        <h3 className="font-semibold text-base mb-3">{lobbyist}</h3>
+        {/* Header row with lobbyist name and clients button */}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <h3 className="font-semibold text-base">{lobbyist}</h3>
+          {clients.length > 0 && (
+            <button
+              onClick={handleClientsClick}
+              className="flex-shrink-0 px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+            >
+              {clients.length} Clients
+            </button>
+          )}
+        </div>
         <p className="text-sm text-muted-foreground leading-relaxed">{promptText}</p>
 
         {/* Details and arrow - render on hover */}
@@ -521,23 +528,11 @@ function CompensationCard({ record, clients, onClick, onChatClick }: Compensatio
             )}
           </div>
 
-          {/* Buttons row */}
-          <div className="flex items-center justify-between">
-            {/* Clients button - opens dialog */}
-            {clients.length > 0 && (
-              <button
-                onClick={handleClientsClick}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-muted hover:bg-muted/80 rounded-lg transition-colors"
-              >
-                <Users className="h-3.5 w-3.5" />
-                {clients.length} Client{clients.length !== 1 ? 's' : ''}
-              </button>
-            )}
-
-            {/* Arrow button - initiates chat */}
+          {/* Arrow button - initiates chat */}
+          <div className="flex items-center justify-end">
             <button
               onClick={handleChatClick}
-              className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors ml-auto"
+              className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors"
             >
               <ArrowUp className="h-5 w-5" />
             </button>
