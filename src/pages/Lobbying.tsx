@@ -434,19 +434,22 @@ function ClientsDialog({ open, onOpenChange, lobbyistName, clients, onViewDetail
             </div>
           ) : (
             <div>
-              {filteredClients.map((client, idx) => (
-                <div
-                  key={client.id || idx}
-                  className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 hover:shadow-sm transition-all cursor-default"
-                >
-                  <p className="text-sm truncate flex-1 min-w-0 pr-4">
-                    {client.contractual_client || 'Unknown Client'}
-                  </p>
-                  <span className="text-xs text-muted-foreground flex-shrink-0">
-                    {client.start_date || '—'}
-                  </span>
-                </div>
-              ))}
+              {filteredClients.map((client, idx) => {
+                const startDate = client.start_date;
+                return (
+                  <div
+                    key={client.id || idx}
+                    className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 hover:shadow-sm transition-all cursor-default"
+                  >
+                    <span className="text-sm truncate flex-1 min-w-0 pr-4">
+                      {client.contractual_client || 'Unknown Client'}
+                    </span>
+                    <span className="text-xs text-muted-foreground flex-shrink-0 min-w-[80px] text-right">
+                      {startDate ? startDate : '—'}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           )}
         </ScrollArea>
