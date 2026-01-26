@@ -97,7 +97,7 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
             <TooltipTrigger asChild>
               <button
                 onClick={handleHeartClick}
-                className="inline-flex items-center justify-center h-9 rounded-md px-3 text-black hover:bg-muted transition-colors font-semibold text-lg"
+                className="inline-flex items-center justify-center h-10 rounded-md px-3 text-black hover:bg-muted transition-colors font-semibold text-xl"
               >
                 NYSgpt
               </button>
