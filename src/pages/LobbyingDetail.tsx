@@ -1,22 +1,30 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowLeft, Plus, ExternalLink, Command, HandCoins, DollarSign, Pencil, Trash2, Users } from "lucide-react";
+import { ArrowLeft, Plus, ExternalLink, Command, HandCoins, DollarSign, Pencil, Trash2, Users, ArrowUpDown, ChevronDown } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -25,9 +33,207 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  type VisibilityState,
+} from "@tanstack/react-table";
 import { supabase } from "@/integrations/supabase/client";
 import { LobbyingSpend, LobbyistCompensation, LobbyistClient } from "@/types/lobbying";
 import { formatLobbyingCurrency } from "@/hooks/useLobbyingSearch";
+
+// Column definitions for the clients table
+const clientColumns: ColumnDef<LobbyistClient>[] = [
+  {
+    accessorKey: "contractual_client",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="-ml-4"
+        >
+          Client Name
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="font-medium">{row.getValue("contractual_client") || "Unknown Client"}</div>
+    ),
+  },
+  {
+    accessorKey: "start_date",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="-ml-4"
+        >
+          Start Date
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="text-muted-foreground">{row.getValue("start_date") || "N/A"}</div>
+    ),
+  },
+];
+
+// Clients DataTable Component
+interface ClientsDataTableProps {
+  data: LobbyistClient[];
+}
+
+function ClientsDataTable({ data }: ClientsDataTableProps) {
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+
+  const table = useReactTable({
+    data,
+    columns: clientColumns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+    },
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      },
+    },
+  });
+
+  return (
+    <div className="w-full">
+      <div className="flex items-center py-4 px-6">
+        <Input
+          placeholder="Filter clients..."
+          value={(table.getColumn("contractual_client")?.getFilterValue() as string) ?? ""}
+          onChange={(event) =>
+            table.getColumn("contractual_client")?.setFilterValue(event.target.value)
+          }
+          className="max-w-sm"
+        />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="ml-auto">
+              Columns <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuGroup>
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id === "contractual_client" ? "Client Name" : "Start Date"}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      <div className="overflow-hidden border-t">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id} className="first:pl-6">
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className="first:pl-6">
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={clientColumns.length}
+                  className="h-24 text-center"
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      <div className="flex items-center justify-between space-x-2 py-4 px-6">
+        <div className="text-muted-foreground text-sm">
+          {table.getFilteredRowModel().rows.length} client(s) total
+        </div>
+        <div className="space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const LobbyingDetail = () => {
   const navigate = useNavigate();
@@ -73,14 +279,15 @@ const LobbyingDetail = () => {
 
   // Fetch clients for this lobbyist
   const { data: lobbyistClients } = useQuery({
-    queryKey: ['lobbyist-clients', compensationRecord?.principal_lobbyist],
+    queryKey: ['lobbyist-clients', compensationRecord?.principal_lobbyist?.trim()],
     queryFn: async () => {
       if (!compensationRecord?.principal_lobbyist) return [];
 
+      const trimmedName = compensationRecord.principal_lobbyist.trim();
       const { data, error } = await supabase
         .from('lobbyists_clients')
         .select('*')
-        .ilike('principal_lobbyist', compensationRecord.principal_lobbyist);
+        .ilike('principal_lobbyist', trimmedName);
 
       if (error) throw error;
       return data as LobbyistClient[];
@@ -491,26 +698,7 @@ const LobbyingDetail = () => {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="pl-6">Client Name</TableHead>
-                      <TableHead>Start Date</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {lobbyistClients.map((client) => (
-                      <TableRow key={client.id}>
-                        <TableCell className="pl-6 font-medium">
-                          {client.contractual_client || 'Unknown Client'}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {client.start_date || 'N/A'}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <ClientsDataTable data={lobbyistClients} />
               </CardContent>
             </Card>
           )}

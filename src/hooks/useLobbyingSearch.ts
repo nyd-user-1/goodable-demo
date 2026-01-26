@@ -97,7 +97,7 @@ export function useLobbyingSearch() {
   const clientsByLobbyist = useMemo(() => {
     const map = new Map<string, LobbyistClient[]>();
     allClients.forEach(client => {
-      const lobbyist = client.principal_lobbyist?.toUpperCase() || '';
+      const lobbyist = client.principal_lobbyist?.trim().toUpperCase() || '';
       if (!map.has(lobbyist)) {
         map.set(lobbyist, []);
       }

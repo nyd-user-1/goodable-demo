@@ -243,7 +243,7 @@ const Lobbying = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {compensationRecords.map((record) => {
-                  const lobbyistName = record.principal_lobbyist?.toUpperCase() || '';
+                  const lobbyistName = record.principal_lobbyist?.trim().toUpperCase() || '';
                   const clients = clientsByLobbyist.get(lobbyistName) || [];
                   return (
                     <CompensationCard
