@@ -11,7 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowLeft, Plus, ExternalLink, Command, HandCoins, DollarSign, Pencil, Trash2, Users, ArrowUpDown, ChevronDown } from "lucide-react";
+import { ArrowLeft, Plus, ExternalLink, Command, DollarSign, ArrowUpDown, ChevronDown } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Tooltip,
@@ -705,26 +705,6 @@ const LobbyingDetail = () => {
             </CardContent>
           </Card>
 
-          {/* Clients Section */}
-          {lobbyistClients && lobbyistClients.length > 0 && (
-            <Card className="bg-card rounded-xl shadow-sm border">
-              <CardHeader className="px-6 py-4 border-b">
-                <div className="flex items-center gap-3">
-                  <Users className="h-5 w-5 text-muted-foreground" />
-                  <CardTitle className="text-lg font-semibold">
-                    Clients
-                  </CardTitle>
-                  <Badge variant="secondary" className="text-xs">
-                    {lobbyistClients.length} {lobbyistClients.length === 1 ? 'client' : 'clients'}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <ClientsDataTable data={lobbyistClients} />
-              </CardContent>
-            </Card>
-          )}
-
           {/* Related Chats Section */}
           <Card className="bg-card rounded-xl shadow-sm border">
             <CardHeader className="px-6 py-4 border-b">
@@ -788,6 +768,25 @@ const LobbyingDetail = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Clients Section */}
+          {lobbyistClients && lobbyistClients.length > 0 && (
+            <Card className="bg-card rounded-xl shadow-sm border">
+              <CardHeader className="px-6 py-4 border-b">
+                <div className="flex items-center gap-3">
+                  <CardTitle className="text-lg font-semibold">
+                    Clients
+                  </CardTitle>
+                  <Badge variant="secondary" className="text-xs">
+                    {lobbyistClients.length} {lobbyistClients.length === 1 ? 'client' : 'clients'}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <ClientsDataTable data={lobbyistClients} />
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     );

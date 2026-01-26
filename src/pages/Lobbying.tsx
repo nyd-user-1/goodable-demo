@@ -71,11 +71,18 @@ const Lobbying = () => {
     navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
   };
 
-  const handleCompensationChatClick = (record: LobbyistCompensation, clientCount: number) => {
+  const handleCompensationChatClick = (record: LobbyistCompensation, clients: LobbyistClient[]) => {
     const lobbyist = record.principal_lobbyist || 'this lobbyist';
     const compensation = record.compensation || 'N/A';
     const expenses = record.reimbursed_expenses || 'N/A';
     const grandTotal = record.grand_total_compensation_expenses || 'N/A';
+    const clientCount = clients.length;
+
+    // Get client names for the context (limit to first 50 for URL length)
+    const clientNames = clients.slice(0, 50).map(c => c.contractual_client).filter(Boolean);
+    const clientListText = clientNames.length > 0
+      ? `\n\nCLIENT LIST (${clientNames.length}${clients.length > 50 ? ` of ${clients.length}` : ''}):\n${clientNames.join('\n')}`
+      : '';
 
     // Short display prompt (what user sees)
     const displayPrompt = `Tell me about ${lobbyist}.`;
@@ -87,9 +94,16 @@ LOBBYIST: ${lobbyist}
 COMPENSATION: ${compensation}
 REIMBURSED EXPENSES: ${expenses}
 GRAND TOTAL (Compensation + Expenses): ${grandTotal}
-NUMBER OF CLIENTS: ${clientCount}
+NUMBER OF CLIENTS: ${clientCount}${clientListText}
 
-Based on this official lobbying disclosure data, provide a helpful analysis. Explain what these numbers mean, how this lobbyist compares in scale (${clientCount} clients is ${clientCount > 100 ? 'a very large' : clientCount > 50 ? 'a large' : clientCount > 20 ? 'a moderate' : 'a smaller'} client base), and what the compensation figures indicate about their lobbying practice. If you have any general knowledge about this firm, include that context as well.`;
+Based on this official lobbying disclosure data, provide a helpful analysis:
+1. Explain what the compensation figures indicate about their lobbying practice scale and success
+2. Describe what having ${clientCount} clients means (${clientCount > 100 ? 'a very large' : clientCount > 50 ? 'a large' : clientCount > 20 ? 'a moderate' : 'a smaller'} client base)
+3. If you have general knowledge about this firm, include relevant context
+
+IMPORTANT: Do NOT include any section about "Impact on Working Families" or similar social impact analysis. Focus on the business and political aspects of lobbying.
+
+At the end of your response, include a collapsible section titled "## Clients" that lists the client names provided above. Format it so it can be rendered as an accordion/expandable section.`;
 
     navigate(`/new-chat?prompt=${encodeURIComponent(displayPrompt)}&context=${encodeURIComponent(context)}`);
   };
@@ -267,7 +281,7 @@ Based on this official lobbying disclosure data, provide a helpful analysis. Exp
                       record={record}
                       clients={clients}
                       onClick={() => handleCompensationClick(record)}
-                      onChatClick={() => handleCompensationChatClick(record, clients.length)}
+                      onChatClick={() => handleCompensationChatClick(record, clients)}
                     />
                   );
                 })}
@@ -380,20 +394,14 @@ function ClientsDialog({ open, onOpenChange, lobbyistName, clients, onViewDetail
     );
   }, [clients, searchTerm]);
 
-  // Focus search input when dialog opens + debug logging
+  // Focus search input when dialog opens
   useEffect(() => {
     if (open) {
-      console.log('[ClientsDialog] Dialog opened for:', lobbyistName);
-      console.log('[ClientsDialog] Clients count:', clients.length);
-      if (clients.length > 0) {
-        console.log('[ClientsDialog] First client object:', JSON.stringify(clients[0], null, 2));
-        console.log('[ClientsDialog] First client start_date:', clients[0].start_date);
-      }
       setTimeout(() => searchInputRef.current?.focus(), 100);
     } else {
       setSearchTerm(''); // Reset search when closing
     }
-  }, [open, clients, lobbyistName]);
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
