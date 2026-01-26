@@ -27,8 +27,12 @@ export function useLobbyingSearch() {
 
       const { data, error, count } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('lobbying_spend query error:', error);
+        throw error;
+      }
 
+      console.log('lobbying_spend data:', data?.length, 'records', data);
       return { records: data as LobbyingSpend[], totalCount: count || 0 };
     },
     staleTime: 5 * 60 * 1000,
@@ -52,8 +56,12 @@ export function useLobbyingSearch() {
 
       const { data, error, count } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('lobbyist_compensation query error:', error);
+        throw error;
+      }
 
+      console.log('lobbyist_compensation data:', data?.length, 'records', data);
       return { records: data as LobbyistCompensation[], totalCount: count || 0 };
     },
     staleTime: 5 * 60 * 1000,
