@@ -526,20 +526,34 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                 </NavLink>
               ))}
               {/* Chats */}
-              {recentChats.map((chat) => (
-                <NavLink
-                  key={`chat-${chat.id}`}
-                  to={`/c/${chat.id}`}
-                  onClick={onClose}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                    location.pathname === `/c/${chat.id}` ? "bg-muted" : "hover:bg-muted"
-                  )}
-                >
-                  <MessagesSquare className="h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">{chat.title}</span>
-                </NavLink>
-              ))}
+              {recentChats.map((chat) => {
+                // Check if this is a lobbying-related chat by title pattern
+                const isLobbyingChat = chat.title.startsWith("Tell me about") &&
+                  (chat.title.includes("LLC") || chat.title.includes("LLP") ||
+                   chat.title.includes("INC") || chat.title.includes("ADVISORS") ||
+                   chat.title.includes("ASSOCIATES") || chat.title.includes("CONSULTING") ||
+                   chat.title.includes("GROUP") || chat.title.includes("STRATEGIES") ||
+                   chat.title.includes("AFFAIRS") || chat.title.includes("& "));
+
+                return (
+                  <NavLink
+                    key={`chat-${chat.id}`}
+                    to={`/c/${chat.id}`}
+                    onClick={onClose}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                      location.pathname === `/c/${chat.id}` ? "bg-muted" : "hover:bg-muted"
+                    )}
+                  >
+                    {isLobbyingChat ? (
+                      <HandCoins className="h-4 w-4 flex-shrink-0" />
+                    ) : (
+                      <MessagesSquare className="h-4 w-4 flex-shrink-0" />
+                    )}
+                    <span className="truncate">{chat.title}</span>
+                  </NavLink>
+                );
+              })}
               {/* Excerpts */}
               {recentExcerpts.map((excerpt) => (
                 <NavLink
