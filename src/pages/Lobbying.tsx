@@ -183,17 +183,6 @@ const Lobbying = () => {
                   <button
                     className={cn(
                       "px-3 py-2 rounded-lg text-sm transition-colors",
-                      activeTab === 'spend'
-                        ? "bg-muted text-foreground"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    )}
-                    onClick={() => setActiveTab('spend')}
-                  >
-                    Spending
-                  </button>
-                  <button
-                    className={cn(
-                      "px-3 py-2 rounded-lg text-sm transition-colors",
                       activeTab === 'compensation'
                         ? "bg-muted text-foreground"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -201,6 +190,17 @@ const Lobbying = () => {
                     onClick={() => setActiveTab('compensation')}
                   >
                     Earnings
+                  </button>
+                  <button
+                    className={cn(
+                      "px-3 py-2 rounded-lg text-sm transition-colors",
+                      activeTab === 'spend'
+                        ? "bg-muted text-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    )}
+                    onClick={() => setActiveTab('spend')}
+                  >
+                    Spending
                   </button>
                 </div>
               </div>

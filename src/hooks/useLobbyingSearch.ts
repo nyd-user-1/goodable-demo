@@ -7,7 +7,7 @@ export type LobbyingTab = 'spend' | 'compensation';
 
 export function useLobbyingSearch() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<LobbyingTab>('spend');
+  const [activeTab, setActiveTab] = useState<LobbyingTab>('compensation');
 
   // Fetch Lobbying Spend data
   const { data: spendData, isLoading: spendLoading, error: spendError } = useQuery({
