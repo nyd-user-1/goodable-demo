@@ -76,6 +76,8 @@ import NoteView from "./pages/NoteView";
 import FreeTrial from "./pages/FreeTrial";
 import Contracts from "./pages/Contracts";
 import ContractDetail from "./pages/ContractDetail";
+import Lobbying from "./pages/Lobbying";
+import LobbyingDetail from "./pages/LobbyingDetail";
 import SchoolFunding from "./pages/SchoolFunding";
 import SchoolFundingDetail from "./pages/SchoolFundingDetail";
 import Committees2 from "./pages/Committees2";
@@ -109,6 +111,8 @@ const AppLayout = () => {
               <Route path="/bills/:billNumber" element={<Bills />} />
               <Route path="/contracts" element={<Contracts />} />
               <Route path="/contracts/:contractNumber" element={<ContractDetail />} />
+              <Route path="/lobbying" element={<Lobbying />} />
+              <Route path="/lobbying/:id" element={<LobbyingDetail />} />
               <Route path="/school-funding" element={<SchoolFunding />} />
               <Route path="/school-funding/:fundingId" element={<SchoolFundingDetail />} />
               <Route path="/committees" element={<Committees2 />} />
@@ -196,6 +200,7 @@ const App = () => {
                   <Route path="/members" element={<ProtectedRoute><Members2 /></ProtectedRoute>} />
                   <Route path="/school-funding" element={<ProtectedRoute><SchoolFunding /></ProtectedRoute>} />
                   <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
+                  <Route path="/lobbying" element={<ProtectedRoute><Lobbying /></ProtectedRoute>} />
                   <Route path="/chats" element={<ProtectedRoute><Chats2 /></ProtectedRoute>} />
                   <Route path="*" element={<AppLayout />} />
                 </Routes>

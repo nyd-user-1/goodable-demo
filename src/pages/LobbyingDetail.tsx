@@ -1,0 +1,525 @@
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { ArrowLeft, Plus, ExternalLink, Command, HandCoins, DollarSign, Pencil, Trash2 } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { supabase } from "@/integrations/supabase/client";
+import { LobbyingSpend, LobbyistCompensation } from "@/types/lobbying";
+import { formatLobbyingCurrency } from "@/hooks/useLobbyingSearch";
+
+const LobbyingDetail = () => {
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const [relatedChats, setRelatedChats] = useState<Array<{ id: string; title: string; created_at: string }>>([]);
+
+  // Parse the ID to determine type and actual ID
+  const isSpend = id?.startsWith('spend-');
+  const isCompensation = id?.startsWith('comp-');
+  const recordId = id?.replace('spend-', '').replace('comp-', '');
+
+  // Fetch spend record
+  const { data: spendRecord, isLoading: spendLoading, error: spendError } = useQuery({
+    queryKey: ['lobbying-spend', recordId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('Lobbying Spend')
+        .select('*')
+        .eq('id', Number(recordId))
+        .single();
+
+      if (error) throw error;
+      return data as LobbyingSpend;
+    },
+    enabled: isSpend && !!recordId,
+  });
+
+  // Fetch compensation record
+  const { data: compensationRecord, isLoading: compensationLoading, error: compensationError } = useQuery({
+    queryKey: ['lobbyist-compensation', recordId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('Lobbyist Compensation')
+        .select('*')
+        .eq('id', Number(recordId))
+        .single();
+
+      if (error) throw error;
+      return data as LobbyistCompensation;
+    },
+    enabled: isCompensation && !!recordId,
+  });
+
+  const isLoading = isSpend ? spendLoading : compensationLoading;
+  const error = isSpend ? spendError : compensationError;
+  const record = isSpend ? spendRecord : compensationRecord;
+
+  // Fetch related chats
+  useEffect(() => {
+    const fetchRelatedChats = async () => {
+      if (!record) return;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const searchTerm = isSpend
+          ? (spendRecord?.["Contractual Client"] || '')
+          : (compensationRecord?.["Principal Lobbyist"] || '');
+
+        if (!searchTerm) return;
+
+        const { data, error } = await supabase
+          .from("chat_sessions")
+          .select("id, title, created_at")
+          .eq("user_id", user.id)
+          .ilike("title", `%${searchTerm}%`)
+          .order("created_at", { ascending: false })
+          .limit(10);
+
+        if (!error && data) {
+          setRelatedChats(data);
+        }
+      } catch (error) {
+        console.error("Error fetching related chats:", error);
+      }
+    };
+
+    fetchRelatedChats();
+  }, [record, isSpend, spendRecord, compensationRecord]);
+
+  const formatNoteDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  };
+
+  const handleNewChat = () => {
+    if (isSpend && spendRecord) {
+      const client = spendRecord["Contractual Client"] || 'this client';
+      const compensation = spendRecord.Compensation || 'N/A';
+      const totalExpenses = spendRecord["Total Expenses"] || 'N/A';
+
+      const initialPrompt = `Tell me about lobbying spending by ${client}. They paid ${compensation} in compensation with ${totalExpenses} in total expenses.`;
+      navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
+    } else if (isCompensation && compensationRecord) {
+      const lobbyist = compensationRecord["Principal Lobbyist"] || 'this lobbyist';
+      const compensation = compensationRecord.Compensation || 'N/A';
+      const expenses = compensationRecord["Reimbursed Expenses"] || 'N/A';
+
+      const initialPrompt = `Tell me about ${lobbyist}. They received ${compensation} in compensation plus ${expenses} in reimbursed expenses.`;
+      navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
+    }
+  };
+
+  const handleBack = () => {
+    navigate('/lobbying');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 sm:px-6 py-6 bg-background min-h-screen">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div className="h-10 w-40 bg-muted rounded animate-pulse" />
+          <div className="h-48 bg-muted rounded-xl animate-pulse" />
+          <div className="h-32 bg-muted rounded-xl animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !record) {
+    return (
+      <div className="container mx-auto px-4 sm:px-6 py-6 bg-background min-h-screen">
+        <div className="max-w-7xl mx-auto">
+          <Button variant="outline" onClick={handleBack} className="mb-6">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Lobbying
+          </Button>
+          <Card>
+            <CardContent className="py-12 text-center">
+              <p className="text-muted-foreground">Record not found.</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Render Spend Detail
+  if (isSpend && spendRecord) {
+    return (
+      <div className="container mx-auto px-4 sm:px-6 py-6 bg-background min-h-screen">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Navigation Section */}
+          <div className="pb-6 flex items-center justify-between">
+            <Button
+              variant="outline"
+              onClick={handleBack}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Back to Lobbying</span>
+              <span className="sm:hidden">Back</span>
+            </Button>
+
+            <div className="flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <ThemeToggle />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  Toggle theme
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    onClick={() => {
+                      const event = new KeyboardEvent('keydown', {
+                        key: 'k',
+                        metaKey: true,
+                        ctrlKey: true,
+                        bubbles: true
+                      });
+                      document.dispatchEvent(event);
+                    }}
+                  >
+                    <Command className="h-4 w-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  Command menu
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
+
+          {/* Header Card */}
+          <Card className="overflow-hidden">
+            <CardContent className="p-6">
+              <div className="space-y-6 relative">
+                <div className="pb-4 border-b">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge variant="secondary">Client Spending</Badge>
+                  </div>
+                  <h1 className="text-2xl font-semibold text-foreground">
+                    {spendRecord["Contractual Client"] || 'Unknown Client'}
+                  </h1>
+                </div>
+
+                {/* Summary Stats Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="bg-muted/30 rounded-lg p-4">
+                    <div className="text-xs text-muted-foreground mb-1">Compensation</div>
+                    <div className="font-semibold text-green-600 dark:text-green-400">
+                      {formatLobbyingCurrency(spendRecord.Compensation)}
+                    </div>
+                  </div>
+                  <div className="bg-muted/30 rounded-lg p-4">
+                    <div className="text-xs text-muted-foreground mb-1">Total Expenses</div>
+                    <div className="font-semibold">
+                      {formatLobbyingCurrency(spendRecord["Total Expenses"])}
+                    </div>
+                  </div>
+                  <div className="bg-muted/30 rounded-lg p-4">
+                    <div className="text-xs text-muted-foreground mb-1">Total (Comp + Expenses)</div>
+                    <div className="font-semibold text-green-600 dark:text-green-400">
+                      {formatLobbyingCurrency(spendRecord["Compensation + Expenses"])}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    {spendRecord["Expenses less than $75"] && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-foreground font-medium">
+                          <DollarSign className="h-4 w-4" />
+                          <span>Expenses less than $75</span>
+                        </div>
+                        <div className="text-muted-foreground ml-6">
+                          {spendRecord["Expenses less than $75"]}
+                        </div>
+                      </div>
+                    )}
+                    {spendRecord["Salaries of non-lobbying employees"] && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-foreground font-medium">
+                          <DollarSign className="h-4 w-4" />
+                          <span>Non-Lobbying Salaries</span>
+                        </div>
+                        <div className="text-muted-foreground ml-6">
+                          {spendRecord["Salaries of non-lobbying employees"]}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-6">
+                    {spendRecord["Itemized Expenses"] && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-foreground font-medium">
+                          <DollarSign className="h-4 w-4" />
+                          <span>Itemized Expenses</span>
+                        </div>
+                        <div className="text-muted-foreground ml-6">
+                          {spendRecord["Itemized Expenses"]}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Related Chats Section */}
+          <Card className="bg-card rounded-xl shadow-sm border">
+            <CardHeader className="px-6 py-4 border-b">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <CardTitle className="text-lg font-semibold">
+                    Related Chats
+                  </CardTitle>
+                  {relatedChats.length > 0 && (
+                    <Badge variant="secondary" className="text-xs">
+                      {relatedChats.length} {relatedChats.length === 1 ? 'chat' : 'chats'}
+                    </Badge>
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNewChat}
+                  className="gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  New Chat
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              {relatedChats.length === 0 ? (
+                <div className="bg-muted/30 rounded-lg p-4 text-sm">
+                  <span className="text-muted-foreground italic">No chats yet. Start a conversation about this client.</span>
+                </div>
+              ) : (
+                <Accordion type="single" collapsible className="w-full">
+                  {relatedChats.map((chat) => (
+                    <AccordionItem key={chat.id} value={chat.id} className="border-b last:border-b-0">
+                      <AccordionTrigger className="hover:no-underline py-3">
+                        <div className="flex items-center gap-3 text-left">
+                          <span className="text-xs text-muted-foreground">
+                            {formatNoteDate(chat.created_at)}
+                          </span>
+                          <span className="text-sm truncate max-w-[300px]">
+                            {chat.title}
+                          </span>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-4">
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/c/${chat.id}`)}
+                            className="gap-1"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            Open Chat
+                          </Button>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Render Compensation Detail
+  if (isCompensation && compensationRecord) {
+    return (
+      <div className="container mx-auto px-4 sm:px-6 py-6 bg-background min-h-screen">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Navigation Section */}
+          <div className="pb-6 flex items-center justify-between">
+            <Button
+              variant="outline"
+              onClick={handleBack}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Back to Lobbying</span>
+              <span className="sm:hidden">Back</span>
+            </Button>
+
+            <div className="flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <ThemeToggle />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  Toggle theme
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    onClick={() => {
+                      const event = new KeyboardEvent('keydown', {
+                        key: 'k',
+                        metaKey: true,
+                        ctrlKey: true,
+                        bubbles: true
+                      });
+                      document.dispatchEvent(event);
+                    }}
+                  >
+                    <Command className="h-4 w-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  Command menu
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
+
+          {/* Header Card */}
+          <Card className="overflow-hidden">
+            <CardContent className="p-6">
+              <div className="space-y-6 relative">
+                <div className="pb-4 border-b">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge variant="secondary">Lobbyist Earnings</Badge>
+                  </div>
+                  <h1 className="text-2xl font-semibold text-foreground">
+                    {compensationRecord["Principal Lobbyist"] || 'Unknown Lobbyist'}
+                  </h1>
+                </div>
+
+                {/* Summary Stats Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="bg-muted/30 rounded-lg p-4">
+                    <div className="text-xs text-muted-foreground mb-1">Compensation</div>
+                    <div className="font-semibold text-green-600 dark:text-green-400">
+                      {formatLobbyingCurrency(compensationRecord.Compensation)}
+                    </div>
+                  </div>
+                  <div className="bg-muted/30 rounded-lg p-4">
+                    <div className="text-xs text-muted-foreground mb-1">Reimbursed Expenses</div>
+                    <div className="font-semibold">
+                      {formatLobbyingCurrency(compensationRecord["Reimbursed Expenses"])}
+                    </div>
+                  </div>
+                  <div className="bg-muted/30 rounded-lg p-4">
+                    <div className="text-xs text-muted-foreground mb-1">Grand Total</div>
+                    <div className="font-semibold text-green-600 dark:text-green-400">
+                      {formatLobbyingCurrency(compensationRecord["Grand Total of Compensation and Reimbursed Expenses"])}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Related Chats Section */}
+          <Card className="bg-card rounded-xl shadow-sm border">
+            <CardHeader className="px-6 py-4 border-b">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <CardTitle className="text-lg font-semibold">
+                    Related Chats
+                  </CardTitle>
+                  {relatedChats.length > 0 && (
+                    <Badge variant="secondary" className="text-xs">
+                      {relatedChats.length} {relatedChats.length === 1 ? 'chat' : 'chats'}
+                    </Badge>
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNewChat}
+                  className="gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  New Chat
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              {relatedChats.length === 0 ? (
+                <div className="bg-muted/30 rounded-lg p-4 text-sm">
+                  <span className="text-muted-foreground italic">No chats yet. Start a conversation about this lobbyist.</span>
+                </div>
+              ) : (
+                <Accordion type="single" collapsible className="w-full">
+                  {relatedChats.map((chat) => (
+                    <AccordionItem key={chat.id} value={chat.id} className="border-b last:border-b-0">
+                      <AccordionTrigger className="hover:no-underline py-3">
+                        <div className="flex items-center gap-3 text-left">
+                          <span className="text-xs text-muted-foreground">
+                            {formatNoteDate(chat.created_at)}
+                          </span>
+                          <span className="text-sm truncate max-w-[300px]">
+                            {chat.title}
+                          </span>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-4">
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/c/${chat.id}`)}
+                            className="gap-1"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            Open Chat
+                          </Button>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+};
+
+export default LobbyingDetail;

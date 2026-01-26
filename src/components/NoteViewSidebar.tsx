@@ -41,6 +41,7 @@ import {
   MessageSquarePlus,
   FilePlus,
   FolderPlus,
+  HandCoins,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -473,6 +474,17 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             >
               <Wallet className="h-4 w-4" />
               <span>Contracts</span>
+            </NavLink>
+            <NavLink
+              to="/lobbying"
+              onClick={onClose}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                isActive("/lobbying") ? "bg-muted" : "hover:bg-muted"
+              )}
+            >
+              <HandCoins className="h-4 w-4" />
+              <span>Lobbying</span>
             </NavLink>
             <NavLink
               to="/school-funding"
