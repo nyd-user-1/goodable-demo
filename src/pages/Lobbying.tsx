@@ -417,14 +417,12 @@ function ClientsDialog({ open, onOpenChange, lobbyistName, clients, onViewDetail
               {filteredClients.map((client, idx) => (
                 <div
                   key={client.id || idx}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 hover:shadow-sm transition-all cursor-default"
+                  className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 hover:shadow-sm transition-all cursor-default"
                 >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm truncate">
-                      {client.contractual_client || 'Unknown Client'}
-                    </p>
-                  </div>
-                  <span className="text-xs text-muted-foreground w-24 text-right whitespace-nowrap">
+                  <p className="text-sm truncate flex-1 min-w-0 pr-4">
+                    {client.contractual_client || 'Unknown Client'}
+                  </p>
+                  <span className="text-xs text-muted-foreground flex-shrink-0">
                     {client.start_date || '—'}
                   </span>
                 </div>
@@ -497,7 +495,7 @@ function CompensationCard({ record, clients, onClick, onChatClick }: Compensatio
           {clients.length > 0 && (
             <button
               onClick={handleClientsClick}
-              className="flex-shrink-0 px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+              className="flex-shrink-0 px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted hover:shadow-sm rounded-md transition-all"
             >
               {clients.length} Clients
             </button>
