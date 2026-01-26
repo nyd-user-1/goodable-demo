@@ -389,11 +389,12 @@ const NewChat = () => {
   // Auto-submit prompt from URL parameter
   useEffect(() => {
     const promptParam = searchParams.get('prompt');
+    const contextParam = searchParams.get('context'); // Hidden context for AI
     const sessionId = routeSessionId || searchParams.get('session');
 
     // Only auto-submit once, and only if we have a prompt and haven't started a chat yet
     if (promptParam && !hasAutoSubmittedRef.current && !chatStarted && !isTyping) {
-      console.log('[NewChat] Auto-submitting prompt:', promptParam);
+      console.log('[NewChat] Auto-submitting prompt:', promptParam, 'with context:', contextParam ? 'yes' : 'no');
       hasAutoSubmittedRef.current = true;
 
       // Collapse the sidebar when auto-submitting from AI Chat button
@@ -406,7 +407,7 @@ const NewChat = () => {
 
       // Small delay to ensure everything is ready
       setTimeout(() => {
-        handleSubmit(null, promptParam);
+        handleSubmit(null, promptParam, contextParam || undefined);
         // Clear the prompt from URL to prevent re-submission on refresh
         navigate(location.pathname, { replace: true });
       }, 200);

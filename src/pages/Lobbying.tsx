@@ -71,13 +71,27 @@ const Lobbying = () => {
     navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
   };
 
-  const handleCompensationChatClick = (record: LobbyistCompensation) => {
+  const handleCompensationChatClick = (record: LobbyistCompensation, clientCount: number) => {
     const lobbyist = record.principal_lobbyist || 'this lobbyist';
     const compensation = record.compensation || 'N/A';
     const expenses = record.reimbursed_expenses || 'N/A';
+    const grandTotal = record.grand_total_compensation_expenses || 'N/A';
 
-    const initialPrompt = `Tell me about ${lobbyist}. They received ${compensation} in compensation plus ${expenses} in reimbursed expenses.`;
-    navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
+    // Short display prompt (what user sees)
+    const displayPrompt = `Tell me about ${lobbyist}.`;
+
+    // Hidden context for AI (includes all data for better responses)
+    const context = `You are providing information about a New York State registered lobbyist. Here is the data from official JCOPE filings:
+
+LOBBYIST: ${lobbyist}
+COMPENSATION: ${compensation}
+REIMBURSED EXPENSES: ${expenses}
+GRAND TOTAL (Compensation + Expenses): ${grandTotal}
+NUMBER OF CLIENTS: ${clientCount}
+
+Based on this official lobbying disclosure data, provide a helpful analysis. Explain what these numbers mean, how this lobbyist compares in scale (${clientCount} clients is ${clientCount > 100 ? 'a very large' : clientCount > 50 ? 'a large' : clientCount > 20 ? 'a moderate' : 'a smaller'} client base), and what the compensation figures indicate about their lobbying practice. If you have any general knowledge about this firm, include that context as well.`;
+
+    navigate(`/new-chat?prompt=${encodeURIComponent(displayPrompt)}&context=${encodeURIComponent(context)}`);
   };
 
   const clearFilters = () => {
@@ -253,7 +267,7 @@ const Lobbying = () => {
                       record={record}
                       clients={clients}
                       onClick={() => handleCompensationClick(record)}
-                      onChatClick={() => handleCompensationChatClick(record)}
+                      onChatClick={() => handleCompensationChatClick(record, clients.length)}
                     />
                   );
                 })}
@@ -471,7 +485,7 @@ function CompensationCard({ record, clients, onClick, onChatClick }: Compensatio
   const compensation = formatLobbyingCurrency(record.compensation);
   const expenses = formatLobbyingCurrency(record.reimbursed_expenses);
 
-  const promptText = `Tell me about ${lobbyist} with ${compensation} in compensation.`;
+  const promptText = `Tell me about ${lobbyist} with ${compensation} in compensation${clients.length > 0 ? ` and ${clients.length} clients` : ''}.`;
 
   const handleChatClick = (e: React.MouseEvent) => {
     e.stopPropagation();
