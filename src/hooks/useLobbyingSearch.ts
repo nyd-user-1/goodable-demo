@@ -97,6 +97,11 @@ export function useLobbyingSearch() {
         }
 
         if (data && data.length > 0) {
+          // Debug: log first record to verify start_date is present
+          if (offset === 0 && data.length > 0) {
+            console.log('[useLobbyingSearch] First client record:', data[0]);
+            console.log('[useLobbyingSearch] start_date value:', data[0].start_date);
+          }
           allClients = [...allClients, ...data];
           offset += batchSize;
           hasMore = data.length === batchSize; // If we got a full batch, there might be more
@@ -105,6 +110,7 @@ export function useLobbyingSearch() {
         }
       }
 
+      console.log('[useLobbyingSearch] Total clients fetched:', allClients.length);
       return allClients as LobbyistClient[];
     },
     staleTime: 10 * 60 * 1000,

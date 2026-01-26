@@ -428,6 +428,8 @@ function ClientsDialog({ open, onOpenChange, lobbyistName, clients, onViewDetail
             </div>
           ) : (
             <div>
+              {/* Debug: log first client to see data structure */}
+              {filteredClients.length > 0 && console.log('[ClientsDialog] First client:', filteredClients[0])}
               {filteredClients.map((client, idx) => (
                 <div
                   key={client.id || idx}
