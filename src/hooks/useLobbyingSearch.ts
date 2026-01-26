@@ -93,11 +93,11 @@ export function useLobbyingSearch() {
   const compensationRecords = compensationData?.records || [];
   const allClients = clientsData || [];
 
-  // Group clients by lobbyist name for easy lookup
+  // Group clients by normalized lobbyist name for easy lookup
   const clientsByLobbyist = useMemo(() => {
     const map = new Map<string, LobbyistClient[]>();
     allClients.forEach(client => {
-      const lobbyist = client.principal_lobbyist?.trim().toUpperCase() || '';
+      const lobbyist = normalizeLobbyistName(client.principal_lobbyist);
       if (!map.has(lobbyist)) {
         map.set(lobbyist, []);
       }
@@ -141,4 +141,15 @@ export function parseCurrencyToNumber(amount: string | null): number {
   const cleaned = amount.replace(/[$,]/g, '');
   const parsed = parseFloat(cleaned);
   return isNaN(parsed) ? 0 : parsed;
+}
+
+// Helper to normalize lobbyist names for matching
+// Removes punctuation, collapses whitespace, and converts to uppercase
+export function normalizeLobbyistName(name: string | null): string {
+  if (!name) return '';
+  return name
+    .toUpperCase()
+    .replace(/[.,\-&'"()]/g, '') // Remove common punctuation
+    .replace(/\s+/g, ' ')         // Collapse multiple spaces to single space
+    .trim();
 }

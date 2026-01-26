@@ -47,7 +47,7 @@ import {
 } from "@tanstack/react-table";
 import { supabase } from "@/integrations/supabase/client";
 import { LobbyingSpend, LobbyistCompensation, LobbyistClient } from "@/types/lobbying";
-import { formatLobbyingCurrency } from "@/hooks/useLobbyingSearch";
+import { formatLobbyingCurrency, normalizeLobbyistName } from "@/hooks/useLobbyingSearch";
 
 // Column definitions for the clients table
 const clientColumns: ColumnDef<LobbyistClient>[] = [
@@ -277,20 +277,25 @@ const LobbyingDetail = () => {
     enabled: isCompensation && !!recordId,
   });
 
-  // Fetch clients for this lobbyist
+  // Fetch all clients and filter by normalized lobbyist name for consistent matching
   const { data: lobbyistClients } = useQuery({
-    queryKey: ['lobbyist-clients', compensationRecord?.principal_lobbyist?.trim()],
+    queryKey: ['lobbyist-clients-all', normalizeLobbyistName(compensationRecord?.principal_lobbyist)],
     queryFn: async () => {
       if (!compensationRecord?.principal_lobbyist) return [];
 
-      const trimmedName = compensationRecord.principal_lobbyist.trim();
+      const normalizedName = normalizeLobbyistName(compensationRecord.principal_lobbyist);
+
+      // Fetch all clients and filter client-side for consistent matching
       const { data, error } = await supabase
         .from('lobbyists_clients')
-        .select('*')
-        .ilike('principal_lobbyist', trimmedName);
+        .select('*');
 
       if (error) throw error;
-      return data as LobbyistClient[];
+
+      // Filter using the same normalization function used in cards
+      return (data as LobbyistClient[]).filter(client =>
+        normalizeLobbyistName(client.principal_lobbyist) === normalizedName
+      );
     },
     enabled: isCompensation && !!compensationRecord?.principal_lobbyist,
   });

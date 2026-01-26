@@ -10,7 +10,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from '@/components/ui/hover-card';
-import { useLobbyingSearch, LobbyingTab, formatLobbyingCurrency } from '@/hooks/useLobbyingSearch';
+import { useLobbyingSearch, LobbyingTab, formatLobbyingCurrency, normalizeLobbyistName } from '@/hooks/useLobbyingSearch';
 import { LobbyingSpend, LobbyistCompensation, LobbyistClient } from '@/types/lobbying';
 
 const Lobbying = () => {
@@ -243,7 +243,7 @@ const Lobbying = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {compensationRecords.map((record) => {
-                  const lobbyistName = record.principal_lobbyist?.trim().toUpperCase() || '';
+                  const lobbyistName = normalizeLobbyistName(record.principal_lobbyist);
                   const clients = clientsByLobbyist.get(lobbyistName) || [];
                   return (
                     <CompensationCard
