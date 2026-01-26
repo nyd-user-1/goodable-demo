@@ -1515,16 +1515,16 @@ const NewChat = () => {
                                 {cleanContent}
                               </ReactMarkdown>
                               {isLoadingClients && partialClients.length > 0 && (
-                                <Accordion type="single" collapsible className="mt-4 border rounded-lg overflow-hidden" defaultValue="clients">
-                                  <AccordionItem value="clients" className="border-none">
-                                    <AccordionTrigger className="px-4 py-2 hover:no-underline hover:bg-muted/50">
-                                      <span className="text-sm font-medium flex items-center gap-2">
+                                <Accordion type="single" collapsible className="mt-4" defaultValue="clients">
+                                  <AccordionItem value="clients" className="border rounded-lg overflow-hidden">
+                                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-muted/50 text-sm font-medium">
+                                      <span className="flex items-center gap-2">
                                         Clients ({partialClients.length})
                                         <span className="inline-block w-1.5 h-3 bg-muted-foreground/50 animate-pulse rounded-sm"></span>
                                       </span>
                                     </AccordionTrigger>
-                                    <AccordionContent className="px-4 pb-3 pt-0">
-                                      <ScrollArea className="h-[200px] pr-4">
+                                    <AccordionContent className="px-4 pb-3 pt-0 border-t">
+                                      <ScrollArea className="h-[200px] pr-4 mt-3">
                                         <ul className="space-y-0.5">
                                           {partialClients.map((client, index) => (
                                             <li
@@ -1637,15 +1637,13 @@ const NewChat = () => {
                                     {mainContent}
                                   </ReactMarkdown>
                                   {clients.length > 0 && (
-                                    <Accordion type="single" collapsible className="mt-4 border rounded-lg overflow-hidden">
-                                      <AccordionItem value="clients" className="border-none">
-                                        <AccordionTrigger className="px-4 py-2 hover:no-underline hover:bg-muted/50">
-                                          <span className="text-sm font-medium">
+                                    <Accordion type="single" collapsible className="mt-4">
+                                      <AccordionItem value="clients" className="border rounded-lg overflow-hidden">
+                                        <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-muted/50 text-sm font-medium">
                                             Clients ({clients.length})
-                                          </span>
                                         </AccordionTrigger>
-                                        <AccordionContent className="px-4 pb-3 pt-0">
-                                          <ScrollArea className="h-[200px] pr-4">
+                                        <AccordionContent className="px-4 pb-3 pt-0 border-t">
+                                          <ScrollArea className="h-[200px] pr-4 mt-3">
                                             <ul className="space-y-0.5">
                                               {clients.map((client, index) => (
                                                 <li
