@@ -112,9 +112,9 @@ const LobbyingDetail = () => {
 
   const handleNewChat = () => {
     if (isSpend && spendRecord) {
-      const client = spendRecord["Contractual Client"] || 'this client';
-      const compensation = spendRecord.Compensation || 'N/A';
-      const totalExpenses = spendRecord["Total Expenses"] || 'N/A';
+      const client = spendRecord.contractual_client || 'this client';
+      const compensation = spendRecord.compensation || 'N/A';
+      const totalExpenses = spendRecord.total_expenses || 'N/A';
 
       const initialPrompt = `Tell me about lobbying spending by ${client}. They paid ${compensation} in compensation with ${totalExpenses} in total expenses.`;
       navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
@@ -223,7 +223,7 @@ const LobbyingDetail = () => {
                     <Badge variant="secondary">Client Spending</Badge>
                   </div>
                   <h1 className="text-2xl font-semibold text-foreground">
-                    {spendRecord["Contractual Client"] || 'Unknown Client'}
+                    {spendRecord.contractual_client || 'Unknown Client'}
                   </h1>
                 </div>
 
@@ -232,19 +232,19 @@ const LobbyingDetail = () => {
                   <div className="bg-muted/30 rounded-lg p-4">
                     <div className="text-xs text-muted-foreground mb-1">Compensation</div>
                     <div className="font-semibold text-green-600 dark:text-green-400">
-                      {formatLobbyingCurrency(spendRecord.Compensation)}
+                      {formatLobbyingCurrency(spendRecord.compensation)}
                     </div>
                   </div>
                   <div className="bg-muted/30 rounded-lg p-4">
                     <div className="text-xs text-muted-foreground mb-1">Total Expenses</div>
                     <div className="font-semibold">
-                      {formatLobbyingCurrency(spendRecord["Total Expenses"])}
+                      {formatLobbyingCurrency(spendRecord.total_expenses)}
                     </div>
                   </div>
                   <div className="bg-muted/30 rounded-lg p-4">
                     <div className="text-xs text-muted-foreground mb-1">Total (Comp + Expenses)</div>
                     <div className="font-semibold text-green-600 dark:text-green-400">
-                      {formatLobbyingCurrency(spendRecord["Compensation + Expenses"])}
+                      {formatLobbyingCurrency(spendRecord.compensation_and_expenses)}
                     </div>
                   </div>
                 </div>
@@ -252,38 +252,38 @@ const LobbyingDetail = () => {
                 {/* Additional Details */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-6">
-                    {spendRecord["Expenses less than $75"] && (
+                    {spendRecord.expenses_less_than_75 && (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-foreground font-medium">
                           <DollarSign className="h-4 w-4" />
                           <span>Expenses less than $75</span>
                         </div>
                         <div className="text-muted-foreground ml-6">
-                          {spendRecord["Expenses less than $75"]}
+                          {spendRecord.expenses_less_than_75}
                         </div>
                       </div>
                     )}
-                    {spendRecord["Salaries of non-lobbying employees"] && (
+                    {spendRecord.salaries_no_lobbying_employees && (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-foreground font-medium">
                           <DollarSign className="h-4 w-4" />
                           <span>Non-Lobbying Salaries</span>
                         </div>
                         <div className="text-muted-foreground ml-6">
-                          {spendRecord["Salaries of non-lobbying employees"]}
+                          {spendRecord.salaries_no_lobbying_employees}
                         </div>
                       </div>
                     )}
                   </div>
                   <div className="space-y-6">
-                    {spendRecord["Itemized Expenses"] && (
+                    {spendRecord.itemized_expenses && (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-foreground font-medium">
                           <DollarSign className="h-4 w-4" />
                           <span>Itemized Expenses</span>
                         </div>
                         <div className="text-muted-foreground ml-6">
-                          {spendRecord["Itemized Expenses"]}
+                          {spendRecord.itemized_expenses}
                         </div>
                       </div>
                     )}

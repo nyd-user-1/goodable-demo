@@ -1,15 +1,15 @@
 // Lobbying types matching Supabase tables
 
-// "Lobbying Spend" table - Client spending data
+// lobbying_spend table - Client spending data
 export interface LobbyingSpend {
   id: number;
-  "Contractual Client": string | null;
-  Compensation: string | null;
-  "Expenses less than $75": string | null;
-  "Salaries of non-lobbying employees": string | null;
-  "Itemized Expenses": string | null;
-  "Total Expenses": string | null;
-  "Compensation + Expenses": string | null;
+  contractual_client: string | null;
+  compensation: string | null;
+  expenses_less_than_75: string | null;
+  salaries_no_lobbying_employees: string | null;
+  itemized_expenses: string | null;
+  total_expenses: string | null;
+  compensation_and_expenses: string | null;
 }
 
 // lobbyist_compensation table - Lobbyist earnings data

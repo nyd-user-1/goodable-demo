@@ -55,9 +55,9 @@ const Lobbying = () => {
   };
 
   const handleSpendChatClick = (record: LobbyingSpend) => {
-    const client = record["Contractual Client"] || 'this client';
-    const compensation = record.Compensation || 'N/A';
-    const totalExpenses = record["Total Expenses"] || 'N/A';
+    const client = record.contractual_client || 'this client';
+    const compensation = record.compensation || 'N/A';
+    const totalExpenses = record.total_expenses || 'N/A';
 
     const initialPrompt = `Tell me about lobbying spending by ${client}. They paid ${compensation} in compensation with ${totalExpenses} in total expenses.`;
     navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
@@ -261,9 +261,9 @@ interface SpendCardProps {
 }
 
 function SpendCard({ record, onClick, onChatClick }: SpendCardProps) {
-  const client = record["Contractual Client"] || 'Unknown Client';
-  const compensation = formatLobbyingCurrency(record.Compensation);
-  const totalExpenses = formatLobbyingCurrency(record["Total Expenses"]);
+  const client = record.contractual_client || 'Unknown Client';
+  const compensation = formatLobbyingCurrency(record.compensation);
+  const totalExpenses = formatLobbyingCurrency(record.total_expenses);
 
   const promptText = `Tell me about lobbying spending by ${client} with ${compensation} in compensation.`;
 
@@ -284,34 +284,34 @@ function SpendCard({ record, onClick, onChatClick }: SpendCardProps) {
       <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
         {/* Details grid */}
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
-          {record.Compensation && (
+          {record.compensation && (
             <div>
               <span className="text-muted-foreground">Compensation</span>
-              <p className="font-medium">{record.Compensation}</p>
+              <p className="font-medium">{record.compensation}</p>
             </div>
           )}
-          {record["Total Expenses"] && (
+          {record.total_expenses && (
             <div>
               <span className="text-muted-foreground">Total Expenses</span>
-              <p className="font-medium">{record["Total Expenses"]}</p>
+              <p className="font-medium">{record.total_expenses}</p>
             </div>
           )}
-          {record["Expenses less than $75"] && (
+          {record.expenses_less_than_75 && (
             <div>
               <span className="text-muted-foreground">Expenses &lt;$75</span>
-              <p className="font-medium">{record["Expenses less than $75"]}</p>
+              <p className="font-medium">{record.expenses_less_than_75}</p>
             </div>
           )}
-          {record["Itemized Expenses"] && (
+          {record.itemized_expenses && (
             <div>
               <span className="text-muted-foreground">Itemized Expenses</span>
-              <p className="font-medium">{record["Itemized Expenses"]}</p>
+              <p className="font-medium">{record.itemized_expenses}</p>
             </div>
           )}
-          {record["Compensation + Expenses"] && (
+          {record.compensation_and_expenses && (
             <div className="col-span-2">
               <span className="text-muted-foreground">Total (Comp + Expenses)</span>
-              <p className="font-medium text-green-600 dark:text-green-400">{record["Compensation + Expenses"]}</p>
+              <p className="font-medium text-green-600 dark:text-green-400">{record.compensation_and_expenses}</p>
             </div>
           )}
         </div>

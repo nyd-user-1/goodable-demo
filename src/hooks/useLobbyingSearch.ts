@@ -19,7 +19,7 @@ export function useLobbyingSearch() {
 
       // Server-side search
       if (searchTerm && searchTerm.length >= 2) {
-        query = query.ilike('Contractual Client', `%${searchTerm}%`);
+        query = query.ilike('contractual_client', `%${searchTerm}%`);
       }
 
       // Order by compensation (parse as number for sorting)
