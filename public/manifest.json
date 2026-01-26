@@ -1,29 +1,29 @@
 
 {
-  "name": "NYSgpt - Change is all heart.",
+  "name": "NYSgpt - Learn. Track. Engage. Impact.",
   "short_name": "NYSgpt",
-  "description": "Transform democracy through technology. Track legislation, collaborate on policy solutions, and engage with your representatives using AI-powered civic tools.",
+  "description": "Transform democracy through technology. Track New York State legislation, collaborate on policy solutions, and engage with your representatives using AI-powered civic tools.",
   "start_url": "/",
   "display": "standalone",
   "theme_color": "#3D63DD",
   "background_color": "#ffffff",
   "icons": [
     {
-      "src": "/goodable-heart.avif",
+      "src": "/nysgpt-badge.png",
       "sizes": "192x192",
-      "type": "image/avif",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/goodable-heart.avif",
+      "src": "/nysgpt-badge.png",
       "sizes": "512x512",
-      "type": "image/avif",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/goodable-heart.avif",
+      "src": "/nysgpt-badge.png",
       "sizes": "180x180",
-      "type": "image/avif",
+      "type": "image/png",
       "purpose": "any"
     }
   ]
