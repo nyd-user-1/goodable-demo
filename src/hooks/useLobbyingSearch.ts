@@ -14,7 +14,7 @@ export function useLobbyingSearch() {
     queryKey: ['lobbying-spend', searchTerm],
     queryFn: async () => {
       let query = supabase
-        .from('Lobbying Spend')
+        .from('lobbying_spend')
         .select('*', { count: 'exact' });
 
       // Server-side search
@@ -40,7 +40,7 @@ export function useLobbyingSearch() {
     queryKey: ['lobbyist-compensation', searchTerm],
     queryFn: async () => {
       let query = supabase
-        .from('Lobbyist Compensation')
+        .from('lobbyist_compensation')
         .select('*', { count: 'exact' });
 
       // Server-side search

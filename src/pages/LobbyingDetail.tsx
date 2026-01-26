@@ -36,7 +36,7 @@ const LobbyingDetail = () => {
     queryKey: ['lobbying-spend', recordId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('Lobbying Spend')
+        .from('lobbying_spend')
         .select('*')
         .eq('id', Number(recordId))
         .single();
@@ -52,7 +52,7 @@ const LobbyingDetail = () => {
     queryKey: ['lobbyist-compensation', recordId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('Lobbyist Compensation')
+        .from('lobbyist_compensation')
         .select('*')
         .eq('id', Number(recordId))
         .single();
