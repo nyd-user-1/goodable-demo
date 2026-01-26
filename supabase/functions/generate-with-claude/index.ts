@@ -20,8 +20,8 @@ function getCurrentSessionYear(): number {
   return currentYear % 2 === 1 ? currentYear : currentYear - 1;
 }
 
-// Search Goodable's Supabase database for relevant bills
-async function searchGoodableDatabase(query: string, sessionYear?: number) {
+// Search NYSgpt's Supabase database for relevant bills
+async function searchNYSgptDatabase(query: string, sessionYear?: number) {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -29,7 +29,7 @@ async function searchGoodableDatabase(query: string, sessionYear?: number) {
     const billNumberPattern = /[ASK]\d{4,}/gi;
     const billNumbers = query.match(billNumberPattern) || [];
 
-    console.log('Searching Goodable database with query:', query.substring(0, 100));
+    console.log('Searching NYSgpt database with query:', query.substring(0, 100));
     console.log('Extracted bill numbers:', billNumbers);
 
     let results: any[] = [];
@@ -127,7 +127,7 @@ async function searchGoodableDatabase(query: string, sessionYear?: number) {
 
     return results;
   } catch (error) {
-    console.error('Error searching Goodable database:', error);
+    console.error('Error searching NYSgpt database:', error);
     return [];
   }
 }
@@ -191,8 +191,8 @@ function formatNYSDataForContext(nysData: any) {
   return contextText;
 }
 
-// Format Goodable database results for context
-function formatGoodableBillsForContext(bills: any[]) {
+// Format NYSgpt database results for context
+function formatNYSgptBillsForContext(bills: any[]) {
   if (!bills || bills.length === 0) return '';
 
   let contextText = '\n\nGOODABLE DATABASE - BILLS FROM SUPABASE:\n\n';
@@ -221,10 +221,10 @@ function formatGoodableBillsForContext(bills: any[]) {
   return contextText;
 }
 
-// Claude-specific system prompt for Goodable
-const CLAUDE_SYSTEM_PROMPT = `# System Prompt for Goodable NY State Legislative Analysis AI
+// Claude-specific system prompt for NYSgpt
+const CLAUDE_SYSTEM_PROMPT = `# System Prompt for NYSgpt NY State Legislative Analysis AI
 
-You are an expert legislative analyst for New York State with comprehensive knowledge of state government operations, legislative processes, and policy analysis. You assist users of Goodable, a legislative policy platform, in understanding and analyzing NYS legislation.
+You are an expert legislative analyst for New York State with comprehensive knowledge of state government operations, legislative processes, and policy analysis. You assist users of NYSgpt, a legislative policy platform, in understanding and analyzing NYS legislation.
 
 ## Your Core Identity
 
@@ -234,7 +234,7 @@ You are a knowledgeable, impartial policy analyst who combines deep expertise in
 
 You have DIRECT ACCESS to comprehensive, up-to-date legislative data through TWO sources:
 
-1. **Goodable's Complete Database (Supabase)**:
+1. **NYSgpt's Complete Database (Supabase)**:
    - Contains ALL New York State bills from multiple sessions including current and future sessions (2023, 2024, 2025, and beyond)
    - The system automatically searches this database for relevant bills based on user queries
    - Returns bill metadata: bill numbers, titles, descriptions, sponsors, status, committee assignments
@@ -243,7 +243,7 @@ You have DIRECT ACCESS to comprehensive, up-to-date legislative data through TWO
    - Bill texts, PDFs, or specific legislative documents
    - Context from their current view or research
 
-**IMPORTANT**: When users ask about bills from 2025 or the current session, you have COMPLETE ACCESS to this data through the Goodable database. The database is searched automatically and relevant bills are provided to you. Always use the specific bill data provided to you in each conversation.
+**IMPORTANT**: When users ask about bills from 2025 or the current session, you have COMPLETE ACCESS to this data through the NYSgpt database. The database is searched automatically and relevant bills are provided to you. Always use the specific bill data provided to you in each conversation.
 
 ## Response Framework
 
@@ -334,7 +334,7 @@ Include:
 
 ## Your Mission
 
-Enable every Goodable user - whether citizen, staffer, researcher, or professional - to deeply understand New York State legislation and make informed decisions about policy. You make the complex accessible and empower democratic engagement through knowledge.
+Enable every NYSgpt user - whether citizen, staffer, researcher, or professional - to deeply understand New York State legislation and make informed decisions about policy. You make the complex accessible and empower democratic engagement through knowledge.
 
 ---
 
@@ -364,27 +364,27 @@ serve(async (req) => {
       throw new Error('Claude requires Anthropic API key to be configured in Supabase Edge Function Secrets');
     }
 
-    // Search Goodable database AND conditionally search NYS API
+    // Search NYSgpt database AND conditionally search NYS API
     let goodableBills: any[] = [];
     let nysData: any = null;
 
     // Fast-path detection: skip NYS API for simple chat queries in fast mode
-    // BUT always search Goodable database for legislative queries
+    // BUT always search NYSgpt database for legislative queries
     const shouldSkipNYSData = fastMode && !prompt.match(/[ASK]\d{5,}/gi) && type !== 'media' && context !== 'landing_page';
 
     // Start data searches in parallel (non-blocking)
     let nysDataPromise: Promise<any> | null = null;
-    const goodableDataPromise = searchGoodableDatabase(prompt, getCurrentSessionYear());
+    const goodableDataPromise = searchNYSgptDatabase(prompt, getCurrentSessionYear());
 
     // Start NYS API search if appropriate
     if (nysApiKey && !shouldSkipNYSData) {
       nysDataPromise = searchNYSData(prompt);
     }
 
-    // IMPORTANT: Always wait for Goodable database search before generating response
+    // IMPORTANT: Always wait for NYSgpt database search before generating response
     // This ensures AI has context even for streaming responses
     goodableBills = await goodableDataPromise;
-    console.log(`Goodable database search found ${goodableBills?.length || 0} bills`);
+    console.log(`NYSgpt database search found ${goodableBills?.length || 0} bills`);
 
     // For non-streaming, also wait for NYS API data
     if (!stream && nysDataPromise) {
@@ -397,9 +397,9 @@ serve(async (req) => {
     // Build enhanced context with all available information
     let legislativeContext = '';
 
-    // Add Goodable database results
+    // Add NYSgpt database results
     if (goodableBills && goodableBills.length > 0) {
-      legislativeContext += formatGoodableBillsForContext(goodableBills);
+      legislativeContext += formatNYSgptBillsForContext(goodableBills);
     }
 
     // Add NYS API results
@@ -411,7 +411,7 @@ serve(async (req) => {
     const constitutionalContext = getConstitutionalPrompt(type || 'chat');
     let enhancedSystemPrompt = `${constitutionalContext}\n\n${CLAUDE_SYSTEM_PROMPT}`;
 
-    // Add custom system context if provided (e.g., for "What is Goodable.dev?" prompt)
+    // Add custom system context if provided (e.g., for "What is NYSgpt.dev?" prompt)
     if (context?.systemContext) {
       enhancedSystemPrompt = `${context.systemContext}\n\n${enhancedSystemPrompt}`;
       console.log('Added custom systemContext to prompt');

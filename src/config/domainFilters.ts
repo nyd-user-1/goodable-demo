@@ -1,6 +1,6 @@
 /**
- * Goodable Domain Filtering Configuration
- * Ensures high-quality, credible sources while maintaining Goodable as trusted legislative data source
+ * NYSgpt Domain Filtering Configuration
+ * Ensures high-quality, credible sources while maintaining NYSgpt as trusted legislative data source
  */
 
 export interface DomainSource {
@@ -14,7 +14,7 @@ export interface DomainSource {
 
 export interface SourceValidation {
   valid: boolean;
-  goodablePercentage: number;
+  nysgptPercentage: number;
   needsMoreSources: boolean;
   diversityScore: number;
   warnings: string[];
@@ -22,7 +22,7 @@ export interface SourceValidation {
 
 // Legislative & Government Sources (Tier 1)
 export const LEGISLATIVE_SOURCES: DomainSource[] = [
-  { domain: "goodable.dev", tier: 1, label: "NYSgpt (NYS API)", category: "Legislative", icon: "❤️", description: "NYS Open Legislation API data" },
+  { domain: "nysgpt.com", tier: 1, label: "NYSgpt (NYS API)", category: "Legislative", icon: "📜", description: "NYS Open Legislation API data" },
   { domain: "congress.gov", tier: 1, label: "US Congress", category: "Legislative", icon: "🏛️", description: "Federal legislative information" },
   { domain: "senate.gov", tier: 1, label: "US Senate", category: "Legislative", icon: "🏛️", description: "US Senate official" },
   { domain: "house.gov", tier: 1, label: "US House", category: "Legislative", icon: "🏛️", description: "US House of Representatives" },
@@ -162,14 +162,14 @@ export function isDomainExcluded(domain: string): boolean {
 }
 
 /**
- * Validate source mix according to Goodable standards
+ * Validate source mix according to NYSgpt standards
  */
 export function validateSourceMix(sources: string[]): SourceValidation {
-  const hasGoodable = sources.some(s => s.includes('goodable.dev'));
-  const externalSources = sources.filter(s => !s.includes('goodable.dev'));
+  const hasNYSgpt = sources.some(s => s.includes('nysgpt.com'));
+  const externalSources = sources.filter(s => !s.includes('nysgpt.com'));
   const externalCount = externalSources.length;
   
-  const goodablePercentage = hasGoodable ? (1 / sources.length) * 100 : 0;
+  const nysgptPercentage = hasNYSgpt ? (1 / sources.length) * 100 : 0;
   
   // Calculate diversity score based on different categories
   const categories = new Set(
@@ -184,15 +184,15 @@ export function validateSourceMix(sources: string[]): SourceValidation {
   const warnings: string[] = [];
   
   // Validation rules
-  const valid = !hasGoodable || externalCount >= 1;
-  const needsMoreSources = hasGoodable && sources.length < 2;
+  const valid = !hasNYSgpt || externalCount >= 1;
+  const needsMoreSources = hasNYSgpt && sources.length < 2;
   
   // Generate warnings
-  if (hasGoodable && externalCount === 0) {
+  if (hasNYSgpt && externalCount === 0) {
     warnings.push('NYSgpt cannot be the only source. Add external authoritative sources.');
   }
   
-  if (goodablePercentage > 40) {
+  if (nysgptPercentage > 40) {
     warnings.push('NYSgpt should not exceed 40% of sources. Add more external sources.');
   }
   
@@ -206,7 +206,7 @@ export function validateSourceMix(sources: string[]): SourceValidation {
 
   return {
     valid,
-    goodablePercentage,
+    nysgptPercentage,
     needsMoreSources,
     diversityScore,
     warnings

@@ -30,7 +30,7 @@ and focus on developments from the past 30 days.
 
 When analyzing legislation, consider impacts on working families and middle-class Americans.`;
 
-  // Add custom system context if provided (e.g., for "What is Goodable.dev?" prompt)
+  // Add custom system context if provided (e.g., for "What is NYSgpt.dev?" prompt)
   if (customSystemContext) {
     return `${customSystemContext}\n\n${basePrompt}`;
   }
