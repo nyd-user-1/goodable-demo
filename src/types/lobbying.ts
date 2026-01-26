@@ -21,6 +21,14 @@ export interface LobbyistCompensation {
   grand_total_compensation_expenses: string | null;
 }
 
+// lobbyists_clients table - Client relationships for each lobbyist
+export interface LobbyistClient {
+  id: number;
+  principal_lobbyist: string | null;
+  contractual_client: string | null;
+  start_date: string | null;
+}
+
 // Union type for detail pages
 export type LobbyingRecord =
   | { type: 'spend'; data: LobbyingSpend }

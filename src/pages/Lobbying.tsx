@@ -208,9 +208,9 @@ const Lobbying = () => {
                 <p className="text-destructive">Error loading lobbying data: {String(error)}</p>
               </div>
             ) : isLoading ? (
-              <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {Array.from({ length: 12 }).map((_, i) => (
-                  <div key={i} className="break-inside-avoid h-32 bg-muted/30 rounded-2xl animate-pulse" />
+                  <div key={i} className="h-32 bg-muted/30 rounded-2xl animate-pulse" />
                 ))}
               </div>
             ) : records.length === 0 ? (
@@ -224,7 +224,7 @@ const Lobbying = () => {
                 )}
               </div>
             ) : activeTab === 'spend' ? (
-              <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {spendRecords.map((record) => (
                   <SpendCard
                     key={record.id}
@@ -235,7 +235,7 @@ const Lobbying = () => {
                 ))}
               </div>
             ) : (
-              <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {compensationRecords.map((record) => (
                   <CompensationCard
                     key={record.id}
@@ -275,7 +275,7 @@ function SpendCard({ record, onClick, onChatClick }: SpendCardProps) {
   return (
     <div
       onClick={onClick}
-      className="group break-inside-avoid bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
+      className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
     >
       <h3 className="font-semibold text-base mb-3">{client}</h3>
       <p className="text-sm text-muted-foreground leading-relaxed">{promptText}</p>
@@ -352,7 +352,7 @@ function CompensationCard({ record, onClick, onChatClick }: CompensationCardProp
   return (
     <div
       onClick={onClick}
-      className="group break-inside-avoid bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
+      className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
     >
       <h3 className="font-semibold text-base mb-3">{lobbyist}</h3>
       <p className="text-sm text-muted-foreground leading-relaxed">{promptText}</p>
