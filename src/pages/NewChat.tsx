@@ -99,6 +99,14 @@ const parseClientsSection = (content: string): { mainContent: string; clients: s
   return { mainContent, clients };
 };
 
+// Helper to strip clients section from streaming content (hide during assembly)
+const stripClientsSection = (content: string): string => {
+  const startMarker = '---CLIENTS_START---';
+  const startIndex = content.indexOf(startMarker);
+  if (startIndex === -1) return content;
+  return content.substring(0, startIndex).trim();
+};
+
 // Featuring real bills from our database
 const samplePrompts = [
   {
@@ -1441,7 +1449,7 @@ const NewChat = () => {
                             ),
                           }}
                         >
-                          {message.isStreaming ? message.streamedContent || '' : message.content}
+                          {message.isStreaming ? stripClientsSection(message.streamedContent || '') : message.content}
                         </ReactMarkdown>
                       ) : (
                         // Standard markdown rendering
@@ -1477,7 +1485,7 @@ const NewChat = () => {
                             ),
                           }}
                         >
-                          {message.isStreaming ? message.streamedContent || '' : message.content}
+                          {message.isStreaming ? stripClientsSection(message.streamedContent || '') : message.content}
                         </ReactMarkdown>
                       )}
                         <span className="inline-block w-1.5 h-4 bg-current animate-pulse ml-0.5">|</span>
@@ -1581,7 +1589,7 @@ const NewChat = () => {
                                           </span>
                                         </AccordionTrigger>
                                         <AccordionContent className="px-4 pb-4">
-                                          <ScrollArea className="h-[350px] pr-4">
+                                          <ScrollArea className="h-[200px] pr-4">
                                             <ul className="space-y-1">
                                               {clients.map((client, index) => (
                                                 <li
