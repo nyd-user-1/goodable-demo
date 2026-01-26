@@ -76,8 +76,8 @@ const LobbyingDetail = () => {
         if (!user) return;
 
         const searchTerm = isSpend
-          ? (spendRecord?.["Contractual Client"] || '')
-          : (compensationRecord?.["Principal Lobbyist"] || '');
+          ? (spendRecord?.contractual_client || '')
+          : (compensationRecord?.principal_lobbyist || '');
 
         if (!searchTerm) return;
 
@@ -119,9 +119,9 @@ const LobbyingDetail = () => {
       const initialPrompt = `Tell me about lobbying spending by ${client}. They paid ${compensation} in compensation with ${totalExpenses} in total expenses.`;
       navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
     } else if (isCompensation && compensationRecord) {
-      const lobbyist = compensationRecord["Principal Lobbyist"] || 'this lobbyist';
-      const compensation = compensationRecord.Compensation || 'N/A';
-      const expenses = compensationRecord["Reimbursed Expenses"] || 'N/A';
+      const lobbyist = compensationRecord.principal_lobbyist || 'this lobbyist';
+      const compensation = compensationRecord.compensation || 'N/A';
+      const expenses = compensationRecord.reimbursed_expenses || 'N/A';
 
       const initialPrompt = `Tell me about ${lobbyist}. They received ${compensation} in compensation plus ${expenses} in reimbursed expenses.`;
       navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
@@ -422,7 +422,7 @@ const LobbyingDetail = () => {
                     <Badge variant="secondary">Lobbyist Earnings</Badge>
                   </div>
                   <h1 className="text-2xl font-semibold text-foreground">
-                    {compensationRecord["Principal Lobbyist"] || 'Unknown Lobbyist'}
+                    {compensationRecord.principal_lobbyist || 'Unknown Lobbyist'}
                   </h1>
                 </div>
 
@@ -431,19 +431,19 @@ const LobbyingDetail = () => {
                   <div className="bg-muted/30 rounded-lg p-4">
                     <div className="text-xs text-muted-foreground mb-1">Compensation</div>
                     <div className="font-semibold text-green-600 dark:text-green-400">
-                      {formatLobbyingCurrency(compensationRecord.Compensation)}
+                      {formatLobbyingCurrency(compensationRecord.compensation)}
                     </div>
                   </div>
                   <div className="bg-muted/30 rounded-lg p-4">
                     <div className="text-xs text-muted-foreground mb-1">Reimbursed Expenses</div>
                     <div className="font-semibold">
-                      {formatLobbyingCurrency(compensationRecord["Reimbursed Expenses"])}
+                      {formatLobbyingCurrency(compensationRecord.reimbursed_expenses)}
                     </div>
                   </div>
                   <div className="bg-muted/30 rounded-lg p-4">
                     <div className="text-xs text-muted-foreground mb-1">Grand Total</div>
                     <div className="font-semibold text-green-600 dark:text-green-400">
-                      {formatLobbyingCurrency(compensationRecord["Grand Total of Compensation and Reimbursed Expenses"])}
+                      {formatLobbyingCurrency(compensationRecord.grand_total_compensation_expenses)}
                     </div>
                   </div>
                 </div>

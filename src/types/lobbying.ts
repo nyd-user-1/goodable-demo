@@ -12,13 +12,13 @@ export interface LobbyingSpend {
   "Compensation + Expenses": string | null;
 }
 
-// "Lobbyist Compensation" table - Lobbyist earnings data
+// lobbyist_compensation table - Lobbyist earnings data
 export interface LobbyistCompensation {
   id: number;
-  "Principal Lobbyist": string | null;
-  Compensation: string | null;
-  "Reimbursed Expenses": string | null;
-  "Grand Total of Compensation and Reimbursed Expenses": string | null;
+  principal_lobbyist: string | null;
+  compensation: string | null;
+  reimbursed_expenses: string | null;
+  grand_total_compensation_expenses: string | null;
 }
 
 // Union type for detail pages

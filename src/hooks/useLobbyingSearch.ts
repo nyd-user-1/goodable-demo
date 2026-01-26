@@ -45,7 +45,7 @@ export function useLobbyingSearch() {
 
       // Server-side search
       if (searchTerm && searchTerm.length >= 2) {
-        query = query.ilike('Principal Lobbyist', `%${searchTerm}%`);
+        query = query.ilike('principal_lobbyist', `%${searchTerm}%`);
       }
 
       query = query.limit(1000);

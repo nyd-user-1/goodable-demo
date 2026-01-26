@@ -64,9 +64,9 @@ const Lobbying = () => {
   };
 
   const handleCompensationChatClick = (record: LobbyistCompensation) => {
-    const lobbyist = record["Principal Lobbyist"] || 'this lobbyist';
-    const compensation = record.Compensation || 'N/A';
-    const expenses = record["Reimbursed Expenses"] || 'N/A';
+    const lobbyist = record.principal_lobbyist || 'this lobbyist';
+    const compensation = record.compensation || 'N/A';
+    const expenses = record.reimbursed_expenses || 'N/A';
 
     const initialPrompt = `Tell me about ${lobbyist}. They received ${compensation} in compensation plus ${expenses} in reimbursed expenses.`;
     navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
@@ -338,9 +338,9 @@ interface CompensationCardProps {
 }
 
 function CompensationCard({ record, onClick, onChatClick }: CompensationCardProps) {
-  const lobbyist = record["Principal Lobbyist"] || 'Unknown Lobbyist';
-  const compensation = formatLobbyingCurrency(record.Compensation);
-  const expenses = formatLobbyingCurrency(record["Reimbursed Expenses"]);
+  const lobbyist = record.principal_lobbyist || 'Unknown Lobbyist';
+  const compensation = formatLobbyingCurrency(record.compensation);
+  const expenses = formatLobbyingCurrency(record.reimbursed_expenses);
 
   const promptText = `Tell me about ${lobbyist} with ${compensation} in compensation.`;
 
@@ -361,23 +361,23 @@ function CompensationCard({ record, onClick, onChatClick }: CompensationCardProp
       <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
         {/* Details grid */}
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
-          {record.Compensation && (
+          {record.compensation && (
             <div>
               <span className="text-muted-foreground">Compensation</span>
-              <p className="font-medium">{record.Compensation}</p>
+              <p className="font-medium">{record.compensation}</p>
             </div>
           )}
-          {record["Reimbursed Expenses"] && (
+          {record.reimbursed_expenses && (
             <div>
               <span className="text-muted-foreground">Reimbursed Expenses</span>
-              <p className="font-medium">{record["Reimbursed Expenses"]}</p>
+              <p className="font-medium">{record.reimbursed_expenses}</p>
             </div>
           )}
-          {record["Grand Total of Compensation and Reimbursed Expenses"] && (
+          {record.grand_total_compensation_expenses && (
             <div className="col-span-2">
               <span className="text-muted-foreground">Grand Total</span>
               <p className="font-medium text-green-600 dark:text-green-400">
-                {record["Grand Total of Compensation and Reimbursed Expenses"]}
+                {record.grand_total_compensation_expenses}
               </p>
             </div>
           )}
