@@ -27,13 +27,16 @@ export function useLobbyingSearch() {
 
       const { data, error, count } = await query;
 
-      if (error) {
-        console.error('lobbying_spend query error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('lobbying_spend data:', data?.length, 'records', data);
-      return { records: data as LobbyingSpend[], totalCount: count || 0 };
+      // Sort by compensation_and_expenses descending (parse currency strings)
+      const sorted = (data as LobbyingSpend[]).sort((a, b) => {
+        const aVal = parseCurrencyToNumber(a.compensation_and_expenses);
+        const bVal = parseCurrencyToNumber(b.compensation_and_expenses);
+        return bVal - aVal;
+      });
+
+      return { records: sorted, totalCount: count || 0 };
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -56,13 +59,16 @@ export function useLobbyingSearch() {
 
       const { data, error, count } = await query;
 
-      if (error) {
-        console.error('lobbyist_compensation query error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('lobbyist_compensation data:', data?.length, 'records', data);
-      return { records: data as LobbyistCompensation[], totalCount: count || 0 };
+      // Sort by grand_total_compensation_expenses descending (parse currency strings)
+      const sorted = (data as LobbyistCompensation[]).sort((a, b) => {
+        const aVal = parseCurrencyToNumber(a.grand_total_compensation_expenses);
+        const bVal = parseCurrencyToNumber(b.grand_total_compensation_expenses);
+        return bVal - aVal;
+      });
+
+      return { records: sorted, totalCount: count || 0 };
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
