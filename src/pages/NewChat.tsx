@@ -937,6 +937,69 @@ const NewChat = () => {
       const supabaseUrl = supabase.supabaseUrl;
       const { data: { session } } = await supabase.auth.getSession();
 
+      // Build contract context if this is a contract chat
+      let contractContext = systemContext || undefined;
+      if (isContractChat) {
+        try {
+          // Parse contract number from prompt prefix [Contract:xxx]
+          const contractMatch = userQuery.match(/\[Contract:([^\]]+)\]/);
+          const contractNumber = contractMatch?.[1];
+
+          if (contractNumber) {
+            // Fetch the specific contract
+            const { data: contract } = await supabase
+              .from('Contracts')
+              .select('*')
+              .eq('contract_number', contractNumber)
+              .single();
+
+            if (contract) {
+              let contextParts: string[] = [];
+
+              // Primary contract details
+              contextParts.push(`PRIMARY CONTRACT DATA:\n- Contract Number: ${contract.contract_number}\n- Vendor: ${contract.vendor_name}\n- Department: ${contract.department_facility}\n- Type: ${contract.contract_type || 'N/A'}\n- Amount: $${Number(contract.current_contract_amount || 0).toLocaleString()}\n- Spending to Date: $${Number(contract.spending_to_date || 0).toLocaleString()}\n- Start Date: ${contract.contract_start_date || 'N/A'}\n- End Date: ${contract.contract_end_date || 'N/A'}\n- Description: ${contract.contract_description || 'N/A'}`);
+
+              // Fetch other contracts from the same vendor (limit 10)
+              const { data: vendorContracts } = await supabase
+                .from('Contracts')
+                .select('contract_number, department_facility, current_contract_amount, spending_to_date, contract_start_date, contract_end_date, contract_type, contract_description')
+                .eq('vendor_name', contract.vendor_name)
+                .neq('contract_number', contractNumber)
+                .order('current_contract_amount', { ascending: false, nullsFirst: false })
+                .limit(10);
+
+              if (vendorContracts && vendorContracts.length > 0) {
+                const vendorSummary = vendorContracts.map(c =>
+                  `  - ${c.contract_number}: ${c.department_facility} | $${Number(c.current_contract_amount || 0).toLocaleString()} | ${c.contract_type || 'N/A'} | ${c.contract_start_date || '?'} to ${c.contract_end_date || '?'}`
+                ).join('\n');
+                contextParts.push(`\nOTHER CONTRACTS BY SAME VENDOR (${contract.vendor_name}) - ${vendorContracts.length} additional contracts found:\n${vendorSummary}`);
+              }
+
+              // Fetch other contracts from the same department (limit 10, top by amount)
+              const { data: deptContracts } = await supabase
+                .from('Contracts')
+                .select('contract_number, vendor_name, current_contract_amount, spending_to_date, contract_type, contract_description')
+                .eq('department_facility', contract.department_facility)
+                .neq('contract_number', contractNumber)
+                .order('current_contract_amount', { ascending: false, nullsFirst: false })
+                .limit(10);
+
+              if (deptContracts && deptContracts.length > 0) {
+                const deptSummary = deptContracts.map(c =>
+                  `  - ${c.contract_number}: ${c.vendor_name} | $${Number(c.current_contract_amount || 0).toLocaleString()} | ${c.contract_type || 'N/A'}`
+                ).join('\n');
+                contextParts.push(`\nTOP CONTRACTS IN SAME DEPARTMENT (${contract.department_facility}) - showing top ${deptContracts.length} by amount:\n${deptSummary}`);
+              }
+
+              contractContext = contextParts.join('\n') + '\n\nUse this NYS contract database information to provide detailed, data-driven analysis. Reference specific contract numbers, amounts, and comparisons where relevant.';
+            }
+          }
+        } catch (err) {
+          console.error('Error fetching contract context:', err);
+          // Continue without contract context - don't block the chat
+        }
+      }
+
       // Create abort controller for this request
       abortControllerRef.current = new AbortController();
 
@@ -958,7 +1021,7 @@ const NewChat = () => {
               role: m.role,
               content: m.content
             })),
-            systemContext: systemContext || undefined
+            systemContext: contractContext
           }
         }),
         signal: abortControllerRef.current.signal
