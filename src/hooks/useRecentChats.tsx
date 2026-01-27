@@ -143,11 +143,40 @@ export const useRecentChats = (limit: number = 10) => {
     });
   }, [pinnedIds, toast]);
 
+  const renameChat = useCallback(async (chatId: string, newTitle: string) => {
+    try {
+      const { error } = await supabase
+        .from("chat_sessions")
+        .update({ title: newTitle })
+        .eq("id", chatId);
+
+      if (error) throw error;
+
+      // Update local state
+      setRecentChats(prev => prev.map(chat =>
+        chat.id === chatId ? { ...chat, title: newTitle } : chat
+      ));
+
+      toast({
+        title: "Chat renamed",
+        description: "The chat has been renamed.",
+      });
+    } catch (error) {
+      console.error("Error renaming chat:", error);
+      toast({
+        title: "Error",
+        description: "Failed to rename chat.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
   return {
     recentChats,
     loading,
     refetch: fetchRecentChats,
     deleteChat,
     togglePinChat,
+    renameChat,
   };
 };

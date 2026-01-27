@@ -42,6 +42,10 @@ import {
   FilePlus,
   FolderPlus,
   HandCoins,
+  MoreHorizontal,
+  Pin,
+  Trash2,
+  Pencil,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,6 +72,15 @@ import { cn } from "@/lib/utils";
 import { SearchModal } from "@/components/SearchModal";
 import { useAIUsage } from "@/hooks/useAIUsage";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useRecentChats } from "@/hooks/useRecentChats";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent as RenameDialogContent,
+  DialogHeader as RenameDialogHeader,
+  DialogTitle as RenameDialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
@@ -100,7 +113,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const { user, signOut } = useAuth();
   const { subscription } = useSubscription();
   const { wordsUsed, dailyLimit, usagePercentage } = useAIUsage();
-  const [recentChats, setRecentChats] = useState<ChatSession[]>([]);
+  const { recentChats, deleteChat, togglePinChat, renameChat, refetch: refetchChats } = useRecentChats(10);
   const [recentExcerpts, setRecentExcerpts] = useState<Excerpt[]>([]);
   const [recentNotes, setRecentNotes] = useState<Note[]>([]);
   const [newChatHover, setNewChatHover] = useState(false);
@@ -109,27 +122,14 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const [feedbackText, setFeedbackText] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [chatToRename, setChatToRename] = useState<{ id: string; title: string } | null>(null);
+  const [renameValue, setRenameValue] = useState("");
 
   // Check current theme
   useEffect(() => {
     setIsDarkMode(document.documentElement.classList.contains('dark'));
   }, []);
-
-  // Fetch recent chats
-  const fetchRecentChats = useCallback(async () => {
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from("chat_sessions")
-      .select("id, title, updated_at")
-      .eq("user_id", user.id)
-      .order("updated_at", { ascending: false })
-      .limit(10);
-
-    if (!error && data) {
-      setRecentChats(data);
-    }
-  }, [user]);
 
   // Fetch recent excerpts
   const fetchRecentExcerpts = useCallback(async () => {
@@ -164,21 +164,20 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   }, [user]);
 
   useEffect(() => {
-    fetchRecentChats();
     fetchRecentExcerpts();
     fetchRecentNotes();
-  }, [fetchRecentChats, fetchRecentExcerpts, fetchRecentNotes]);
+  }, [fetchRecentExcerpts, fetchRecentNotes]);
 
   // Listen for refresh events
   useEffect(() => {
     const handleRefresh = () => {
-      fetchRecentChats();
+      refetchChats();
       fetchRecentExcerpts();
       fetchRecentNotes();
     };
     window.addEventListener("refresh-sidebar-notes", handleRefresh);
     return () => window.removeEventListener("refresh-sidebar-notes", handleRefresh);
-  }, [fetchRecentChats, fetchRecentExcerpts, fetchRecentNotes]);
+  }, [refetchChats, fetchRecentExcerpts, fetchRecentNotes]);
 
   const isActive = (url: string) => location.pathname === url;
 
@@ -209,6 +208,20 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
 
     setFeedbackText("");
     setFeedbackOpen(false);
+  };
+
+  const handleRenameClick = (chatId: string, currentTitle: string) => {
+    setChatToRename({ id: chatId, title: currentTitle });
+    setRenameValue(currentTitle);
+    setRenameDialogOpen(true);
+  };
+
+  const handleRenameSubmit = async () => {
+    if (!chatToRename || !renameValue.trim()) return;
+    await renameChat(chatToRename.id, renameValue.trim());
+    setRenameDialogOpen(false);
+    setChatToRename(null);
+    setRenameValue("");
   };
 
   const handleCreateNote = async () => {
@@ -595,30 +608,63 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               {/* Chats */}
               {recentChats.map((chat) => {
                 // Check if this is a lobbying-related chat by title pattern
-                const isLobbyingChat = chat.title.startsWith("Tell me about") &&
-                  (chat.title.includes("LLC") || chat.title.includes("LLP") ||
-                   chat.title.includes("INC") || chat.title.includes("ADVISORS") ||
-                   chat.title.includes("ASSOCIATES") || chat.title.includes("CONSULTING") ||
-                   chat.title.includes("GROUP") || chat.title.includes("STRATEGIES") ||
-                   chat.title.includes("AFFAIRS") || chat.title.includes("& "));
+                const chatTitle = chat.title || "Untitled Chat";
+                const isLobbyingChat = chatTitle.startsWith("Tell me about") &&
+                  (chatTitle.includes("LLC") || chatTitle.includes("LLP") ||
+                   chatTitle.includes("INC") || chatTitle.includes("ADVISORS") ||
+                   chatTitle.includes("ASSOCIATES") || chatTitle.includes("CONSULTING") ||
+                   chatTitle.includes("GROUP") || chatTitle.includes("STRATEGIES") ||
+                   chatTitle.includes("AFFAIRS") || chatTitle.includes("& "));
 
                 return (
-                  <NavLink
-                    key={`chat-${chat.id}`}
-                    to={`/c/${chat.id}`}
-                    onClick={onClose}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                      location.pathname === `/c/${chat.id}` ? "bg-muted" : "hover:bg-muted"
-                    )}
-                  >
-                    {isLobbyingChat ? (
-                      <HandCoins className="h-4 w-4 flex-shrink-0" />
-                    ) : (
-                      <MessagesSquare className="h-4 w-4 flex-shrink-0" />
-                    )}
-                    <span className="truncate">{chat.title}</span>
-                  </NavLink>
+                  <div key={`chat-${chat.id}`} className="group/chat relative">
+                    <NavLink
+                      to={`/c/${chat.id}`}
+                      onClick={onClose}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2 pr-8 rounded-md text-sm transition-colors",
+                        location.pathname === `/c/${chat.id}` ? "bg-muted" : "hover:bg-muted"
+                      )}
+                    >
+                      {chat.isPinned ? (
+                        <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
+                      ) : isLobbyingChat ? (
+                        <HandCoins className="h-4 w-4 flex-shrink-0" />
+                      ) : (
+                        <MessagesSquare className="h-4 w-4 flex-shrink-0" />
+                      )}
+                      <span className="truncate">{chatTitle}</span>
+                    </NavLink>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover/chat:opacity-100 transition-opacity"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" side="right">
+                        <DropdownMenuItem onClick={() => handleRenameClick(chat.id, chatTitle)}>
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => togglePinChat(chat.id)}>
+                          <Pin className="h-4 w-4 mr-2" />
+                          {chat.isPinned ? "Unpin Chat" : "Pin Chat"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => deleteChat(chat.id)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 );
               })}
               {/* Excerpts */}
@@ -763,6 +809,35 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
 
       {/* Search Modal */}
       <SearchModal open={searchModalOpen} onOpenChange={setSearchModalOpen} />
+
+      {/* Rename Chat Dialog */}
+      <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+        <RenameDialogContent className="sm:max-w-[425px]">
+          <RenameDialogHeader>
+            <RenameDialogTitle>Rename Chat</RenameDialogTitle>
+          </RenameDialogHeader>
+          <div className="py-4">
+            <Input
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              placeholder="Enter new title"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleRenameSubmit();
+                }
+              }}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenameDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleRenameSubmit}>
+              Save
+            </Button>
+          </DialogFooter>
+        </RenameDialogContent>
+      </Dialog>
     </div>
     </TooltipProvider>
   );
