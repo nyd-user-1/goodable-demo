@@ -103,7 +103,7 @@ Based on this official lobbying disclosure data, provide a helpful analysis:
 
 IMPORTANT: Do NOT include any section about "Impact on Working Families" or similar social impact analysis. Focus on the business and political aspects of lobbying.
 
-IMPORTANT: When referring to the client list, say it is shown "above" (not "below") because the client list appears in the Thinking accordion at the top of the response.
+IMPORTANT: Do NOT reference or mention the client list in your response text (e.g., "Here is a list of their clients" or "as shown above"). The client list is automatically displayed in a separate accordion, so your response should only analyze the data without directing readers to a list.
 
 At the end of your response, include the clients section in EXACTLY this format (this exact marker format is required):
 
