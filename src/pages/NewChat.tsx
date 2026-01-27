@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { WordRotate } from "@/components/ui/word-rotate";
 // Safe sidebar hook that doesn't throw on public pages without SidebarProvider
 import { createContext, useContext } from "react";
 
@@ -1300,7 +1301,17 @@ const NewChat = () => {
           /* Initial State - Prompt Cards */
           <div className="flex flex-col items-center justify-center min-h-full px-4">
             <h1 className="text-4xl md:text-5xl font-semibold text-center mb-12 tracking-tight">
-              What are you researching?
+              <span className="hidden md:inline">What are you researching?</span>
+              <span className="md:hidden">
+                <WordRotate
+                  words={['Bills', 'Committees', 'Members', 'Contracts', 'Lobbying', 'School Aid']}
+                  animationStyle="fade"
+                  className="text-4xl font-semibold"
+                  duration={1200}
+                  pauseDuration={500}
+                  loop={true}
+                />
+              </span>
             </h1>
 
             {/* Prompt Carousel */}
