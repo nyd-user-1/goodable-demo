@@ -11,6 +11,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { PageTransition } from "@/components/PageTransition";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { useHubSpot } from "@/hooks/useHubSpot";
 import { NewAppSidebar } from "@/components/NewAppSidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { PageHeader } from "@/components/PageHeader";
@@ -90,6 +91,12 @@ import LiveFeed from "./pages/LiveFeed";
 
 const queryClient = new QueryClient();
 
+// HubSpot tracker component - must be inside AuthProvider to access auth context
+function HubSpotTracker() {
+  useHubSpot();
+  return null;
+}
+
 const AppLayout = () => {
   return (
     <ProtectedRoute>
@@ -162,6 +169,7 @@ const App = () => {
             <Sonner />
             <SpeedInsights />
             <Analytics />
+            <HubSpotTracker />
             <BrowserRouter>
               <ScrollToTop />
               <CommandPalette />
