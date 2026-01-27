@@ -1381,58 +1381,74 @@ const NewChat = () => {
                               </div>
                             </AccordionTrigger>
                             <AccordionContent className="px-4 pb-3 space-y-2">
-                              {/* Searching Section */}
-                              {message.searchQueries && (
-                                <div className="space-y-2">
-                                  <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                                    <SearchIcon className="h-3.5 w-3.5" />
-                                    Searching
-                                  </h3>
-                                  <div className="space-y-1.5">
-                                    {message.searchQueries.map((query, idx) => (
-                                      <div key={idx} className="flex items-start gap-2.5 p-2.5 rounded-md bg-muted/30 border border-border/50 text-xs text-muted-foreground">
-                                        <SearchIcon className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-muted-foreground/70" />
-                                        <span className="leading-relaxed">{query}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Reviewing Sources Section */}
-                              {message.reviewedInfo && !message.isStreaming && (
-                                <div className="space-y-2">
-                                  <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                                    <FileText className="h-3.5 w-3.5" />
-                                    Reviewing sources · {message.citations?.length || 0}
-                                  </h3>
-                                  <div className="p-2.5 rounded-md bg-muted/30 border border-border/50">
-                                    <p className="text-xs text-muted-foreground leading-relaxed">{message.reviewedInfo}</p>
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Clients Section - for lobbying chats */}
                               {(() => {
+                                // Check if this is a lobbying chat (has clients)
                                 const { clients } = parseClientsSection(message.content || '');
-                                if (clients.length === 0) return null;
+                                const isLobbyingChat = clients.length > 0;
+
                                 return (
-                                  <div className="space-y-2">
-                                    <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                                      <HandCoins className="h-3.5 w-3.5" />
-                                      Clients · {clients.length}
-                                    </h3>
-                                    <ScrollArea className="h-[200px]">
-                                      <div className="space-y-1.5 pr-4">
-                                        {clients.map((client, idx) => (
-                                          <div key={idx} className="flex items-start gap-2.5 p-2.5 rounded-md bg-muted/30 border border-border/50 text-xs text-muted-foreground">
-                                            <HandCoins className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-muted-foreground/70" />
-                                            <span className="leading-relaxed">{client}</span>
-                                          </div>
-                                        ))}
+                                  <>
+                                    {/* Searching Section - hide header and bills query for lobbying chats */}
+                                    {message.searchQueries && (
+                                      <div className="space-y-2">
+                                        {/* Only show header for non-lobbying chats */}
+                                        {!isLobbyingChat && (
+                                          <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                                            <SearchIcon className="h-3.5 w-3.5" />
+                                            Searching
+                                          </h3>
+                                        )}
+                                        <div className="space-y-1.5">
+                                          {message.searchQueries
+                                            // For lobbying chats, only show the first query (analyzing)
+                                            .filter((_, idx) => !isLobbyingChat || idx === 0)
+                                            .map((query, idx) => (
+                                              <div key={idx} className="flex items-start gap-2.5 p-2.5 rounded-md bg-muted/30 border border-border/50 text-xs text-muted-foreground">
+                                                {isLobbyingChat ? (
+                                                  <HandCoins className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-muted-foreground/70" />
+                                                ) : (
+                                                  <SearchIcon className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-muted-foreground/70" />
+                                                )}
+                                                <span className="leading-relaxed">{query}</span>
+                                              </div>
+                                            ))}
+                                        </div>
                                       </div>
-                                    </ScrollArea>
-                                  </div>
+                                    )}
+
+                                    {/* Reviewing Sources Section - hide for lobbying chats */}
+                                    {message.reviewedInfo && !message.isStreaming && !isLobbyingChat && (
+                                      <div className="space-y-2">
+                                        <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                                          <FileText className="h-3.5 w-3.5" />
+                                          Reviewing sources · {message.citations?.length || 0}
+                                        </h3>
+                                        <div className="p-2.5 rounded-md bg-muted/30 border border-border/50">
+                                          <p className="text-xs text-muted-foreground leading-relaxed">{message.reviewedInfo}</p>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Clients Section - for lobbying chats */}
+                                    {isLobbyingChat && (
+                                      <div className="space-y-2">
+                                        <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                                          <HandCoins className="h-3.5 w-3.5" />
+                                          Clients · {clients.length}
+                                        </h3>
+                                        <ScrollArea className="h-[200px]">
+                                          <div className="space-y-1.5 pr-4">
+                                            {clients.map((client, idx) => (
+                                              <div key={idx} className="flex items-start gap-2.5 p-2.5 rounded-md bg-muted/30 border border-border/50 text-xs text-muted-foreground">
+                                                <HandCoins className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-muted-foreground/70" />
+                                                <span className="leading-relaxed">{client}</span>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </ScrollArea>
+                                      </div>
+                                    )}
+                                  </>
                                 );
                               })()}
 
