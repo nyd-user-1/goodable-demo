@@ -89,10 +89,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const signInWithGoogle = async () => {
+    const origin = window.location.hostname === 'localhost'
+      ? window.location.origin
+      : 'https://nysgpt.com';
+
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/new-chat`
+        redirectTo: `${origin}/new-chat`
       }
     });
   };
