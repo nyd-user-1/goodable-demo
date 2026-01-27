@@ -1516,8 +1516,8 @@ const NewChat = () => {
                               </ReactMarkdown>
                               {isLoadingClients && partialClients.length > 0 && (
                                 <Accordion type="single" collapsible className="mt-4" defaultValue="clients">
-                                  <AccordionItem value="clients" className="border rounded-lg overflow-hidden">
-                                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-muted/50 text-sm font-medium">
+                                  <AccordionItem value="clients" className="border rounded-lg overflow-hidden [&>h3>button]:py-2.5">
+                                    <AccordionTrigger className="px-4 hover:no-underline hover:bg-muted/50 text-sm font-medium">
                                       <span className="flex items-center gap-2">
                                         Clients ({partialClients.length})
                                         <span className="inline-block w-1.5 h-3 bg-muted-foreground/50 animate-pulse rounded-sm"></span>
@@ -1638,8 +1638,8 @@ const NewChat = () => {
                                   </ReactMarkdown>
                                   {clients.length > 0 && (
                                     <Accordion type="single" collapsible className="mt-4">
-                                      <AccordionItem value="clients" className="border rounded-lg overflow-hidden">
-                                        <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-muted/50 text-sm font-medium">
+                                      <AccordionItem value="clients" className="border rounded-lg overflow-hidden [&>h3>button]:py-2.5">
+                                        <AccordionTrigger className="px-4 hover:no-underline hover:bg-muted/50 text-sm font-medium">
                                             Clients ({clients.length})
                                         </AccordionTrigger>
                                         <AccordionContent className="px-4 pb-3 pt-0 border-t">
