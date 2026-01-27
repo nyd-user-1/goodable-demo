@@ -181,10 +181,10 @@ const Contracts = () => {
                 <div className="flex flex-wrap gap-2">
                   <Select value={departmentFilter || "all"} onValueChange={(v) => setDepartmentFilter(v === "all" ? "" : v)}>
                     <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
-                      <SelectValue placeholder="All Departments" />
+                      <SelectValue placeholder="Department" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Departments</SelectItem>
+                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">Department</SelectItem>
                       {departments.map((dept) => (
                         <SelectItem key={dept} value={dept} className="focus:bg-muted focus:text-foreground">
                           {dept}
@@ -195,10 +195,10 @@ const Contracts = () => {
 
                   <Select value={contractTypeFilter || "all"} onValueChange={(v) => setContractTypeFilter(v === "all" ? "" : v)}>
                     <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
-                      <SelectValue placeholder="All Types" />
+                      <SelectValue placeholder="Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Types</SelectItem>
+                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">Type</SelectItem>
                       {contractTypes.map((type) => (
                         <SelectItem key={type} value={type} className="focus:bg-muted focus:text-foreground">
                           {type}
