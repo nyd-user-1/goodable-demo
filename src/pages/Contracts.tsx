@@ -184,7 +184,7 @@ const Contracts = () => {
                       <SelectValue placeholder="Department" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">Department</SelectItem>
+                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Departments</SelectItem>
                       {departments.map((dept) => (
                         <SelectItem key={dept} value={dept} className="focus:bg-muted focus:text-foreground">
                           {dept}
@@ -198,7 +198,7 @@ const Contracts = () => {
                       <SelectValue placeholder="Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">Type</SelectItem>
+                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Types</SelectItem>
                       {contractTypes.map((type) => (
                         <SelectItem key={type} value={type} className="focus:bg-muted focus:text-foreground">
                           {type}
