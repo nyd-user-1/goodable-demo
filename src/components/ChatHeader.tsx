@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Command, PenSquare } from "lucide-react";
+import { Command } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import confetti from "canvas-confetti";
 import {
@@ -107,20 +107,6 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
             </TooltipContent>
           </Tooltip>
 
-          {/* Pencil icon - triggers new chat */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleNewChat}
-                className="w-8 h-8 flex items-center justify-center hover:bg-muted rounded-lg transition-colors cursor-pointer"
-              >
-                <PenSquare className="h-4 w-4 text-muted-foreground" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="font-medium">
-              New chat
-            </TooltipContent>
-          </Tooltip>
         </div>
 
         {/* Center - Marketing Navigation (desktop only) */}
@@ -262,13 +248,6 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
             onClick={() => navigate('/auth')}
           >
             Log In
-          </button>
-          {/* Sign Up button - routes to /auth-4 */}
-          <button
-            className="inline-flex items-center justify-center h-9 rounded-md px-3 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-medium"
-            onClick={() => navigate('/auth-4')}
-          >
-            Sign Up
           </button>
         </div>
       </div>

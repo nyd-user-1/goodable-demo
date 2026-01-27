@@ -186,3 +186,16 @@
   word-break: break-word !important;
   max-width: 100% !important;
 }
+
+/* Mobile sidebar menu items - larger size and weight to match ChatGPT */
+[data-mobile="true"] [data-sidebar="menu-button"] {
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  min-height: 2.75rem !important;
+}
+
+[data-mobile="true"] [data-sidebar="group-label"] {
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.025em !important;
+}
