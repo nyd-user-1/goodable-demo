@@ -26,7 +26,6 @@ import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from 'react-markdown';
 import { useModel } from "@/contexts/ModelContext";
 import { Textarea } from "@/components/ui/textarea";
-import { BetaAccessModal, incrementChatCount, isChatBlocked, triggerModalReopen } from "@/components/BetaAccessModal";
 import { ChatHeader } from "@/components/ChatHeader";
 import {
   Dialog,
@@ -754,13 +753,6 @@ const NewChat = () => {
   const handleSubmit = async (e: React.FormEvent | null, promptText?: string, systemContext?: string) => {
     if (e) e.preventDefault();
 
-    // Block chat input if modal is active - show modal again
-    if (isChatBlocked()) {
-      console.log('[NewChat] Chat is blocked - reopening modal');
-      triggerModalReopen();
-      return;
-    }
-
     // Check if daily word limit is exceeded
     if (isLimitExceeded) {
       toast({
@@ -826,10 +818,6 @@ const NewChat = () => {
     }
 
     if (!userQuery) return;
-
-    // Track chat input for beta access modal
-    console.log('[NewChat] Calling incrementChatCount');
-    incrementChatCount();
 
     // Start chat interface
     setChatStarted(true);
@@ -911,8 +899,8 @@ const NewChat = () => {
       console.error('Error reading school funding data:', e);
     }
 
-    // Check if this is a contract-related chat
-    const isContractChat = selectedContracts.length > 0;
+    // Check if this is a contract-related chat (via URL prompt prefix or selected contracts)
+    const isContractChat = selectedContracts.length > 0 || userQuery.startsWith('[Contract:');
 
     const streamingMessage: Message = {
       id: messageId,
@@ -2388,8 +2376,6 @@ const NewChat = () => {
       {/* "Ask Goodable" Text Selection Popup - rendered via portal */}
       <AskGoodableSelectionPopup onAsk={handleAskGoodable} />
 
-      {/* Beta Access Modal - triggers after 2 chat inputs */}
-      <BetaAccessModal />
     </div>
   );
 };
