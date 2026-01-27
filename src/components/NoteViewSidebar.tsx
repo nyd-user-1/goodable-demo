@@ -3,7 +3,7 @@
  * Slides in from off-screen outside the main container
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   MessageSquare,
@@ -92,11 +92,6 @@ interface NoteViewSidebarProps {
   onClose?: () => void;
 }
 
-interface ChatSession {
-  id: string;
-  title: string;
-}
-
 interface Excerpt {
   id: string;
   title: string;
@@ -105,7 +100,36 @@ interface Excerpt {
 interface Note {
   id: string;
   title: string;
+  updated_at: string;
+  isPinned?: boolean;
 }
+
+// Combined item type for unified list
+interface SidebarItem {
+  id: string;
+  title: string;
+  type: 'chat' | 'note' | 'excerpt';
+  updated_at: string;
+  isPinned: boolean;
+  // Chat-specific
+  isLobbyingChat?: boolean;
+}
+
+const PINNED_NOTES_KEY = "goodable_pinned_notes";
+
+// Helper to get pinned note IDs from localStorage
+const getPinnedNoteIds = (): Set<string> => {
+  try {
+    const stored = localStorage.getItem(PINNED_NOTES_KEY);
+    return new Set(stored ? JSON.parse(stored) : []);
+  } catch {
+    return new Set();
+  }
+};
+
+const savePinnedNoteIds = (ids: Set<string>) => {
+  localStorage.setItem(PINNED_NOTES_KEY, JSON.stringify([...ids]));
+};
 
 export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const location = useLocation();
@@ -116,6 +140,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const { recentChats, deleteChat, togglePinChat, renameChat, refetch: refetchChats } = useRecentChats(10);
   const [recentExcerpts, setRecentExcerpts] = useState<Excerpt[]>([]);
   const [recentNotes, setRecentNotes] = useState<Note[]>([]);
+  const [pinnedNoteIds, setPinnedNoteIds] = useState<Set<string>>(getPinnedNoteIds());
   const [newChatHover, setNewChatHover] = useState(false);
   const [planUsageOpen, setPlanUsageOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -123,7 +148,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
-  const [chatToRename, setChatToRename] = useState<{ id: string; title: string } | null>(null);
+  const [itemToRename, setItemToRename] = useState<{ id: string; title: string; type: 'chat' | 'note' } | null>(null);
   const [renameValue, setRenameValue] = useState("");
 
   // Check current theme
@@ -210,19 +235,120 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
     setFeedbackOpen(false);
   };
 
-  const handleRenameClick = (chatId: string, currentTitle: string) => {
-    setChatToRename({ id: chatId, title: currentTitle });
+  const handleRenameClick = (id: string, currentTitle: string, type: 'chat' | 'note') => {
+    setItemToRename({ id, title: currentTitle, type });
     setRenameValue(currentTitle);
     setRenameDialogOpen(true);
   };
 
   const handleRenameSubmit = async () => {
-    if (!chatToRename || !renameValue.trim()) return;
-    await renameChat(chatToRename.id, renameValue.trim());
+    if (!itemToRename || !renameValue.trim()) return;
+
+    if (itemToRename.type === 'chat') {
+      await renameChat(itemToRename.id, renameValue.trim());
+    } else if (itemToRename.type === 'note') {
+      await renameNote(itemToRename.id, renameValue.trim());
+    }
+
     setRenameDialogOpen(false);
-    setChatToRename(null);
+    setItemToRename(null);
     setRenameValue("");
   };
+
+  // Note operations
+  const renameNote = async (noteId: string, newTitle: string) => {
+    try {
+      const { error } = await supabase
+        .from("chat_notes")
+        .update({ title: newTitle })
+        .eq("id", noteId);
+
+      if (error) throw error;
+
+      setRecentNotes(prev => prev.map(note =>
+        note.id === noteId ? { ...note, title: newTitle } : note
+      ));
+    } catch (error) {
+      console.error("Error renaming note:", error);
+    }
+  };
+
+  const deleteNote = async (noteId: string) => {
+    try {
+      const { error } = await supabase
+        .from("chat_notes")
+        .delete()
+        .eq("id", noteId);
+
+      if (error) throw error;
+
+      setRecentNotes(prev => prev.filter(note => note.id !== noteId));
+
+      // Remove from pinned if it was pinned
+      const newPinnedIds = new Set(pinnedNoteIds);
+      newPinnedIds.delete(noteId);
+      setPinnedNoteIds(newPinnedIds);
+      savePinnedNoteIds(newPinnedIds);
+    } catch (error) {
+      console.error("Error deleting note:", error);
+    }
+  };
+
+  const togglePinNote = (noteId: string) => {
+    const newPinnedIds = new Set(pinnedNoteIds);
+    if (newPinnedIds.has(noteId)) {
+      newPinnedIds.delete(noteId);
+    } else {
+      newPinnedIds.add(noteId);
+    }
+    setPinnedNoteIds(newPinnedIds);
+    savePinnedNoteIds(newPinnedIds);
+  };
+
+  // Combine chats and notes into a single sorted list
+  const combinedItems: SidebarItem[] = useMemo(() => {
+    const items: SidebarItem[] = [];
+
+    // Add chats
+    recentChats.forEach(chat => {
+      const chatTitle = chat.title || "Untitled Chat";
+      const isLobbyingChat = chatTitle.startsWith("Tell me about") &&
+        (chatTitle.includes("LLC") || chatTitle.includes("LLP") ||
+         chatTitle.includes("INC") || chatTitle.includes("ADVISORS") ||
+         chatTitle.includes("ASSOCIATES") || chatTitle.includes("CONSULTING") ||
+         chatTitle.includes("GROUP") || chatTitle.includes("STRATEGIES") ||
+         chatTitle.includes("AFFAIRS") || chatTitle.includes("& "));
+
+      items.push({
+        id: chat.id,
+        title: chatTitle,
+        type: 'chat',
+        updated_at: chat.updated_at || new Date().toISOString(),
+        isPinned: chat.isPinned,
+        isLobbyingChat,
+      });
+    });
+
+    // Add notes
+    recentNotes.forEach(note => {
+      items.push({
+        id: note.id,
+        title: note.title || "Untitled Note",
+        type: 'note',
+        updated_at: note.updated_at || new Date().toISOString(),
+        isPinned: pinnedNoteIds.has(note.id),
+      });
+    });
+
+    // Sort: pinned first, then by updated_at descending
+    items.sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+    });
+
+    return items;
+  }, [recentChats, recentNotes, pinnedNoteIds]);
 
   const handleCreateNote = async () => {
     if (!user) return;
@@ -580,8 +706,8 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           </CollapsibleContent>
         </Collapsible>
 
-        {/* Your Chats Section - Combined chats, excerpts, and notes */}
-        {(recentChats.length > 0 || recentExcerpts.length > 0 || recentNotes.length > 0) && (
+        {/* Your Chats Section - Combined chats and notes, sorted chronologically */}
+        {(combinedItems.length > 0 || recentExcerpts.length > 0) && (
           <Collapsible defaultOpen className="group/chats mt-4">
             <div className="px-2">
               <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
@@ -590,83 +716,61 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               </CollapsibleTrigger>
             </div>
             <CollapsibleContent className="px-2 space-y-1">
-              {/* Notes */}
-              {recentNotes.map((note) => (
-                <NavLink
-                  key={`note-${note.id}`}
-                  to={`/n/${note.id}`}
-                  onClick={onClose}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                    location.pathname === `/n/${note.id}` ? "bg-muted" : "hover:bg-muted"
-                  )}
-                >
-                  <NotebookPen className="h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">{note.title}</span>
-                </NavLink>
+              {/* Combined chats and notes, sorted by date */}
+              {combinedItems.map((item) => (
+                <div key={`${item.type}-${item.id}`} className="group/item relative">
+                  <NavLink
+                    to={item.type === 'chat' ? `/c/${item.id}` : `/n/${item.id}`}
+                    onClick={onClose}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2 pr-8 rounded-md text-sm transition-colors",
+                      (item.type === 'chat' ? location.pathname === `/c/${item.id}` : location.pathname === `/n/${item.id}`)
+                        ? "bg-muted"
+                        : "hover:bg-muted"
+                    )}
+                  >
+                    {item.isPinned ? (
+                      <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
+                    ) : item.type === 'note' ? (
+                      <NotebookPen className="h-4 w-4 flex-shrink-0" />
+                    ) : item.isLobbyingChat ? (
+                      <HandCoins className="h-4 w-4 flex-shrink-0" />
+                    ) : (
+                      <MessagesSquare className="h-4 w-4 flex-shrink-0" />
+                    )}
+                    <span className="truncate">{item.title}</span>
+                  </NavLink>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover/item:opacity-100 transition-opacity"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" side="right">
+                      <DropdownMenuItem onClick={() => handleRenameClick(item.id, item.title, item.type)}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Rename
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => item.type === 'chat' ? togglePinChat(item.id) : togglePinNote(item.id)}>
+                        <Pin className="h-4 w-4 mr-2" />
+                        {item.isPinned ? (item.type === 'chat' ? "Unpin Chat" : "Unpin Note") : (item.type === 'chat' ? "Pin Chat" : "Pin Note")}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => item.type === 'chat' ? deleteChat(item.id) : deleteNote(item.id)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               ))}
-              {/* Chats */}
-              {recentChats.map((chat) => {
-                // Check if this is a lobbying-related chat by title pattern
-                const chatTitle = chat.title || "Untitled Chat";
-                const isLobbyingChat = chatTitle.startsWith("Tell me about") &&
-                  (chatTitle.includes("LLC") || chatTitle.includes("LLP") ||
-                   chatTitle.includes("INC") || chatTitle.includes("ADVISORS") ||
-                   chatTitle.includes("ASSOCIATES") || chatTitle.includes("CONSULTING") ||
-                   chatTitle.includes("GROUP") || chatTitle.includes("STRATEGIES") ||
-                   chatTitle.includes("AFFAIRS") || chatTitle.includes("& "));
-
-                return (
-                  <div key={`chat-${chat.id}`} className="group/chat relative">
-                    <NavLink
-                      to={`/c/${chat.id}`}
-                      onClick={onClose}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-2 pr-8 rounded-md text-sm transition-colors",
-                        location.pathname === `/c/${chat.id}` ? "bg-muted" : "hover:bg-muted"
-                      )}
-                    >
-                      {chat.isPinned ? (
-                        <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
-                      ) : isLobbyingChat ? (
-                        <HandCoins className="h-4 w-4 flex-shrink-0" />
-                      ) : (
-                        <MessagesSquare className="h-4 w-4 flex-shrink-0" />
-                      )}
-                      <span className="truncate">{chatTitle}</span>
-                    </NavLink>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover/chat:opacity-100 transition-opacity"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" side="right">
-                        <DropdownMenuItem onClick={() => handleRenameClick(chat.id, chatTitle)}>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Rename
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => togglePinChat(chat.id)}>
-                          <Pin className="h-4 w-4 mr-2" />
-                          {chat.isPinned ? "Unpin Chat" : "Pin Chat"}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => deleteChat(chat.id)}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                );
-              })}
               {/* Excerpts */}
               {recentExcerpts.map((excerpt) => (
                 <NavLink
