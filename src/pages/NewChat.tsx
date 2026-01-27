@@ -55,6 +55,14 @@ import { AskGoodableSelectionPopup } from "@/components/AskGoodableSelectionPopu
 import { useAIUsage, countWords } from "@/hooks/useAIUsage";
 import { useToast } from "@/hooks/use-toast";
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import {
+  ChainOfThought,
+  ChainOfThoughtHeader,
+  ChainOfThoughtContent,
+  ChainOfThoughtStep,
+  ChainOfThoughtSearchResults,
+  ChainOfThoughtSearchResult,
+} from "@/components/ai-elements/chain-of-thought";
 
 // Thinking phrases that rotate per message instance
 const thinkingPhrases = [
@@ -220,6 +228,7 @@ interface Message {
   isPerplexityResponse?: boolean;
   thinkingPhrase?: string;
   schoolFundingData?: SchoolFundingDetails;
+  isContractChat?: boolean;
 }
 
 const NewChat = () => {
@@ -902,6 +911,9 @@ const NewChat = () => {
       console.error('Error reading school funding data:', e);
     }
 
+    // Check if this is a contract-related chat
+    const isContractChat = selectedContracts.length > 0;
+
     const streamingMessage: Message = {
       id: messageId,
       role: "assistant",
@@ -914,6 +926,7 @@ const NewChat = () => {
       ],
       thinkingPhrase: getNextThinkingPhrase(),
       schoolFundingData,
+      isContractChat,
     };
     setMessages(prev => [...prev, streamingMessage]);
 
@@ -1374,6 +1387,49 @@ const NewChat = () => {
                       const contentToCheck = message.content || message.streamedContent || '';
                       const { clients } = parseClientsSection(contentToCheck);
                       const isLobbyingChat = clients.length > 0;
+
+                      // Contract chats get Chain of Thought UI
+                      if (message.isContractChat) {
+                        return (
+                          <ChainOfThought defaultOpen={false} className="border-2 border-dashed border-border/50 rounded-lg">
+                            <ChainOfThoughtHeader />
+                            <ChainOfThoughtContent>
+                              {/* Analyzing Contract Step */}
+                              <ChainOfThoughtStep
+                                icon={Wallet}
+                                label="Analyzing contract details"
+                                status={message.isStreaming ? "active" : "complete"}
+                              />
+
+                              {/* Searching Step */}
+                              {message.searchQueries && (
+                                <ChainOfThoughtStep
+                                  icon={SearchIcon}
+                                  label="Searching databases"
+                                  status={message.isStreaming ? "active" : "complete"}
+                                >
+                                  <ChainOfThoughtSearchResults>
+                                    {message.searchQueries.map((query, idx) => (
+                                      <ChainOfThoughtSearchResult key={idx}>
+                                        {query.length > 40 ? query.substring(0, 40) + '...' : query}
+                                      </ChainOfThoughtSearchResult>
+                                    ))}
+                                  </ChainOfThoughtSearchResults>
+                                </ChainOfThoughtStep>
+                              )}
+
+                              {/* Reviewing Sources Step */}
+                              {message.reviewedInfo && !message.isStreaming && (
+                                <ChainOfThoughtStep
+                                  icon={FileText}
+                                  label={`Reviewed ${message.citations?.length || 0} sources`}
+                                  status="complete"
+                                />
+                              )}
+                            </ChainOfThoughtContent>
+                          </ChainOfThought>
+                        );
+                      }
 
                       return (
                       <Accordion type="single" collapsible className="w-full">
