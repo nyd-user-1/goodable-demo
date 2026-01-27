@@ -1979,7 +1979,7 @@ const NewChat = () => {
                           <p>Select Members</p>
                         </TooltipContent>
                       </Tooltip>
-                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col" onOpenAutoFocus={(e) => { if (window.innerWidth < 768) e.preventDefault(); }}>
                         <DialogHeader>
                           <DialogTitle>Select Members</DialogTitle>
                         </DialogHeader>
@@ -2091,7 +2091,7 @@ const NewChat = () => {
                           <p>Select Committees</p>
                         </TooltipContent>
                       </Tooltip>
-                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col" onOpenAutoFocus={(e) => { if (window.innerWidth < 768) e.preventDefault(); }}>
                         <DialogHeader>
                           <DialogTitle>Select Committees</DialogTitle>
                         </DialogHeader>
@@ -2201,7 +2201,7 @@ const NewChat = () => {
                           <p>Select Bills</p>
                         </TooltipContent>
                       </Tooltip>
-                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col" onOpenAutoFocus={(e) => { if (window.innerWidth < 768) e.preventDefault(); }}>
                         <DialogHeader>
                           <DialogTitle>Select Bills</DialogTitle>
                         </DialogHeader>
@@ -2312,7 +2312,7 @@ const NewChat = () => {
                           <p>Select Contracts</p>
                         </TooltipContent>
                       </Tooltip>
-                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col" onOpenAutoFocus={(e) => { if (window.innerWidth < 768) e.preventDefault(); }}>
                         <DialogHeader>
                           <DialogTitle>Select Contracts</DialogTitle>
                         </DialogHeader>
