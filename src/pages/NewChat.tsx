@@ -54,6 +54,7 @@ import { EngineSelection } from "@/components/EngineSelection";
 import { AskGoodableSelectionPopup } from "@/components/AskGoodableSelectionPopup";
 import { useAIUsage, countWords } from "@/hooks/useAIUsage";
 import { useToast } from "@/hooks/use-toast";
+import { Shimmer } from "@/components/ai-elements/shimmer";
 
 // Thinking phrases that rotate per message instance
 const thinkingPhrases = [
@@ -1389,7 +1390,9 @@ const NewChat = () => {
                                     <span>Clients · {clients.length}</span>
                                   </>
                                 ) : (
-                                  <span>{message.thinkingPhrase || "Thinking…"}</span>
+                                  <Shimmer duration={2} spread={2}>
+                                    {message.thinkingPhrase || "Thinking…"}
+                                  </Shimmer>
                                 )}
                               </div>
                             </AccordionTrigger>
