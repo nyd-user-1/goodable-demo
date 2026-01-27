@@ -908,10 +908,15 @@ const NewChat = () => {
       content: "",
       isStreaming: true,
       streamedContent: "",
-      searchQueries: [
-        `Analyzing "${userQuery.substring(0, 60)}${userQuery.length > 60 ? '...' : ''}" in NY State Legislature`,
-        `Searching NY State Bills Database`,
-      ],
+      searchQueries: isContractChat
+        ? [
+            `Analyzing "${userQuery.substring(0, 60)}${userQuery.length > 60 ? '...' : ''}"`,
+            `Searching NYS Contracts`,
+          ]
+        : [
+            `Analyzing "${userQuery.substring(0, 60)}${userQuery.length > 60 ? '...' : ''}" in NY State Legislature`,
+            `Searching NY State Bills Database`,
+          ],
       thinkingPhrase: getNextThinkingPhrase(),
       schoolFundingData,
       isContractChat,
