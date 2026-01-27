@@ -381,7 +381,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   };
 
   // Get user display name
-  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'User';
   const truncatedName = displayName.length > 14 ? displayName.slice(0, 14) + '...' : displayName;
 
   return (

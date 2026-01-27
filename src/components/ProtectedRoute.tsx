@@ -2,8 +2,6 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { SignupPromptModal } from '@/components/SignupPromptModal';
-import { useSignupPrompt } from '@/hooks/useSignupPrompt';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -13,7 +11,6 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { shouldShowModal, dismissModal } = useSignupPrompt(!user && !loading);
 
   // Redirect authenticated users from root to new-chat
   useEffect(() => {
@@ -40,15 +37,5 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   // Allow viewing content even without auth (soft paywall)
-  return (
-    <>
-      {children}
-      {!user && (
-        <SignupPromptModal
-          open={shouldShowModal}
-          onClose={dismissModal}
-        />
-      )}
-    </>
-  );
+  return <>{children}</>;
 };

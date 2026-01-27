@@ -184,7 +184,7 @@ const Contracts = () => {
                       <SelectValue placeholder="Department" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Departments</SelectItem>
+                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">Department</SelectItem>
                       {departments.map((dept) => (
                         <SelectItem key={dept} value={dept} className="focus:bg-muted focus:text-foreground">
                           {dept}
@@ -198,7 +198,7 @@ const Contracts = () => {
                       <SelectValue placeholder="Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Types</SelectItem>
+                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">Type</SelectItem>
                       {contractTypes.map((type) => (
                         <SelectItem key={type} value={type} className="focus:bg-muted focus:text-foreground">
                           {type}
@@ -218,9 +218,9 @@ const Contracts = () => {
                 <p className="text-destructive">Error loading contracts: {String(error)}</p>
               </div>
             ) : isLoading ? (
-              <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {Array.from({ length: 12 }).map((_, i) => (
-                  <div key={i} className="break-inside-avoid h-32 bg-muted/30 rounded-2xl animate-pulse" />
+                  <div key={i} className="h-32 bg-muted/30 rounded-2xl animate-pulse" />
                 ))}
               </div>
             ) : contracts.length === 0 ? (
@@ -234,7 +234,7 @@ const Contracts = () => {
                 )}
               </div>
             ) : (
-              <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {contracts.map((contract) => (
                   <ContractCard
                     key={contract.id}
@@ -283,7 +283,7 @@ function ContractCard({ contract, onClick, onChatClick }: ContractCardProps) {
   return (
     <div
       onClick={onClick}
-      className="group break-inside-avoid bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
+      className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
     >
       <h3 className="font-semibold text-base mb-3">
         {contract.vendor_name || 'Unknown Vendor'}
