@@ -201,10 +201,10 @@ const Bills2 = () => {
                 <div className="flex flex-wrap gap-2">
                   <Select value={statusFilter || "all"} onValueChange={(v) => setStatusFilter(v === "all" ? "" : v)}>
                     <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
-                      <SelectValue placeholder="All Statuses" />
+                      <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Statuses</SelectItem>
+                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">Status</SelectItem>
                       {statuses.map((status) => (
                         <SelectItem key={status} value={status} className="focus:bg-muted focus:text-foreground">
                           {status}
@@ -215,10 +215,10 @@ const Bills2 = () => {
 
                   <Select value={committeeFilter || "all"} onValueChange={(v) => setCommitteeFilter(v === "all" ? "" : v)}>
                     <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
-                      <SelectValue placeholder="All Committees" />
+                      <SelectValue placeholder="Committee" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Committees</SelectItem>
+                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">Committee</SelectItem>
                       {committees.map((committee) => (
                         <SelectItem key={committee} value={committee} className="focus:bg-muted focus:text-foreground">
                           {committee}
@@ -229,10 +229,10 @@ const Bills2 = () => {
 
                   <Select value={sessionFilter || "all"} onValueChange={(v) => setSessionFilter(v === "all" ? "" : v)}>
                     <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
-                      <SelectValue placeholder="All Sessions" />
+                      <SelectValue placeholder="Session" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Sessions</SelectItem>
+                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">Session</SelectItem>
                       {sessions.map((session) => (
                         <SelectItem key={session} value={String(session)} className="focus:bg-muted focus:text-foreground">
                           {session}
@@ -243,10 +243,10 @@ const Bills2 = () => {
 
                   <Select value={sponsorFilter || "all"} onValueChange={(v) => setSponsorFilter(v === "all" ? "" : v)}>
                     <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
-                      <SelectValue placeholder="All Sponsors" />
+                      <SelectValue placeholder="Sponsor" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All Sponsors</SelectItem>
+                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">Sponsor</SelectItem>
                       {sponsors.map((sponsor) => (
                         <SelectItem key={sponsor.id} value={String(sponsor.id)} className="focus:bg-muted focus:text-foreground">
                           {sponsor.name}

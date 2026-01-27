@@ -36,7 +36,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { subscription, openCustomerPortal } = useSubscription();
@@ -45,8 +45,11 @@ const Profile = () => {
   useEffect(() => {
     if (user) {
       fetchProfile();
+    } else if (!authLoading) {
+      // Auth finished loading but no user - stop showing skeletons
+      setLoading(false);
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   const fetchProfile = async () => {
     if (!user) return;
