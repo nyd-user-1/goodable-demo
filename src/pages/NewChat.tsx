@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChatPersistence } from "@/hooks/useChatPersistence";
-import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, ChevronLeft, ChevronRight, PanelLeft } from "lucide-react";
+import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, ChevronLeft, ChevronRight, PanelLeft, HandCoins } from "lucide-react";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { Contract } from "@/types/contracts";
 import { Button } from "@/components/ui/button";
@@ -1412,6 +1412,30 @@ const NewChat = () => {
                                 </div>
                               )}
 
+                              {/* Clients Section - for lobbying chats */}
+                              {(() => {
+                                const { clients } = parseClientsSection(message.content || '');
+                                if (clients.length === 0) return null;
+                                return (
+                                  <div className="space-y-2">
+                                    <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                                      <HandCoins className="h-3.5 w-3.5" />
+                                      Clients · {clients.length}
+                                    </h3>
+                                    <ScrollArea className="h-[200px]">
+                                      <div className="space-y-1.5 pr-4">
+                                        {clients.map((client, idx) => (
+                                          <div key={idx} className="flex items-start gap-2.5 p-2.5 rounded-md bg-muted/30 border border-border/50 text-xs text-muted-foreground">
+                                            <HandCoins className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-muted-foreground/70" />
+                                            <span className="leading-relaxed">{client}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </ScrollArea>
+                                  </div>
+                                );
+                              })()}
+
                               {/* Finished State */}
                               {!message.isStreaming && (
                                 <div className="flex items-center gap-1.5 text-xs font-medium text-green-600 dark:text-green-400 pt-1">
@@ -1514,32 +1538,6 @@ const NewChat = () => {
                               >
                                 {cleanContent}
                               </ReactMarkdown>
-                              {isLoadingClients && partialClients.length > 0 && (
-                                <Accordion type="single" collapsible className="mt-4" defaultValue="clients">
-                                  <AccordionItem value="clients" className="border rounded-lg overflow-hidden [&>h3>button]:py-2.5">
-                                    <AccordionTrigger className="px-4 hover:no-underline hover:bg-muted/50 text-sm font-medium">
-                                      <span className="flex items-center gap-2">
-                                        Clients ({partialClients.length})
-                                        <span className="inline-block w-1.5 h-3 bg-muted-foreground/50 animate-pulse rounded-sm"></span>
-                                      </span>
-                                    </AccordionTrigger>
-                                    <AccordionContent className="px-4 pb-3 pt-0 border-t">
-                                      <ScrollArea className="h-[200px] pr-4 mt-3">
-                                        <ul className="space-y-0.5">
-                                          {partialClients.map((client, index) => (
-                                            <li
-                                              key={index}
-                                              className="text-sm text-muted-foreground py-1 border-b border-border/30 last:border-0"
-                                            >
-                                              {client}
-                                            </li>
-                                          ))}
-                                        </ul>
-                                      </ScrollArea>
-                                    </AccordionContent>
-                                  </AccordionItem>
-                                </Accordion>
-                              )}
                             </>
                           );
                         })()
@@ -1636,29 +1634,6 @@ const NewChat = () => {
                                   >
                                     {mainContent}
                                   </ReactMarkdown>
-                                  {clients.length > 0 && (
-                                    <Accordion type="single" collapsible className="mt-4">
-                                      <AccordionItem value="clients" className="border rounded-lg overflow-hidden [&>h3>button]:py-2.5">
-                                        <AccordionTrigger className="px-4 hover:no-underline hover:bg-muted/50 text-sm font-medium">
-                                            Clients ({clients.length})
-                                        </AccordionTrigger>
-                                        <AccordionContent className="px-4 pb-3 pt-0 border-t">
-                                          <ScrollArea className="h-[200px] pr-4 mt-3">
-                                            <ul className="space-y-0.5">
-                                              {clients.map((client, index) => (
-                                                <li
-                                                  key={index}
-                                                  className="text-sm text-muted-foreground py-1 border-b border-border/30 last:border-0"
-                                                >
-                                                  {client}
-                                                </li>
-                                              ))}
-                                            </ul>
-                                          </ScrollArea>
-                                        </AccordionContent>
-                                      </AccordionItem>
-                                    </Accordion>
-                                  )}
                                 </>
                               );
                             })()
