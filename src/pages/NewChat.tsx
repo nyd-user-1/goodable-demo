@@ -1368,7 +1368,13 @@ const NewChat = () => {
                     )}
 
                     {/* Enhanced Searched and Reviewed Section with Process Content - hide for school funding */}
-                    {(message.searchQueries || message.reviewedInfo) && !message.schoolFundingData && (
+                    {(message.searchQueries || message.reviewedInfo) && !message.schoolFundingData && (() => {
+                      // Check if this is a lobbying chat (has clients) - check both content sources
+                      const contentToCheck = message.content || message.streamedContent || '';
+                      const { clients } = parseClientsSection(contentToCheck);
+                      const isLobbyingChat = clients.length > 0;
+
+                      return (
                       <Accordion type="single" collapsible className="w-full">
                         <AccordionItem
                           value="sources"
@@ -1377,38 +1383,28 @@ const NewChat = () => {
                           <div className="relative p-0.5">
                             <AccordionTrigger className="hover:no-underline px-4 py-2.5 rounded-t-lg text-xs font-medium">
                               <div className="flex items-center gap-2 text-muted-foreground">
-                                <span>{message.thinkingPhrase || "Thinking…"}</span>
+                                {isLobbyingChat ? (
+                                  <>
+                                    <HandCoins className="h-3.5 w-3.5" />
+                                    <span>Clients · {clients.length}</span>
+                                  </>
+                                ) : (
+                                  <span>{message.thinkingPhrase || "Thinking…"}</span>
+                                )}
                               </div>
                             </AccordionTrigger>
                             <AccordionContent className="px-4 pb-3 space-y-2">
-                              {(() => {
-                                // Check if this is a lobbying chat (has clients)
-                                const { clients } = parseClientsSection(message.content || '');
-                                const isLobbyingChat = clients.length > 0;
-
-                                return (
-                                  <>
-                                    {/* Searching Section - hide header and bills query for lobbying chats */}
-                                    {message.searchQueries && (
+                                    {/* Searching Section - hide entirely for lobbying chats */}
+                                    {message.searchQueries && !isLobbyingChat && (
                                       <div className="space-y-2">
-                                        {/* Only show header for non-lobbying chats */}
-                                        {!isLobbyingChat && (
                                           <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
                                             <SearchIcon className="h-3.5 w-3.5" />
                                             Searching
                                           </h3>
-                                        )}
                                         <div className="space-y-1.5">
-                                          {message.searchQueries
-                                            // For lobbying chats, only show the first query (analyzing)
-                                            .filter((_, idx) => !isLobbyingChat || idx === 0)
-                                            .map((query, idx) => (
+                                          {message.searchQueries.map((query, idx) => (
                                               <div key={idx} className="flex items-start gap-2.5 p-2.5 rounded-md bg-muted/30 border border-border/50 text-xs text-muted-foreground">
-                                                {isLobbyingChat ? (
-                                                  <HandCoins className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-muted-foreground/70" />
-                                                ) : (
                                                   <SearchIcon className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-muted-foreground/70" />
-                                                )}
                                                 <span className="leading-relaxed">{query}</span>
                                               </div>
                                             ))}
@@ -1429,13 +1425,8 @@ const NewChat = () => {
                                       </div>
                                     )}
 
-                                    {/* Clients Section - for lobbying chats */}
+                                    {/* Clients Section - for lobbying chats (just the list, header is in trigger) */}
                                     {isLobbyingChat && (
-                                      <div className="space-y-2">
-                                        <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                                          <HandCoins className="h-3.5 w-3.5" />
-                                          Clients · {clients.length}
-                                        </h3>
                                         <ScrollArea className="h-[200px]">
                                           <div className="space-y-1.5 pr-4">
                                             {clients.map((client, idx) => (
@@ -1446,11 +1437,7 @@ const NewChat = () => {
                                             ))}
                                           </div>
                                         </ScrollArea>
-                                      </div>
                                     )}
-                                  </>
-                                );
-                              })()}
 
                               {/* Finished State */}
                               {!message.isStreaming && (
@@ -1463,7 +1450,8 @@ const NewChat = () => {
                           </div>
                         </AccordionItem>
                       </Accordion>
-                    )}
+                      );
+                    })()}
 
                     {/* For streaming messages, show content directly */}
                     {message.isStreaming && (
