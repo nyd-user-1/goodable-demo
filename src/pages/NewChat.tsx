@@ -1856,7 +1856,7 @@ const NewChat = () => {
         isPublicPage && !isMobilePhone && "fixed bottom-0 left-0 right-0 z-[5] bg-background",
         !isPublicPage && !isMobilePhone && "absolute bottom-0 left-0 right-0 flex justify-center pointer-events-none",
         // Mobile phone: centered when no chat, bottom when chatting
-        isMobilePhone && !chatStarted && "fixed left-0 right-0 z-[5] top-1/2 -translate-y-1/2",
+        isMobilePhone && !chatStarted && "fixed left-0 right-0 z-[5] top-[calc(50%+20px)] -translate-y-1/2",
         isMobilePhone && chatStarted && "fixed bottom-0 left-0 right-0 z-[5]"
       )}>
         <div className={cn(
@@ -2456,7 +2456,7 @@ const NewChat = () => {
                   )}
 
                   {/* Right Side - Model selector (mobile) + Submit/Stop Button */}
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-3">
                     {isMobilePhone && (
                       <div className="[&_button>span]:text-sm [&_button>span]:font-medium [&_button]:px-1 [&_button]:py-1">
                         <EngineSelection />
@@ -2526,14 +2526,6 @@ const NewChat = () => {
                 >
                   <HandCoins className="h-3.5 w-3.5" />
                   Lobbying
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/school-funding')}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border/60 bg-background text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                >
-                  <Building2 className="h-3.5 w-3.5" />
-                  School Funding
                 </button>
               </div>
             )}
