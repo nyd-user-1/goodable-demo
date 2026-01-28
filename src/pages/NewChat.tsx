@@ -1974,7 +1974,7 @@ const NewChat = () => {
                     // Auto-resize on mobile: grow up to 4 lines (~96px), then scroll
                     if (isMobilePhone && textareaRef.current) {
                       textareaRef.current.style.height = 'auto';
-                      const maxHeight = 96; // ~4 lines
+                      const maxHeight = 144; // ~6 lines
                       textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, maxHeight) + 'px';
                       textareaRef.current.style.overflowY = textareaRef.current.scrollHeight > maxHeight ? 'auto' : 'hidden';
                     }
@@ -2000,8 +2000,13 @@ const NewChat = () => {
 
                 {/* Bottom Row with Buttons */}
                 <div className="flex items-center justify-between">
-                  {/* Left Side - Filter Buttons (hidden on mobile phones) */}
-                  <div className={cn("flex gap-1", isMobilePhone && "hidden")}>
+                  {/* Left Side - Filter Buttons (hidden on mobile phones) / Model selector on mobile */}
+                  {isMobilePhone ? (
+                    <div className="flex items-center [&_button>span]:text-sm [&_button>span]:font-medium [&_button]:px-1 [&_button]:py-1">
+                      <EngineSelection />
+                    </div>
+                  ) : (
+                  <div className="flex gap-1">
                     <Dialog open={membersDialogOpen} onOpenChange={setMembersDialogOpen}>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -2450,18 +2455,18 @@ const NewChat = () => {
                       </DialogContent>
                     </Dialog>
                   </div>
+                  )}
 
                   {/* Right Side - Submit/Stop Button */}
                   <Button
                     type={isTyping ? "button" : "submit"}
                     size="icon"
                     className={cn(
-                      "h-9 w-9 rounded-lg disabled:opacity-50",
+                      "h-9 w-9 rounded-lg",
                       isTyping
                         ? "bg-destructive hover:bg-destructive/90"
                         : "bg-foreground hover:bg-foreground/90"
                     )}
-                    disabled={!isTyping && !query.trim() && selectedMembers.length === 0 && selectedBills.length === 0 && selectedCommittees.length === 0 && selectedContracts.length === 0}
                     onClick={isTyping ? stopStream : undefined}
                   >
                     {isTyping ? (
