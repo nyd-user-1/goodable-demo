@@ -240,6 +240,16 @@ const NewChat = () => {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [sidebarMounted, setSidebarMounted] = useState(false);
+  const [mobileDrawerCategory, setMobileDrawerCategory] = useState<string | null>(null);
+  const [isMobilePhone, setIsMobilePhone] = useState(false);
+
+  // Detect phone viewport (< 640px)
+  useEffect(() => {
+    const check = () => setIsMobilePhone(window.innerWidth < 640);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const userScrolledRef = useRef(false);
@@ -1840,16 +1850,21 @@ const NewChat = () => {
       )}
 
       {/* Bottom Input Area - fixed for public, absolute for authenticated */}
+      {/* On mobile phones: centered when !chatStarted, bottom when chatStarted */}
       <div className={cn(
-        isPublicPage
-          ? "fixed bottom-0 left-0 right-0 z-[5] bg-background"
-          : "absolute bottom-0 left-0 right-0 flex justify-center pointer-events-none"
+        // Default desktop/tablet behavior
+        isPublicPage && !isMobilePhone && "fixed bottom-0 left-0 right-0 z-[5] bg-background",
+        !isPublicPage && !isMobilePhone && "absolute bottom-0 left-0 right-0 flex justify-center pointer-events-none",
+        // Mobile phone: centered when no chat, bottom when chatting
+        isMobilePhone && !chatStarted && "fixed left-0 right-0 z-[5] top-1/2 -translate-y-1/2",
+        isMobilePhone && chatStarted && "fixed bottom-0 left-0 right-0 z-[5]"
       )}>
         <div className={cn(
           "w-full px-4 py-4",
-          !isPublicPage && "py-3 max-w-[780px] pointer-events-auto"
+          !isPublicPage && !isMobilePhone && "py-3 max-w-[780px] pointer-events-auto",
+          isMobilePhone && "pointer-events-auto"
         )}>
-          <div className={cn("max-w-[720px] mx-auto", !isPublicPage && "bg-background rounded-t-xl pt-3 px-3")}>
+          <div className={cn("max-w-[720px] mx-auto", !isPublicPage && !isMobilePhone && "bg-background rounded-t-xl pt-3 px-3")}>
             <form onSubmit={handleSubmit} className="relative">
               {/* Larger input box - Fintool/Claude style */}
               <div className="rounded-2xl bg-muted/50 border-0 p-3 shadow-lg">
@@ -1954,21 +1969,39 @@ const NewChat = () => {
                 <Textarea
                   ref={textareaRef}
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    // Auto-resize on mobile: grow up to 4 lines (~96px), then scroll
+                    if (isMobilePhone && textareaRef.current) {
+                      textareaRef.current.style.height = 'auto';
+                      const maxHeight = 96; // ~4 lines
+                      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, maxHeight) + 'px';
+                      textareaRef.current.style.overflowY = textareaRef.current.scrollHeight > maxHeight ? 'auto' : 'hidden';
+                    }
+                  }}
                   placeholder="Ask anything..."
-                  className="flex-1 min-h-[40px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 placeholder:text-muted-foreground/60"
+                  className={cn(
+                    "flex-1 min-h-[40px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 placeholder:text-muted-foreground/60",
+                    isMobilePhone && "text-base"
+                  )}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSubmit(e as any);
+                    if (e.key === 'Enter') {
+                      if (isMobilePhone) {
+                        // On mobile: Enter adds newline, send via button only
+                        return;
+                      }
+                      if (!e.shiftKey) {
+                        e.preventDefault();
+                        handleSubmit(e as any);
+                      }
                     }
                   }}
                 />
 
                 {/* Bottom Row with Buttons */}
                 <div className="flex items-center justify-between">
-                  {/* Left Side - Filter Buttons */}
-                  <div className="flex gap-1">
+                  {/* Left Side - Filter Buttons (hidden on mobile phones) */}
+                  <div className={cn("flex gap-1", isMobilePhone && "hidden")}>
                     <Dialog open={membersDialogOpen} onOpenChange={setMembersDialogOpen}>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -2440,6 +2473,60 @@ const NewChat = () => {
                 </div>
               </div>
             </form>
+
+            {/* Mobile Category Pills - shown on phones when chat hasn't started and no text typed */}
+            {isMobilePhone && !chatStarted && query.length === 0 && (
+              <div className="flex flex-wrap gap-2 mt-3 justify-center px-2">
+                <button
+                  type="button"
+                  onClick={() => { setBillsDialogOpen(true); }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border/60 bg-background text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  Bills
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setMembersDialogOpen(true); }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border/60 bg-background text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  <Users className="h-3.5 w-3.5" />
+                  Members
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setCommitteesDialogOpen(true); }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border/60 bg-background text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  <Building2 className="h-3.5 w-3.5" />
+                  Committees
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setContractsDialogOpen(true); }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border/60 bg-background text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  <Wallet className="h-3.5 w-3.5" />
+                  Contracts
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/lobbying')}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border/60 bg-background text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  <HandCoins className="h-3.5 w-3.5" />
+                  Lobbying
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/school-funding')}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border/60 bg-background text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  <Building2 className="h-3.5 w-3.5" />
+                  School Funding
+                </button>
+              </div>
+            )}
 
           </div>
         </div>
