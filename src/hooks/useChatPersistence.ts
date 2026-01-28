@@ -19,6 +19,7 @@ interface PersistedMessage {
   // Metadata for assistant messages
   citations?: BillCitation[];
   relatedBills?: BillCitation[];
+  schoolFundingData?: Record<string, any>;
 }
 
 interface ChatSessionData {

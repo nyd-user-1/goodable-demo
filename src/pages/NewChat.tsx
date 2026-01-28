@@ -441,6 +441,7 @@ const NewChat = () => {
             // Restore citations metadata for assistant messages
             ...(msg.citations && { citations: msg.citations }),
             ...(msg.relatedBills && { relatedBills: msg.relatedBills }),
+            ...(msg.schoolFundingData && { schoolFundingData: msg.schoolFundingData }),
           }));
           setMessages(loadedMessages);
           setChatStarted(true);
@@ -879,6 +880,7 @@ const NewChat = () => {
         role: m.role,
         content: m.content,
         timestamp: new Date().toISOString(),
+        ...(m.schoolFundingData && { schoolFundingData: m.schoolFundingData }),
       }));
       await updateMessages(sessionId, persistedMessages);
     }
@@ -1202,6 +1204,7 @@ const NewChat = () => {
           content: aiResponse,
           citations: responseCitations,
           relatedBills: relatedBillsResult,
+          schoolFundingData,
         }];
         const persistedMessages = allMessages.map(m => ({
           id: m.id,
@@ -1213,6 +1216,7 @@ const NewChat = () => {
             citations: m.citations,
             relatedBills: m.relatedBills,
           }),
+          ...('schoolFundingData' in m && m.schoolFundingData && { schoolFundingData: m.schoolFundingData }),
         }));
         await updateMessages(sessionId, persistedMessages);
         console.log('[NewChat] Saved assistant response to session:', sessionId);
@@ -1825,7 +1829,7 @@ const NewChat = () => {
             "z-10 bg-background border border-border rounded-full p-2 shadow-lg hover:bg-muted transition-all duration-200 hover:shadow-xl",
             isPublicPage
               ? "fixed left-1/2 -translate-x-1/2 bottom-44"
-              : "absolute left-1/2 -translate-x-1/2 bottom-4"
+              : "absolute left-1/2 -translate-x-1/2 bottom-28"
           )}
           aria-label="Scroll to bottom"
         >
