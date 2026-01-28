@@ -39,9 +39,11 @@ const Lobbying = () => {
     setSearchTerm,
   } = useLobbyingSearch();
 
-  // Focus search on mount and keyboard shortcut
+  // Focus search on mount (desktop only) and keyboard shortcut
   useEffect(() => {
-    searchInputRef.current?.focus();
+    if (window.innerWidth >= 768) {
+      searchInputRef.current?.focus();
+    }
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === '/' && !e.metaKey && !e.ctrlKey && document.activeElement?.tagName !== 'INPUT') {
