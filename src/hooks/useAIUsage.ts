@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from './useSubscription';
+import { isAdmin } from '@/utils/adminHelpers';
 
 interface AIUsageData {
   wordsUsed: number;
@@ -9,13 +10,12 @@ interface AIUsageData {
 }
 
 // Word limits by subscription tier
-// NOTE: Temporarily set all tiers to Infinity for demo
 const WORD_LIMITS: Record<string, number> = {
-  free: Infinity,
-  student: Infinity,
-  staffer: Infinity,
-  researcher: Infinity,
-  professional: Infinity,
+  free: 1000,
+  student: 10000,
+  staffer: 50000,
+  researcher: 100000,
+  professional: 500000,
   enterprise: Infinity,
   government: Infinity,
 };
@@ -40,9 +40,13 @@ export const useAIUsage = () => {
 
   // Get the daily limit based on subscription tier
   const getDailyLimit = useCallback(() => {
+    // Admins get unlimited words
+    if (isAdmin(user?.email)) {
+      return Infinity;
+    }
     const tier = subscription?.subscription_tier || 'free';
     return WORD_LIMITS[tier] || WORD_LIMITS.free;
-  }, [subscription]);
+  }, [subscription, user?.email]);
 
   // Load usage from localStorage
   const loadUsage = useCallback(() => {

@@ -1,7 +1,8 @@
 // Admin email whitelist
 const ADMIN_EMAILS = [
   'ian@mail.com',
-  'admin@goodable.com'
+  'admin@goodable.com',
+  'brendan.stanton@gmail.com'
 ];
 
 // Allowed user emails (admin + user testing)
