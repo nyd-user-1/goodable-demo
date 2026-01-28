@@ -2000,11 +2000,9 @@ const NewChat = () => {
 
                 {/* Bottom Row with Buttons */}
                 <div className="flex items-center justify-between">
-                  {/* Left Side - Filter Buttons (hidden on mobile phones) / Model selector on mobile */}
+                  {/* Left Side - Filter Buttons (hidden on mobile phones) */}
                   {isMobilePhone ? (
-                    <div className="flex items-center [&_button>span]:text-sm [&_button>span]:font-medium [&_button]:px-1 [&_button]:py-1">
-                      <EngineSelection />
-                    </div>
+                    <div className="flex-1" />
                   ) : (
                   <div className="flex gap-1">
                     <Dialog open={membersDialogOpen} onOpenChange={setMembersDialogOpen}>
@@ -2457,24 +2455,31 @@ const NewChat = () => {
                   </div>
                   )}
 
-                  {/* Right Side - Submit/Stop Button */}
-                  <Button
-                    type={isTyping ? "button" : "submit"}
-                    size="icon"
-                    className={cn(
-                      "h-9 w-9 rounded-lg",
-                      isTyping
-                        ? "bg-destructive hover:bg-destructive/90"
-                        : "bg-foreground hover:bg-foreground/90"
+                  {/* Right Side - Model selector (mobile) + Submit/Stop Button */}
+                  <div className="flex items-center gap-1">
+                    {isMobilePhone && (
+                      <div className="[&_button>span]:text-sm [&_button>span]:font-medium [&_button]:px-1 [&_button]:py-1">
+                        <EngineSelection />
+                      </div>
                     )}
-                    onClick={isTyping ? stopStream : undefined}
-                  >
-                    {isTyping ? (
-                      <Square className="h-4 w-4" fill="currentColor" />
-                    ) : (
-                      <ArrowUp className="h-4 w-4" />
-                    )}
-                  </Button>
+                    <Button
+                      type={isTyping ? "button" : "submit"}
+                      size="icon"
+                      className={cn(
+                        "h-9 w-9 rounded-lg",
+                        isTyping
+                          ? "bg-destructive hover:bg-destructive/90"
+                          : "bg-foreground hover:bg-foreground/90"
+                      )}
+                      onClick={isTyping ? stopStream : undefined}
+                    >
+                      {isTyping ? (
+                        <Square className="h-4 w-4" fill="currentColor" />
+                      ) : (
+                        <ArrowUp className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </form>
