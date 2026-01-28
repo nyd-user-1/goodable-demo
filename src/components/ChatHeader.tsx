@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Command } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import confetti from "canvas-confetti";
 import {
   Tooltip,
@@ -54,9 +55,10 @@ const featuresDropdownItems = [
 interface ChatHeaderProps {
   onNewChat?: () => void;
   onWhatIsGoodable?: () => void;
+  onOpenSidebar?: () => void;
 }
 
-export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
+export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatHeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [aboutOpen, setAboutOpen] = useState(false);
@@ -90,14 +92,31 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 px-5 py-2 bg-background/80 backdrop-blur-sm">
       <div className="flex items-center justify-between">
-        {/* Left side - Heart Logo + New Chat Pencil */}
+        {/* Left side - Menu icon on mobile, NYSgpt on desktop */}
         <div className="flex items-center space-x-1">
-          {/* NYSgpt button - triggers "What is NYSgpt?" */}
+          {/* Mobile menu icon - opens sidebar */}
+          {onOpenSidebar && (
+            <button
+              onClick={onOpenSidebar}
+              className="sm:hidden inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors"
+              aria-label="Open menu"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 5h1"/><path d="M3 12h1"/><path d="M3 19h1"/>
+                <path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/>
+                <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
+              </svg>
+            </button>
+          )}
+          {/* NYSgpt button - hidden on mobile when sidebar is available */}
           <Tooltip>
             <TooltipTrigger asChild>
               <button
                 onClick={handleHeartClick}
-                className="inline-flex items-center justify-center h-10 rounded-md px-3 text-black hover:bg-muted transition-colors font-semibold text-xl"
+                className={cn(
+                  "inline-flex items-center justify-center h-10 rounded-md px-3 text-black hover:bg-muted transition-colors font-semibold text-xl",
+                  onOpenSidebar && "hidden sm:inline-flex"
+                )}
               >
                 NYSgpt
               </button>
@@ -242,13 +261,30 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable }: ChatHeaderProps) {
               Command menu
             </TooltipContent>
           </Tooltip>
-          {/* Log In button - routes to /auth */}
-          <button
-            className="inline-flex items-center justify-center h-9 rounded-md px-3 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-medium"
-            onClick={() => navigate('/auth')}
-          >
-            Log In
-          </button>
+          {/* Mobile: NYSgpt text when sidebar available, otherwise Log In */}
+          {onOpenSidebar ? (
+            <>
+              <button
+                onClick={handleHeartClick}
+                className="sm:hidden inline-flex items-center justify-center h-9 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-lg"
+              >
+                NYSgpt
+              </button>
+              <button
+                className="hidden sm:inline-flex items-center justify-center h-9 rounded-md px-3 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-medium"
+                onClick={() => navigate('/auth')}
+              >
+                Log In
+              </button>
+            </>
+          ) : (
+            <button
+              className="inline-flex items-center justify-center h-9 rounded-md px-3 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-medium"
+              onClick={() => navigate('/auth')}
+            >
+              Log In
+            </button>
+          )}
         </div>
       </div>
     </nav>

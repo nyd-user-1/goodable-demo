@@ -1244,23 +1244,25 @@ const NewChat = () => {
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-background">
-      {/* Left Sidebar - OUTSIDE container, slides in from off-screen (only for authenticated pages) */}
-      {!isPublicPage && (
-        <div
-          className={cn(
-            "fixed left-0 top-0 bottom-0 w-[85vw] max-w-sm md:w-64 bg-background border-r z-50",
-            sidebarMounted && "transition-transform duration-300 ease-in-out",
-            leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
-          )}
-        >
-          <NoteViewSidebar onClose={() => setLeftSidebarOpen(false)} />
-        </div>
-      )}
+      {/* Left Sidebar - slides in from off-screen (authenticated pages + mobile public) */}
+      <div
+        className={cn(
+          "fixed left-0 top-0 bottom-0 w-[85vw] max-w-sm md:w-64 bg-background border-r z-50",
+          isPublicPage && "sm:hidden",
+          sidebarMounted && "transition-transform duration-300 ease-in-out",
+          leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <NoteViewSidebar onClose={() => setLeftSidebarOpen(false)} />
+      </div>
 
       {/* Backdrop overlay when sidebar is open */}
-      {!isPublicPage && leftSidebarOpen && (
+      {leftSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/20 z-40 transition-opacity"
+          className={cn(
+            "fixed inset-0 bg-black/20 z-40 transition-opacity",
+            isPublicPage && "sm:hidden"
+          )}
           onClick={() => setLeftSidebarOpen(false)}
         />
       )}
@@ -1274,7 +1276,7 @@ const NewChat = () => {
         )}>
           {/* Header - ChatHeader for public, sidebar toggle + engine for authenticated */}
           {isPublicPage ? (
-            <ChatHeader onNewChat={handleNewChat} onWhatIsGoodable={handleWhatIsGoodable} />
+            <ChatHeader onNewChat={handleNewChat} onWhatIsGoodable={handleWhatIsGoodable} onOpenSidebar={() => setLeftSidebarOpen(true)} />
           ) : (
             <div className="flex items-center gap-2 px-4 py-3 bg-background flex-shrink-0">
               <Button
@@ -1303,12 +1305,12 @@ const NewChat = () => {
         {!chatStarted ? (
           /* Initial State - Prompt Cards */
           <div className="flex flex-col items-center justify-center min-h-full px-4">
-            <h1 className="text-4xl md:text-5xl font-semibold text-center mb-12 tracking-tight">
+            <h1 className="hidden sm:block text-4xl md:text-5xl font-semibold text-center mb-12 tracking-tight">
               What are you researching?
             </h1>
 
-            {/* Prompt Carousel */}
-            <div className="w-full max-w-3xl mb-8">
+            {/* Prompt Carousel - hidden on phones */}
+            <div className="hidden sm:block w-full max-w-3xl mb-8">
               {/* Header with navigation arrows */}
               <div className="flex items-center justify-end mb-3 gap-1">
                 <button
