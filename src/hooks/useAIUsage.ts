@@ -9,12 +9,13 @@ interface AIUsageData {
 }
 
 // Word limits by subscription tier
+// NOTE: Temporarily set all tiers to Infinity for demo
 const WORD_LIMITS: Record<string, number> = {
-  free: 1000,
-  student: 10000,
-  staffer: 50000,
-  researcher: 100000,
-  professional: 500000,
+  free: Infinity,
+  student: Infinity,
+  staffer: Infinity,
+  researcher: Infinity,
+  professional: Infinity,
   enterprise: Infinity,
   government: Infinity,
 };
