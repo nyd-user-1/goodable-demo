@@ -549,10 +549,25 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             <Search className="h-4 w-4" />
           </Button>
 
-          {/* Add/Create Dropdown */}
+          {/* Mobile: Logs close icon */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 sm:hidden"
+            onClick={onClose}
+            aria-label="Close menu"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 5h1"/><path d="M3 12h1"/><path d="M3 19h1"/>
+              <path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/>
+              <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
+            </svg>
+          </Button>
+
+          {/* Desktop: Add/Create Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="h-8 w-8 hidden sm:inline-flex">
                 <Plus className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
