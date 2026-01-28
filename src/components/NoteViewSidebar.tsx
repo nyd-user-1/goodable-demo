@@ -32,8 +32,6 @@ import {
   HelpCircle,
   FileText,
   Mail,
-  Zap,
-  ArrowUpRight,
   FileUp,
   FolderUp,
   Download,
@@ -604,64 +602,64 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
         </div>
       </div>
 
+      {/* Fixed New Chat and Chat History */}
+      <div className="flex-shrink-0 px-2 py-2 space-y-1">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <NavLink
+              to="/new-chat"
+              onClick={onClose}
+              onMouseEnter={() => setNewChatHover(true)}
+              onMouseLeave={() => setNewChatHover(false)}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                isActive("/new-chat") ? "bg-muted" : "hover:bg-muted"
+              )}
+            >
+              <div className="relative w-4 h-4 flex-shrink-0">
+                <MessageSquare
+                  className={cn(
+                    "absolute inset-0 w-4 h-4 transition-opacity duration-200",
+                    newChatHover ? "opacity-0" : "opacity-100"
+                  )}
+                />
+                <PenSquare
+                  className={cn(
+                    "absolute inset-0 w-4 h-4 transition-opacity duration-200",
+                    newChatHover ? "opacity-100" : "opacity-0"
+                  )}
+                />
+              </div>
+              <span>New chat</span>
+            </NavLink>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <p>Start a new conversation</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <NavLink
+              to="/chats"
+              onClick={onClose}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                isActive("/chats") ? "bg-muted" : "hover:bg-muted"
+              )}
+            >
+              <Clock className="h-4 w-4" />
+              <span>Chat History</span>
+            </NavLink>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <p>View your chat history</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+
       {/* Scrollable Content Area */}
       <div className="flex-1 overflow-y-auto py-2">
-        {/* New Chat and Chat History */}
-        <div className="px-2 space-y-1">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <NavLink
-                to="/new-chat"
-                onClick={onClose}
-                onMouseEnter={() => setNewChatHover(true)}
-                onMouseLeave={() => setNewChatHover(false)}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                  isActive("/new-chat") ? "bg-muted" : "hover:bg-muted"
-                )}
-              >
-                <div className="relative w-4 h-4 flex-shrink-0">
-                  <MessageSquare
-                    className={cn(
-                      "absolute inset-0 w-4 h-4 transition-opacity duration-200",
-                      newChatHover ? "opacity-0" : "opacity-100"
-                    )}
-                  />
-                  <PenSquare
-                    className={cn(
-                      "absolute inset-0 w-4 h-4 transition-opacity duration-200",
-                      newChatHover ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                </div>
-                <span>New chat</span>
-              </NavLink>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <p>Start a new conversation</p>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <NavLink
-                to="/chats"
-                onClick={onClose}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                  isActive("/chats") ? "bg-muted" : "hover:bg-muted"
-                )}
-              >
-                <Clock className="h-4 w-4" />
-                <span>Chat History</span>
-              </NavLink>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <p>View your chat history</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-
         {/* Your Research Section */}
         <Collapsible defaultOpen className="group/research mt-4">
           <div className="px-2">
@@ -998,43 +996,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           </CollapsibleContent>
         </Collapsible>
 
-        {/* Support Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center gap-2 px-1 py-1 text-sm text-muted-foreground hover:text-foreground transition-colors w-full">
-            <HelpCircle className="h-4 w-4" />
-            <span>Support</span>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" side="top" className="w-56">
-            <DropdownMenuItem>
-              <FileText className="h-4 w-4 mr-2" />
-              User guide
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Talk to a person
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Mail className="h-4 w-4 mr-2" />
-              Email support
-            </DropdownMenuItem>
-
-            <DropdownMenuSeparator />
-
-            <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">What's new</DropdownMenuLabel>
-            <DropdownMenuItem>
-              <Zap className="h-4 w-4 mr-2" />
-              <span className="truncate">Home update, deep search, fi...</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Zap className="h-4 w-4 mr-2" />
-              <span className="truncate">Academic citations, add files ...</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { navigate('/changelog'); onClose?.(); }}>
-              <ArrowUpRight className="h-4 w-4 mr-2" />
-              Full changelog
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
 
       {/* Search Modal */}
