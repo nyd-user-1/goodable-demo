@@ -7,7 +7,6 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   MessageSquare,
-  MessagesSquare,
   ScrollText,
   Users,
   Landmark,
@@ -113,6 +112,8 @@ interface SidebarItem {
   isPinned: boolean;
   // Chat-specific
   isLobbyingChat?: boolean;
+  isContractChat?: boolean;
+  isSchoolFundingChat?: boolean;
 }
 
 const PINNED_NOTES_KEY = "goodable_pinned_notes";
@@ -311,13 +312,18 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
 
     // Add chats
     recentChats.forEach(chat => {
-      const chatTitle = chat.title || "Untitled Chat";
-      const isLobbyingChat = chatTitle.startsWith("Tell me about") &&
-        (chatTitle.includes("LLC") || chatTitle.includes("LLP") ||
-         chatTitle.includes("INC") || chatTitle.includes("ADVISORS") ||
-         chatTitle.includes("ASSOCIATES") || chatTitle.includes("CONSULTING") ||
-         chatTitle.includes("GROUP") || chatTitle.includes("STRATEGIES") ||
-         chatTitle.includes("AFFAIRS") || chatTitle.includes("& "));
+      const rawTitle = chat.title || "Untitled Chat";
+      const isLobbyingChat = rawTitle.startsWith("Tell me about") &&
+        (rawTitle.includes("LLC") || rawTitle.includes("LLP") ||
+         rawTitle.includes("INC") || rawTitle.includes("ADVISORS") ||
+         rawTitle.includes("ASSOCIATES") || rawTitle.includes("CONSULTING") ||
+         rawTitle.includes("GROUP") || rawTitle.includes("STRATEGIES") ||
+         rawTitle.includes("AFFAIRS") || rawTitle.includes("& "));
+      const isContractChat = /^\[Contract:[^\]]+\]\s*/.test(rawTitle);
+      const isSchoolFundingChat = /^\[SchoolFunding:[^\]]+\]\s*/.test(rawTitle);
+
+      // Strip [Contract:...] and [SchoolFunding:...] prefixes from displayed title
+      const chatTitle = rawTitle.replace(/^\[Contract:[^\]]+\]\s*/, '').replace(/^\[SchoolFunding:[^\]]+\]\s*/, '');
 
       items.push({
         id: chat.id,
@@ -326,6 +332,8 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
         updated_at: chat.updated_at || new Date().toISOString(),
         isPinned: chat.isPinned,
         isLobbyingChat,
+        isContractChat,
+        isSchoolFundingChat,
       });
     });
 
@@ -790,8 +798,12 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                       <NotebookPen className="h-4 w-4 flex-shrink-0" />
                     ) : item.isLobbyingChat ? (
                       <HandCoins className="h-4 w-4 flex-shrink-0" />
+                    ) : item.isContractChat ? (
+                      <Wallet className="h-4 w-4 flex-shrink-0" />
+                    ) : item.isSchoolFundingChat ? (
+                      <GraduationCap className="h-4 w-4 flex-shrink-0" />
                     ) : (
-                      <MessagesSquare className="h-4 w-4 flex-shrink-0" />
+                      <MessageSquare className="h-4 w-4 flex-shrink-0" />
                     )}
                     <span className="truncate">{item.title}</span>
                   </NavLink>
