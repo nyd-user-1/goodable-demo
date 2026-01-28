@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/dialog";
 import { CitationText } from "@/components/CitationText";
 import { ChatResponseFooter } from "@/components/ChatResponseFooter";
-import { PerplexityCitation, extractCitationNumbers } from "@/utils/citationParser";
+import { PerplexityCitation, extractCitationNumbers, stripCitations } from "@/utils/citationParser";
 import {
   Accordion,
   AccordionContent,
@@ -1565,23 +1565,23 @@ const NewChat = () => {
                         );
                       }
 
-                      // Perplexity/Sonar responses get Reasoning UI when they have thinking content
-                      if (message.isPerplexityResponse && (message.isStreaming || message.reasoning)) {
-                        return (
-                          <Reasoning
-                            isStreaming={message.isStreaming}
-                            defaultOpen={true}
-                          >
-                            <ReasoningTrigger />
-                            <ReasoningContent>
-                              {message.reasoning ? (
-                                <p className="text-sm leading-relaxed">{message.reasoning}</p>
-                              ) : (
-                                <p className="text-sm text-muted-foreground">Processing your query...</p>
-                              )}
-                            </ReasoningContent>
-                          </Reasoning>
-                        );
+                      // Perplexity/Sonar responses: Show Reasoning ONLY during streaming, hide entirely when done
+                      if (message.isPerplexityResponse) {
+                        if (message.isStreaming) {
+                          return (
+                            <Reasoning
+                              isStreaming={true}
+                              defaultOpen={true}
+                            >
+                              <ReasoningTrigger />
+                              <ReasoningContent>
+                                <p className="text-sm text-muted-foreground">Searching the web...</p>
+                              </ReasoningContent>
+                            </Reasoning>
+                          );
+                        }
+                        // When not streaming, show nothing for Perplexity
+                        return null;
                       }
 
                       return (
@@ -1668,19 +1668,15 @@ const NewChat = () => {
                     {/* For streaming messages, show content directly */}
                     {message.isStreaming && (
                       <div className="prose prose-sm max-w-none dark:prose-invert">
-                        {message.isPerplexityResponse && message.perplexityCitations ? (
-                        // Render Perplexity response with inline citation badges using new InlineCitation component
+                        {message.isPerplexityResponse ? (
+                        // Render Perplexity response - strip citation markers for clean display
                         <ReactMarkdown
                           components={{
-                            p: ({ children }) => {
-                              const textContent = String(children);
-                              const citationSources = convertToCitationSources(message.perplexityCitations || []);
-                              return (
-                                <p className="mb-3 leading-relaxed text-foreground">
-                                  {parseCitationMarkers(textContent, citationSources)}
-                                </p>
-                              );
-                            },
+                            p: ({ children }) => (
+                              <p className="mb-3 leading-relaxed text-foreground">
+                                {children}
+                              </p>
+                            ),
                             strong: ({ children }) => (
                               <strong className="font-semibold text-foreground">
                                 {children}
@@ -1706,7 +1702,7 @@ const NewChat = () => {
                             ),
                           }}
                         >
-                          {message.isStreaming ? stripClientsSection(message.streamedContent || '').cleanContent : message.content}
+                          {stripCitations(message.streamedContent || '')}
                         </ReactMarkdown>
                       ) : (
                         // Standard markdown rendering with progressive clients accordion
@@ -1762,18 +1758,15 @@ const NewChat = () => {
                       <ChatResponseFooter
                         isStreaming={message.isStreaming}
                         messageContent={
-                          message.isPerplexityResponse && message.perplexityCitations ? (
+                          message.isPerplexityResponse ? (
+                            // Perplexity response - strip citation markers for clean display
                             <ReactMarkdown
                               components={{
-                                p: ({ children }) => {
-                                  const textContent = String(children);
-                                  const citationSources = convertToCitationSources(message.perplexityCitations || []);
-                                  return (
-                                    <p className="mb-3 leading-relaxed text-foreground">
-                                      {parseCitationMarkers(textContent, citationSources)}
-                                    </p>
-                                  );
-                                },
+                                p: ({ children }) => (
+                                  <p className="mb-3 leading-relaxed text-foreground">
+                                    {children}
+                                  </p>
+                                ),
                                 strong: ({ children }) => (
                                   <strong className="font-semibold text-foreground">
                                     {children}
@@ -1799,7 +1792,7 @@ const NewChat = () => {
                                 ),
                               }}
                             >
-                              {message.content}
+                              {stripCitations(message.content)}
                             </ReactMarkdown>
                           ) : (
                             (() => {
