@@ -27,7 +27,7 @@ import {
   Briefcase,
   Sun,
   Moon,
-  Chrome,
+  LogIn,
   LogOut,
   ThumbsUp,
   HelpCircle,
@@ -381,7 +381,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   };
 
   // Get user display name
-  const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'User';
+  const displayName = user ? (user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User') : 'NYSgpt';
   const truncatedName = displayName.length > 14 ? displayName.slice(0, 14) + '...' : displayName;
 
   return (
@@ -398,66 +398,121 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-64">
-            {/* User Info */}
-            <div className="px-3 py-2 border-b">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{displayName}</p>
-                  <p className="text-xs text-muted-foreground">{user?.email}</p>
+            {user ? (
+              <>
+                {/* User Info */}
+                <div className="px-3 py-2 border-b">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{displayName}</p>
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                    </div>
+                    <span className="text-xs text-primary font-medium px-2 py-0.5 bg-primary/10 rounded">Free</span>
+                  </div>
                 </div>
-                <span className="text-xs text-primary font-medium px-2 py-0.5 bg-primary/10 rounded">Free</span>
-              </div>
-            </div>
 
-            <DropdownMenuItem onClick={() => navigate('/profile')}>
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <UserPlus className="h-4 w-4 mr-2" />
-              Invite members
-            </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/profile')}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Invite members
+                </DropdownMenuItem>
 
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
-                <Briefcase className="h-4 w-4 mr-2" />
-                Switch workspace
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem>Personal</DropdownMenuItem>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Briefcase className="h-4 w-4 mr-2" />
+                    Switch workspace
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem>Personal</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>Create workspace</DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    {isDarkMode ? <Moon className="h-4 w-4 mr-2" /> : <Sun className="h-4 w-4 mr-2" />}
+                    Theme
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={() => { document.documentElement.classList.remove('dark'); setIsDarkMode(false); }}>
+                      <Sun className="h-4 w-4 mr-2" />
+                      Light
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { document.documentElement.classList.add('dark'); setIsDarkMode(true); }}>
+                      <Moon className="h-4 w-4 mr-2" />
+                      Dark
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Create workspace</DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
 
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
-                {isDarkMode ? <Moon className="h-4 w-4 mr-2" /> : <Sun className="h-4 w-4 mr-2" />}
-                Theme
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem onClick={() => { document.documentElement.classList.remove('dark'); setIsDarkMode(false); }}>
-                  <Sun className="h-4 w-4 mr-2" />
-                  Light
+                <DropdownMenuItem>
+                  <FileText className="h-4 w-4 mr-2" />
+                  User guide
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { document.documentElement.classList.add('dark'); setIsDarkMode(true); }}>
-                  <Moon className="h-4 w-4 mr-2" />
-                  Dark
+                <DropdownMenuItem>
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Talk to a person
                 </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
+                <DropdownMenuItem>
+                  <Mail className="h-4 w-4 mr-2" />
+                  Email support
+                </DropdownMenuItem>
 
-            <DropdownMenuSeparator />
+                <DropdownMenuSeparator />
 
-            <DropdownMenuItem>
-              <Chrome className="h-4 w-4 mr-2" />
-              Chrome extension
-            </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </>
+            ) : (
+              <>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    {isDarkMode ? <Moon className="h-4 w-4 mr-2" /> : <Sun className="h-4 w-4 mr-2" />}
+                    Theme
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={() => { document.documentElement.classList.remove('dark'); setIsDarkMode(false); }}>
+                      <Sun className="h-4 w-4 mr-2" />
+                      Light
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { document.documentElement.classList.add('dark'); setIsDarkMode(true); }}>
+                      <Moon className="h-4 w-4 mr-2" />
+                      Dark
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
 
-            <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </DropdownMenuItem>
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem>
+                  <FileText className="h-4 w-4 mr-2" />
+                  User guide
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Talk to a person
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Mail className="h-4 w-4 mr-2" />
+                  Email support
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem onClick={() => navigate('/auth')}>
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Log In
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
