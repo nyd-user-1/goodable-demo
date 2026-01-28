@@ -151,7 +151,7 @@ export const LegislativeFeedContainer: React.FC<LegislativeFeedContainerProps> =
         ];
         
         // Validate source diversity for sample items
-        const sampleSources = ['goodable.dev', 'nysenate.gov', 'cbo.gov', 'urban.org', 'epi.org'];
+        const sampleSources = ['nysgpt.com', 'nysenate.gov', 'cbo.gov', 'urban.org', 'epi.org'];
         const sourceValidation = validateSourceMix(sampleSources);
         
         if (!sourceValidation.valid || sourceValidation.warnings.length > 0) {

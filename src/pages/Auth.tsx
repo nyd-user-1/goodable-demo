@@ -50,7 +50,7 @@ export const Auth = () => {
               Welcome Back
             </h1>
             <p className="text-muted-foreground">
-              Learn. Track. Engage. Impact.
+              Discover. Engage. Impact.
             </p>
           </div>
 

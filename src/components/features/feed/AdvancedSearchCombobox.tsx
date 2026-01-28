@@ -74,7 +74,7 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
       label: 'NYS Bills & Resolutions (18K+)', 
       enabled: true, 
       count: 4,
-      allowedDomains: ['goodable.dev', 'nysenate.gov', 'assembly.state.ny.us'],
+      allowedDomains: ['nysgpt.com', 'nysenate.gov', 'assembly.state.ny.us'],
       credibilityTier: 1,
       category: 'Legislative',
       requiresMultiSource: true
@@ -83,7 +83,7 @@ export const AdvancedSearchCombobox: React.FC<AdvancedSearchComboboxProps> = ({
       id: 'legislators', 
       label: 'NYS Legislators & Members (200+)', 
       enabled: true,
-      allowedDomains: ['goodable.dev', 'nysenate.gov', 'assembly.state.ny.us'],
+      allowedDomains: ['nysgpt.com', 'nysenate.gov', 'assembly.state.ny.us'],
       credibilityTier: 1,
       category: 'Legislative'
     },

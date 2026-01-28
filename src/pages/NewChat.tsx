@@ -1806,7 +1806,7 @@ const NewChat = () => {
                           // Always include default sources
                           {
                             number: (message.perplexityCitations?.length || 0) + 1,
-                            url: 'https://www.goodable.dev',
+                            url: 'https://www.nysgpt.com',
                             title: 'NYSgpt - Legislative Policy Platform',
                             excerpt: 'AI-powered legislative research and policy analysis platform.'
                           },

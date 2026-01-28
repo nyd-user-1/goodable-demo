@@ -125,7 +125,7 @@ export const ALL_TRUSTED_SOURCES: DomainSource[] = [
  */
 export function getDomainFilter(category?: string): string[] {
   const baseDomains = [
-    "goodable.dev",
+    "nysgpt.com",
     ...LEGISLATIVE_SOURCES.map(s => s.domain),
     ...POLICY_RESEARCH_SOURCES.map(s => s.domain)
   ];
