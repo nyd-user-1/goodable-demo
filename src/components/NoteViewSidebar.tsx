@@ -612,7 +612,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               onMouseEnter={() => setNewChatHover(true)}
               onMouseLeave={() => setNewChatHover(false)}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm font-medium transition-colors",
                 isActive("/new-chat") ? "bg-muted" : "hover:bg-muted"
               )}
             >
@@ -644,7 +644,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               to="/chats"
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm font-medium transition-colors",
                 isActive("/chats") ? "bg-muted" : "hover:bg-muted"
               )}
             >
@@ -675,7 +675,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/bills"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm font-medium transition-colors",
                     isActive("/bills") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -694,7 +694,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/committees"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm font-medium transition-colors",
                     isActive("/committees") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -713,7 +713,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/members"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm font-medium transition-colors",
                     isActive("/members") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -735,7 +735,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/contracts"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm font-medium transition-colors",
                     isActive("/contracts") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -754,7 +754,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/lobbying"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm font-medium transition-colors",
                     isActive("/lobbying") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -773,7 +773,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/school-funding"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm font-medium transition-colors",
                     isActive("/school-funding") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
