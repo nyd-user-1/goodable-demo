@@ -6,6 +6,10 @@ import { Message } from "../types";
 import { ContextBuilder } from "@/utils/contextBuilder";
 import { useNavigate } from "react-router-dom";
 import { SchoolFundingDataCard, parseSchoolFundingData } from "@/components/features/chat/SchoolFundingDataCard";
+import { InlineCitation, InlineCitationCardTrigger, parseCitationMarkers } from "@/components/ai-elements/inline-citation";
+import { ReasoningBlock, extractReasoning } from "@/components/ai-elements/reasoning";
+import { PerplexityCitation } from "@/hooks/chat/types";
+import React from "react";
 
 interface MessageBubbleProps {
   message: Message & { isStreaming?: boolean };
@@ -160,23 +164,43 @@ export const MessageBubble = ({
                 hyphens: 'auto'
               }}
             >
-              <ReactMarkdown
-                components={{
-                  p: ({ children }) => <p style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%', margin: '0.5em 0' }}>{children}</p>,
-                  li: ({ children }) => <li style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</li>,
-                  div: ({ children }) => <div style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</div>,
-                  h1: ({ children }) => <h1 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</h1>,
-                  h2: ({ children }) => <h2 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</h2>,
-                  h3: ({ children }) => <h3 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</h3>,
-                  ul: ({ children }) => <ul style={{ paddingLeft: '1.5em', maxWidth: '100%' }}>{children}</ul>,
-                  ol: ({ children }) => <ol style={{ paddingLeft: '1.5em', maxWidth: '100%' }}>{children}</ol>
-                }}
-              >
-                {message.content}
-              </ReactMarkdown>
-              {/* Add streaming cursor like FeatureChat */}
-              {message.isStreaming && (
-                <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1">|</span>
+              {/* Show reasoning block if present */}
+              {message.reasoning && (
+                <ReasoningBlock
+                  content={message.content}
+                  isStreaming={message.isStreaming}
+                  className="mb-3"
+                />
+              )}
+
+              {/* Render content with inline citations if citations available */}
+              {message.citations && message.citations.length > 0 ? (
+                <MessageContentWithCitations
+                  content={extractReasoning(message.content).mainContent || message.content}
+                  citations={message.citations}
+                  isStreaming={message.isStreaming}
+                />
+              ) : (
+                <>
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => <p style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%', margin: '0.5em 0' }}>{children}</p>,
+                      li: ({ children }) => <li style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</li>,
+                      div: ({ children }) => <div style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</div>,
+                      h1: ({ children }) => <h1 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</h1>,
+                      h2: ({ children }) => <h2 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</h2>,
+                      h3: ({ children }) => <h3 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</h3>,
+                      ul: ({ children }) => <ul style={{ paddingLeft: '1.5em', maxWidth: '100%' }}>{children}</ul>,
+                      ol: ({ children }) => <ol style={{ paddingLeft: '1.5em', maxWidth: '100%' }}>{children}</ol>
+                    }}
+                  >
+                    {message.content}
+                  </ReactMarkdown>
+                  {/* Add streaming cursor like FeatureChat */}
+                  {message.isStreaming && (
+                    <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1">|</span>
+                  )}
+                </>
               )}
             </div>
           ) : (
@@ -300,6 +324,53 @@ export const MessageBubble = ({
             </Button>
           </div>
         </div>
+      )}
+    </div>
+  );
+};
+
+// Helper component to render message content with inline citations
+interface MessageContentWithCitationsProps {
+  content: string;
+  citations: PerplexityCitation[];
+  isStreaming?: boolean;
+}
+
+const MessageContentWithCitations = ({ content, citations, isStreaming }: MessageContentWithCitationsProps) => {
+  // Parse the content and replace citation markers with clickable components
+  const renderContentWithCitations = (text: string) => {
+    const parts = parseCitationMarkers(text, citations);
+    return parts.map((part, index) => {
+      if (typeof part === 'string') {
+        // For regular text, render through markdown
+        return (
+          <ReactMarkdown
+            key={index}
+            components={{
+              p: ({ children }) => <span style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</span>,
+              li: ({ children }) => <li style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</li>,
+              div: ({ children }) => <div style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</div>,
+              h1: ({ children }) => <h1 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</h1>,
+              h2: ({ children }) => <h2 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</h2>,
+              h3: ({ children }) => <h3 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</h3>,
+              ul: ({ children }) => <ul style={{ paddingLeft: '1.5em', maxWidth: '100%' }}>{children}</ul>,
+              ol: ({ children }) => <ol style={{ paddingLeft: '1.5em', maxWidth: '100%' }}>{children}</ol>
+            }}
+          >
+            {part}
+          </ReactMarkdown>
+        );
+      }
+      // Citation components are already React elements
+      return <React.Fragment key={index}>{part}</React.Fragment>;
+    });
+  };
+
+  return (
+    <div className="space-y-2">
+      {renderContentWithCitations(content)}
+      {isStreaming && (
+        <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1">|</span>
       )}
     </div>
   );

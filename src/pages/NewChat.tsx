@@ -1073,6 +1073,7 @@ const NewChat = () => {
       readerRef.current = reader || null;
       const decoder = new TextDecoder();
       let aiResponse = '';
+      let streamedCitations: PerplexityCitation[] = [];
 
       if (reader) {
         while (true) {
@@ -1089,6 +1090,21 @@ const NewChat = () => {
 
               try {
                 const parsed = JSON.parse(data);
+
+                // Handle citations event from Perplexity edge function
+                if (parsed.type === 'citations' && Array.isArray(parsed.citations)) {
+                  streamedCitations = parsed.citations.map((c: any) => ({
+                    number: c.index,
+                    url: c.url,
+                    title: c.title || '',
+                    excerpt: c.snippet || '',
+                    favicon: c.favicon || '',
+                    publishedDate: c.publishedDate || '',
+                    author: c.author || ''
+                  }));
+                  console.log('Received Perplexity citations:', streamedCitations);
+                  continue;
+                }
 
                 // Handle different streaming formats
                 let content = '';
@@ -1131,19 +1147,21 @@ const NewChat = () => {
       // Extract Perplexity citations if this is a Perplexity response
       let perplexityCitations: PerplexityCitation[] = [];
       if (isPerplexityModel && aiResponse) {
-        // Extract citation numbers from the response
-        const citationNumbers = extractCitationNumbers(aiResponse);
-
-        // Create mock citation data
-        // TODO: Replace with actual citation data from Perplexity API response
-        perplexityCitations = citationNumbers.map(num => ({
-          number: num,
-          url: `https://example.com/source-${num}`,
-          title: `Source ${num}`,
-          excerpt: ''
-        }));
-
-        console.log('Extracted Perplexity citations:', perplexityCitations);
+        // Use streamed citations if available, otherwise extract from response
+        if (streamedCitations.length > 0) {
+          perplexityCitations = streamedCitations;
+          console.log('Using streamed Perplexity citations:', perplexityCitations);
+        } else {
+          // Fallback: extract citation numbers and create placeholder citations
+          const citationNumbers = extractCitationNumbers(aiResponse);
+          perplexityCitations = citationNumbers.map(num => ({
+            number: num,
+            url: '',
+            title: `Source ${num}`,
+            excerpt: ''
+          }));
+          console.log('Extracted citation numbers (no URLs available):', perplexityCitations);
+        }
       }
 
       // Extract bill numbers from AI response to fetch citations (progressive loading)

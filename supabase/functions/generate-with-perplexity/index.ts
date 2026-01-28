@@ -9,6 +9,40 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type"
 };
 
+// Interface for Perplexity citation
+interface PerplexityCitation {
+  id: string;
+  index: number;
+  url: string;
+  title?: string;
+  snippet?: string;
+  publishedDate?: string;
+  author?: string;
+  favicon?: string;
+}
+
+// Extract favicon URL from domain
+const getFaviconUrl = (url: string): string => {
+  try {
+    const urlObj = new URL(url);
+    return `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=32`;
+  } catch {
+    return '';
+  }
+};
+
+// Process Perplexity citations array into our format
+const processCitations = (citations: string[] | undefined): PerplexityCitation[] => {
+  if (!citations || !Array.isArray(citations)) return [];
+
+  return citations.map((url, index) => ({
+    id: `citation-${index + 1}`,
+    index: index + 1,
+    url: url,
+    favicon: getFaviconUrl(url)
+  }));
+};
+
 const getSystemPrompt = (customSystemContext?: string) => {
   const today = new Date().toISOString().split("T")[0];
   const basePrompt = `${CONSTITUTIONAL_CORE}
@@ -90,8 +124,98 @@ serve(async (req) => {
     }
 
     if (stream) {
-      // Return streaming response
-      return new Response(response.body, {
+      // For streaming, we need to intercept the response to extract citations
+      // Perplexity sends citations in the final chunk or as metadata
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("No response body");
+      }
+
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+
+      let accumulatedData = "";
+      let citations: PerplexityCitation[] = [];
+      let sentCitations = false;
+
+      const transformStream = new ReadableStream({
+        async start(controller) {
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              const chunk = decoder.decode(value, { stream: true });
+              accumulatedData += chunk;
+
+              // Process each line in the chunk
+              const lines = chunk.split('\n');
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  const data = line.slice(6);
+                  if (data === '[DONE]') {
+                    // Before sending [DONE], send citations if we haven't already
+                    if (!sentCitations && citations.length > 0) {
+                      const citationsEvent = `data: ${JSON.stringify({ type: "citations", citations })}\n\n`;
+                      controller.enqueue(encoder.encode(citationsEvent));
+                      sentCitations = true;
+                    }
+                    controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+                    continue;
+                  }
+
+                  try {
+                    const parsed = JSON.parse(data);
+
+                    // Extract citations from the response if present
+                    if (parsed.citations && Array.isArray(parsed.citations) && !sentCitations) {
+                      citations = processCitations(parsed.citations);
+                    }
+
+                    // Check for citations in the final message too
+                    if (parsed.choices?.[0]?.message?.citations) {
+                      citations = processCitations(parsed.choices[0].message.citations);
+                    }
+
+                    // Forward the original chunk
+                    controller.enqueue(encoder.encode(line + '\n'));
+                  } catch (e) {
+                    // Forward unparseable lines as-is
+                    controller.enqueue(encoder.encode(line + '\n'));
+                  }
+                } else if (line.trim()) {
+                  // Forward non-data lines
+                  controller.enqueue(encoder.encode(line + '\n'));
+                }
+              }
+            }
+
+            // After stream ends, try to extract citations from accumulated data
+            if (!sentCitations) {
+              try {
+                // Look for citations in the accumulated response
+                const citationsMatch = accumulatedData.match(/"citations"\s*:\s*\[(.*?)\]/s);
+                if (citationsMatch) {
+                  const citationUrls = JSON.parse(`[${citationsMatch[1]}]`);
+                  citations = processCitations(citationUrls);
+                  if (citations.length > 0) {
+                    const citationsEvent = `data: ${JSON.stringify({ type: "citations", citations })}\n\n`;
+                    controller.enqueue(encoder.encode(citationsEvent));
+                  }
+                }
+              } catch (e) {
+                console.log("Could not extract citations from accumulated data");
+              }
+            }
+
+            controller.close();
+          } catch (error) {
+            controller.error(error);
+          }
+        }
+      });
+
+      return new Response(transformStream, {
         headers: {
           ...corsHeaders,
           "Content-Type": "text/event-stream",
@@ -100,12 +224,13 @@ serve(async (req) => {
         },
       });
     } else {
-      // Return complete response
+      // Return complete response with citations
       const data = await response.json();
       const generatedText = data.choices?.[0]?.message?.content ?? "";
+      const citations = processCitations(data.citations);
 
       return new Response(
-        JSON.stringify({ generatedText, model }),
+        JSON.stringify({ generatedText, model, citations }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
