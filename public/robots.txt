@@ -1,0 +1,7 @@
+# robots.txt for nysgpt.com
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://nysgpt.com/sitemap.xml
