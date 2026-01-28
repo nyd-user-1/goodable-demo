@@ -2456,7 +2456,7 @@ const NewChat = () => {
                   )}
 
                   {/* Right Side - Model selector (mobile) + Submit/Stop Button */}
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2.5">
                     {isMobilePhone && (
                       <div className="[&_button>span]:text-sm [&_button>span]:font-medium [&_button]:px-1 [&_button]:py-1">
                         <EngineSelection />
