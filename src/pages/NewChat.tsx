@@ -62,6 +62,21 @@ import {
   ChainOfThoughtSearchResults,
   ChainOfThoughtSearchResult,
 } from "@/components/ai-elements/chain-of-thought";
+import {
+  Reasoning,
+  ReasoningTrigger,
+  ReasoningContent,
+  extractReasoning,
+} from "@/components/ai-elements/reasoning";
+import {
+  InlineCitation,
+  InlineCitationCard,
+  InlineCitationCardTrigger,
+  InlineCitationCarousel,
+  InlineCitationSource,
+  parseCitationMarkers,
+  CitationSource,
+} from "@/components/ai-elements/inline-citation";
 
 // Thinking phrases that rotate per message instance
 const thinkingPhrases = [
@@ -81,6 +96,15 @@ const getNextThinkingPhrase = () => {
   const phrase = thinkingPhrases[thinkingPhraseIndex % thinkingPhrases.length];
   thinkingPhraseIndex++;
   return phrase;
+};
+
+// Convert PerplexityCitation to CitationSource format for inline citation rendering
+const convertToCitationSources = (perplexityCitations: PerplexityCitation[]): CitationSource[] => {
+  return perplexityCitations.map(c => ({
+    url: c.url,
+    title: c.title,
+    description: c.excerpt,
+  }));
 };
 
 // Helper to parse and separate clients section from message content
@@ -228,6 +252,8 @@ interface Message {
   thinkingPhrase?: string;
   schoolFundingData?: SchoolFundingDetails;
   isContractChat?: boolean;
+  reasoning?: string;
+  reasoningDuration?: number;
 }
 
 const NewChat = () => {
@@ -1102,10 +1128,18 @@ const NewChat = () => {
 
                 if (content) {
                   aiResponse += content;
+                  // Extract reasoning during streaming for Perplexity models
+                  const streamedData = isPerplexityModel
+                    ? extractReasoning(aiResponse)
+                    : { reasoning: null, mainContent: aiResponse };
                   // Update UI with streamed content
                   setMessages(prev => prev.map(msg =>
                     msg.id === messageId
-                      ? { ...msg, streamedContent: aiResponse }
+                      ? {
+                          ...msg,
+                          streamedContent: streamedData.mainContent,
+                          reasoning: streamedData.reasoning || undefined
+                        }
                       : msg
                   ));
                 }
@@ -1166,14 +1200,19 @@ const NewChat = () => {
         }
       }
 
+      // Extract reasoning from Perplexity responses (if present in <think> tags)
+      const { reasoning, mainContent } = isPerplexityModel
+        ? extractReasoning(aiResponse)
+        : { reasoning: null, mainContent: aiResponse };
+
       // Finalize the streaming message with all metadata
       setMessages(prev => prev.map(msg =>
         msg.id === messageId
           ? {
               ...msg,
-              content: aiResponse,
+              content: mainContent,
               isStreaming: false,
-              streamedContent: aiResponse,
+              streamedContent: mainContent,
               reviewedInfo: `Reviewed ${responseCitations.length} bills: ${
                 responseCitations.length > 0
                   ? `Found relevant legislation including ${responseCitations[0]?.bill_number || 'pending bills'} related to your query.`
@@ -1181,7 +1220,8 @@ const NewChat = () => {
               }`,
               citations: responseCitations,
               perplexityCitations: isPerplexityModel ? perplexityCitations : undefined,
-              isPerplexityResponse: isPerplexityModel
+              isPerplexityResponse: isPerplexityModel,
+              reasoning: reasoning || undefined
             }
           : msg
       ));
@@ -1525,6 +1565,25 @@ const NewChat = () => {
                         );
                       }
 
+                      // Perplexity/Sonar responses get Reasoning UI when they have thinking content
+                      if (message.isPerplexityResponse && (message.isStreaming || message.reasoning)) {
+                        return (
+                          <Reasoning
+                            isStreaming={message.isStreaming}
+                            defaultOpen={true}
+                          >
+                            <ReasoningTrigger />
+                            <ReasoningContent>
+                              {message.reasoning ? (
+                                <p className="text-sm leading-relaxed">{message.reasoning}</p>
+                              ) : (
+                                <p className="text-sm text-muted-foreground">Processing your query...</p>
+                              )}
+                            </ReasoningContent>
+                          </Reasoning>
+                        );
+                      }
+
                       return (
                       <Accordion type="single" collapsible className="w-full">
                         <AccordionItem
@@ -1610,20 +1669,15 @@ const NewChat = () => {
                     {message.isStreaming && (
                       <div className="prose prose-sm max-w-none dark:prose-invert">
                         {message.isPerplexityResponse && message.perplexityCitations ? (
-                        // Render Perplexity response with inline citation badges
+                        // Render Perplexity response with inline citation badges using new InlineCitation component
                         <ReactMarkdown
                           components={{
                             p: ({ children }) => {
                               const textContent = String(children);
+                              const citationSources = convertToCitationSources(message.perplexityCitations || []);
                               return (
                                 <p className="mb-3 leading-relaxed text-foreground">
-                                  <CitationText
-                                    text={textContent}
-                                    citations={message.perplexityCitations || []}
-                                    onCitationClick={(num) => {
-                                      console.log('Citation clicked:', num);
-                                    }}
-                                  />
+                                  {parseCitationMarkers(textContent, citationSources)}
                                 </p>
                               );
                             },
@@ -1713,15 +1767,10 @@ const NewChat = () => {
                               components={{
                                 p: ({ children }) => {
                                   const textContent = String(children);
+                                  const citationSources = convertToCitationSources(message.perplexityCitations || []);
                                   return (
                                     <p className="mb-3 leading-relaxed text-foreground">
-                                      <CitationText
-                                        text={textContent}
-                                        citations={message.perplexityCitations || []}
-                                        onCitationClick={(num) => {
-                                          console.log('Citation clicked:', num);
-                                        }}
-                                      />
+                                      {parseCitationMarkers(textContent, citationSources)}
                                     </p>
                                   );
                                 },
