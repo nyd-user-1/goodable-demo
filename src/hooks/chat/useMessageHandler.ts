@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Message, EntityType, Citation, PerplexityCitation } from './types';
+import { Message, EntityType, Citation } from './types';
 import { generateId } from './utils';
 import { countWords } from '@/hooks/useAIUsage';
 
@@ -174,7 +174,6 @@ export const useMessageHandler = (entity: any, entityType: EntityType, options?:
       readerRef.current = reader || null;
       const decoder = new TextDecoder();
       let aiResponse = '';
-      let streamedCitations: PerplexityCitation[] = [];
 
       if (reader) {
         while (true) {
@@ -191,12 +190,6 @@ export const useMessageHandler = (entity: any, entityType: EntityType, options?:
 
               try {
                 const parsed = JSON.parse(data);
-
-                // Handle citations event from Perplexity edge function
-                if (parsed.type === 'citations' && Array.isArray(parsed.citations)) {
-                  streamedCitations = parsed.citations;
-                  continue;
-                }
 
                 // Handle different streaming formats
                 let content = '';
@@ -230,13 +223,12 @@ export const useMessageHandler = (entity: any, entityType: EntityType, options?:
         aiResponse = 'Unable to generate response. Please try again.';
       }
 
-      // Finalize the message with citations if available
+      // Finalize the message
       const finalMessage: Message = {
         id: messageId,
         role: "assistant",
         content: aiResponse,
         timestamp: new Date(),
-        citations: streamedCitations.length > 0 ? streamedCitations : undefined,
         isStreaming: false
       };
 
