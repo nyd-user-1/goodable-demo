@@ -151,6 +151,8 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [itemToRename, setItemToRename] = useState<{ id: string; title: string; type: 'chat' | 'note' } | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [inlineEditId, setInlineEditId] = useState<string | null>(null);
+  const [inlineEditValue, setInlineEditValue] = useState("");
 
   // Check current theme
   useEffect(() => {
@@ -256,6 +258,20 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
     setRenameValue("");
   };
 
+  const handleInlineRenameSubmit = async (id: string, type: 'chat' | 'note') => {
+    if (!inlineEditValue.trim()) {
+      setInlineEditId(null);
+      return;
+    }
+    if (type === 'chat') {
+      await renameChat(id, inlineEditValue.trim());
+    } else {
+      await renameNote(id, inlineEditValue.trim());
+    }
+    setInlineEditId(null);
+    setInlineEditValue("");
+  };
+
   // Note operations
   const renameNote = async (noteId: string, newTitle: string) => {
     try {
@@ -319,8 +335,13 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
          rawTitle.includes("ASSOCIATES") || rawTitle.includes("CONSULTING") ||
          rawTitle.includes("GROUP") || rawTitle.includes("STRATEGIES") ||
          rawTitle.includes("AFFAIRS") || rawTitle.includes("& "));
-      const isContractChat = /^\[Contract:[^\]]+\]\s*/.test(rawTitle);
-      const isSchoolFundingChat = /^\[SchoolFunding:[^\]]+\]\s*/.test(rawTitle);
+
+      // Check both title and first user message content for contract/school funding chats
+      // (title prefix is stripped on rename, but first message content is preserved)
+      const messagesArr = Array.isArray(chat.messages) ? chat.messages as Array<{ role?: string; content?: string }> : [];
+      const firstUserContent = messagesArr.find(m => m.role === 'user')?.content || '';
+      const isContractChat = /^\[Contract:[^\]]+\]/.test(rawTitle) || /\[Contract:[^\]]+\]/.test(firstUserContent);
+      const isSchoolFundingChat = /^\[SchoolFunding:[^\]]+\]/.test(rawTitle) || /\[SchoolFunding:[^\]]+\]/.test(firstUserContent);
 
       // Strip [Contract:...] and [SchoolFunding:...] prefixes from displayed title
       const chatTitle = rawTitle.replace(/^\[Contract:[^\]]+\]\s*/, '').replace(/^\[SchoolFunding:[^\]]+\]\s*/, '');
@@ -782,9 +803,46 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               {/* Combined chats and notes, sorted by date */}
               {combinedItems.map((item) => (
                 <div key={`${item.type}-${item.id}`} className="group/item relative">
+                  {inlineEditId === item.id ? (
+                    <div className="flex items-center gap-3 px-3 py-2 pr-8 rounded-md text-sm bg-muted w-full">
+                      {item.isPinned ? (
+                        <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
+                      ) : item.type === 'note' ? (
+                        <NotebookPen className="h-4 w-4 flex-shrink-0" />
+                      ) : item.isLobbyingChat ? (
+                        <HandCoins className="h-4 w-4 flex-shrink-0" />
+                      ) : item.isContractChat ? (
+                        <Wallet className="h-4 w-4 flex-shrink-0" />
+                      ) : item.isSchoolFundingChat ? (
+                        <GraduationCap className="h-4 w-4 flex-shrink-0" />
+                      ) : (
+                        <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                      )}
+                      <input
+                        autoFocus
+                        className="flex-1 bg-transparent outline-none text-sm min-w-0"
+                        value={inlineEditValue}
+                        onChange={(e) => setInlineEditValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleInlineRenameSubmit(item.id, item.type);
+                          } else if (e.key === 'Escape') {
+                            setInlineEditId(null);
+                          }
+                        }}
+                        onBlur={() => handleInlineRenameSubmit(item.id, item.type)}
+                      />
+                    </div>
+                  ) : (
                   <NavLink
                     to={item.type === 'chat' ? `/c/${item.id}` : `/n/${item.id}`}
                     onClick={onClose}
+                    onDoubleClick={(e) => {
+                      e.preventDefault();
+                      setInlineEditId(item.id);
+                      setInlineEditValue(item.title);
+                    }}
                     className={cn(
                       "flex items-center gap-3 px-3 py-2 pr-8 rounded-md text-sm transition-colors",
                       (item.type === 'chat' ? location.pathname === `/c/${item.id}` : location.pathname === `/n/${item.id}`)
@@ -807,6 +865,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                     )}
                     <span className="truncate">{item.title}</span>
                   </NavLink>
+                  )}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
