@@ -651,6 +651,31 @@ const NewChat = () => {
     }
   }, [contractsDialogOpen]);
 
+  // Lobbying data for mobile drawer
+  const [mobileDrawerLobbyists, setMobileDrawerLobbyists] = useState<any[]>([]);
+  const [mobileDrawerLoading, setMobileDrawerLoading] = useState(false);
+
+  // Fetch data when mobile drawer category opens
+  useEffect(() => {
+    if (!mobileDrawerCategory) return;
+    if (mobileDrawerCategory === 'bills' && availableBills.length === 0) fetchBillsForSelection();
+    if (mobileDrawerCategory === 'members' && availableMembers.length === 0) fetchMembersForSelection();
+    if (mobileDrawerCategory === 'committees' && availableCommittees.length === 0) fetchCommitteesForSelection();
+    if (mobileDrawerCategory === 'contracts' && availableContracts.length === 0) fetchContractsForSelection();
+    if (mobileDrawerCategory === 'lobbying' && mobileDrawerLobbyists.length === 0) {
+      setMobileDrawerLoading(true);
+      supabase
+        .from('lobbyists')
+        .select('id, name, type_of_lobbyist')
+        .order('name', { ascending: true })
+        .limit(50)
+        .then(({ data }) => {
+          setMobileDrawerLobbyists(data || []);
+          setMobileDrawerLoading(false);
+        });
+    }
+  }, [mobileDrawerCategory]);
+
   // Note: Real streaming is now handled by the edge functions
   // The fake client-side streaming has been removed for better performance
 
@@ -2486,48 +2511,193 @@ const NewChat = () => {
 
             {/* Mobile Category Pills - shown on phones when chat hasn't started and no text typed */}
             {isMobilePhone && !chatStarted && query.length === 0 && (
-              <div className="flex flex-wrap gap-2 mt-3 justify-center px-2">
-                <button
-                  type="button"
-                  onClick={() => { setBillsDialogOpen(true); }}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border/60 bg-background text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                >
-                  <FileText className="h-3.5 w-3.5" />
-                  Bills
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setMembersDialogOpen(true); }}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border/60 bg-background text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                >
-                  <Users className="h-3.5 w-3.5" />
-                  Members
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setCommitteesDialogOpen(true); }}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border/60 bg-background text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                >
-                  <Building2 className="h-3.5 w-3.5" />
-                  Committees
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setContractsDialogOpen(true); }}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border/60 bg-background text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                >
-                  <Wallet className="h-3.5 w-3.5" />
-                  Contracts
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/lobbying')}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border/60 bg-background text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                >
-                  <HandCoins className="h-3.5 w-3.5" />
-                  Lobbying
-                </button>
-              </div>
+              <>
+                {/* Pills row */}
+                {!mobileDrawerCategory && (
+                  <div className="flex flex-wrap gap-2 mt-3 justify-center px-2">
+                    {[
+                      { key: 'bills', label: 'Bills', icon: <FileText className="h-3.5 w-3.5" /> },
+                      { key: 'members', label: 'Members', icon: <Users className="h-3.5 w-3.5" /> },
+                      { key: 'committees', label: 'Committees', icon: <Building2 className="h-3.5 w-3.5" /> },
+                      { key: 'contracts', label: 'Contracts', icon: <Wallet className="h-3.5 w-3.5" /> },
+                      { key: 'lobbying', label: 'Lobbying', icon: <HandCoins className="h-3.5 w-3.5" /> },
+                    ].map((cat) => (
+                      <button
+                        key={cat.key}
+                        type="button"
+                        onClick={() => setMobileDrawerCategory(cat.key)}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border/60 bg-background text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                      >
+                        {cat.icon}
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Drawer card - Claude style */}
+                {mobileDrawerCategory && (
+                  <div className="mt-3 mx-1 rounded-2xl border border-border/60 bg-background shadow-sm overflow-hidden">
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-4 py-3">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        {mobileDrawerCategory === 'bills' && <FileText className="h-4 w-4" />}
+                        {mobileDrawerCategory === 'members' && <Users className="h-4 w-4" />}
+                        {mobileDrawerCategory === 'committees' && <Building2 className="h-4 w-4" />}
+                        {mobileDrawerCategory === 'contracts' && <Wallet className="h-4 w-4" />}
+                        {mobileDrawerCategory === 'lobbying' && <HandCoins className="h-4 w-4" />}
+                        <span className="text-sm font-medium text-foreground capitalize">{mobileDrawerCategory}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setMobileDrawerCategory(null)}
+                        className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    {/* Items list */}
+                    <div className="max-h-[280px] overflow-y-auto">
+                      {/* Bills */}
+                      {mobileDrawerCategory === 'bills' && (
+                        billsLoading ? (
+                          <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading bills...</div>
+                        ) : (
+                          availableBills.slice(0, 50).map((bill, idx) => (
+                            <button
+                              key={bill.bill_number}
+                              type="button"
+                              onClick={() => {
+                                setQuery(`Tell me about bill ${bill.bill_number}`);
+                                setMobileDrawerCategory(null);
+                                textareaRef.current?.focus();
+                              }}
+                              className={cn(
+                                "w-full text-left px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors",
+                                idx > 0 && "border-t border-border/40"
+                              )}
+                            >
+                              <span className="font-medium">{bill.bill_number}</span>
+                              <span className="text-muted-foreground ml-2 line-clamp-1">{bill.title}</span>
+                            </button>
+                          ))
+                        )
+                      )}
+
+                      {/* Members */}
+                      {mobileDrawerCategory === 'members' && (
+                        membersLoading ? (
+                          <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading members...</div>
+                        ) : (
+                          availableMembers.slice(0, 50).map((member, idx) => (
+                            <button
+                              key={member.people_id}
+                              type="button"
+                              onClick={() => {
+                                setQuery(`Tell me about ${member.name}`);
+                                setMobileDrawerCategory(null);
+                                textareaRef.current?.focus();
+                              }}
+                              className={cn(
+                                "w-full text-left px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors",
+                                idx > 0 && "border-t border-border/40"
+                              )}
+                            >
+                              <span className="font-medium">{member.name}</span>
+                              <span className="text-muted-foreground ml-2">{member.party} - {member.chamber}</span>
+                            </button>
+                          ))
+                        )
+                      )}
+
+                      {/* Committees */}
+                      {mobileDrawerCategory === 'committees' && (
+                        committeesLoading ? (
+                          <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading committees...</div>
+                        ) : (
+                          availableCommittees.slice(0, 50).map((committee, idx) => (
+                            <button
+                              key={committee.committee_id}
+                              type="button"
+                              onClick={() => {
+                                setQuery(`Tell me about the ${committee.committee_name} committee`);
+                                setMobileDrawerCategory(null);
+                                textareaRef.current?.focus();
+                              }}
+                              className={cn(
+                                "w-full text-left px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors",
+                                idx > 0 && "border-t border-border/40"
+                              )}
+                            >
+                              <span className="font-medium">{committee.committee_name}</span>
+                              <span className="text-muted-foreground ml-2">{committee.chamber}</span>
+                            </button>
+                          ))
+                        )
+                      )}
+
+                      {/* Contracts */}
+                      {mobileDrawerCategory === 'contracts' && (
+                        contractsLoading ? (
+                          <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading contracts...</div>
+                        ) : (
+                          availableContracts.slice(0, 50).map((contract, idx) => (
+                            <button
+                              key={contract.contract_number}
+                              type="button"
+                              onClick={() => {
+                                setQuery(`Tell me about the contract with ${contract.vendor_name}`);
+                                setMobileDrawerCategory(null);
+                                textareaRef.current?.focus();
+                              }}
+                              className={cn(
+                                "w-full text-left px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors",
+                                idx > 0 && "border-t border-border/40"
+                              )}
+                            >
+                              <span className="font-medium">{contract.vendor_name || 'N/A'}</span>
+                              <span className="text-muted-foreground ml-2">
+                                {contract.current_contract_amount
+                                  ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(contract.current_contract_amount)
+                                  : ''}
+                              </span>
+                            </button>
+                          ))
+                        )
+                      )}
+
+                      {/* Lobbying */}
+                      {mobileDrawerCategory === 'lobbying' && (
+                        mobileDrawerLoading ? (
+                          <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading lobbyists...</div>
+                        ) : (
+                          mobileDrawerLobbyists.slice(0, 50).map((lobbyist, idx) => (
+                            <button
+                              key={lobbyist.id}
+                              type="button"
+                              onClick={() => {
+                                setQuery(`Tell me about lobbyist ${lobbyist.name}`);
+                                setMobileDrawerCategory(null);
+                                textareaRef.current?.focus();
+                              }}
+                              className={cn(
+                                "w-full text-left px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors",
+                                idx > 0 && "border-t border-border/40"
+                              )}
+                            >
+                              <span className="font-medium">{lobbyist.name}</span>
+                              {lobbyist.type_of_lobbyist && (
+                                <span className="text-muted-foreground ml-2">{lobbyist.type_of_lobbyist}</span>
+                              )}
+                            </button>
+                          ))
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
           </div>
