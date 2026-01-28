@@ -612,7 +612,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               onMouseEnter={() => setNewChatHover(true)}
               onMouseLeave={() => setNewChatHover(false)}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm transition-colors",
                 isActive("/new-chat") ? "bg-muted" : "hover:bg-muted"
               )}
             >
@@ -644,7 +644,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               to="/chats"
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm transition-colors",
                 isActive("/chats") ? "bg-muted" : "hover:bg-muted"
               )}
             >
@@ -675,7 +675,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/bills"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm transition-colors",
                     isActive("/bills") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -694,7 +694,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/committees"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm transition-colors",
                     isActive("/committees") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -713,7 +713,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/members"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm transition-colors",
                     isActive("/members") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -735,7 +735,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/contracts"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm transition-colors",
                     isActive("/contracts") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -754,7 +754,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/lobbying"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm transition-colors",
                     isActive("/lobbying") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -773,7 +773,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/school-funding"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm transition-colors",
                     isActive("/school-funding") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -802,7 +802,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               {combinedItems.map((item) => (
                 <div key={`${item.type}-${item.id}`} className="group/item relative">
                   {inlineEditId === item.id ? (
-                    <div className="flex items-center gap-3 px-3 py-2 pr-8 rounded-md text-sm bg-muted w-full">
+                    <div className="flex items-center gap-3 px-3 py-2.5 md:py-2 pr-8 rounded-md text-[15px] md:text-sm bg-muted w-full">
                       {item.isPinned ? (
                         <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
                       ) : item.type === 'note' ? (
@@ -818,7 +818,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                       )}
                       <input
                         autoFocus
-                        className="flex-1 bg-transparent outline-none text-sm min-w-0"
+                        className="flex-1 bg-transparent outline-none text-[15px] md:text-sm min-w-0"
                         value={inlineEditValue}
                         onChange={(e) => setInlineEditValue(e.target.value)}
                         onKeyDown={(e) => {
@@ -842,7 +842,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                       setInlineEditValue(item.title);
                     }}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2 pr-8 rounded-md text-sm transition-colors",
+                      "flex items-center gap-3 px-3 py-2.5 md:py-2 pr-8 rounded-md text-[15px] md:text-sm transition-colors",
                       (item.type === 'chat' ? location.pathname === `/c/${item.id}` : location.pathname === `/n/${item.id}`)
                         ? "bg-muted"
                         : "hover:bg-muted"
@@ -902,7 +902,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to={`/e/${excerpt.id}`}
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm transition-colors",
                     location.pathname === `/e/${excerpt.id}` ? "bg-muted" : "hover:bg-muted"
                   )}
                 >

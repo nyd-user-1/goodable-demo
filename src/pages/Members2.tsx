@@ -120,7 +120,7 @@ const Members2 = () => {
       {/* Left Sidebar - slides in from off-screen */}
       <div
         className={cn(
-          "fixed left-0 top-0 bottom-0 w-64 bg-background border-r z-50",
+          "fixed left-0 top-0 bottom-0 w-[85vw] max-w-sm md:w-64 bg-background border-r z-50",
           sidebarMounted && "transition-transform duration-300 ease-in-out",
           leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
