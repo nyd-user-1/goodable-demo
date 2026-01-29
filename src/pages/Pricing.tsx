@@ -20,9 +20,16 @@ const Pricing = () => {
               Tools for every level of civic engagement, from curious citizens to professional advocates.
             </p>
           </div>
+        </div>
 
-          {/* Pricing Philosophy */}
-          <article className="prose prose-lg dark:prose-invert max-w-none mb-16">
+        {/* Subscription Plans Component - moved to top */}
+        <div className="container mx-auto px-4 max-w-6xl mb-16">
+          <SubscriptionPlans />
+        </div>
+
+        {/* Pricing Philosophy - moved below plans */}
+        <div className="container mx-auto px-4 max-w-4xl">
+          <article className="prose prose-lg dark:prose-invert max-w-none">
             <section className="mb-10">
               <h2 className="text-2xl font-semibold mb-4">Our Pricing Philosophy</h2>
               <p>
@@ -56,11 +63,6 @@ const Pricing = () => {
               </p>
             </section>
           </article>
-        </div>
-
-        {/* Subscription Plans Component */}
-        <div className="container mx-auto px-4 max-w-6xl">
-          <SubscriptionPlans />
         </div>
       </main>
 

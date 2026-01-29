@@ -39,10 +39,10 @@ export const SubscriptionTierCard = ({
     ? ` (${monthlyPrice}/month if paid monthly)`
     : '';
   return (
-    <Card className={`relative h-full min-h-[420px] flex flex-col ${isCurrentTier ? 'ring-2 ring-primary' : ''} ${isPopular ? 'border-primary' : ''}`}>
+    <Card className={`relative h-full min-h-[420px] flex flex-col ${isCurrentTier ? 'ring-2 ring-foreground' : ''} ${isPopular ? 'border-foreground' : ''}`}>
       {isPopular && (
         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-          <Badge className="bg-primary text-primary-foreground">
+          <Badge className="bg-foreground text-background">
             <Star className="w-3 h-3 mr-1" />
             Most Popular
           </Badge>
@@ -57,7 +57,7 @@ export const SubscriptionTierCard = ({
 
       <CardHeader className="text-center">
         <CardTitle className="text-xl">{name}</CardTitle>
-        <div className="text-3xl font-bold text-primary">
+        <div className="text-3xl font-bold text-foreground">
           {displayPrice}
           <span className="text-lg font-normal text-muted-foreground">{billingText}</span>
         </div>
@@ -80,10 +80,10 @@ export const SubscriptionTierCard = ({
         </div>
         
         <div className="pt-4">
-          <Button 
-            onClick={onSelect} 
+          <Button
+            onClick={onSelect}
             disabled={disabled || isCurrentTier}
-            className="w-full"
+            className={`w-full ${!isCurrentTier ? 'bg-foreground text-background hover:bg-foreground/90' : ''}`}
             variant={isCurrentTier ? "outline" : "default"}
           >
             {isCurrentTier ? "Current Plan" : `Upgrade to ${name}`}
