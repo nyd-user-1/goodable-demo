@@ -161,6 +161,54 @@ const stripClientsSection = (content: string): { cleanContent: string; isLoading
   return { cleanContent, isLoadingClients: false, partialClients: [] };
 };
 
+// Streaming reasoning text component - simulates AI thinking process
+const StreamingReasoningText = ({
+  steps,
+  isStreaming
+}: {
+  steps: string[];
+  isStreaming: boolean;
+}) => {
+  const [displayedText, setDisplayedText] = useState("");
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [currentCharIndex, setCurrentCharIndex] = useState(0);
+  const fullText = steps.join("");
+
+  useEffect(() => {
+    if (!isStreaming) {
+      // When streaming stops, show complete text
+      setDisplayedText(fullText);
+      return;
+    }
+
+    // Reset when streaming starts
+    setDisplayedText("");
+    setCurrentStepIndex(0);
+    setCurrentCharIndex(0);
+  }, [isStreaming, fullText]);
+
+  useEffect(() => {
+    if (!isStreaming || currentCharIndex >= fullText.length) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setDisplayedText(fullText.slice(0, currentCharIndex + 1));
+      setCurrentCharIndex(prev => prev + 1);
+    }, 20); // 20ms per character for smooth streaming effect
+
+    return () => clearTimeout(timer);
+  }, [isStreaming, currentCharIndex, fullText]);
+
+  if (!displayedText) return null;
+
+  return (
+    <div className="whitespace-pre-wrap">
+      {displayedText}
+    </div>
+  );
+};
+
 // Featuring real bills from our database
 const samplePrompts = [
   {
@@ -1633,13 +1681,26 @@ const NewChat = () => {
                         );
                       }
 
-                      // All other chats get a simple Reasoning indicator (no content inside)
+                      // All other chats get the Reasoning component with evergreen content
+                      const reasoningSteps = [
+                        "Let me analyze this question carefully.",
+                        "\n\nSearching our legislative database for relevant information.",
+                        "\n\nCross-referencing with official NY State sources.",
+                        "\n\nFormulating a comprehensive response based on my findings."
+                      ];
+
                       return (
                         <Reasoning
                           isStreaming={message.isStreaming}
-                          defaultOpen={false}
+                          defaultOpen={true}
                         >
-                          <ReasoningTrigger showChevron={false} />
+                          <ReasoningTrigger />
+                          <ReasoningContent>
+                            <StreamingReasoningText
+                              steps={reasoningSteps}
+                              isStreaming={message.isStreaming}
+                            />
+                          </ReasoningContent>
                         </Reasoning>
                       );
                     })()}
