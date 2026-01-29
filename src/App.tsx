@@ -88,6 +88,7 @@ import Chats2 from "./pages/Chats2";
 import Constitution from "./pages/Constitution";
 import DigitalBillOfRights from "./pages/DigitalBillOfRights";
 import LiveFeed from "./pages/LiveFeed";
+import Prompts from "./pages/Prompts";
 
 const queryClient = new QueryClient();
 
@@ -110,6 +111,7 @@ const AppLayout = () => {
               <Route path="/home" element={<Home />} />
               <Route path="/home-2" element={<Home2 />} />
               <Route path="/new-chat-2" element={<NewChat2 />} />
+              <Route path="/prompts" element={<Prompts />} />
               <Route path="/chats" element={<Chats2 />} />
               <Route path="/playground" element={<Playground />} />
               <Route path="/policy-portal" element={<PolicyPortal />} />

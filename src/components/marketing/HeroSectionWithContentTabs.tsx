@@ -1,8 +1,10 @@
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function HeroSectionWithContentTabs() {
+  const navigate = useNavigate();
   const features = [
     {
       id: 'explore',
@@ -71,7 +73,11 @@ export default function HeroSectionWithContentTabs() {
                 Translate complex policy into actionable insights.
               </p>
               <div className="flex flex-col justify-center gap-3 sm:flex-row">
-                <Button size="lg" className="bg-foreground text-background hover:bg-foreground/90">
+                <Button
+                  size="lg"
+                  className="bg-foreground text-background hover:bg-foreground/90"
+                  onClick={() => navigate('/')}
+                >
                   Start Exploring
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -89,8 +95,12 @@ export default function HeroSectionWithContentTabs() {
                     <path d="m12 5 7 7-7 7" />
                   </svg>
                 </Button>
-                <Button size="lg" variant="outline">
-                  View Sample Analysis
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => navigate('/use-cases/bills')}
+                >
+                  Sample Prompts
                 </Button>
               </div>
             </div>
