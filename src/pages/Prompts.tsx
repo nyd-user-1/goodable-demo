@@ -255,15 +255,17 @@ export default function Prompts() {
                         item.darkGradient
                       )}
                     >
-                      <div className="flex items-end justify-between">
-                        <div className="flex-1">
-                          <h2 className="text-2xl font-semibold text-white mb-2">
-                            {item.title}
-                          </h2>
-                          <p className="text-white/80 mb-6">{item.subtitle}</p>
+                      <div className="flex items-end justify-between min-h-[12rem]">
+                        <div className="flex-1 flex flex-col justify-between self-stretch">
+                          <div>
+                            <h2 className="text-2xl font-semibold text-white mb-2">
+                              {item.title}
+                            </h2>
+                            <p className="text-white/80">{item.subtitle}</p>
+                          </div>
                           <Button
                             variant="secondary"
-                            className="bg-white/90 hover:bg-white text-foreground"
+                            className="bg-white/90 hover:bg-white text-foreground w-fit"
                             onClick={() => handleFeaturedClick(item)}
                           >
                             View
