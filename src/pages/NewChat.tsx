@@ -1400,6 +1400,13 @@ const NewChat = () => {
         <NoteViewSidebar onClose={() => setLeftSidebarOpen(false)} />
       </div>
 
+      {/* Backdrop overlay when sidebar is open */}
+      {leftSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 z-50 transition-opacity"
+          onClick={() => setLeftSidebarOpen(false)}
+        />
+      )}
 
       {/* Main Content Container - different structure for public vs authenticated */}
       <div className={cn("h-full", !isPublicPage && "p-2 bg-muted/30")}>

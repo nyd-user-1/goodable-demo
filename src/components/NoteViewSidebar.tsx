@@ -20,7 +20,6 @@ import {
   GraduationCap,
   NotebookPen,
   Search,
-  Plus,
   Settings,
   UserPlus,
   Briefcase,
@@ -32,12 +31,6 @@ import {
   HelpCircle,
   FileText,
   Mail,
-  FileUp,
-  FolderUp,
-  Download,
-  MessageSquarePlus,
-  FilePlus,
-  FolderPlus,
   HandCoins,
   MoreHorizontal,
   Pin,
@@ -59,7 +52,6 @@ import {
   DropdownMenuSub,
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
-  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import {
   Collapsible,
@@ -378,36 +370,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
     return items;
   }, [recentChats, recentNotes, pinnedNoteIds]);
 
-  const handleCreateNote = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from("chat_notes")
-        .insert({
-          user_id: user.id,
-          title: "Untitled",
-          content: "",
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Error creating note:", error);
-        return;
-      }
-
-      if (data) {
-        // Refresh sidebar and navigate to the new note
-        window.dispatchEvent(new CustomEvent("refresh-sidebar-notes"));
-        navigate(`/n/${data.id}`);
-        onClose?.();
-      }
-    } catch (err) {
-      console.error("Error creating note:", err);
-    }
-  };
-
   // Get user display name
   const displayName = user ? (user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User') : 'NYSgpt';
   const truncatedName = displayName.length > 14 ? displayName.slice(0, 14) + '...' : displayName;
@@ -515,11 +477,11 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             <Search className="h-5 w-5" />
           </Button>
 
-          {/* Mobile: Logs close icon */}
+          {/* Log close icon - all screen sizes */}
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 sm:hidden"
+            className="h-9 w-9"
             onClick={onClose}
             aria-label="Close menu"
           >
@@ -529,57 +491,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
             </svg>
           </Button>
-
-          {/* Desktop: Add/Create Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-9 w-9 hidden sm:inline-flex">
-                <Plus className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem>
-                <FileUp className="h-4 w-4 mr-2" />
-                File upload
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <FolderUp className="h-4 w-4 mr-2" />
-                Folder upload
-              </DropdownMenuItem>
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <Download className="h-4 w-4 mr-2" />
-                  Import
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuItem>From URL</DropdownMenuItem>
-                  <DropdownMenuItem>From file</DropdownMenuItem>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem onClick={() => { navigate('/new-chat'); onClose?.(); }}>
-                <MessageSquarePlus className="h-4 w-4 mr-2" />
-                Chat
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleCreateNote}>
-                <FilePlus className="h-4 w-4 mr-2" />
-                Note
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <FolderPlus className="h-4 w-4 mr-2" />
-                Folder
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem className="text-muted-foreground">
-                <HelpCircle className="h-4 w-4 mr-2" />
-                Learn about file types
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
 
