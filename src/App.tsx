@@ -77,6 +77,7 @@ import NoteView from "./pages/NoteView";
 import FreeTrial from "./pages/FreeTrial";
 import Contracts from "./pages/Contracts";
 import ContractDetail from "./pages/ContractDetail";
+import Budget from "./pages/Budget";
 import Lobbying from "./pages/Lobbying";
 import LobbyingDetail from "./pages/LobbyingDetail";
 import SchoolFunding from "./pages/SchoolFunding";
@@ -211,6 +212,7 @@ const App = () => {
                   <Route path="/school-funding" element={<ProtectedRoute><SchoolFunding /></ProtectedRoute>} />
                   <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
                   <Route path="/lobbying" element={<ProtectedRoute><Lobbying /></ProtectedRoute>} />
+                  <Route path="/budget" element={<ProtectedRoute><Budget /></ProtectedRoute>} />
                   <Route path="/departments" element={<ProtectedRoute><Prompts /></ProtectedRoute>} />
                   <Route path="/departments/:slug" element={<ProtectedRoute><DepartmentDetail /></ProtectedRoute>} />
                   <Route path="/chats" element={<ProtectedRoute><Chats2 /></ProtectedRoute>} />

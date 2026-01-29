@@ -10,6 +10,7 @@ import {
   ScrollText,
   Users,
   Landmark,
+  DollarSign,
   Clock,
   ChevronRight,
   ChevronDown,
@@ -661,6 +662,25 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               </TooltipTrigger>
               <TooltipContent side="right">
                 <p>School funding information</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <NavLink
+                  to="/budget"
+                  onClick={onClose}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
+                    isActive("/budget") ? "bg-muted" : "hover:bg-muted"
+                  )}
+                >
+                  <DollarSign className="h-4 w-4" />
+                  <span>Budget</span>
+                </NavLink>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>NYS Budget data</p>
               </TooltipContent>
             </Tooltip>
         </div>
