@@ -284,7 +284,12 @@ const NewChat = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [chatStarted, setChatStarted] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
-  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('nysgpt_sidebar_open') === 'true';
+    }
+    return false;
+  });
   const [sidebarMounted, setSidebarMounted] = useState(false);
   const [mobileDrawerCategory, setMobileDrawerCategory] = useState<string | null>(null);
   const [isMobilePhone, setIsMobilePhone] = useState(false);
@@ -296,6 +301,12 @@ const NewChat = () => {
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
   }, []);
+
+  // Persist sidebar state to localStorage
+  useEffect(() => {
+    localStorage.setItem('nysgpt_sidebar_open', String(leftSidebarOpen));
+  }, [leftSidebarOpen]);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const userScrolledRef = useRef(false);

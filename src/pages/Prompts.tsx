@@ -97,7 +97,12 @@ export default function Prompts() {
   const [activeTab, setActiveTab] = useState('bills');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('nysgpt_sidebar_open') === 'true';
+    }
+    return false;
+  });
   const [sidebarMounted, setSidebarMounted] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
 
@@ -106,6 +111,11 @@ export default function Prompts() {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
     return () => clearTimeout(timer);
   }, []);
+
+  // Persist sidebar state to localStorage
+  useEffect(() => {
+    localStorage.setItem('nysgpt_sidebar_open', String(leftSidebarOpen));
+  }, [leftSidebarOpen]);
 
   const getPrompts = () => {
     switch (activeTab) {
