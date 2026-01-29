@@ -2,12 +2,11 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChatPersistence } from "@/hooks/useChatPersistence";
-import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, ChevronLeft, ChevronRight, PanelLeft, HandCoins } from "lucide-react";
+import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, PanelLeft, HandCoins } from "lucide-react";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { Contract } from "@/types/contracts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 // Safe sidebar hook that doesn't throw on public pages without SidebarProvider
 import { createContext, useContext } from "react";
@@ -220,42 +219,6 @@ const StreamingReasoningText = ({
   );
 };
 
-// Featuring real bills from our database
-const samplePrompts = [
-  {
-    title: "How would Assemblywoman Solages' bill A00405 improve childcare affordability by providing diaper assistance for families receiving safety net support?",
-    category: "Child Care Policy"
-  },
-  {
-    title: "What protections does Assemblyman Bores' A00768, the 'NY Artificial Intelligence Consumer Protection Act', establish against algorithmic discrimination?",
-    category: "AI & Technology"
-  },
-  {
-    title: "How does Senator Hoylman-Sigal's S00930 expand New York's climate leadership through the NY HEAT Act's building emissions standards?",
-    category: "Environment & Climate"
-  },
-  {
-    title: "What healthcare cost protections does Assemblymember Paulin's A02019 provide for patients through surprise billing reforms?",
-    category: "Healthcare Policy"
-  },
-  {
-    title: "How would Senator Gounardes' S01369 address housing affordability through good cause eviction protections for tenants?",
-    category: "Housing & Tenant Rights"
-  },
-  {
-    title: "What mental health parity requirements does Assemblymember Rosenthal's A01066 establish for insurance coverage of behavioral health services?",
-    category: "Mental Health"
-  },
-  {
-    title: "How does Senator Myrie's S01457 expand voting access through automatic voter registration at state agencies?",
-    category: "Voting Rights"
-  },
-  {
-    title: "What worker protections does Assemblymember Reyes' A02118 provide through warehouse worker safety standards and quota transparency?",
-    category: "Labor Rights"
-  }
-];
-
 // Context for the "What is NYSgpt?" prompt
 const GOODABLE_CONTEXT = `You are answering "What is NYSgpt?" for a new user. NYSgpt is a civic engagement platform focused on New York State legislation. Describe it naturally and highlight these unique features:
 
@@ -317,8 +280,6 @@ interface Message {
 
 const NewChat = () => {
   const [query, setQuery] = useState("");
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
-  const promptScrollRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [chatStarted, setChatStarted] = useState(false);
@@ -1462,77 +1423,11 @@ const NewChat = () => {
           >
 
         {!chatStarted ? (
-          /* Initial State - Prompt Cards */
+          /* Initial State - Title only (input is centered via fixed positioning) */
           <div className="flex flex-col items-center justify-center min-h-full px-4">
             <h1 className="hidden sm:block text-4xl md:text-5xl font-semibold text-center mb-12 tracking-tight">
               What are you researching?
             </h1>
-
-            {/* Prompt Carousel - hidden on phones */}
-            <div className="hidden sm:block w-full max-w-3xl mb-8">
-              {/* Header with navigation arrows */}
-              <div className="flex items-center justify-end mb-3 gap-1">
-                <button
-                  onClick={() => {
-                    if (promptScrollRef.current) {
-                      promptScrollRef.current.scrollBy({ left: -340, behavior: 'smooth' });
-                    }
-                  }}
-                  className="p-1.5 rounded-md transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
-                  aria-label="Previous prompts"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => {
-                    if (promptScrollRef.current) {
-                      promptScrollRef.current.scrollBy({ left: 340, behavior: 'smooth' });
-                    }
-                  }}
-                  className="p-1.5 rounded-md transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
-                  aria-label="Next prompts"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
-
-              {/* Scrollable container with fade edges */}
-              <div className="relative">
-                {/* Left fade */}
-                <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-                {/* Right fade */}
-                <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
-
-                {/* Scrollable prompt cards */}
-                <div
-                  ref={promptScrollRef}
-                  className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 pl-8 pr-8 scroll-smooth"
-                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                >
-                  {samplePrompts.map((prompt, index) => (
-                    <Card
-                      key={index}
-                      className={cn(
-                        "p-5 cursor-pointer transition-all duration-200 border flex-shrink-0",
-                        "hover:border-foreground hover:shadow-md",
-                        "w-[320px] h-[140px]",
-                        hoveredCard === index && "border-foreground shadow-md"
-                      )}
-                      onClick={() => handlePromptClick(prompt.title)}
-                      onMouseEnter={() => setHoveredCard(index)}
-                      onMouseLeave={() => setHoveredCard(null)}
-                    >
-                      <p className="text-xs text-muted-foreground mb-2 font-medium">
-                        {prompt.category}
-                      </p>
-                      <p className="text-sm leading-relaxed text-foreground line-clamp-4">
-                        {prompt.title}
-                      </p>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </div>
           </div>
         ) : (
           /* Chat State - Messages */
@@ -2609,33 +2504,36 @@ const NewChat = () => {
 
             {/* Category Pills - shown when chat hasn't started and no text typed */}
             {!chatStarted && query.length === 0 && (
-              <>
-                {/* Pills row */}
-                {!mobileDrawerCategory && (
-                  <div className="flex flex-wrap gap-2 mt-3 justify-center px-2">
-                    {[
-                      { key: 'bills', label: 'Bills', icon: <FileText className="h-3.5 w-3.5" /> },
-                      { key: 'members', label: 'Members', icon: <Users className="h-3.5 w-3.5" /> },
-                      { key: 'committees', label: 'Committees', icon: <Building2 className="h-3.5 w-3.5" /> },
-                      { key: 'contracts', label: 'Contracts', icon: <Wallet className="h-3.5 w-3.5" /> },
-                      { key: 'lobbying', label: 'Lobbying', icon: <HandCoins className="h-3.5 w-3.5" /> },
-                    ].map((cat) => (
-                      <button
-                        key={cat.key}
-                        type="button"
-                        onClick={() => setMobileDrawerCategory(cat.key)}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-border/60 bg-background text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                      >
-                        {cat.icon}
-                        {cat.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
+              <div className="relative">
+                {/* Pills row - always visible */}
+                <div className="flex flex-wrap gap-2 mt-3 justify-center px-2">
+                  {[
+                    { key: 'bills', label: 'Bills', icon: <FileText className="h-3.5 w-3.5" /> },
+                    { key: 'members', label: 'Members', icon: <Users className="h-3.5 w-3.5" /> },
+                    { key: 'committees', label: 'Committees', icon: <Building2 className="h-3.5 w-3.5" /> },
+                    { key: 'contracts', label: 'Contracts', icon: <Wallet className="h-3.5 w-3.5" /> },
+                    { key: 'lobbying', label: 'Lobbying', icon: <HandCoins className="h-3.5 w-3.5" /> },
+                  ].map((cat) => (
+                    <button
+                      key={cat.key}
+                      type="button"
+                      onClick={() => setMobileDrawerCategory(mobileDrawerCategory === cat.key ? null : cat.key)}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-sm transition-colors",
+                        mobileDrawerCategory === cat.key
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-border/60 bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )}
+                    >
+                      {cat.icon}
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
 
-                {/* Drawer card - Claude style */}
+                {/* Drawer card - drops down below pills */}
                 {mobileDrawerCategory && (
-                  <div className="mt-3 mx-1 rounded-2xl border border-border/60 bg-background shadow-sm overflow-hidden">
+                  <div className="absolute top-full left-0 right-0 mt-3 mx-1 rounded-2xl border border-border/60 bg-background shadow-lg overflow-hidden z-50">
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3">
                       <div className="flex items-center gap-2 text-muted-foreground">
@@ -2795,7 +2693,7 @@ const NewChat = () => {
                     </div>
                   </div>
                 )}
-              </>
+              </div>
             )}
 
           </div>
