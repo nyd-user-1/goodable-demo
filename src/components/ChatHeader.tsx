@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Command } from "lucide-react";
+import { Command, LogIn } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import confetti from "canvas-confetti";
@@ -261,7 +261,7 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
               Command menu
             </TooltipContent>
           </Tooltip>
-          {/* Mobile: NYSgpt text when sidebar available, otherwise Log In */}
+          {/* Mobile: NYSgpt text when sidebar available, otherwise Log In icon */}
           {onOpenSidebar ? (
             <>
               <button
@@ -270,20 +270,34 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
               >
                 NYSgpt
               </button>
-              <button
-                className="hidden sm:inline-flex items-center justify-center h-9 rounded-md px-3 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-medium"
-                onClick={() => navigate('/auth')}
-              >
-                Log In
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="hidden sm:inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    onClick={() => navigate('/auth')}
+                  >
+                    <LogIn className="h-5 w-5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  Log In
+                </TooltipContent>
+              </Tooltip>
             </>
           ) : (
-            <button
-              className="inline-flex items-center justify-center h-9 rounded-md px-3 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-medium"
-              onClick={() => navigate('/auth')}
-            >
-              Log In
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  onClick={() => navigate('/auth')}
+                >
+                  <LogIn className="h-5 w-5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                Log In
+              </TooltipContent>
+            </Tooltip>
           )}
         </div>
       </div>

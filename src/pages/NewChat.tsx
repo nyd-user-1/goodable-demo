@@ -1425,16 +1425,28 @@ const NewChat = () => {
           {isPublicPage ? (
             <ChatHeader onNewChat={handleNewChat} onWhatIsGoodable={handleWhatIsGoodable} onOpenSidebar={() => setLeftSidebarOpen(true)} />
           ) : (
-            <div className="flex items-center gap-2 px-4 py-3 bg-background flex-shrink-0">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-                className={cn("flex-shrink-0", leftSidebarOpen && "bg-muted")}
-              >
-                <PanelLeft className="h-4 w-4" />
-              </Button>
-              <EngineSelection />
+            <div className="flex items-center justify-between px-4 py-3 bg-background flex-shrink-0">
+              {/* Left side: Sidebar toggle + NYSgpt button */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+                  className={cn("flex-shrink-0", leftSidebarOpen && "bg-muted")}
+                >
+                  <PanelLeft className="h-4 w-4" />
+                </Button>
+                <button
+                  onClick={() => navigate('/?prompt=What%20is%20NYSgpt%3F')}
+                  className="hidden sm:inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
+                >
+                  NYSgpt
+                </button>
+              </div>
+              {/* Right side: Model selector (hidden on mobile, shown in input area instead) */}
+              <div className="hidden sm:block">
+                <EngineSelection />
+              </div>
             </div>
           )}
 
