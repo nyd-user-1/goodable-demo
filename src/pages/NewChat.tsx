@@ -1981,22 +1981,18 @@ const NewChat = () => {
         </button>
       )}
 
-      {/* Bottom Input Area - fixed for public, absolute for authenticated */}
-      {/* On mobile phones: centered when !chatStarted, bottom when chatStarted */}
+      {/* Bottom Input Area - centered when !chatStarted, bottom when chatStarted (all viewports) */}
       <div className={cn(
-        // Default desktop/tablet behavior
-        isPublicPage && !isMobilePhone && "fixed bottom-0 left-0 right-0 z-[5] bg-background",
-        !isPublicPage && !isMobilePhone && "absolute bottom-0 left-0 right-0 flex justify-center pointer-events-none",
-        // Mobile phone: centered when no chat, bottom when chatting (transparent container)
-        isMobilePhone && !chatStarted && "fixed left-0 right-0 z-[5] top-[calc(50%+20px)] -translate-y-1/2",
-        isMobilePhone && chatStarted && "fixed bottom-0 left-0 right-0 z-[5]"
+        // Centered when no chat started (all viewports), bottom when chatting
+        !chatStarted && "fixed left-0 right-0 z-[5] top-[calc(50%+20px)] -translate-y-1/2",
+        chatStarted && "fixed bottom-0 left-0 right-0 z-[5]",
+        isPublicPage && chatStarted && "bg-background"
       )}>
         <div className={cn(
-          "w-full px-4 py-4",
-          !isPublicPage && !isMobilePhone && "py-3 max-w-[780px] pointer-events-auto",
-          isMobilePhone && "pointer-events-auto"
+          "w-full px-4 py-4 pointer-events-auto",
+          chatStarted && "max-w-[780px] mx-auto"
         )}>
-          <div className={cn("max-w-[720px] mx-auto", !isPublicPage && !isMobilePhone && "bg-background rounded-t-xl pt-3 px-3")}>
+          <div className={cn("max-w-[720px] mx-auto", chatStarted && !isPublicPage && "bg-background rounded-t-xl pt-3 px-3")}>
             <form onSubmit={handleSubmit} className="relative">
               {/* Larger input box - Fintool/Claude style */}
               <div className="rounded-2xl bg-[#fafafa] border-0 p-3 shadow-lg">
@@ -2103,8 +2099,8 @@ const NewChat = () => {
                   value={query}
                   onChange={(e) => {
                     setQuery(e.target.value);
-                    // Auto-resize on mobile: grow up to 4 lines (~96px), then scroll
-                    if (isMobilePhone && textareaRef.current) {
+                    // Auto-resize: grow up to 6 lines (~144px), then scroll
+                    if (textareaRef.current) {
                       textareaRef.current.style.height = 'auto';
                       const maxHeight = 144; // ~6 lines
                       textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, maxHeight) + 'px';
@@ -2112,10 +2108,7 @@ const NewChat = () => {
                     }
                   }}
                   placeholder="Ask anything..."
-                  className={cn(
-                    "flex-1 min-h-[40px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 placeholder:text-muted-foreground/60",
-                    isMobilePhone && "text-base"
-                  )}
+                  className="flex-1 min-h-[40px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 placeholder:text-muted-foreground/60 text-base"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       if (isMobilePhone) {
@@ -2132,8 +2125,8 @@ const NewChat = () => {
 
                 {/* Bottom Row with Buttons */}
                 <div className="flex items-center justify-between">
-                  {/* Left Side - Filter Buttons (hidden on mobile phones) */}
-                  {isMobilePhone ? (
+                  {/* Left Side - Filter Buttons (hidden when chat hasn't started - pills are shown instead) */}
+                  {!chatStarted ? (
                     <div className="flex-1" />
                   ) : (
                   <div className="flex gap-1">
@@ -2587,13 +2580,11 @@ const NewChat = () => {
                   </div>
                   )}
 
-                  {/* Right Side - Model selector (mobile) + Submit/Stop Button */}
+                  {/* Right Side - Model selector + Submit/Stop Button */}
                   <div className="flex items-center gap-3">
-                    {isMobilePhone && (
-                      <div className="[&_button>span]:text-sm [&_button>span]:font-medium [&_button]:px-1 [&_button]:py-1">
-                        <EngineSelection />
-                      </div>
-                    )}
+                    <div className="[&_button>span]:text-sm [&_button>span]:font-medium [&_button]:px-1 [&_button]:py-1">
+                      <EngineSelection />
+                    </div>
                     <Button
                       type={isTyping ? "button" : "submit"}
                       size="icon"
@@ -2616,8 +2607,8 @@ const NewChat = () => {
               </div>
             </form>
 
-            {/* Mobile Category Pills - shown on phones when chat hasn't started and no text typed */}
-            {isMobilePhone && !chatStarted && query.length === 0 && (
+            {/* Category Pills - shown when chat hasn't started and no text typed */}
+            {!chatStarted && query.length === 0 && (
               <>
                 {/* Pills row */}
                 {!mobileDrawerCategory && (
