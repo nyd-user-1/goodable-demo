@@ -2589,8 +2589,8 @@ const NewChat = () => {
               <div className="relative">
                 {/* Pills row - always visible */}
                 <div className="flex flex-wrap gap-2 mt-3 justify-center px-2">
-                  {/* Sign Up pill - only show when not authenticated */}
-                  {!user && (
+                  {/* Sign Up pill - show on public page, hide on /new-chat when authenticated */}
+                  {(isPublicPage || !user) && (
                     <button
                       type="button"
                       onClick={() => navigate('/auth-4')}
