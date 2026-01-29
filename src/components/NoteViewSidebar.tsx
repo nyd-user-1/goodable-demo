@@ -505,25 +505,25 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             className="h-9 px-3 font-semibold text-base hover:bg-muted"
             onClick={() => navigate('/auth-4')}
           >
-            Sign In
+            Sign Up
           </Button>
         )}
 
         {/* Search and Add buttons */}
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSearchModalOpen(true)}>
-            <Search className="h-4 w-4" />
+          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setSearchModalOpen(true)}>
+            <Search className="h-5 w-5" />
           </Button>
 
           {/* Mobile: Logs close icon */}
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 sm:hidden"
+            className="h-9 w-9 sm:hidden"
             onClick={onClose}
             aria-label="Close menu"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 5h1"/><path d="M3 12h1"/><path d="M3 19h1"/>
               <path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/>
               <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
@@ -533,8 +533,8 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           {/* Desktop: Add/Create Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 hidden sm:inline-flex">
-                <Plus className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="h-9 w-9 hidden sm:inline-flex">
+                <Plus className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
