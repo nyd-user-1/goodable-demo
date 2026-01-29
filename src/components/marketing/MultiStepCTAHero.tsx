@@ -252,7 +252,7 @@ export default function MultiStepCTAHero() {
           </div>
 
           {/* Right Side - Multi-Step Form (order-1 on mobile, normal on sm+) */}
-          <div className="mx-auto w-full max-w-md order-1 sm:order-none">
+          <div className="mx-auto w-full max-w-md order-1 sm:order-none mb-16 sm:mb-0">
             <Card className="shadow-xl">
               <CardHeader className="pb-4">
                 <div className="mb-4 space-y-2">

@@ -47,7 +47,7 @@ export const Auth = () => {
 
           <div className="space-y-2 text-center">
             <h1 className="text-foreground text-2xl font-bold">
-              Welcome Back
+              NYSgpt
             </h1>
             <p className="text-muted-foreground">
               Discover. Engage. Impact.
