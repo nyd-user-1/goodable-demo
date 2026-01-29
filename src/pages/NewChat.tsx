@@ -2503,14 +2503,16 @@ const NewChat = () => {
               <div className="relative">
                 {/* Pills row - always visible */}
                 <div className="flex flex-wrap gap-2 mt-3 justify-center px-2">
-                  {/* Sign Up pill - first position, black with white text */}
-                  <button
-                    type="button"
-                    onClick={() => navigate('/auth-4')}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-foreground bg-foreground text-background text-sm transition-colors hover:bg-foreground/90"
-                  >
-                    Sign Up
-                  </button>
+                  {/* Sign Up pill - only show when not authenticated */}
+                  {!user && (
+                    <button
+                      type="button"
+                      onClick={() => navigate('/auth-4')}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-foreground bg-foreground text-background text-sm transition-colors hover:bg-foreground/90"
+                    >
+                      Sign Up
+                    </button>
+                  )}
                   {[
                     { key: 'bills', label: 'Bills', icon: <FileText className="h-3.5 w-3.5" /> },
                     { key: 'members', label: 'Members', icon: <Users className="h-3.5 w-3.5" /> },
