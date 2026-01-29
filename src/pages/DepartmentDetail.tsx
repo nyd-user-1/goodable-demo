@@ -26,7 +26,7 @@ function getRelated(slug: string, category: string) {
   const source = category === 'Department' ? departmentPrompts
     : category === 'Agency' ? agencyPrompts
     : authorityPrompts;
-  return source.filter(i => i.slug !== slug).slice(0, 4);
+  return source.filter(i => i.slug !== slug).slice(0, 3);
 }
 
 export default function DepartmentDetail() {
@@ -215,7 +215,7 @@ export default function DepartmentDetail() {
               {related.length > 0 && (
                 <div className="mb-10">
                   <h2 className="text-lg font-semibold mb-4">Related</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {related.map((rel) => (
                       <div
                         key={rel.slug}
