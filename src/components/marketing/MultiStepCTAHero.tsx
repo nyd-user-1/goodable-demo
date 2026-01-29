@@ -183,8 +183,8 @@ export default function MultiStepCTAHero() {
     <div className="bg-background relative">
       <div className="container mx-auto px-4 py-24 md:px-6 md:py-28 lg:py-32 2xl:max-w-[1400px]">
         <div className="grid items-center gap-12 lg:grid-cols-2">
-          {/* Left Side - Value Proposition */}
-          <div className="space-y-8">
+          {/* Left Side - Value Proposition (order-2 on mobile, normal on sm+) */}
+          <div className="space-y-8 order-2 sm:order-none">
             <div className="space-y-6">
               <Badge
                 variant="outline"
@@ -251,8 +251,8 @@ export default function MultiStepCTAHero() {
             </div>
           </div>
 
-          {/* Right Side - Multi-Step Form */}
-          <div className="mx-auto w-full max-w-md">
+          {/* Right Side - Multi-Step Form (order-1 on mobile, normal on sm+) */}
+          <div className="mx-auto w-full max-w-md order-1 sm:order-none">
             <Card className="shadow-xl">
               <CardHeader className="pb-4">
                 <div className="mb-4 space-y-2">
