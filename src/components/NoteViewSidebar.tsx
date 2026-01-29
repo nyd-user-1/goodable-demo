@@ -210,7 +210,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate("/auth");
+    navigate("/");
   };
 
   const handleFeedbackSubmit = async () => {
@@ -963,31 +963,33 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           </div>
         </Collapsible>}
 
-        {/* Feedback - Expandable */}
-        <Collapsible open={feedbackOpen} onOpenChange={setFeedbackOpen}>
-          <CollapsibleTrigger className="flex items-center gap-2 px-1 py-1 text-base md:text-[15px] font-semibold text-muted-foreground hover:text-foreground transition-colors w-full">
-            <ThumbsUp className="h-4 w-4" />
-            <span>Feedback</span>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="mt-2 p-3 border rounded-lg space-y-3">
-              <Textarea
-                placeholder="How can we improve NYSgpt?"
-                value={feedbackText}
-                onChange={(e) => setFeedbackText(e.target.value)}
-                className="min-h-[80px] resize-none"
-              />
-              <div className="flex items-center justify-between">
-                <Button variant="ghost" size="sm" onClick={() => setFeedbackOpen(false)}>
-                  Cancel
-                </Button>
-                <Button size="sm" className="bg-foreground hover:bg-foreground/90 text-background" onClick={handleFeedbackSubmit}>
-                  Submit
-                </Button>
+        {/* Feedback - Expandable (hidden on mobile) */}
+        <div className="hidden sm:block">
+          <Collapsible open={feedbackOpen} onOpenChange={setFeedbackOpen}>
+            <CollapsibleTrigger className="flex items-center gap-2 px-1 py-1 text-base md:text-[15px] font-semibold text-muted-foreground hover:text-foreground transition-colors w-full">
+              <ThumbsUp className="h-4 w-4" />
+              <span>Feedback</span>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="mt-2 p-3 border rounded-lg space-y-3">
+                <Textarea
+                  placeholder="How can we improve NYSgpt?"
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  className="min-h-[80px] resize-none"
+                />
+                <div className="flex items-center justify-between">
+                  <Button variant="ghost" size="sm" onClick={() => setFeedbackOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button size="sm" className="bg-foreground hover:bg-foreground/90 text-background" onClick={handleFeedbackSubmit}>
+                    Submit
+                  </Button>
+                </div>
               </div>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
 
       </div>
 
