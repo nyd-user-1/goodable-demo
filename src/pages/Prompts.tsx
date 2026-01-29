@@ -1,100 +1,100 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronRight, ChevronLeft, ScrollText, Landmark, Users, PanelLeft } from 'lucide-react';
+import { Search, ChevronRight, ChevronLeft, Building2, Briefcase, Scale, PanelLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { EngineSelection } from '@/components/EngineSelection';
 
-// Bills prompts
-const billPrompts = [
-  { title: "AI Consumer Protection", prompt: "What can you tell me about efforts to protect consumers from algorithmic discrimination in New York?" },
-  { title: "Childcare Affordability", prompt: "What legislative approaches have been proposed to make childcare more affordable for working families in New York?" },
-  { title: "Paid Family Leave", prompt: "What can you tell me about efforts to expand paid family leave in New York?" },
-  { title: "Affordable Housing", prompt: "What are legislators doing to address the affordable housing crisis in New York?" },
-  { title: "Volunteer Firefighter Recruitment", prompt: "What incentives are being considered to help recruit and retain volunteer firefighters and emergency responders?" },
-  { title: "Medicaid Access", prompt: "What efforts are underway to reduce barriers to Medicaid services for patients?" },
-  { title: "Minimum Wage", prompt: "What's the current state of minimum wage legislation in New York and what changes are being proposed?" },
-  { title: "School Safety", prompt: "What measures are being proposed to improve safety around school zones in New York?" },
-  { title: "Rental Assistance", prompt: "What programs exist or are being proposed to help New Yorkers facing housing instability?" },
-  { title: "Disability Benefits", prompt: "What efforts are underway to strengthen disability benefits for New York workers?" },
-  { title: "Veteran Services", prompt: "What initiatives are being considered to improve services and support for veterans in New York?" },
-  { title: "Clean Energy Incentives", prompt: "What tax incentives or programs are being proposed to accelerate clean energy adoption in New York?" },
+// Departments prompts
+const departmentPrompts = [
+  { title: "Department of Labor", prompt: "What does the New York State Department of Labor do and what services does it provide to workers and employers?" },
+  { title: "Department of Health", prompt: "What are the main responsibilities of the New York State Department of Health and how does it serve residents?" },
+  { title: "Department of Education", prompt: "What role does the New York State Education Department play in K-12 and higher education?" },
+  { title: "Department of Transportation", prompt: "What does the New York State Department of Transportation oversee and what major projects is it working on?" },
+  { title: "Department of Environmental Conservation", prompt: "What does the NYS Department of Environmental Conservation do to protect natural resources and the environment?" },
+  { title: "Department of Financial Services", prompt: "What is the role of the NYS Department of Financial Services in regulating banking and insurance?" },
+  { title: "Department of Taxation and Finance", prompt: "What does the NYS Department of Taxation and Finance handle and how can residents interact with it?" },
+  { title: "Office of Children and Family Services", prompt: "What services does the NYS Office of Children and Family Services provide to families and children?" },
+  { title: "Department of State", prompt: "What are the functions of the New York Department of State and what services does it offer?" },
+  { title: "Department of Motor Vehicles", prompt: "What services does the NYS DMV provide and how can residents access them?" },
+  { title: "Division of Criminal Justice Services", prompt: "What does the NYS Division of Criminal Justice Services do to support law enforcement and public safety?" },
+  { title: "Office of Mental Health", prompt: "What mental health services and programs does the NYS Office of Mental Health provide?" },
 ];
 
-// Committee prompts
-const committeePrompts = [
-  { title: "Labor Committee Overview", prompt: "What issues does the Labor Committee handle and what major legislation is it currently considering?" },
-  { title: "Education Committee Priorities", prompt: "What are the current priorities of the Education Committee in New York?" },
-  { title: "Health Committee Focus Areas", prompt: "What healthcare issues is the Health Committee currently focused on?" },
-  { title: "Housing Committee Activity", prompt: "What housing-related bills is the Housing Committee reviewing this session?" },
-  { title: "Environmental Conservation", prompt: "What role does the Environmental Conservation Committee play in climate policy?" },
-  { title: "Ways and Means", prompt: "How does the Ways and Means Committee influence the state budget process?" },
-  { title: "Judiciary Committee", prompt: "What types of legislation does the Judiciary Committee typically handle?" },
-  { title: "Children and Families", prompt: "What childcare and family support issues is the Children and Families Committee working on?" },
-  { title: "Transportation Committee", prompt: "What infrastructure and transit issues is the Transportation Committee addressing?" },
-  { title: "Economic Development", prompt: "How is the Economic Development Committee supporting job creation and workforce development?" },
-  { title: "Social Services", prompt: "What safety net programs is the Social Services Committee focused on strengthening?" },
-  { title: "Mental Health", prompt: "What mental health initiatives is the Mental Health Committee advancing?" },
+// Agencies prompts
+const agencyPrompts = [
+  { title: "Metropolitan Transportation Authority", prompt: "What is the MTA and how does it serve New York's public transportation needs?" },
+  { title: "Empire State Development", prompt: "What is Empire State Development and how does it promote economic growth in New York?" },
+  { title: "NYSERDA", prompt: "What is NYSERDA and how does it advance clean energy and sustainability in New York?" },
+  { title: "Homes and Community Renewal", prompt: "What does NYS Homes and Community Renewal do to support affordable housing?" },
+  { title: "Office of General Services", prompt: "What services does the NYS Office of General Services provide to state government operations?" },
+  { title: "Department of Civil Service", prompt: "What is the role of the NYS Department of Civil Service in managing the state workforce?" },
+  { title: "Office of Information Technology Services", prompt: "What does NYS ITS do to support technology infrastructure across state government?" },
+  { title: "Gaming Commission", prompt: "What does the NYS Gaming Commission regulate and oversee?" },
+  { title: "Liquor Authority", prompt: "What does the NYS State Liquor Authority regulate and how can businesses interact with it?" },
+  { title: "Division of Homeland Security", prompt: "What is the role of the NYS Division of Homeland Security and Emergency Services?" },
+  { title: "Office of Temporary and Disability Assistance", prompt: "What public assistance programs does OTDA administer for New Yorkers in need?" },
+  { title: "Workers' Compensation Board", prompt: "What does the NYS Workers' Compensation Board do and how does it help injured workers?" },
 ];
 
-// Member prompts
-const memberPrompts = [
-  { title: "Find My Representative", prompt: "How can I find out who my state legislators are and how to contact them?" },
-  { title: "Assembly Leadership", prompt: "Who are the current leaders of the New York State Assembly?" },
-  { title: "Senate Leadership", prompt: "Who are the current leaders of the New York State Senate?" },
-  { title: "Committee Chairs", prompt: "Who chairs the major committees in the New York legislature?" },
-  { title: "Labor Advocates", prompt: "Which legislators are known for championing workers' rights and labor issues?" },
-  { title: "Education Champions", prompt: "Which legislators are most active on education policy and school funding?" },
-  { title: "Healthcare Policy Leaders", prompt: "Which legislators are leading on healthcare access and reform?" },
-  { title: "Housing Advocates", prompt: "Which legislators are focused on affordable housing and tenant protections?" },
-  { title: "Environmental Leaders", prompt: "Which legislators are championing climate and environmental legislation?" },
-  { title: "Small Business Supporters", prompt: "Which legislators are focused on supporting small businesses and entrepreneurs?" },
-  { title: "Veterans Advocates", prompt: "Which legislators are most active on veterans' issues and military families?" },
-  { title: "Criminal Justice Reform", prompt: "Which legislators are leading on criminal justice reform efforts?" },
+// Authorities prompts
+const authorityPrompts = [
+  { title: "Port Authority of NY & NJ", prompt: "What does the Port Authority of New York and New Jersey oversee and what major infrastructure does it manage?" },
+  { title: "Thruway Authority", prompt: "What does the NYS Thruway Authority manage and how does it maintain New York's highway system?" },
+  { title: "Power Authority (NYPA)", prompt: "What is the New York Power Authority and how does it generate and distribute electricity in the state?" },
+  { title: "Dormitory Authority (DASNY)", prompt: "What does the Dormitory Authority of the State of New York do to finance public facilities?" },
+  { title: "Environmental Facilities Corporation", prompt: "What does the NYS Environmental Facilities Corporation do to finance water infrastructure projects?" },
+  { title: "Bridge Authority", prompt: "What bridges does the New York State Bridge Authority manage in the Hudson Valley region?" },
+  { title: "Olympic Regional Development Authority", prompt: "What does ORDA do to manage Olympic venues and promote tourism in the Adirondacks?" },
+  { title: "Battery Park City Authority", prompt: "What does the Battery Park City Authority manage in Lower Manhattan?" },
+  { title: "Roosevelt Island Operating Corporation", prompt: "What services does the Roosevelt Island Operating Corporation provide to residents?" },
+  { title: "Canal Corporation", prompt: "What waterways does the NYS Canal Corporation manage and maintain?" },
+  { title: "Energy Research and Development Authority", prompt: "How does NYSERDA support clean energy innovation and research in New York?" },
+  { title: "Urban Development Corporation", prompt: "What role does the NYS Urban Development Corporation play in revitalizing communities?" },
 ];
 
 // Featured carousel items
 const featuredItems = [
   {
-    id: 'bills',
-    icon: ScrollText,
-    title: 'Research Bills',
-    subtitle: 'Explore active legislation',
+    id: 'departments',
+    icon: Building2,
+    title: 'Explore Departments',
+    subtitle: 'Learn about state agencies',
     gradient: 'from-blue-400 to-cyan-300',
     darkGradient: 'dark:from-blue-600 dark:to-cyan-500',
-    prompt: 'What are the most significant bills being debated in New York this session?',
+    prompt: 'What are the major departments in New York State government and what do they do?',
   },
   {
-    id: 'committees',
-    icon: Landmark,
-    title: 'Explore Committees',
-    subtitle: 'Understand legislative bodies',
+    id: 'agencies',
+    icon: Briefcase,
+    title: 'Discover Agencies',
+    subtitle: 'Specialized state services',
     gradient: 'from-purple-400 to-pink-300',
     darkGradient: 'dark:from-purple-600 dark:to-pink-500',
-    prompt: 'Which committees are most active in shaping policy this session?',
+    prompt: 'What specialized agencies exist in New York State and how do they serve residents?',
   },
   {
-    id: 'members',
-    icon: Users,
-    title: 'Find Legislators',
-    subtitle: 'Connect with representatives',
+    id: 'authorities',
+    icon: Scale,
+    title: 'Public Authorities',
+    subtitle: 'Infrastructure & development',
     gradient: 'from-emerald-400 to-teal-300',
     darkGradient: 'dark:from-emerald-600 dark:to-teal-500',
-    prompt: 'Who are the key legislators to watch in New York?',
+    prompt: 'What are public authorities in New York and what major infrastructure do they manage?',
   },
 ];
 
 const tabs = [
-  { id: 'bills', label: 'Bills', icon: ScrollText },
-  { id: 'committees', label: 'Committees', icon: Landmark },
-  { id: 'members', label: 'Members', icon: Users },
+  { id: 'departments', label: 'Departments', icon: Building2 },
+  { id: 'agencies', label: 'Agencies', icon: Briefcase },
+  { id: 'authorities', label: 'Authorities', icon: Scale },
 ];
 
 export default function Prompts() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('bills');
+  const [activeTab, setActiveTab] = useState('departments');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentSlide, setCurrentSlide] = useState(0);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(() => {
@@ -119,12 +119,12 @@ export default function Prompts() {
 
   const getPrompts = () => {
     switch (activeTab) {
-      case 'committees':
-        return committeePrompts;
-      case 'members':
-        return memberPrompts;
+      case 'agencies':
+        return agencyPrompts;
+      case 'authorities':
+        return authorityPrompts;
       default:
-        return billPrompts;
+        return departmentPrompts;
     }
   };
 
@@ -161,12 +161,12 @@ export default function Prompts() {
 
   const getIcon = () => {
     switch (activeTab) {
-      case 'committees':
-        return Landmark;
-      case 'members':
-        return Users;
+      case 'agencies':
+        return Briefcase;
+      case 'authorities':
+        return Scale;
       default:
-        return ScrollText;
+        return Building2;
     }
   };
 
@@ -185,13 +185,6 @@ export default function Prompts() {
         <NoteViewSidebar onClose={() => setLeftSidebarOpen(false)} />
       </div>
 
-      {/* Backdrop overlay when sidebar is open */}
-      {leftSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/20 z-[55] transition-opacity"
-          onClick={() => setLeftSidebarOpen(false)}
-        />
-      )}
 
       {/* Main Content Container */}
       <div className="h-full p-2 bg-muted/30">
