@@ -1987,9 +1987,9 @@ const NewChat = () => {
         // Default desktop/tablet behavior
         isPublicPage && !isMobilePhone && "fixed bottom-0 left-0 right-0 z-[5] bg-background",
         !isPublicPage && !isMobilePhone && "absolute bottom-0 left-0 right-0 flex justify-center pointer-events-none",
-        // Mobile phone: centered when no chat, bottom when chatting
-        isMobilePhone && !chatStarted && "fixed left-0 right-0 z-[5] top-[calc(50%+20px)] -translate-y-1/2",
-        isMobilePhone && chatStarted && "fixed bottom-0 left-0 right-0 z-[5]"
+        // Mobile phone: centered when no chat, bottom when chatting - with solid background
+        isMobilePhone && !chatStarted && "fixed left-0 right-0 z-[5] top-[calc(50%+20px)] -translate-y-1/2 bg-[#fafafa]",
+        isMobilePhone && chatStarted && "fixed bottom-0 left-0 right-0 z-[5] bg-[#fafafa]"
       )}>
         <div className={cn(
           "w-full px-4 py-4",
