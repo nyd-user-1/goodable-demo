@@ -43,6 +43,7 @@ import {
   Pin,
   Trash2,
   Pencil,
+  BookCheck,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -669,6 +670,25 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           </TooltipTrigger>
           <TooltipContent side="right">
             <p>View your chat history</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <NavLink
+              to="/prompts"
+              onClick={onClose}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm font-medium transition-colors",
+                isActive("/prompts") ? "bg-muted" : "hover:bg-muted"
+              )}
+            >
+              <BookCheck className="h-4 w-4" />
+              <span>Prompts</span>
+            </NavLink>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <p>Browse sample prompts</p>
           </TooltipContent>
         </Tooltip>
       </div>
