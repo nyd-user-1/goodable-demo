@@ -180,11 +180,11 @@ export default function MultiStepCTAHero() {
   const progress = ((currentStep + 1) / steps.length) * 100;
 
   return (
-    <div className="bg-background relative">
-      <div className="container mx-auto px-4 py-24 md:px-6 md:py-28 lg:py-32 2xl:max-w-[1400px]">
+    <div className="bg-background relative min-h-[calc(100vh-64px)] sm:min-h-0 flex items-center sm:block">
+      <div className="container mx-auto px-4 py-8 sm:py-24 md:px-6 md:py-28 lg:py-32 2xl:max-w-[1400px]">
         <div className="grid items-center gap-12 lg:grid-cols-2">
-          {/* Left Side - Value Proposition (order-2 on mobile, normal on sm+) */}
-          <div className="space-y-8 order-2 sm:order-none">
+          {/* Left Side - Value Proposition (hidden on mobile, visible on sm+) */}
+          <div className="space-y-8 hidden sm:block">
             <div className="space-y-6">
               <Badge
                 variant="outline"
@@ -252,7 +252,7 @@ export default function MultiStepCTAHero() {
           </div>
 
           {/* Right Side - Multi-Step Form (order-1 on mobile, normal on sm+) */}
-          <div className="mx-auto w-full max-w-md order-1 sm:order-none mb-16 sm:mb-0">
+          <div className="mx-auto w-full max-w-md order-1 sm:order-none">
             <Card className="shadow-xl">
               <CardHeader className="pb-4">
                 <div className="mb-4 space-y-2">
@@ -448,24 +448,16 @@ export default function MultiStepCTAHero() {
               </CardContent>
             </Card>
 
-            {/* Security Badge */}
-            <div className="text-muted-foreground mt-4 flex items-center justify-center gap-2 text-xs">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-green-500"
+            {/* Login Link */}
+            <div className="text-muted-foreground mt-4 flex items-center justify-center text-sm">
+              <span>Already have a NYSgpt account?{' '}</span>
+              <button
+                type="button"
+                onClick={() => navigate('/auth')}
+                className="text-foreground underline hover:no-underline ml-1"
               >
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                <path d="M9 12l2 2 4-4" />
-              </svg>
-              <span>SSL secured • No spam • Cancel anytime</span>
+                Log in here.
+              </button>
             </div>
           </div>
         </div>
