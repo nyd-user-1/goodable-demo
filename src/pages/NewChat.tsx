@@ -1600,84 +1600,81 @@ const NewChat = () => {
                         return null;
                       }
 
-                      return (
-                      <Accordion type="single" collapsible className="w-full">
-                        <AccordionItem
-                          value="sources"
-                          className="border-0 relative before:absolute before:inset-0 before:rounded-lg before:border-2 before:border-dashed before:border-border/50 data-[state=open]:before:border-border/70 before:transition-colors before:duration-300"
-                        >
-                          <div className="relative p-0.5">
-                            <AccordionTrigger className="hover:no-underline px-4 py-2.5 rounded-t-lg text-xs font-medium">
-                              <div className="flex items-center gap-2 text-muted-foreground">
-                                {isLobbyingChat ? (
-                                  <>
+                      // Lobbying chats get special UI with clients list
+                      if (isLobbyingChat) {
+                        return (
+                          <Accordion type="single" collapsible className="w-full">
+                            <AccordionItem
+                              value="sources"
+                              className="border-0 relative before:absolute before:inset-0 before:rounded-lg before:border-2 before:border-dashed before:border-border/50 data-[state=open]:before:border-border/70 before:transition-colors before:duration-300"
+                            >
+                              <div className="relative p-0.5">
+                                <AccordionTrigger className="hover:no-underline px-4 py-2.5 rounded-t-lg text-xs font-medium">
+                                  <div className="flex items-center gap-2 text-muted-foreground">
                                     <HandCoins className="h-3.5 w-3.5" />
                                     <span>Clients · {clients.length}</span>
-                                  </>
-                                ) : (
-                                  <Shimmer duration={2} spread={2}>
-                                    {message.thinkingPhrase || "Thinking…"}
-                                  </Shimmer>
-                                )}
+                                  </div>
+                                </AccordionTrigger>
+                                <AccordionContent className="px-4 pb-3 space-y-2">
+                                  <ScrollArea className="h-[200px]">
+                                    <div className="space-y-1.5 pr-4">
+                                      {clients.map((client, idx) => (
+                                        <div key={idx} className="flex items-start gap-2.5 p-2.5 rounded-md bg-muted/30 border border-border/50 text-xs text-muted-foreground">
+                                          <HandCoins className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-muted-foreground/70" />
+                                          <span className="leading-relaxed">{client}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </ScrollArea>
+                                </AccordionContent>
                               </div>
-                            </AccordionTrigger>
-                            <AccordionContent className="px-4 pb-3 space-y-2">
-                                    {/* Searching Section - hide entirely for lobbying chats */}
-                                    {message.searchQueries && !isLobbyingChat && (
-                                      <div className="space-y-2">
-                                          <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                                            <SearchIcon className="h-3.5 w-3.5" />
-                                            Searching
-                                          </h3>
-                                        <div className="space-y-1.5">
-                                          {message.searchQueries.map((query, idx) => (
-                                              <div key={idx} className="flex items-start gap-2.5 p-2.5 rounded-md bg-muted/30 border border-border/50 text-xs text-muted-foreground">
-                                                  <SearchIcon className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-muted-foreground/70" />
-                                                <span className="leading-relaxed">{query}</span>
-                                              </div>
-                                            ))}
-                                        </div>
+                            </AccordionItem>
+                          </Accordion>
+                        );
+                      }
+
+                      // All other chats get the Reasoning component
+                      return (
+                        <Reasoning
+                          isStreaming={message.isStreaming}
+                          defaultOpen={true}
+                        >
+                          <ReasoningTrigger />
+                          <ReasoningContent>
+                            <div className="space-y-3">
+                              {/* Searching Section */}
+                              {message.searchQueries && (
+                                <div className="space-y-2">
+                                  <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                                    <SearchIcon className="h-3.5 w-3.5" />
+                                    Searching
+                                  </h3>
+                                  <div className="space-y-1.5">
+                                    {message.searchQueries.map((query, idx) => (
+                                      <div key={idx} className="flex items-start gap-2.5 p-2.5 rounded-md bg-muted/30 border border-border/50 text-xs text-muted-foreground">
+                                        <SearchIcon className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-muted-foreground/70" />
+                                        <span className="leading-relaxed">{query}</span>
                                       </div>
-                                    )}
-
-                                    {/* Reviewing Sources Section - hide for lobbying chats */}
-                                    {message.reviewedInfo && !message.isStreaming && !isLobbyingChat && (
-                                      <div className="space-y-2">
-                                        <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                                          <FileText className="h-3.5 w-3.5" />
-                                          Reviewing sources · {message.citations?.length || 0}
-                                        </h3>
-                                        <div className="p-2.5 rounded-md bg-muted/30 border border-border/50">
-                                          <p className="text-xs text-muted-foreground leading-relaxed">{message.reviewedInfo}</p>
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {/* Clients Section - for lobbying chats (just the list, header is in trigger) */}
-                                    {isLobbyingChat && (
-                                        <ScrollArea className="h-[200px]">
-                                          <div className="space-y-1.5 pr-4">
-                                            {clients.map((client, idx) => (
-                                              <div key={idx} className="flex items-start gap-2.5 p-2.5 rounded-md bg-muted/30 border border-border/50 text-xs text-muted-foreground">
-                                                <HandCoins className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-muted-foreground/70" />
-                                                <span className="leading-relaxed">{client}</span>
-                                              </div>
-                                            ))}
-                                          </div>
-                                        </ScrollArea>
-                                    )}
-
-                              {/* Finished State */}
-                              {!message.isStreaming && (
-                                <div className="flex items-center gap-1.5 text-xs font-medium text-green-600 dark:text-green-400 pt-1">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-green-600 dark:bg-green-400" />
-                                  Finished
+                                    ))}
+                                  </div>
                                 </div>
                               )}
-                            </AccordionContent>
-                          </div>
-                        </AccordionItem>
-                      </Accordion>
+
+                              {/* Reviewing Sources Section */}
+                              {message.reviewedInfo && !message.isStreaming && (
+                                <div className="space-y-2">
+                                  <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                                    <FileText className="h-3.5 w-3.5" />
+                                    Reviewed {message.citations?.length || 0} sources
+                                  </h3>
+                                  <div className="p-2.5 rounded-md bg-muted/30 border border-border/50">
+                                    <p className="text-xs text-muted-foreground leading-relaxed">{message.reviewedInfo}</p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </ReasoningContent>
+                        </Reasoning>
                       );
                     })()}
 
