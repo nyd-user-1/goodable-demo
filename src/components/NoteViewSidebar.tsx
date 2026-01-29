@@ -642,15 +642,8 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
 
       {/* Scrollable Content Area */}
       <div className="flex-1 overflow-y-auto py-2">
-        {/* Your Research Section */}
-        <Collapsible defaultOpen className="group/research mt-4">
-          <div className="px-2">
-            <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
-              Your research
-              <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/research:rotate-90" />
-            </CollapsibleTrigger>
-          </div>
-          <CollapsibleContent className="px-2 space-y-1">
+        {/* Research Navigation - No collapsible */}
+        <div className="px-2 space-y-1">
             <Tooltip>
               <TooltipTrigger asChild>
                 <NavLink
@@ -786,8 +779,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                 <p>School funding information</p>
               </TooltipContent>
             </Tooltip>
-          </CollapsibleContent>
-        </Collapsible>
+        </div>
 
         {/* Your Chats Section - Combined chats and notes, sorted chronologically */}
         {(combinedItems.length > 0 || recentExcerpts.length > 0) && (
@@ -918,8 +910,8 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
 
       {/* Bottom Section */}
       <div className="flex-shrink-0 p-3 pb-6 space-y-3 border-t">
-        {/* Plan Usage Card - Collapsible */}
-        <Collapsible open={planUsageOpen} onOpenChange={setPlanUsageOpen}>
+        {/* Plan Usage Card - Collapsible (only for authenticated users) */}
+        {user && <Collapsible open={planUsageOpen} onOpenChange={setPlanUsageOpen}>
           <div className="border rounded-lg overflow-hidden">
             <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2 hover:bg-muted/50 transition-colors">
               <div className="flex items-center gap-2">
@@ -969,7 +961,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               </div>
             </CollapsibleContent>
           </div>
-        </Collapsible>
+        </Collapsible>}
 
         {/* Feedback - Expandable */}
         <Collapsible open={feedbackOpen} onOpenChange={setFeedbackOpen}>
