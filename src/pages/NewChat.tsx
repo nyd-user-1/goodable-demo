@@ -1423,12 +1423,8 @@ const NewChat = () => {
           >
 
         {!chatStarted ? (
-          /* Initial State - Title only (input is centered via fixed positioning) */
-          <div className="flex flex-col items-center justify-center min-h-full px-4">
-            <h1 className="hidden sm:block text-4xl md:text-5xl font-semibold text-center mb-12 tracking-tight">
-              What are you researching?
-            </h1>
-          </div>
+          /* Initial State - empty (input is centered via fixed positioning) */
+          <div className="flex-1" />
         ) : (
           /* Chat State - Messages */
           <div className="pt-8 pb-16 px-4">
@@ -2002,7 +1998,7 @@ const NewChat = () => {
                       textareaRef.current.style.overflowY = textareaRef.current.scrollHeight > maxHeight ? 'auto' : 'hidden';
                     }
                   }}
-                  placeholder="Ask anything..."
+                  placeholder="What are you researching?"
                   className="flex-1 min-h-[40px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 placeholder:text-muted-foreground/60 text-base"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
