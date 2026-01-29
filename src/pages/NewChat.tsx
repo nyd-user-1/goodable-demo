@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChatPersistence } from "@/hooks/useChatPersistence";
-import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, PanelLeft, HandCoins } from "lucide-react";
+import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, PanelLeft, HandCoins, SquareUserRound } from "lucide-react";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { Contract } from "@/types/contracts";
 import { Button } from "@/components/ui/button";
@@ -357,6 +357,18 @@ const NewChat = () => {
   const [contractsLoading, setContractsLoading] = useState(false);
   const [selectedContracts, setSelectedContracts] = useState<Contract[]>([]);
 
+  // Persona state
+  interface Persona {
+    id: string;
+    act: string;
+    Label: string | null;
+    prompt: string | null;
+  }
+  const [personaDropdownOpen, setPersonaDropdownOpen] = useState(false);
+  const [availablePersonas, setAvailablePersonas] = useState<Persona[]>([]);
+  const [personasLoading, setPersonasLoading] = useState(false);
+  const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
+
   // Check if user is at the bottom of scroll container
   const checkIfAtBottom = () => {
     const container = scrollContainerRef.current;
@@ -697,6 +709,31 @@ const NewChat = () => {
     }
   }, [contractsDialogOpen]);
 
+  // Fetch personas for dropdown
+  const fetchPersonas = async () => {
+    setPersonasLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("Persona")
+        .select("id, act, Label, prompt")
+        .order("act", { ascending: true });
+
+      if (error) throw error;
+      setAvailablePersonas(data || []);
+    } catch (error) {
+      console.error("Error fetching personas:", error);
+    } finally {
+      setPersonasLoading(false);
+    }
+  };
+
+  // Load personas when dropdown opens
+  useEffect(() => {
+    if (personaDropdownOpen && availablePersonas.length === 0) {
+      fetchPersonas();
+    }
+  }, [personaDropdownOpen]);
+
   // Lobbying data for mobile drawer
   const [mobileDrawerLobbyists, setMobileDrawerLobbyists] = useState<any[]>([]);
   const [mobileDrawerLoading, setMobileDrawerLoading] = useState(false);
@@ -1020,8 +1057,15 @@ const NewChat = () => {
       const supabaseUrl = supabase.supabaseUrl;
       const { data: { session } } = await supabase.auth.getSession();
 
-      // Build contract context if this is a contract chat
-      let contractContext = systemContext || undefined;
+      // Build system context (persona + contract context)
+      let combinedContext = systemContext || '';
+
+      // Add persona prompt if selected
+      if (selectedPersona?.prompt) {
+        combinedContext = selectedPersona.prompt + (combinedContext ? '\n\n' + combinedContext : '');
+      }
+
+      let contractContext = combinedContext || undefined;
       if (isContractChat) {
         try {
           // Parse contract number from prompt prefix [Contract:xxx]
@@ -2016,11 +2060,100 @@ const NewChat = () => {
 
                 {/* Bottom Row with Buttons */}
                 <div className="flex items-center justify-between">
-                  {/* Left Side - Filter Buttons (hidden when chat hasn't started - pills are shown instead) */}
-                  {!chatStarted ? (
-                    <div className="flex-1" />
-                  ) : (
-                  <div className="flex gap-1">
+                  {/* Left Side - Persona icon + Filter Buttons */}
+                  <div className="flex items-center gap-1">
+                    {/* Persona selector */}
+                    <div className="relative">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => setPersonaDropdownOpen(!personaDropdownOpen)}
+                            className={cn(
+                              "h-9 w-9 rounded-lg flex items-center justify-center transition-colors",
+                              selectedPersona
+                                ? "text-foreground bg-muted"
+                                : "text-muted-foreground hover:bg-sidebar-accent"
+                            )}
+                          >
+                            <SquareUserRound className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          <p>{selectedPersona ? `Persona: ${selectedPersona.act}` : "Select Persona"}</p>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      {/* Persona dropdown - extends upward */}
+                      {personaDropdownOpen && (
+                        <div className="absolute bottom-full left-0 mb-2 w-72 max-h-[300px] rounded-2xl border border-border/60 bg-background shadow-lg overflow-hidden z-50">
+                          {/* Header */}
+                          <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
+                            <div className="flex items-center gap-2">
+                              <SquareUserRound className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm font-medium">Select Persona</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setPersonaDropdownOpen(false)}
+                              className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+
+                          {/* Clear selection option */}
+                          {selectedPersona && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedPersona(null);
+                                setPersonaDropdownOpen(false);
+                              }}
+                              className="w-full text-left px-4 py-3 text-sm text-muted-foreground hover:bg-muted/50 transition-colors border-b border-border/40"
+                            >
+                              Clear persona
+                            </button>
+                          )}
+
+                          {/* Personas list */}
+                          <div className="max-h-[200px] overflow-y-auto">
+                            {personasLoading ? (
+                              <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading personas...</div>
+                            ) : availablePersonas.length === 0 ? (
+                              <div className="px-4 py-6 text-center text-sm text-muted-foreground">No personas available</div>
+                            ) : (
+                              availablePersonas.map((persona, idx) => (
+                                <button
+                                  key={persona.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedPersona(persona);
+                                    setPersonaDropdownOpen(false);
+                                  }}
+                                  className={cn(
+                                    "w-full text-left px-4 py-3 text-sm transition-colors",
+                                    idx > 0 && "border-t border-border/40",
+                                    selectedPersona?.id === persona.id
+                                      ? "bg-muted text-foreground"
+                                      : "text-foreground hover:bg-muted/50"
+                                  )}
+                                >
+                                  <span className="font-medium">{persona.act}</span>
+                                  {persona.Label && (
+                                    <span className="text-muted-foreground ml-2">{persona.Label}</span>
+                                  )}
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Filter Buttons (only shown when chat has started) */}
+                    {chatStarted && (
+                    <>
                     <Dialog open={membersDialogOpen} onOpenChange={setMembersDialogOpen}>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -2468,8 +2601,9 @@ const NewChat = () => {
                         </div>
                       </DialogContent>
                     </Dialog>
+                    </>
+                    )}
                   </div>
-                  )}
 
                   {/* Right Side - Model selector + Submit/Stop Button */}
                   <div className="flex items-center gap-3">
