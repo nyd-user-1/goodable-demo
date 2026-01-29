@@ -236,7 +236,7 @@ export default function Prompts() {
                         item.darkGradient
                       )}
                     >
-                      <div className="flex items-start justify-between">
+                      <div className="flex items-end justify-between">
                         <div className="flex-1">
                           <h2 className="text-2xl font-semibold text-white mb-2">
                             {item.title}
