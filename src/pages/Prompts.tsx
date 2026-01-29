@@ -71,7 +71,7 @@ const featuredItems = [
     subtitle: 'Specialized state services',
     gradient: 'from-purple-400 to-pink-300',
     darkGradient: 'dark:from-purple-600 dark:to-pink-500',
-    images: [] as string[],
+    images: ['/nyserda-3.jpg', '/mta.jpg'],
   },
   {
     id: 'authorities',
@@ -79,7 +79,7 @@ const featuredItems = [
     subtitle: 'Infrastructure & development',
     gradient: 'from-emerald-400 to-teal-300',
     darkGradient: 'dark:from-emerald-600 dark:to-teal-500',
-    images: [] as string[],
+    images: ['/port-authority.webp', '/nypa.jpg'],
   },
 ];
 
@@ -204,15 +204,15 @@ export default function Prompts() {
               {/* Header */}
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h1 className="text-3xl font-semibold">Prompts</h1>
+                  <h1 className="text-3xl font-semibold">Departments</h1>
                   <p className="text-muted-foreground mt-1">
-                    Start a conversation with sample prompts
+                    Start a conversation
                   </p>
                 </div>
                 <div className="relative w-64 hidden sm:block">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search prompts"
+                    placeholder="Search departments"
                     className="pl-9 bg-muted/50 border-0"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -252,21 +252,22 @@ export default function Prompts() {
                         </div>
                         <div className="hidden md:block w-1/2">
                           <div className="flex gap-3 justify-end">
-                            {item.images.length > 0 ? (
-                              <>
-                                <div className="w-40 h-48 rounded-xl overflow-hidden">
+                            <>
+                              <div className="w-40 h-48 rounded-xl overflow-hidden shadow-lg shadow-black/20">
+                                {item.images[0] ? (
                                   <img src={item.images[0]} alt="" className="w-full h-full object-cover" />
-                                </div>
-                                <div className="w-40 h-48 rounded-xl overflow-hidden -mt-4">
+                                ) : (
+                                  <div className="w-full h-full bg-white/10 backdrop-blur" />
+                                )}
+                              </div>
+                              <div className="w-40 h-48 rounded-xl overflow-hidden shadow-lg shadow-black/20 -mt-4">
+                                {item.images[1] ? (
                                   <img src={item.images[1]} alt="" className="w-full h-full object-cover" />
-                                </div>
-                              </>
-                            ) : (
-                              <>
-                                <div className="w-40 h-48 rounded-xl bg-white/10 backdrop-blur" />
-                                <div className="w-40 h-48 rounded-xl bg-white/10 backdrop-blur -mt-4" />
-                              </>
-                            )}
+                                ) : (
+                                  <div className="w-full h-full bg-white/10 backdrop-blur" />
+                                )}
+                              </div>
+                            </>
                           </div>
                         </div>
                       </div>
@@ -307,7 +308,7 @@ export default function Prompts() {
               <div className="relative mb-4 sm:hidden">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search prompts"
+                  placeholder="Search departments"
                   className="pl-9 bg-muted/50 border-0"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -353,7 +354,7 @@ export default function Prompts() {
 
               {filteredPrompts.length === 0 && (
                 <div className="text-center py-12 text-muted-foreground">
-                  No prompts found matching "{searchQuery}"
+                  No results found matching "{searchQuery}"
                 </div>
               )}
             </div>
