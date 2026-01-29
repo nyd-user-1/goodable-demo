@@ -74,7 +74,6 @@ import {
   Menu,
   Home,
   FileText,
-  MoreHorizontal,
   Eye,
   EyeOff,
   Copy,

@@ -7,52 +7,239 @@ import { cn } from '@/lib/utils';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { EngineSelection } from '@/components/EngineSelection';
 
+type PromptItem = {
+  title: string;
+  prompt: string;
+  logo: string;
+  logoAlt: string;
+};
+
 // Departments prompts
-const departmentPrompts = [
-  { title: "Department of Labor", prompt: "What does the New York State Department of Labor do and what services does it provide to workers and employers?" },
-  { title: "Department of Health", prompt: "What are the main responsibilities of the New York State Department of Health and how does it serve residents?" },
-  { title: "Department of Education", prompt: "What role does the New York State Education Department play in K-12 and higher education?" },
-  { title: "Department of Transportation", prompt: "What does the New York State Department of Transportation oversee and what major projects is it working on?" },
-  { title: "Department of Environmental Conservation", prompt: "What does the NYS Department of Environmental Conservation do to protect natural resources and the environment?" },
-  { title: "Department of Financial Services", prompt: "What is the role of the NYS Department of Financial Services in regulating banking and insurance?" },
-  { title: "Department of Taxation and Finance", prompt: "What does the NYS Department of Taxation and Finance handle and how can residents interact with it?" },
-  { title: "Office of Children and Family Services", prompt: "What services does the NYS Office of Children and Family Services provide to families and children?" },
-  { title: "Department of State", prompt: "What are the functions of the New York Department of State and what services does it offer?" },
-  { title: "Department of Motor Vehicles", prompt: "What services does the NYS DMV provide and how can residents access them?" },
-  { title: "Division of Criminal Justice Services", prompt: "What does the NYS Division of Criminal Justice Services do to support law enforcement and public safety?" },
-  { title: "Office of Mental Health", prompt: "What mental health services and programs does the NYS Office of Mental Health provide?" },
+const departmentPrompts: PromptItem[] = [
+  {
+    title: "Department of Labor",
+    prompt: "What does the New York State Department of Labor do and what services does it provide to workers and employers?",
+    logo: "https://logo.clearbit.com/labor.ny.gov?size=128",
+    logoAlt: "New York State Department of Labor logo",
+  },
+  {
+    title: "Department of Health",
+    prompt: "What are the main responsibilities of the New York State Department of Health and how does it serve residents?",
+    logo: "https://logo.clearbit.com/health.ny.gov?size=128",
+    logoAlt: "New York State Department of Health logo",
+  },
+  {
+    title: "Department of Education",
+    prompt: "What role does the New York State Education Department play in K-12 and higher education?",
+    logo: "https://logo.clearbit.com/nysed.gov?size=128",
+    logoAlt: "New York State Education Department logo",
+  },
+  {
+    title: "Department of Transportation",
+    prompt: "What does the New York State Department of Transportation oversee and what major projects is it working on?",
+    logo: "https://logo.clearbit.com/dot.ny.gov?size=128",
+    logoAlt: "New York State Department of Transportation logo",
+  },
+  {
+    title: "Department of Environmental Conservation",
+    prompt: "What does the NYS Department of Environmental Conservation do to protect natural resources and the environment?",
+    logo: "https://logo.clearbit.com/dec.ny.gov?size=128",
+    logoAlt: "New York State Department of Environmental Conservation logo",
+  },
+  {
+    title: "Department of Financial Services",
+    prompt: "What is the role of the NYS Department of Financial Services in regulating banking and insurance?",
+    logo: "https://logo.clearbit.com/dfs.ny.gov?size=128",
+    logoAlt: "New York State Department of Financial Services logo",
+  },
+  {
+    title: "Department of Taxation and Finance",
+    prompt: "What does the NYS Department of Taxation and Finance handle and how can residents interact with it?",
+    logo: "https://logo.clearbit.com/tax.ny.gov?size=128",
+    logoAlt: "New York State Department of Taxation and Finance logo",
+  },
+  {
+    title: "Office of Children and Family Services",
+    prompt: "What services does the NYS Office of Children and Family Services provide to families and children?",
+    logo: "https://logo.clearbit.com/ocfs.ny.gov?size=128",
+    logoAlt: "New York State Office of Children and Family Services logo",
+  },
+  {
+    title: "Department of State",
+    prompt: "What are the functions of the New York Department of State and what services does it offer?",
+    logo: "https://logo.clearbit.com/dos.ny.gov?size=128",
+    logoAlt: "New York State Department of State logo",
+  },
+  {
+    title: "Department of Motor Vehicles",
+    prompt: "What services does the NYS DMV provide and how can residents access them?",
+    logo: "https://logo.clearbit.com/dmv.ny.gov?size=128",
+    logoAlt: "New York State Department of Motor Vehicles logo",
+  },
+  {
+    title: "Division of Criminal Justice Services",
+    prompt: "What does the NYS Division of Criminal Justice Services do to support law enforcement and public safety?",
+    logo: "https://logo.clearbit.com/criminaljustice.ny.gov?size=128",
+    logoAlt: "New York State Division of Criminal Justice Services logo",
+  },
+  {
+    title: "Office of Mental Health",
+    prompt: "What mental health services and programs does the NYS Office of Mental Health provide?",
+    logo: "https://logo.clearbit.com/omh.ny.gov?size=128",
+    logoAlt: "New York State Office of Mental Health logo",
+  },
 ];
 
 // Agencies prompts
-const agencyPrompts = [
-  { title: "Metropolitan Transportation Authority", prompt: "What is the MTA and how does it serve New York's public transportation needs?" },
-  { title: "Empire State Development", prompt: "What is Empire State Development and how does it promote economic growth in New York?" },
-  { title: "NYSERDA", prompt: "What is NYSERDA and how does it advance clean energy and sustainability in New York?" },
-  { title: "Homes and Community Renewal", prompt: "What does NYS Homes and Community Renewal do to support affordable housing?" },
-  { title: "Office of General Services", prompt: "What services does the NYS Office of General Services provide to state government operations?" },
-  { title: "Department of Civil Service", prompt: "What is the role of the NYS Department of Civil Service in managing the state workforce?" },
-  { title: "Office of Information Technology Services", prompt: "What does NYS ITS do to support technology infrastructure across state government?" },
-  { title: "Gaming Commission", prompt: "What does the NYS Gaming Commission regulate and oversee?" },
-  { title: "Liquor Authority", prompt: "What does the NYS State Liquor Authority regulate and how can businesses interact with it?" },
-  { title: "Division of Homeland Security", prompt: "What is the role of the NYS Division of Homeland Security and Emergency Services?" },
-  { title: "Office of Temporary and Disability Assistance", prompt: "What public assistance programs does OTDA administer for New Yorkers in need?" },
-  { title: "Workers' Compensation Board", prompt: "What does the NYS Workers' Compensation Board do and how does it help injured workers?" },
+const agencyPrompts: PromptItem[] = [
+  {
+    title: "Metropolitan Transportation Authority",
+    prompt: "What is the MTA and how does it serve New York's public transportation needs?",
+    logo: "https://logo.clearbit.com/mta.info?size=128",
+    logoAlt: "Metropolitan Transportation Authority logo",
+  },
+  {
+    title: "Empire State Development",
+    prompt: "What is Empire State Development and how does it promote economic growth in New York?",
+    logo: "https://logo.clearbit.com/esd.ny.gov?size=128",
+    logoAlt: "Empire State Development logo",
+  },
+  {
+    title: "NYSERDA",
+    prompt: "What is NYSERDA and how does it advance clean energy and sustainability in New York?",
+    logo: "https://logo.clearbit.com/nyserda.ny.gov?size=128",
+    logoAlt: "NYSERDA logo",
+  },
+  {
+    title: "Homes and Community Renewal",
+    prompt: "What does NYS Homes and Community Renewal do to support affordable housing?",
+    logo: "https://logo.clearbit.com/hcr.ny.gov?size=128",
+    logoAlt: "New York State Homes and Community Renewal logo",
+  },
+  {
+    title: "Office of General Services",
+    prompt: "What services does the NYS Office of General Services provide to state government operations?",
+    logo: "https://logo.clearbit.com/ogs.ny.gov?size=128",
+    logoAlt: "New York State Office of General Services logo",
+  },
+  {
+    title: "Department of Civil Service",
+    prompt: "What is the role of the NYS Department of Civil Service in managing the state workforce?",
+    logo: "https://logo.clearbit.com/cs.ny.gov?size=128",
+    logoAlt: "New York State Department of Civil Service logo",
+  },
+  {
+    title: "Office of Information Technology Services",
+    prompt: "What does NYS ITS do to support technology infrastructure across state government?",
+    logo: "https://logo.clearbit.com/its.ny.gov?size=128",
+    logoAlt: "New York State Office of Information Technology Services logo",
+  },
+  {
+    title: "Gaming Commission",
+    prompt: "What does the NYS Gaming Commission regulate and oversee?",
+    logo: "https://logo.clearbit.com/gaming.ny.gov?size=128",
+    logoAlt: "New York State Gaming Commission logo",
+  },
+  {
+    title: "Liquor Authority",
+    prompt: "What does the NYS State Liquor Authority regulate and how can businesses interact with it?",
+    logo: "https://logo.clearbit.com/sla.ny.gov?size=128",
+    logoAlt: "New York State Liquor Authority logo",
+  },
+  {
+    title: "Division of Homeland Security",
+    prompt: "What is the role of the NYS Division of Homeland Security and Emergency Services?",
+    logo: "https://logo.clearbit.com/dhses.ny.gov?size=128",
+    logoAlt: "New York State Division of Homeland Security and Emergency Services logo",
+  },
+  {
+    title: "Office of Temporary and Disability Assistance",
+    prompt: "What public assistance programs does OTDA administer for New Yorkers in need?",
+    logo: "https://logo.clearbit.com/otda.ny.gov?size=128",
+    logoAlt: "New York State Office of Temporary and Disability Assistance logo",
+  },
+  {
+    title: "Workers' Compensation Board",
+    prompt: "What does the NYS Workers' Compensation Board do and how does it help injured workers?",
+    logo: "https://logo.clearbit.com/wcb.ny.gov?size=128",
+    logoAlt: "New York State Workers' Compensation Board logo",
+  },
 ];
 
 // Authorities prompts
-const authorityPrompts = [
-  { title: "Port Authority of NY & NJ", prompt: "What does the Port Authority of New York and New Jersey oversee and what major infrastructure does it manage?" },
-  { title: "Thruway Authority", prompt: "What does the NYS Thruway Authority manage and how does it maintain New York's highway system?" },
-  { title: "Power Authority (NYPA)", prompt: "What is the New York Power Authority and how does it generate and distribute electricity in the state?" },
-  { title: "Dormitory Authority (DASNY)", prompt: "What does the Dormitory Authority of the State of New York do to finance public facilities?" },
-  { title: "Environmental Facilities Corporation", prompt: "What does the NYS Environmental Facilities Corporation do to finance water infrastructure projects?" },
-  { title: "Bridge Authority", prompt: "What bridges does the New York State Bridge Authority manage in the Hudson Valley region?" },
-  { title: "Olympic Regional Development Authority", prompt: "What does ORDA do to manage Olympic venues and promote tourism in the Adirondacks?" },
-  { title: "Battery Park City Authority", prompt: "What does the Battery Park City Authority manage in Lower Manhattan?" },
-  { title: "Roosevelt Island Operating Corporation", prompt: "What services does the Roosevelt Island Operating Corporation provide to residents?" },
-  { title: "Canal Corporation", prompt: "What waterways does the NYS Canal Corporation manage and maintain?" },
-  { title: "Energy Research and Development Authority", prompt: "How does NYSERDA support clean energy innovation and research in New York?" },
-  { title: "Urban Development Corporation", prompt: "What role does the NYS Urban Development Corporation play in revitalizing communities?" },
+const authorityPrompts: PromptItem[] = [
+  {
+    title: "Port Authority of NY & NJ",
+    prompt: "What does the Port Authority of New York and New Jersey oversee and what major infrastructure does it manage?",
+    logo: "https://logo.clearbit.com/panynj.gov?size=128",
+    logoAlt: "Port Authority of New York and New Jersey logo",
+  },
+  {
+    title: "Thruway Authority",
+    prompt: "What does the NYS Thruway Authority manage and how does it maintain New York's highway system?",
+    logo: "https://logo.clearbit.com/thruway.ny.gov?size=128",
+    logoAlt: "New York State Thruway Authority logo",
+  },
+  {
+    title: "Power Authority (NYPA)",
+    prompt: "What is the New York Power Authority and how does it generate and distribute electricity in the state?",
+    logo: "https://logo.clearbit.com/nypa.gov?size=128",
+    logoAlt: "New York Power Authority logo",
+  },
+  {
+    title: "Dormitory Authority (DASNY)",
+    prompt: "What does the Dormitory Authority of the State of New York do to finance public facilities?",
+    logo: "https://logo.clearbit.com/dasny.org?size=128",
+    logoAlt: "Dormitory Authority of the State of New York logo",
+  },
+  {
+    title: "Environmental Facilities Corporation",
+    prompt: "What does the NYS Environmental Facilities Corporation do to finance water infrastructure projects?",
+    logo: "https://logo.clearbit.com/efc.ny.gov?size=128",
+    logoAlt: "New York State Environmental Facilities Corporation logo",
+  },
+  {
+    title: "Bridge Authority",
+    prompt: "What bridges does the New York State Bridge Authority manage in the Hudson Valley region?",
+    logo: "https://logo.clearbit.com/nysba.ny.gov?size=128",
+    logoAlt: "New York State Bridge Authority logo",
+  },
+  {
+    title: "Olympic Regional Development Authority",
+    prompt: "What does ORDA do to manage Olympic venues and promote tourism in the Adirondacks?",
+    logo: "https://logo.clearbit.com/orda.org?size=128",
+    logoAlt: "Olympic Regional Development Authority logo",
+  },
+  {
+    title: "Battery Park City Authority",
+    prompt: "What does the Battery Park City Authority manage in Lower Manhattan?",
+    logo: "https://logo.clearbit.com/bpca.ny.gov?size=128",
+    logoAlt: "Battery Park City Authority logo",
+  },
+  {
+    title: "Roosevelt Island Operating Corporation",
+    prompt: "What services does the Roosevelt Island Operating Corporation provide to residents?",
+    logo: "https://logo.clearbit.com/rioc.ny.gov?size=128",
+    logoAlt: "Roosevelt Island Operating Corporation logo",
+  },
+  {
+    title: "Canal Corporation",
+    prompt: "What waterways does the NYS Canal Corporation manage and maintain?",
+    logo: "https://logo.clearbit.com/canals.ny.gov?size=128",
+    logoAlt: "New York State Canal Corporation logo",
+  },
+  {
+    title: "Energy Research and Development Authority",
+    prompt: "How does NYSERDA support clean energy innovation and research in New York?",
+    logo: "https://logo.clearbit.com/nyserda.ny.gov?size=128",
+    logoAlt: "New York State Energy Research and Development Authority logo",
+  },
+  {
+    title: "Urban Development Corporation",
+    prompt: "What role does the NYS Urban Development Corporation play in revitalizing communities?",
+    logo: "https://logo.clearbit.com/esd.ny.gov?size=128",
+    logoAlt: "New York State Urban Development Corporation logo",
+  },
 ];
 
 // Featured carousel items
@@ -138,6 +325,11 @@ export default function Prompts() {
     navigate(`/new-chat?prompt=${encodeURIComponent(prompt)}`);
   };
 
+  const handleLogoError = (event: React.SyntheticEvent<HTMLImageElement>) => {
+    event.currentTarget.onerror = null;
+    event.currentTarget.src = '/nys-assembly-seal.png';
+  };
+
   const handleFeaturedClick = (item: typeof featuredItems[0]) => {
     setActiveTab(item.id);
     handlePromptClick(item.prompt);
@@ -158,19 +350,6 @@ export default function Prompts() {
     }, 5000);
     return () => clearInterval(timer);
   }, []);
-
-  const getIcon = () => {
-    switch (activeTab) {
-      case 'agencies':
-        return Briefcase;
-      case 'authorities':
-        return Scale;
-      default:
-        return Building2;
-    }
-  };
-
-  const Icon = getIcon();
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-background">
@@ -221,9 +400,9 @@ export default function Prompts() {
               {/* Header */}
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h1 className="text-3xl font-semibold">Prompts</h1>
+                  <h1 className="text-3xl font-semibold">Departments</h1>
                   <p className="text-muted-foreground mt-1">
-                    Start a conversation with sample prompts
+                    Start a conversation
                   </p>
                 </div>
                 <div className="relative w-64 hidden sm:block">
@@ -348,8 +527,14 @@ export default function Prompts() {
                     onClick={() => handlePromptClick(item.prompt)}
                     className="group flex items-center gap-4 p-4 rounded-xl hover:bg-muted/50 transition-colors text-left"
                   >
-                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      <Icon className="h-5 w-5 text-muted-foreground" />
+                    <div className="w-12 h-12 rounded-xl bg-white border border-muted shadow-sm flex items-center justify-center flex-shrink-0">
+                      <img
+                        src={item.logo}
+                        alt={item.logoAlt}
+                        className="h-8 w-8 object-contain"
+                        loading="lazy"
+                        onError={handleLogoError}
+                      />
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium truncate">{item.title}</h3>
