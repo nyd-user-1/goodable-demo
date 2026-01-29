@@ -2594,7 +2594,7 @@ const NewChat = () => {
                     <button
                       type="button"
                       onClick={() => navigate('/auth-4')}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-foreground bg-foreground text-background text-sm transition-colors hover:bg-foreground/90"
+                      className="shimmer-hover inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-foreground bg-foreground text-background text-sm transition-colors hover:bg-foreground/90"
                     >
                       Sign Up
                     </button>
