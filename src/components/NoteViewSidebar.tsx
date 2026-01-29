@@ -27,7 +27,6 @@ import {
   Moon,
   LogIn,
   LogOut,
-  ThumbsUp,
   HelpCircle,
   FileText,
   Mail,
@@ -42,7 +41,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -135,8 +133,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const [pinnedNoteIds, setPinnedNoteIds] = useState<Set<string>>(getPinnedNoteIds());
   const [newChatHover, setNewChatHover] = useState(false);
   const [planUsageOpen, setPlanUsageOpen] = useState(false);
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [feedbackText, setFeedbackText] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
@@ -205,29 +201,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
     navigate("/");
   };
 
-  const handleFeedbackSubmit = async () => {
-    if (!feedbackText.trim()) return;
-
-    try {
-      const { error } = await supabase
-        .from("feedback")
-        .insert({
-          user_id: user?.id || null,
-          content: feedbackText,
-          page_url: window.location.href,
-          user_agent: navigator.userAgent,
-        });
-
-      if (error) {
-        console.error("Error submitting feedback:", error);
-      }
-    } catch (err) {
-      console.error("Error submitting feedback:", err);
-    }
-
-    setFeedbackText("");
-    setFeedbackOpen(false);
-  };
 
   const handleRenameClick = (id: string, currentTitle: string, type: 'chat' | 'note') => {
     setItemToRename({ id, title: currentTitle, type });
@@ -873,34 +846,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             </CollapsibleContent>
           </div>
         </Collapsible>}
-
-        {/* Feedback - Expandable (hidden on mobile) */}
-        <div className="hidden sm:block">
-          <Collapsible open={feedbackOpen} onOpenChange={setFeedbackOpen}>
-            <CollapsibleTrigger className="flex items-center gap-2 px-1 py-1 text-base md:text-[15px] font-semibold text-muted-foreground hover:text-foreground transition-colors w-full">
-              <ThumbsUp className="h-4 w-4" />
-              <span>Feedback</span>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="mt-2 p-3 border rounded-lg space-y-3">
-                <Textarea
-                  placeholder="How can we improve NYSgpt?"
-                  value={feedbackText}
-                  onChange={(e) => setFeedbackText(e.target.value)}
-                  className="min-h-[80px] resize-none"
-                />
-                <div className="flex items-center justify-between">
-                  <Button variant="ghost" size="sm" onClick={() => setFeedbackOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button size="sm" className="bg-foreground hover:bg-foreground/90 text-background" onClick={handleFeedbackSubmit}>
-                    Submit
-                  </Button>
-                </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
 
       </div>
 

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronRight, ChevronLeft, Building2, Briefcase, Scale, PanelLeft } from 'lucide-react';
+import { Search, ChevronRight, ChevronLeft, PanelLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -59,37 +59,34 @@ const authorityPrompts = [
 const featuredItems = [
   {
     id: 'departments',
-    icon: Building2,
     title: 'Explore Departments',
     subtitle: 'Learn about state agencies',
     gradient: 'from-blue-400 to-cyan-300',
     darkGradient: 'dark:from-blue-600 dark:to-cyan-500',
-    prompt: 'What are the major departments in New York State government and what do they do?',
+    images: ['/nys-parks.webp', '/nysdot.jpeg'],
   },
   {
     id: 'agencies',
-    icon: Briefcase,
     title: 'Discover Agencies',
     subtitle: 'Specialized state services',
     gradient: 'from-purple-400 to-pink-300',
     darkGradient: 'dark:from-purple-600 dark:to-pink-500',
-    prompt: 'What specialized agencies exist in New York State and how do they serve residents?',
+    images: [] as string[],
   },
   {
     id: 'authorities',
-    icon: Scale,
     title: 'Public Authorities',
     subtitle: 'Infrastructure & development',
     gradient: 'from-emerald-400 to-teal-300',
     darkGradient: 'dark:from-emerald-600 dark:to-teal-500',
-    prompt: 'What are public authorities in New York and what major infrastructure do they manage?',
+    images: [] as string[],
   },
 ];
 
 const tabs = [
-  { id: 'departments', label: 'Departments', icon: Building2 },
-  { id: 'agencies', label: 'Agencies', icon: Briefcase },
-  { id: 'authorities', label: 'Authorities', icon: Scale },
+  { id: 'departments', label: 'Departments' },
+  { id: 'agencies', label: 'Agencies' },
+  { id: 'authorities', label: 'Authorities' },
 ];
 
 export default function Prompts() {
@@ -140,7 +137,6 @@ export default function Prompts() {
 
   const handleFeaturedClick = (item: typeof featuredItems[0]) => {
     setActiveTab(item.id);
-    handlePromptClick(item.prompt);
   };
 
   const nextSlide = () => {
@@ -158,19 +154,6 @@ export default function Prompts() {
     }, 5000);
     return () => clearInterval(timer);
   }, []);
-
-  const getIcon = () => {
-    switch (activeTab) {
-      case 'agencies':
-        return Briefcase;
-      case 'authorities':
-        return Scale;
-      default:
-        return Building2;
-    }
-  };
-
-  const Icon = getIcon();
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-background">
@@ -248,17 +231,13 @@ export default function Prompts() {
                     <div
                       key={item.id}
                       className={cn(
-                        'min-w-full p-8 cursor-pointer bg-gradient-to-br',
+                        'min-w-full p-8 bg-gradient-to-br',
                         item.gradient,
                         item.darkGradient
                       )}
-                      onClick={() => handleFeaturedClick(item)}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center mb-4">
-                            <item.icon className="h-6 w-6 text-white" />
-                          </div>
                           <h2 className="text-2xl font-semibold text-white mb-2">
                             {item.title}
                           </h2>
@@ -266,15 +245,28 @@ export default function Prompts() {
                           <Button
                             variant="secondary"
                             className="bg-white/90 hover:bg-white text-foreground"
+                            onClick={() => handleFeaturedClick(item)}
                           >
                             View
                           </Button>
                         </div>
                         <div className="hidden md:block w-1/2">
-                          {/* Placeholder for gallery images */}
                           <div className="flex gap-3 justify-end">
-                            <div className="w-40 h-48 rounded-xl bg-white/10 backdrop-blur" />
-                            <div className="w-40 h-48 rounded-xl bg-white/10 backdrop-blur -mt-4" />
+                            {item.images.length > 0 ? (
+                              <>
+                                <div className="w-40 h-48 rounded-xl overflow-hidden">
+                                  <img src={item.images[0]} alt="" className="w-full h-full object-cover" />
+                                </div>
+                                <div className="w-40 h-48 rounded-xl overflow-hidden -mt-4">
+                                  <img src={item.images[1]} alt="" className="w-full h-full object-cover" />
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="w-40 h-48 rounded-xl bg-white/10 backdrop-blur" />
+                                <div className="w-40 h-48 rounded-xl bg-white/10 backdrop-blur -mt-4" />
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -348,9 +340,6 @@ export default function Prompts() {
                     onClick={() => handlePromptClick(item.prompt)}
                     className="group flex items-center gap-4 p-4 rounded-xl hover:bg-muted/50 transition-colors text-left"
                   >
-                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      <Icon className="h-5 w-5 text-muted-foreground" />
-                    </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium truncate">{item.title}</h3>
                       <p className="text-sm text-muted-foreground truncate">
