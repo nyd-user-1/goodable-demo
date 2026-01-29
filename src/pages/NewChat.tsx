@@ -1633,47 +1633,13 @@ const NewChat = () => {
                         );
                       }
 
-                      // All other chats get the Reasoning component
+                      // All other chats get a simple Reasoning indicator (no content inside)
                       return (
                         <Reasoning
                           isStreaming={message.isStreaming}
-                          defaultOpen={true}
+                          defaultOpen={false}
                         >
                           <ReasoningTrigger />
-                          <ReasoningContent>
-                            <div className="space-y-3">
-                              {/* Searching Section */}
-                              {message.searchQueries && (
-                                <div className="space-y-2">
-                                  <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                                    <SearchIcon className="h-3.5 w-3.5" />
-                                    Searching
-                                  </h3>
-                                  <div className="space-y-1.5">
-                                    {message.searchQueries.map((query, idx) => (
-                                      <div key={idx} className="flex items-start gap-2.5 p-2.5 rounded-md bg-muted/30 border border-border/50 text-xs text-muted-foreground">
-                                        <SearchIcon className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-muted-foreground/70" />
-                                        <span className="leading-relaxed">{query}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Reviewing Sources Section */}
-                              {message.reviewedInfo && !message.isStreaming && (
-                                <div className="space-y-2">
-                                  <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                                    <FileText className="h-3.5 w-3.5" />
-                                    Reviewed {message.citations?.length || 0} sources
-                                  </h3>
-                                  <div className="p-2.5 rounded-md bg-muted/30 border border-border/50">
-                                    <p className="text-xs text-muted-foreground leading-relaxed">{message.reviewedInfo}</p>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </ReasoningContent>
                         </Reasoning>
                       );
                     })()}
