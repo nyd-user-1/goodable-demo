@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, PanelLeft, ArrowUp } from 'lucide-react';
+import { ChevronRight, PanelLeft, ArrowUp, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
@@ -117,43 +117,92 @@ export default function DepartmentDetail() {
 
           {/* Scrollable Content */}
           <div className="absolute top-[57px] bottom-0 left-0 right-0 overflow-y-auto">
-            <div className="container mx-auto px-4 py-8 max-w-3xl">
+            <div className="container mx-auto px-4 py-8 max-w-4xl">
               {/* Breadcrumb */}
-              <button
-                onClick={() => navigate('/departments')}
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Departments
-              </button>
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-10">
+                <button
+                  onClick={() => navigate('/departments')}
+                  className="hover:text-foreground transition-colors"
+                >
+                  Departments
+                </button>
+                <ChevronRight className="h-3.5 w-3.5" />
+                <span className="text-foreground/60 truncate">{item.title}</span>
+              </div>
 
-              {/* Title Section */}
-              <div className="flex items-start justify-between mb-8">
-                <div>
-                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                    {item.category}
-                  </div>
-                  <h1 className="text-3xl font-semibold mb-2">{item.title}</h1>
-                  <p className="text-muted-foreground text-lg">
-                    {item.prompt}
-                  </p>
-                </div>
+              {/* Icon */}
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 dark:from-blue-600 dark:to-cyan-500 flex items-center justify-center mb-6">
+                <Building2 className="h-8 w-8 text-white" />
+              </div>
+
+              {/* Title + Start Chat */}
+              <div className="flex items-start justify-between gap-6 mb-2">
+                <h1 className="text-3xl sm:text-4xl font-semibold">{item.title}</h1>
                 <Button
                   onClick={handleStartChat}
-                  className="bg-foreground text-background hover:bg-foreground/90 flex-shrink-0 ml-6"
+                  className="bg-foreground text-background hover:bg-foreground/90 flex-shrink-0 rounded-full px-6"
                 >
                   Start Chat
                 </Button>
               </div>
 
+              {/* Subtitle */}
+              <p className="text-muted-foreground text-lg mb-8">
+                {item.prompt}
+              </p>
+
+              {/* Placeholder Image Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-sky-100 to-blue-50 dark:from-sky-900/30 dark:to-blue-900/20 border border-sky-200/50 dark:border-sky-800/30 aspect-[4/5]">
+                  <div className="p-4">
+                    <div className="bg-white/80 dark:bg-white/10 backdrop-blur rounded-lg px-3 py-2 text-sm font-medium mb-3">
+                      <span className="text-foreground">@NYSgpt</span>{' '}
+                      <span className="text-muted-foreground">tell me about this {item.category.toLowerCase()}</span>
+                    </div>
+                    <div className="w-full aspect-video rounded-lg bg-gradient-to-br from-sky-200/60 to-blue-200/60 dark:from-sky-800/40 dark:to-blue-800/40" />
+                    <p className="text-xs text-muted-foreground mt-3 line-clamp-2">
+                      Get an overview of the {item.title}'s mission, leadership, and key responsibilities.
+                    </p>
+                  </div>
+                </div>
+                <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-sky-100 to-blue-50 dark:from-sky-900/30 dark:to-blue-900/20 border border-sky-200/50 dark:border-sky-800/30 aspect-[4/5]">
+                  <div className="p-4">
+                    <div className="bg-white/80 dark:bg-white/10 backdrop-blur rounded-lg px-3 py-2 text-sm font-medium mb-3">
+                      <span className="text-foreground">@NYSgpt</span>{' '}
+                      <span className="text-muted-foreground">what services are available?</span>
+                    </div>
+                    <div className="w-full aspect-video rounded-lg bg-gradient-to-br from-sky-200/60 to-blue-200/60 dark:from-sky-800/40 dark:to-blue-800/40" />
+                    <p className="text-xs text-muted-foreground mt-3 line-clamp-2">
+                      Discover programs and services the {item.title} offers to residents and businesses.
+                    </p>
+                  </div>
+                </div>
+                <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-sky-100 to-blue-50 dark:from-sky-900/30 dark:to-blue-900/20 border border-sky-200/50 dark:border-sky-800/30 aspect-[4/5]">
+                  <div className="p-4">
+                    <div className="bg-white/80 dark:bg-white/10 backdrop-blur rounded-lg px-3 py-2 text-sm font-medium mb-3">
+                      <span className="text-foreground">@NYSgpt</span>{' '}
+                      <span className="text-muted-foreground">what are recent updates?</span>
+                    </div>
+                    <div className="w-full aspect-video rounded-lg bg-gradient-to-br from-sky-200/60 to-blue-200/60 dark:from-sky-800/40 dark:to-blue-800/40" />
+                    <p className="text-xs text-muted-foreground mt-3 line-clamp-2">
+                      Stay informed on the latest initiatives, policy changes, and announcements.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <p className="text-muted-foreground leading-relaxed mb-10">
+                The {item.title} is a New York State {item.category.toLowerCase()} that serves the public interest through its programs, services, and regulatory functions. Use NYSgpt to explore its mission, understand its organizational structure, review recent initiatives, and learn how it impacts communities across the state. Start a conversation to get detailed, AI-powered insights about this {item.category.toLowerCase()}'s operations and services.
+              </p>
+
               {/* Sample Prompts */}
               <div className="mb-10">
                 <h2 className="text-lg font-semibold mb-4">Sample prompts</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {[
                     `What is the history and mission of the ${item.title}?`,
                     `What services does the ${item.title} provide to New Yorkers?`,
-                    `Who leads the ${item.title} and how is it structured?`,
                     `What recent initiatives has the ${item.title} launched?`,
                   ].map((prompt, idx) => (
                     <button
