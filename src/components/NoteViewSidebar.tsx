@@ -415,134 +415,99 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   return (
     <TooltipProvider delayDuration={300}>
     <div className="flex flex-col h-full">
-      {/* Header with User Dropdown, Search, and Add */}
+      {/* Header with User Dropdown/Sign In, Search, and Add */}
       <div className="flex items-center justify-between px-3 py-3 border-b">
-        {/* User Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-9 px-2 gap-1 font-medium max-w-[160px]">
-              <span className="truncate">{truncatedName}</span>
-              <ChevronDown className="h-4 w-4 flex-shrink-0 opacity-50" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-64">
-            {user ? (
-              <>
-                {/* User Info */}
-                <div className="px-3 py-2 border-b">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{displayName}</p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
-                    </div>
-                    <span className="text-xs text-primary font-medium px-2 py-0.5 bg-primary/10 rounded">Free</span>
+        {/* User Dropdown for authenticated, Sign In button for unauthenticated */}
+        {user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-9 px-2 gap-1 font-semibold max-w-[160px]">
+                <span className="truncate">{truncatedName}</span>
+                <ChevronDown className="h-4 w-4 flex-shrink-0 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-64">
+              {/* User Info */}
+              <div className="px-3 py-2 border-b">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{displayName}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
+                  <span className="text-xs text-primary font-medium px-2 py-0.5 bg-primary/10 rounded">Free</span>
                 </div>
+              </div>
 
-                <DropdownMenuItem onClick={() => navigate('/profile')}>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Invite members
-                </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/profile')}>
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Invite members
+              </DropdownMenuItem>
 
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <Briefcase className="h-4 w-4 mr-2" />
-                    Switch workspace
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuItem>Personal</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>Create workspace</DropdownMenuItem>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <Briefcase className="h-4 w-4 mr-2" />
+                  Switch workspace
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem>Personal</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>Create workspace</DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
 
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    {isDarkMode ? <Moon className="h-4 w-4 mr-2" /> : <Sun className="h-4 w-4 mr-2" />}
-                    Theme
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuItem onClick={() => { document.documentElement.classList.remove('dark'); setIsDarkMode(false); }}>
-                      <Sun className="h-4 w-4 mr-2" />
-                      Light
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => { document.documentElement.classList.add('dark'); setIsDarkMode(true); }}>
-                      <Moon className="h-4 w-4 mr-2" />
-                      Dark
-                    </DropdownMenuItem>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  {isDarkMode ? <Moon className="h-4 w-4 mr-2" /> : <Sun className="h-4 w-4 mr-2" />}
+                  Theme
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem onClick={() => { document.documentElement.classList.remove('dark'); setIsDarkMode(false); }}>
+                    <Sun className="h-4 w-4 mr-2" />
+                    Light
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { document.documentElement.classList.add('dark'); setIsDarkMode(true); }}>
+                    <Moon className="h-4 w-4 mr-2" />
+                    Dark
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
 
-                <DropdownMenuSeparator />
+              <DropdownMenuSeparator />
 
-                <DropdownMenuItem>
-                  <FileText className="h-4 w-4 mr-2" />
-                  User guide
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Talk to a person
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Mail className="h-4 w-4 mr-2" />
-                  Email support
-                </DropdownMenuItem>
+              <DropdownMenuItem>
+                <FileText className="h-4 w-4 mr-2" />
+                User guide
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Talk to a person
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Mail className="h-4 w-4 mr-2" />
+                Email support
+              </DropdownMenuItem>
 
-                <DropdownMenuSeparator />
+              <DropdownMenuSeparator />
 
-                <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </DropdownMenuItem>
-              </>
-            ) : (
-              <>
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    {isDarkMode ? <Moon className="h-4 w-4 mr-2" /> : <Sun className="h-4 w-4 mr-2" />}
-                    Theme
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuItem onClick={() => { document.documentElement.classList.remove('dark'); setIsDarkMode(false); }}>
-                      <Sun className="h-4 w-4 mr-2" />
-                      Light
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => { document.documentElement.classList.add('dark'); setIsDarkMode(true); }}>
-                      <Moon className="h-4 w-4 mr-2" />
-                      Dark
-                    </DropdownMenuItem>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem>
-                  <FileText className="h-4 w-4 mr-2" />
-                  User guide
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Talk to a person
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Mail className="h-4 w-4 mr-2" />
-                  Email support
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem onClick={() => navigate('/auth')}>
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Log In
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button
+            variant="ghost"
+            className="h-9 px-3 font-semibold text-base hover:bg-muted"
+            onClick={() => navigate('/auth-4')}
+          >
+            Sign In
+          </Button>
+        )}
 
         {/* Search and Add buttons */}
         <div className="flex items-center gap-1">
@@ -628,7 +593,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               onMouseEnter={() => setNewChatHover(true)}
               onMouseLeave={() => setNewChatHover(false)}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
                 isActive("/new-chat") ? "bg-muted" : "hover:bg-muted"
               )}
             >
@@ -660,7 +625,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               to="/chats"
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
                 isActive("/chats") ? "bg-muted" : "hover:bg-muted"
               )}
             >
@@ -673,24 +638,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           </TooltipContent>
         </Tooltip>
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <NavLink
-              to="/prompts"
-              onClick={onClose}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm font-medium transition-colors",
-                isActive("/prompts") ? "bg-muted" : "hover:bg-muted"
-              )}
-            >
-              <BookCheck className="h-4 w-4" />
-              <span>Prompts</span>
-            </NavLink>
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            <p>Browse sample prompts</p>
-          </TooltipContent>
-        </Tooltip>
       </div>
 
       {/* Scrollable Content Area */}
@@ -710,7 +657,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/bills"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
                     isActive("/bills") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -729,7 +676,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/committees"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
                     isActive("/committees") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -745,10 +692,29 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <NavLink
+                  to="/departments"
+                  onClick={onClose}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
+                    isActive("/departments") ? "bg-muted" : "hover:bg-muted"
+                  )}
+                >
+                  <BookCheck className="h-4 w-4" />
+                  <span>Departments</span>
+                </NavLink>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Explore NYS departments & agencies</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <NavLink
                   to="/members"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
                     isActive("/members") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -770,7 +736,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/contracts"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
                     isActive("/contracts") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -789,7 +755,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/lobbying"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
                     isActive("/lobbying") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -808,7 +774,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/school-funding"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
                     isActive("/school-funding") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -951,7 +917,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
       </div>
 
       {/* Bottom Section */}
-      <div className="flex-shrink-0 p-3 space-y-3 border-t">
+      <div className="flex-shrink-0 p-3 pb-6 space-y-3 border-t">
         {/* Plan Usage Card - Collapsible */}
         <Collapsible open={planUsageOpen} onOpenChange={setPlanUsageOpen}>
           <div className="border rounded-lg overflow-hidden">
@@ -1007,7 +973,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
 
         {/* Feedback - Expandable */}
         <Collapsible open={feedbackOpen} onOpenChange={setFeedbackOpen}>
-          <CollapsibleTrigger className="flex items-center gap-2 px-1 py-1 text-sm text-muted-foreground hover:text-foreground transition-colors w-full">
+          <CollapsibleTrigger className="flex items-center gap-2 px-1 py-1 text-base md:text-[15px] font-semibold text-muted-foreground hover:text-foreground transition-colors w-full">
             <ThumbsUp className="h-4 w-4" />
             <span>Feedback</span>
           </CollapsibleTrigger>

@@ -391,21 +391,6 @@ export function NewAppSidebar() {
                 </TooltipContent>
               </Tooltip>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <SidebarMenuButton asChild isActive={isActive("/prompts")}>
-                    <NavLink to="/prompts">
-                      <BookCheck />
-                      <span>Prompts</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  <p>Prompts</p>
-                </TooltipContent>
-              </Tooltip>
-            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 
@@ -448,6 +433,21 @@ export function NewAppSidebar() {
                       </TooltipTrigger>
                       <TooltipContent side="right">
                         <p>Committees</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild isActive={isActive("/departments")}>
+                          <NavLink to="/departments">
+                            <BookCheck className="h-4 w-4" />
+                            <span>Departments</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>NYS Departments & Agencies</p>
                       </TooltipContent>
                     </Tooltip>
                   </SidebarMenuItem>

@@ -210,7 +210,7 @@ const App = () => {
                   <Route path="/school-funding" element={<ProtectedRoute><SchoolFunding /></ProtectedRoute>} />
                   <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
                   <Route path="/lobbying" element={<ProtectedRoute><Lobbying /></ProtectedRoute>} />
-                  <Route path="/prompts" element={<ProtectedRoute><Prompts /></ProtectedRoute>} />
+                  <Route path="/departments" element={<ProtectedRoute><Prompts /></ProtectedRoute>} />
                   <Route path="/chats" element={<ProtectedRoute><Chats2 /></ProtectedRoute>} />
                   <Route path="*" element={<AppLayout />} />
                 </Routes>
