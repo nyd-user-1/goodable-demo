@@ -2590,29 +2590,30 @@ const NewChat = () => {
               <div className="relative">
                 {/* Pills row - always visible */}
                 <div className="flex flex-wrap gap-2 mt-3 justify-center px-2">
-                  {/* Sign Up pill - show on public page, hide on /new-chat when authenticated */}
+                  {/* Sign Up pill - show on public page, hide on mobile and /new-chat when authenticated */}
                   {(isPublicPage || !user) && (
                     <button
                       type="button"
                       onClick={() => navigate('/auth-4')}
-                      className="shimmer-hover inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-foreground bg-foreground text-background text-sm transition-colors hover:bg-foreground/90"
+                      className="shimmer-hover hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-foreground bg-foreground text-background text-sm transition-colors hover:bg-foreground/90"
                     >
                       Sign Up
                     </button>
                   )}
                   {[
-                    { key: 'bills', label: 'Bills', icon: <FileText className="h-3.5 w-3.5" /> },
-                    { key: 'members', label: 'Members', icon: <Users className="h-3.5 w-3.5" /> },
-                    { key: 'committees', label: 'Committees', icon: <Building2 className="h-3.5 w-3.5" /> },
-                    { key: 'contracts', label: 'Contracts', icon: <Wallet className="h-3.5 w-3.5" /> },
-                    { key: 'lobbying', label: 'Lobbying', icon: <HandCoins className="h-3.5 w-3.5" /> },
+                    { key: 'bills', label: 'Bills', icon: <FileText className="h-3.5 w-3.5" />, mobileVisible: true },
+                    { key: 'committees', label: 'Committees', icon: <Building2 className="h-3.5 w-3.5" />, mobileVisible: true },
+                    { key: 'members', label: 'Members', icon: <Users className="h-3.5 w-3.5" />, mobileVisible: true },
+                    { key: 'contracts', label: 'Contracts', icon: <Wallet className="h-3.5 w-3.5" />, mobileVisible: false },
+                    { key: 'lobbying', label: 'Lobbying', icon: <HandCoins className="h-3.5 w-3.5" />, mobileVisible: false },
                   ].map((cat) => (
                     <button
                       key={cat.key}
                       type="button"
                       onClick={() => setMobileDrawerCategory(mobileDrawerCategory === cat.key ? null : cat.key)}
                       className={cn(
-                        "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-sm transition-colors",
+                        "items-center gap-1.5 px-3.5 py-2 rounded-full border text-sm transition-colors",
+                        cat.mobileVisible ? "inline-flex" : "hidden sm:inline-flex",
                         mobileDrawerCategory === cat.key
                           ? "border-foreground bg-foreground text-background"
                           : "border-border/60 bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
