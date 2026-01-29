@@ -89,13 +89,8 @@ export function Reasoning({
 
   return (
     <ReasoningContext.Provider value={{ isStreaming, isOpen, setIsOpen, duration: finalDuration }}>
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <div className={cn(
-          "rounded-lg border border-dashed border-border/60 overflow-hidden",
-          className
-        )}>
-          {children}
-        </div>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen} className={className}>
+        {children}
       </Collapsible>
     </ReasoningContext.Provider>
   );
@@ -112,7 +107,7 @@ export function ReasoningTrigger({ className, getThinkingMessage, ...props }: Re
   const defaultMessage = () => {
     if (isStreaming) {
       return (
-        <span className="flex items-center gap-2">
+        <span className="flex items-center gap-1.5">
           <span>Thinking</span>
           <span className="inline-flex gap-0.5">
             <span className="w-1 h-1 rounded-full bg-current animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -133,9 +128,9 @@ export function ReasoningTrigger({ className, getThinkingMessage, ...props }: Re
   return (
     <CollapsibleTrigger
       className={cn(
-        "flex items-center gap-2 w-full px-3 py-2",
+        "flex items-center gap-2 w-full py-2",
         "text-sm text-muted-foreground hover:text-foreground",
-        "transition-colors",
+        "transition-colors cursor-pointer",
         className
       )}
       {...props}
@@ -163,9 +158,7 @@ export function ReasoningContent({ children, className, ...props }: ReasoningCon
   return (
     <CollapsibleContent {...props}>
       <div className={cn(
-        "px-3 pb-3 text-sm text-muted-foreground leading-relaxed",
-        "border-t border-dashed border-border/60",
-        "pt-3",
+        "pt-2 pb-3 text-sm text-muted-foreground leading-relaxed",
         className
       )}>
         {children}
