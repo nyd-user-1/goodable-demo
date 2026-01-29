@@ -1639,7 +1639,7 @@ const NewChat = () => {
                           isStreaming={message.isStreaming}
                           defaultOpen={false}
                         >
-                          <ReasoningTrigger />
+                          <ReasoningTrigger showChevron={false} />
                         </Reasoning>
                       );
                     })()}

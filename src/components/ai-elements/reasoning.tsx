@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Clock } from "lucide-react";
+import { ChevronDown, Brain } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 // Context for sharing reasoning state
@@ -99,9 +99,10 @@ export function Reasoning({
 // Header/trigger with "Thought for X seconds" display
 interface ReasoningTriggerProps extends React.ComponentProps<typeof CollapsibleTrigger> {
   getThinkingMessage?: (isStreaming: boolean, duration?: number) => ReactNode;
+  showChevron?: boolean;
 }
 
-export function ReasoningTrigger({ className, getThinkingMessage, ...props }: ReasoningTriggerProps) {
+export function ReasoningTrigger({ className, getThinkingMessage, showChevron = true, ...props }: ReasoningTriggerProps) {
   const { isStreaming, isOpen, duration } = useReasoning();
 
   const defaultMessage = () => {
@@ -125,6 +126,22 @@ export function ReasoningTrigger({ className, getThinkingMessage, ...props }: Re
 
   const message = getThinkingMessage ? getThinkingMessage(isStreaming, duration) : defaultMessage();
 
+  // If no chevron needed, just render a simple div (not clickable)
+  if (!showChevron) {
+    return (
+      <div
+        className={cn(
+          "flex items-center gap-2 w-full py-2",
+          "text-sm text-muted-foreground",
+          className
+        )}
+      >
+        <Brain className="h-4 w-4 flex-shrink-0" />
+        <span className="flex-1 text-left">{message}</span>
+      </div>
+    );
+  }
+
   return (
     <CollapsibleTrigger
       className={cn(
@@ -135,7 +152,7 @@ export function ReasoningTrigger({ className, getThinkingMessage, ...props }: Re
       )}
       {...props}
     >
-      <Clock className="h-4 w-4 flex-shrink-0" />
+      <Brain className="h-4 w-4 flex-shrink-0" />
       <span className="flex-1 text-left">{message}</span>
       <ChevronDown
         className={cn(
