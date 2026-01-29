@@ -1987,9 +1987,9 @@ const NewChat = () => {
         // Default desktop/tablet behavior
         isPublicPage && !isMobilePhone && "fixed bottom-0 left-0 right-0 z-[5] bg-background",
         !isPublicPage && !isMobilePhone && "absolute bottom-0 left-0 right-0 flex justify-center pointer-events-none",
-        // Mobile phone: centered when no chat, bottom when chatting - with solid background
-        isMobilePhone && !chatStarted && "fixed left-0 right-0 z-[5] top-[calc(50%+20px)] -translate-y-1/2 bg-[#fafafa]",
-        isMobilePhone && chatStarted && "fixed bottom-0 left-0 right-0 z-[5] bg-[#fafafa]"
+        // Mobile phone: centered when no chat, bottom when chatting (transparent container)
+        isMobilePhone && !chatStarted && "fixed left-0 right-0 z-[5] top-[calc(50%+20px)] -translate-y-1/2",
+        isMobilePhone && chatStarted && "fixed bottom-0 left-0 right-0 z-[5]"
       )}>
         <div className={cn(
           "w-full px-4 py-4",
@@ -1999,7 +1999,7 @@ const NewChat = () => {
           <div className={cn("max-w-[720px] mx-auto", !isPublicPage && !isMobilePhone && "bg-background rounded-t-xl pt-3 px-3")}>
             <form onSubmit={handleSubmit} className="relative">
               {/* Larger input box - Fintool/Claude style */}
-              <div className="rounded-2xl bg-muted/50 border-0 p-3 shadow-lg">
+              <div className="rounded-2xl bg-[#fafafa] border-0 p-3 shadow-lg">
                 {/* Selected Items Chips */}
                 {(selectedBills.length > 0 || selectedMembers.length > 0 || selectedCommittees.length > 0 || selectedContracts.length > 0) && (
                   <div className="flex flex-wrap gap-2 mb-3">
