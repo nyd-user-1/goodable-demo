@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronRight, PanelLeft, ArrowUp, Building2 } from 'lucide-react';
+import { ChevronRight, PanelLeft, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
@@ -130,11 +130,6 @@ export default function DepartmentDetail() {
                 <span className="text-foreground/60 truncate">{item.title}</span>
               </div>
 
-              {/* Icon */}
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 dark:from-blue-600 dark:to-cyan-500 flex items-center justify-center mb-6">
-                <Building2 className="h-8 w-8 text-white" />
-              </div>
-
               {/* Title + Start Chat */}
               <div className="flex items-start justify-between gap-6 mb-2">
                 <h1 className="text-3xl sm:text-4xl font-semibold">{item.title}</h1>
@@ -151,42 +146,12 @@ export default function DepartmentDetail() {
                 {item.prompt}
               </p>
 
-              {/* Placeholder Image Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-sky-100 to-blue-50 dark:from-sky-900/30 dark:to-blue-900/20 border border-sky-200/50 dark:border-sky-800/30 aspect-[4/5]">
-                  <div className="p-4">
-                    <div className="bg-white/80 dark:bg-white/10 backdrop-blur rounded-lg px-3 py-2 text-sm font-medium mb-3">
-                      <span className="text-foreground">@NYSgpt</span>{' '}
-                      <span className="text-muted-foreground">tell me about this {item.category.toLowerCase()}</span>
-                    </div>
-                    <div className="w-full aspect-video rounded-lg bg-gradient-to-br from-sky-200/60 to-blue-200/60 dark:from-sky-800/40 dark:to-blue-800/40" />
-                    <p className="text-xs text-muted-foreground mt-3 line-clamp-2">
-                      Get an overview of the {item.title}'s mission, leadership, and key responsibilities.
-                    </p>
-                  </div>
-                </div>
-                <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-sky-100 to-blue-50 dark:from-sky-900/30 dark:to-blue-900/20 border border-sky-200/50 dark:border-sky-800/30 aspect-[4/5]">
-                  <div className="p-4">
-                    <div className="bg-white/80 dark:bg-white/10 backdrop-blur rounded-lg px-3 py-2 text-sm font-medium mb-3">
-                      <span className="text-foreground">@NYSgpt</span>{' '}
-                      <span className="text-muted-foreground">what services are available?</span>
-                    </div>
-                    <div className="w-full aspect-video rounded-lg bg-gradient-to-br from-sky-200/60 to-blue-200/60 dark:from-sky-800/40 dark:to-blue-800/40" />
-                    <p className="text-xs text-muted-foreground mt-3 line-clamp-2">
-                      Discover programs and services the {item.title} offers to residents and businesses.
-                    </p>
-                  </div>
-                </div>
-                <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-sky-100 to-blue-50 dark:from-sky-900/30 dark:to-blue-900/20 border border-sky-200/50 dark:border-sky-800/30 aspect-[4/5]">
-                  <div className="p-4">
-                    <div className="bg-white/80 dark:bg-white/10 backdrop-blur rounded-lg px-3 py-2 text-sm font-medium mb-3">
-                      <span className="text-foreground">@NYSgpt</span>{' '}
-                      <span className="text-muted-foreground">what are recent updates?</span>
-                    </div>
-                    <div className="w-full aspect-video rounded-lg bg-gradient-to-br from-sky-200/60 to-blue-200/60 dark:from-sky-800/40 dark:to-blue-800/40" />
-                    <p className="text-xs text-muted-foreground mt-3 line-clamp-2">
-                      Stay informed on the latest initiatives, policy changes, and announcements.
-                    </p>
+              {/* Featured Card */}
+              <div className="rounded-3xl overflow-hidden bg-gradient-to-br from-sky-100 via-sky-50 to-cyan-50 dark:from-sky-900/30 dark:via-sky-800/20 dark:to-cyan-900/20 mb-8">
+                <div className="p-6 sm:p-8 flex flex-col items-end min-h-[14rem]">
+                  <div className="bg-white/80 dark:bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 text-sm font-medium shadow-sm">
+                    <span className="text-foreground font-semibold">@NYSgpt</span>{' '}
+                    <span className="text-muted-foreground">tell me about this {item.category.toLowerCase()}</span>
                   </div>
                 </div>
               </div>
