@@ -1,0 +1,230 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, PanelLeft, ArrowUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { NoteViewSidebar } from '@/components/NoteViewSidebar';
+import { EngineSelection } from '@/components/EngineSelection';
+import { departmentPrompts, agencyPrompts, authorityPrompts } from '@/pages/Prompts';
+
+// Find item across all prompt arrays
+function findBySlug(slug: string) {
+  for (const item of departmentPrompts) {
+    if (item.slug === slug) return { ...item, category: 'Department' };
+  }
+  for (const item of agencyPrompts) {
+    if (item.slug === slug) return { ...item, category: 'Agency' };
+  }
+  for (const item of authorityPrompts) {
+    if (item.slug === slug) return { ...item, category: 'Authority' };
+  }
+  return null;
+}
+
+// Get related items from the same category
+function getRelated(slug: string, category: string) {
+  const source = category === 'Department' ? departmentPrompts
+    : category === 'Agency' ? agencyPrompts
+    : authorityPrompts;
+  return source.filter(i => i.slug !== slug).slice(0, 4);
+}
+
+export default function DepartmentDetail() {
+  const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('nysgpt_sidebar_open') === 'true';
+    }
+    return false;
+  });
+  const [sidebarMounted, setSidebarMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSidebarMounted(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('nysgpt_sidebar_open', String(leftSidebarOpen));
+  }, [leftSidebarOpen]);
+
+  const item = slug ? findBySlug(slug) : null;
+  const related = item ? getRelated(slug!, item.category) : [];
+
+  if (!item) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold mb-2">Not Found</h1>
+          <p className="text-muted-foreground mb-4">This department could not be found.</p>
+          <Button onClick={() => navigate('/departments')}>Back to Departments</Button>
+        </div>
+      </div>
+    );
+  }
+
+  const handleStartChat = () => {
+    navigate(`/new-chat?prompt=${encodeURIComponent(item.prompt)}`);
+  };
+
+  return (
+    <div className="fixed inset-0 overflow-hidden bg-background">
+      {/* Left Sidebar */}
+      <div
+        className={cn(
+          "fixed left-0 top-0 bottom-0 w-[85vw] max-w-sm md:w-64 bg-background border-r z-[60]",
+          sidebarMounted && "transition-transform duration-300 ease-in-out",
+          leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <NoteViewSidebar onClose={() => setLeftSidebarOpen(false)} />
+      </div>
+
+      {/* Backdrop */}
+      {leftSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 z-50 transition-opacity"
+          onClick={() => setLeftSidebarOpen(false)}
+        />
+      )}
+
+      {/* Main Content */}
+      <div className="h-full p-2 bg-muted/30">
+        <div className="h-full flex flex-col relative rounded-2xl border bg-background overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 bg-background flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+                className={cn("flex-shrink-0", leftSidebarOpen && "bg-muted")}
+              >
+                <PanelLeft className="h-4 w-4" />
+              </Button>
+              <button
+                onClick={() => navigate('/new-chat')}
+                className="hidden sm:inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
+              >
+                NYSgpt
+              </button>
+            </div>
+            <div className="hidden sm:block">
+              <EngineSelection />
+            </div>
+          </div>
+
+          {/* Scrollable Content */}
+          <div className="absolute top-[57px] bottom-0 left-0 right-0 overflow-y-auto">
+            <div className="container mx-auto px-4 py-8 max-w-3xl">
+              {/* Breadcrumb */}
+              <button
+                onClick={() => navigate('/departments')}
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Departments
+              </button>
+
+              {/* Title Section */}
+              <div className="flex items-start justify-between mb-8">
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                    {item.category}
+                  </div>
+                  <h1 className="text-3xl font-semibold mb-2">{item.title}</h1>
+                  <p className="text-muted-foreground text-lg">
+                    {item.prompt}
+                  </p>
+                </div>
+                <Button
+                  onClick={handleStartChat}
+                  className="bg-foreground text-background hover:bg-foreground/90 flex-shrink-0 ml-6"
+                >
+                  Start Chat
+                </Button>
+              </div>
+
+              {/* Sample Prompts */}
+              <div className="mb-10">
+                <h2 className="text-lg font-semibold mb-4">Sample prompts</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    `What is the history and mission of the ${item.title}?`,
+                    `What services does the ${item.title} provide to New Yorkers?`,
+                    `Who leads the ${item.title} and how is it structured?`,
+                    `What recent initiatives has the ${item.title} launched?`,
+                  ].map((prompt, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => navigate(`/new-chat?prompt=${encodeURIComponent(prompt)}`)}
+                      className="group flex items-center justify-between gap-3 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors text-left text-sm"
+                    >
+                      <span className="text-muted-foreground group-hover:text-foreground transition-colors">
+                        {prompt}
+                      </span>
+                      <ArrowUp className="h-4 w-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Information Section */}
+              <div className="mb-10">
+                <h2 className="text-lg font-semibold mb-4">Information</h2>
+                <div className="border rounded-xl divide-y">
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <span className="text-sm text-muted-foreground">Category</span>
+                    <span className="text-sm font-medium">{item.category}</span>
+                  </div>
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <span className="text-sm text-muted-foreground">State</span>
+                    <span className="text-sm font-medium">New York</span>
+                  </div>
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <span className="text-sm text-muted-foreground">Level</span>
+                    <span className="text-sm font-medium">State Government</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Related */}
+              {related.length > 0 && (
+                <div className="mb-10">
+                  <h2 className="text-lg font-semibold mb-4">Related</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {related.map((rel) => (
+                      <div
+                        key={rel.slug}
+                        onClick={() => navigate(`/departments/${rel.slug}`)}
+                        className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-5 cursor-pointer transition-all duration-200"
+                      >
+                        <h3 className="font-semibold text-sm">{rel.title}</h3>
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{rel.prompt}</p>
+                        <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-3 transition-all duration-200">
+                          <div className="flex justify-end">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/new-chat?prompt=${encodeURIComponent(rel.prompt)}`);
+                              }}
+                              className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
+                              title="Ask AI"
+                            >
+                              <ArrowUp className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -89,6 +89,7 @@ import Constitution from "./pages/Constitution";
 import DigitalBillOfRights from "./pages/DigitalBillOfRights";
 import LiveFeed from "./pages/LiveFeed";
 import Prompts from "./pages/Prompts";
+import DepartmentDetail from "./pages/DepartmentDetail";
 
 const queryClient = new QueryClient();
 
@@ -211,6 +212,7 @@ const App = () => {
                   <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
                   <Route path="/lobbying" element={<ProtectedRoute><Lobbying /></ProtectedRoute>} />
                   <Route path="/departments" element={<ProtectedRoute><Prompts /></ProtectedRoute>} />
+                  <Route path="/departments/:slug" element={<ProtectedRoute><DepartmentDetail /></ProtectedRoute>} />
                   <Route path="/chats" element={<ProtectedRoute><Chats2 /></ProtectedRoute>} />
                   <Route path="*" element={<AppLayout />} />
                 </Routes>
