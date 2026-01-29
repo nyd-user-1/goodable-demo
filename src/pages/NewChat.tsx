@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChatPersistence } from "@/hooks/useChatPersistence";
-import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, PanelLeft, HandCoins, SquareUserRound } from "lucide-react";
+import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, PanelLeft, HandCoins, Lightbulb } from "lucide-react";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { Contract } from "@/types/contracts";
 import { Button } from "@/components/ui/button";
@@ -357,17 +357,30 @@ const NewChat = () => {
   const [contractsLoading, setContractsLoading] = useState(false);
   const [selectedContracts, setSelectedContracts] = useState<Contract[]>([]);
 
-  // Persona state
-  interface Persona {
-    id: string;
-    act: string;
-    Label: string | null;
-    prompt: string | null;
-  }
-  const [personaDropdownOpen, setPersonaDropdownOpen] = useState(false);
-  const [availablePersonas, setAvailablePersonas] = useState<Persona[]>([]);
-  const [personasLoading, setPersonasLoading] = useState(false);
-  const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
+  // Sample prompts state (for lightbulb dropdown)
+  const [promptsDropdownOpen, setPromptsDropdownOpen] = useState(false);
+
+  // Policy sample prompts - hardcoded
+  const samplePrompts = [
+    { title: "Policy Analysis Framework", prompt: "What framework should I use to analyze the potential impact of a proposed policy change?" },
+    { title: "Stakeholder Mapping", prompt: "How do I identify and map stakeholders who would be affected by a new housing policy?" },
+    { title: "Evidence-Based Policy", prompt: "What does evidence-based policymaking look like and how can I apply it to education reform?" },
+    { title: "Policy Implementation", prompt: "What are the key factors that determine whether a policy will be successfully implemented?" },
+    { title: "Regulatory Impact Assessment", prompt: "How do I conduct a regulatory impact assessment for a proposed environmental regulation?" },
+    { title: "Cost-Benefit Analysis", prompt: "How do I perform a cost-benefit analysis for a proposed public health initiative?" },
+    { title: "Unintended Consequences", prompt: "How can I anticipate and mitigate unintended consequences when designing new policies?" },
+    { title: "Policy Memo Writing", prompt: "What's the best structure for writing a policy memo that will be read by busy decision-makers?" },
+    { title: "Building Coalition Support", prompt: "How do I build a coalition of support for a policy initiative across different interest groups?" },
+    { title: "Policy Window Timing", prompt: "How do I recognize when a policy window is opening and how to take advantage of it?" },
+    { title: "Comparative Policy Analysis", prompt: "How can I learn from how other states have addressed similar policy challenges?" },
+    { title: "Public Comment Strategy", prompt: "What's the most effective way to participate in a public comment period for proposed regulations?" },
+    { title: "Fiscal Impact Analysis", prompt: "How do I estimate the fiscal impact of a proposed policy on state and local budgets?" },
+    { title: "Equity Impact Assessment", prompt: "How do I assess whether a policy will have equitable outcomes across different communities?" },
+    { title: "Policy Brief Development", prompt: "How do I write a compelling policy brief that translates research into actionable recommendations?" },
+    { title: "Advocacy Campaign Planning", prompt: "What are the key elements of an effective policy advocacy campaign?" },
+    { title: "Data-Driven Advocacy", prompt: "How can I use data effectively to support my policy arguments and recommendations?" },
+    { title: "Policy Feedback Loops", prompt: "How do I design policies with built-in feedback mechanisms for continuous improvement?" },
+  ];
 
   // Check if user is at the bottom of scroll container
   const checkIfAtBottom = () => {
@@ -709,31 +722,6 @@ const NewChat = () => {
     }
   }, [contractsDialogOpen]);
 
-  // Fetch personas for dropdown
-  const fetchPersonas = async () => {
-    setPersonasLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("Persona")
-        .select("id, act, Label, prompt")
-        .order("act", { ascending: true });
-
-      if (error) throw error;
-      setAvailablePersonas(data || []);
-    } catch (error) {
-      console.error("Error fetching personas:", error);
-    } finally {
-      setPersonasLoading(false);
-    }
-  };
-
-  // Load personas when dropdown opens
-  useEffect(() => {
-    if (personaDropdownOpen && availablePersonas.length === 0) {
-      fetchPersonas();
-    }
-  }, [personaDropdownOpen]);
-
   // Lobbying data for mobile drawer
   const [mobileDrawerLobbyists, setMobileDrawerLobbyists] = useState<any[]>([]);
   const [mobileDrawerLoading, setMobileDrawerLoading] = useState(false);
@@ -1057,15 +1045,8 @@ const NewChat = () => {
       const supabaseUrl = supabase.supabaseUrl;
       const { data: { session } } = await supabase.auth.getSession();
 
-      // Build system context (persona + contract context)
-      let combinedContext = systemContext || '';
-
-      // Add persona prompt if selected
-      if (selectedPersona?.prompt) {
-        combinedContext = selectedPersona.prompt + (combinedContext ? '\n\n' + combinedContext : '');
-      }
-
-      let contractContext = combinedContext || undefined;
+      // Build contract context if this is a contract chat
+      let contractContext = systemContext || undefined;
       if (isContractChat) {
         try {
           // Parse contract number from prompt prefix [Contract:xxx]
@@ -2060,92 +2041,63 @@ const NewChat = () => {
 
                 {/* Bottom Row with Buttons */}
                 <div className="flex items-center justify-between">
-                  {/* Left Side - Persona icon + Filter Buttons */}
+                  {/* Left Side - Sample prompts icon + Filter Buttons */}
                   <div className="flex items-center gap-1">
-                    {/* Persona selector */}
+                    {/* Sample prompts selector (lightbulb) */}
                     <div className="relative">
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
                             type="button"
-                            onClick={() => setPersonaDropdownOpen(!personaDropdownOpen)}
-                            className={cn(
-                              "h-9 w-9 rounded-lg flex items-center justify-center transition-colors",
-                              selectedPersona
-                                ? "text-foreground bg-muted"
-                                : "text-muted-foreground hover:bg-sidebar-accent"
-                            )}
+                            onClick={() => setPromptsDropdownOpen(!promptsDropdownOpen)}
+                            className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
                           >
-                            <SquareUserRound className="h-4 w-4" />
+                            <Lightbulb className="h-5 w-5" />
                           </button>
                         </TooltipTrigger>
                         <TooltipContent side="top">
-                          <p>{selectedPersona ? `Persona: ${selectedPersona.act}` : "Select Persona"}</p>
+                          <p>Sample Prompts</p>
                         </TooltipContent>
                       </Tooltip>
 
-                      {/* Persona dropdown - extends upward */}
-                      {personaDropdownOpen && (
-                        <div className="absolute bottom-full left-0 mb-2 w-72 max-h-[300px] rounded-2xl border border-border/60 bg-background shadow-lg overflow-hidden z-50">
+                      {/* Sample prompts dropdown - extends upward */}
+                      {promptsDropdownOpen && (
+                        <div className="absolute bottom-full left-0 mb-2 w-80 max-h-[400px] rounded-2xl border border-border/60 bg-background shadow-lg overflow-hidden z-50">
                           {/* Header */}
                           <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
                             <div className="flex items-center gap-2">
-                              <SquareUserRound className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm font-medium">Select Persona</span>
+                              <Lightbulb className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm font-medium">Sample Prompts</span>
                             </div>
                             <button
                               type="button"
-                              onClick={() => setPersonaDropdownOpen(false)}
+                              onClick={() => setPromptsDropdownOpen(false)}
                               className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                             >
                               <X className="h-4 w-4" />
                             </button>
                           </div>
 
-                          {/* Clear selection option */}
-                          {selectedPersona && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedPersona(null);
-                                setPersonaDropdownOpen(false);
-                              }}
-                              className="w-full text-left px-4 py-3 text-sm text-muted-foreground hover:bg-muted/50 transition-colors border-b border-border/40"
-                            >
-                              Clear persona
-                            </button>
-                          )}
-
-                          {/* Personas list */}
-                          <div className="max-h-[200px] overflow-y-auto">
-                            {personasLoading ? (
-                              <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading personas...</div>
-                            ) : availablePersonas.length === 0 ? (
-                              <div className="px-4 py-6 text-center text-sm text-muted-foreground">No personas available</div>
-                            ) : (
-                              availablePersonas.map((persona, idx) => (
-                                <button
-                                  key={persona.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedPersona(persona);
-                                    setPersonaDropdownOpen(false);
-                                  }}
-                                  className={cn(
-                                    "w-full text-left px-4 py-3 text-sm transition-colors",
-                                    idx > 0 && "border-t border-border/40",
-                                    selectedPersona?.id === persona.id
-                                      ? "bg-muted text-foreground"
-                                      : "text-foreground hover:bg-muted/50"
-                                  )}
-                                >
-                                  <span className="font-medium">{persona.act}</span>
-                                  {persona.Label && (
-                                    <span className="text-muted-foreground ml-2">{persona.Label}</span>
-                                  )}
-                                </button>
-                              ))
-                            )}
+                          {/* Prompts list */}
+                          <div className="max-h-[320px] overflow-y-auto">
+                            {samplePrompts.map((item, idx) => (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => {
+                                  setQuery(item.prompt);
+                                  setPromptsDropdownOpen(false);
+                                  textareaRef.current?.focus();
+                                }}
+                                className={cn(
+                                  "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted/50",
+                                  idx > 0 && "border-t border-border/40"
+                                )}
+                              >
+                                <span className="font-medium text-foreground">{item.title}</span>
+                                <p className="text-muted-foreground text-xs mt-1 line-clamp-2">{item.prompt}</p>
+                              </button>
+                            ))}
                           </div>
                         </div>
                       )}
