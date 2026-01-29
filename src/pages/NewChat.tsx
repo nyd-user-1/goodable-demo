@@ -1066,7 +1066,10 @@ const NewChat = () => {
       // Create abort controller for this request
       abortControllerRef.current = new AbortController();
 
-      // Call edge function with streaming (edge function handles all data fetching)
+      // Disable streaming for Perplexity models (their streaming has quality issues)
+      const useStreaming = !isPerplexityModel;
+
+      // Call edge function (edge function handles all data fetching)
       const response = await fetch(`${supabaseUrl}/functions/v1/${edgeFunction}`, {
         method: 'POST',
         headers: {
@@ -1077,7 +1080,7 @@ const NewChat = () => {
         body: JSON.stringify({
           prompt: userQuery,
           type: 'chat',
-          stream: true,
+          stream: useStreaming,
           model: selectedModel,
           context: {
             previousMessages: messages.slice(-10).map(m => ({
@@ -1094,62 +1097,75 @@ const NewChat = () => {
         throw new Error(`Edge function error: ${response.status}`);
       }
 
-      // Read streaming response
-      const reader = response.body?.getReader();
-      readerRef.current = reader || null;
-      const decoder = new TextDecoder();
       let aiResponse = '';
 
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+      if (useStreaming) {
+        // Read streaming response (for non-Perplexity models)
+        const reader = response.body?.getReader();
+        readerRef.current = reader || null;
+        const decoder = new TextDecoder();
 
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
+        if (reader) {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6);
-              if (data === '[DONE]') continue;
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
 
-              try {
-                const parsed = JSON.parse(data);
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+                if (data === '[DONE]') continue;
 
-                // Handle different streaming formats
-                let content = '';
-                if (parsed.choices?.[0]?.delta?.content) {
-                  // OpenAI/Perplexity format
-                  content = parsed.choices[0].delta.content;
-                } else if (parsed.delta?.text) {
-                  // Claude format
-                  content = parsed.delta.text;
+                try {
+                  const parsed = JSON.parse(data);
+
+                  // Handle different streaming formats
+                  let content = '';
+                  if (parsed.choices?.[0]?.delta?.content) {
+                    // OpenAI/Perplexity format
+                    content = parsed.choices[0].delta.content;
+                  } else if (parsed.delta?.text) {
+                    // Claude format
+                    content = parsed.delta.text;
+                  }
+
+                  if (content) {
+                    aiResponse += content;
+                    // Update UI with streamed content
+                    setMessages(prev => prev.map(msg =>
+                      msg.id === messageId
+                        ? {
+                            ...msg,
+                            streamedContent: aiResponse
+                          }
+                        : msg
+                    ));
+                  }
+                } catch (e) {
+                  // Skip invalid JSON chunks
+                  console.debug('Skipping chunk:', line);
                 }
-
-                if (content) {
-                  aiResponse += content;
-                  // Extract reasoning during streaming for Perplexity models
-                  const streamedData = isPerplexityModel
-                    ? extractReasoning(aiResponse)
-                    : { reasoning: null, mainContent: aiResponse };
-                  // Update UI with streamed content
-                  setMessages(prev => prev.map(msg =>
-                    msg.id === messageId
-                      ? {
-                          ...msg,
-                          streamedContent: streamedData.mainContent,
-                          reasoning: streamedData.reasoning || undefined
-                        }
-                      : msg
-                  ));
-                }
-              } catch (e) {
-                // Skip invalid JSON chunks
-                console.debug('Skipping chunk:', line);
               }
             }
           }
         }
+      } else {
+        // Non-streaming response (for Perplexity models)
+        const data = await response.json();
+        aiResponse = data.generatedText || data.choices?.[0]?.message?.content || '';
+
+        // Update UI with complete response
+        setMessages(prev => prev.map(msg =>
+          msg.id === messageId
+            ? {
+                ...msg,
+                streamedContent: aiResponse,
+                isStreaming: false
+              }
+            : msg
+        ));
       }
 
       if (!aiResponse) {
