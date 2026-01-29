@@ -111,7 +111,6 @@ const AppLayout = () => {
               <Route path="/home" element={<Home />} />
               <Route path="/home-2" element={<Home2 />} />
               <Route path="/new-chat-2" element={<NewChat2 />} />
-              <Route path="/prompts" element={<Prompts />} />
               <Route path="/chats" element={<Chats2 />} />
               <Route path="/playground" element={<Playground />} />
               <Route path="/policy-portal" element={<PolicyPortal />} />
@@ -211,6 +210,7 @@ const App = () => {
                   <Route path="/school-funding" element={<ProtectedRoute><SchoolFunding /></ProtectedRoute>} />
                   <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
                   <Route path="/lobbying" element={<ProtectedRoute><Lobbying /></ProtectedRoute>} />
+                  <Route path="/prompts" element={<ProtectedRoute><Prompts /></ProtectedRoute>} />
                   <Route path="/chats" element={<ProtectedRoute><Chats2 /></ProtectedRoute>} />
                   <Route path="*" element={<AppLayout />} />
                 </Routes>
