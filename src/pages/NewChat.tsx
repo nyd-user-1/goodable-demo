@@ -161,7 +161,7 @@ const stripClientsSection = (content: string): { cleanContent: string; isLoading
   return { cleanContent, isLoadingClients: false, partialClients: [] };
 };
 
-// Streaming reasoning text component - simulates AI thinking process
+// Streaming reasoning text component - simulates AI thinking process with shimmer
 const StreamingReasoningText = ({
   steps,
   isStreaming
@@ -170,41 +170,52 @@ const StreamingReasoningText = ({
   isStreaming: boolean;
 }) => {
   const [displayedText, setDisplayedText] = useState("");
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [currentCharIndex, setCurrentCharIndex] = useState(0);
+  const [isTyping, setIsTyping] = useState(false);
   const fullText = steps.join("");
 
   useEffect(() => {
     if (!isStreaming) {
-      // When streaming stops, show complete text
+      // When streaming stops, show complete text without animation
       setDisplayedText(fullText);
+      setIsTyping(false);
       return;
     }
 
     // Reset when streaming starts
     setDisplayedText("");
-    setCurrentStepIndex(0);
     setCurrentCharIndex(0);
+    setIsTyping(true);
   }, [isStreaming, fullText]);
 
   useEffect(() => {
-    if (!isStreaming || currentCharIndex >= fullText.length) {
+    if (!isStreaming || !isTyping || currentCharIndex >= fullText.length) {
+      if (currentCharIndex >= fullText.length) {
+        setIsTyping(false);
+      }
       return;
     }
 
     const timer = setTimeout(() => {
       setDisplayedText(fullText.slice(0, currentCharIndex + 1));
       setCurrentCharIndex(prev => prev + 1);
-    }, 20); // 20ms per character for smooth streaming effect
+    }, 25); // 25ms per character for smooth streaming effect
 
     return () => clearTimeout(timer);
-  }, [isStreaming, currentCharIndex, fullText]);
+  }, [isStreaming, isTyping, currentCharIndex, fullText]);
 
   if (!displayedText) return null;
 
   return (
     <div className="whitespace-pre-wrap">
-      {displayedText}
+      {isTyping ? (
+        <Shimmer duration={2} spread={1}>
+          {displayedText}
+          <span className="inline-block w-0.5 h-4 bg-current animate-pulse ml-0.5 align-middle" />
+        </Shimmer>
+      ) : (
+        displayedText
+      )}
     </div>
   );
 };
@@ -1689,16 +1700,21 @@ const NewChat = () => {
                         "\n\nFormulating a comprehensive response based on my findings."
                       ];
 
+                      // Collapse reasoning when actual content starts streaming
+                      const hasContent = (message.content?.length || 0) > 10 || (message.streamedContent?.length || 0) > 10;
+                      const shouldBeOpen = message.isStreaming && !hasContent;
+
                       return (
                         <Reasoning
                           isStreaming={message.isStreaming}
+                          open={shouldBeOpen}
                           defaultOpen={true}
                         >
                           <ReasoningTrigger />
                           <ReasoningContent>
                             <StreamingReasoningText
                               steps={reasoningSteps}
-                              isStreaming={message.isStreaming}
+                              isStreaming={message.isStreaming && !hasContent}
                             />
                           </ReasoningContent>
                         </Reasoning>
