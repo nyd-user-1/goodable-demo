@@ -145,7 +145,6 @@ const Members2 = () => {
                         <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
                       </svg>
                     </button>
-                    <h1 className="hidden md:block text-xl font-semibold">Members</h1>
                   </div>
                   <div className="flex items-center gap-2">
                     {hasActiveFilters && (
