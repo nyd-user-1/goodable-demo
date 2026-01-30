@@ -478,7 +478,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               onMouseEnter={() => setNewChatHover(true)}
               onMouseLeave={() => setNewChatHover(false)}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
                 isActive("/new-chat") ? "bg-muted" : "hover:bg-muted"
               )}
             >
@@ -510,7 +510,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               to="/chats"
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
                 isActive("/chats") ? "bg-muted" : "hover:bg-muted"
               )}
             >
@@ -535,7 +535,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/bills"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
                     isActive("/bills") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -554,7 +554,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/committees"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
                     isActive("/committees") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -573,7 +573,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/departments"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
                     isActive("/departments") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -592,7 +592,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/members"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
                     isActive("/members") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -611,10 +611,29 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <NavLink
+                  to="/budget"
+                  onClick={onClose}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
+                    isActive("/budget") ? "bg-muted" : "hover:bg-muted"
+                  )}
+                >
+                  <DollarSign className="h-4 w-4" />
+                  <span>Budget</span>
+                </NavLink>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>NYS Budget data</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <NavLink
                   to="/contracts"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
                     isActive("/contracts") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -633,7 +652,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/lobbying"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
                     isActive("/lobbying") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -652,7 +671,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/school-funding"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
                     isActive("/school-funding") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -665,24 +684,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               </TooltipContent>
             </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <NavLink
-                  to="/budget"
-                  onClick={onClose}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-semibold transition-colors",
-                    isActive("/budget") ? "bg-muted" : "hover:bg-muted"
-                  )}
-                >
-                  <DollarSign className="h-4 w-4" />
-                  <span>Budget</span>
-                </NavLink>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>NYS Budget data</p>
-              </TooltipContent>
-            </Tooltip>
         </div>
 
         {/* Your Chats Section - Combined chats and notes, sorted chronologically */}
