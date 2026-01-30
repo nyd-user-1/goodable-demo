@@ -38,6 +38,7 @@ import {
   Pencil,
   BookCheck,
   BarChart3,
+  Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -479,7 +480,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               onMouseEnter={() => setNewChatHover(true)}
               onMouseLeave={() => setNewChatHover(false)}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
                 isActive("/new-chat") ? "bg-muted" : "hover:bg-muted"
               )}
             >
@@ -511,7 +512,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               to="/chats"
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
                 isActive("/chats") ? "bg-muted" : "hover:bg-muted"
               )}
             >
@@ -536,7 +537,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/bills"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
                     isActive("/bills") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -555,7 +556,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/committees"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
                     isActive("/committees") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -574,7 +575,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/departments"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
                     isActive("/departments") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -593,7 +594,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/members"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
                     isActive("/members") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -615,7 +616,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/budget"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
                     isActive("/budget") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
@@ -628,81 +629,96 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               </TooltipContent>
             </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <NavLink
-                  to="/budget-dashboard"
-                  onClick={onClose}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
-                    isActive("/budget-dashboard") ? "bg-muted" : "hover:bg-muted"
-                  )}
-                >
-                  <BarChart3 className="h-4 w-4" />
-                  <span>Budget Explorer</span>
-                </NavLink>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Explore NYS budget spending data</p>
-              </TooltipContent>
-            </Tooltip>
+            {/* Pro Section */}
+            <Collapsible defaultOpen className="group/pro">
+              <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal text-foreground hover:bg-muted transition-colors">
+                <div className="flex items-center gap-3">
+                  <Sparkles className="h-4 w-4" />
+                  <span>Pro</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary">Upgrade</span>
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-data-[state=open]/pro:rotate-90" />
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pl-4 space-y-1 mt-1">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <NavLink
+                      to="/contracts"
+                      onClick={onClose}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
+                        isActive("/contracts") ? "bg-muted" : "hover:bg-muted"
+                      )}
+                    >
+                      <Wallet className="h-4 w-4" />
+                      <span>Contracts</span>
+                    </NavLink>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>Search government contracts</p>
+                  </TooltipContent>
+                </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <NavLink
-                  to="/contracts"
-                  onClick={onClose}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
-                    isActive("/contracts") ? "bg-muted" : "hover:bg-muted"
-                  )}
-                >
-                  <Wallet className="h-4 w-4" />
-                  <span>Contracts</span>
-                </NavLink>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Search government contracts</p>
-              </TooltipContent>
-            </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <NavLink
+                      to="/budget-dashboard"
+                      onClick={onClose}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
+                        isActive("/budget-dashboard") ? "bg-muted" : "hover:bg-muted"
+                      )}
+                    >
+                      <BarChart3 className="h-4 w-4" />
+                      <span>Explorer</span>
+                    </NavLink>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>Explore NYS budget spending data</p>
+                  </TooltipContent>
+                </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <NavLink
-                  to="/lobbying"
-                  onClick={onClose}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
-                    isActive("/lobbying") ? "bg-muted" : "hover:bg-muted"
-                  )}
-                >
-                  <HandCoins className="h-4 w-4" />
-                  <span>Lobbying</span>
-                </NavLink>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Explore lobbying data</p>
-              </TooltipContent>
-            </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <NavLink
+                      to="/lobbying"
+                      onClick={onClose}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
+                        isActive("/lobbying") ? "bg-muted" : "hover:bg-muted"
+                      )}
+                    >
+                      <HandCoins className="h-4 w-4" />
+                      <span>Lobbyists</span>
+                    </NavLink>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>Explore lobbying data</p>
+                  </TooltipContent>
+                </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <NavLink
-                  to="/school-funding"
-                  onClick={onClose}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
-                    isActive("/school-funding") ? "bg-muted" : "hover:bg-muted"
-                  )}
-                >
-                  <GraduationCap className="h-4 w-4" />
-                  <span>School Funding</span>
-                </NavLink>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>School funding information</p>
-              </TooltipContent>
-            </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <NavLink
+                      to="/school-funding"
+                      onClick={onClose}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
+                        isActive("/school-funding") ? "bg-muted" : "hover:bg-muted"
+                      )}
+                    >
+                      <GraduationCap className="h-4 w-4" />
+                      <span>Schools</span>
+                    </NavLink>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>School funding information</p>
+                  </TooltipContent>
+                </Tooltip>
+              </CollapsibleContent>
+            </Collapsible>
 
         </div>
 
