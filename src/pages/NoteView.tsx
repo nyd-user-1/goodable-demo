@@ -77,6 +77,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
+import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { useModel, ModelType } from "@/contexts/ModelContext";
 import ReactMarkdown from "react-markdown";
 
@@ -710,8 +711,8 @@ ${chatInput}`;
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen p-2">
-        <div className="w-full h-full rounded-2xl border bg-background flex items-center justify-center">
+      <div className="flex items-center justify-center h-screen md:p-2">
+        <div className="w-full h-full md:rounded-2xl md:border bg-background flex items-center justify-center">
           <div className="text-muted-foreground">Loading note...</div>
         </div>
       </div>
@@ -720,8 +721,8 @@ ${chatInput}`;
 
   if (!note) {
     return (
-      <div className="flex items-center justify-center h-screen p-2">
-        <div className="w-full h-full rounded-2xl border bg-background flex flex-col items-center justify-center gap-4">
+      <div className="flex items-center justify-center h-screen md:p-2">
+        <div className="w-full h-full md:rounded-2xl md:border bg-background flex flex-col items-center justify-center gap-4">
           <div className="text-muted-foreground">Note not found</div>
           <Button variant="outline" onClick={() => navigate("/new-chat")}>
             Go to Chat
@@ -753,21 +754,23 @@ ${chatInput}`;
       )}
 
       {/* Main Container with padding */}
-      <div className="h-full p-2 bg-muted/30">
+      <div className="h-full md:p-2 bg-muted/30">
         {/* Inner container with rounded corners and border */}
         <div
           ref={containerRef}
-          className="w-full h-full rounded-2xl border bg-background overflow-hidden flex flex-col"
+          className="w-full h-full md:rounded-2xl md:border bg-background overflow-hidden flex flex-col"
         >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b bg-background flex-shrink-0">
           <div className="flex items-center gap-2 min-w-0">
+            {/* Mobile Menu Icon */}
+            <MobileMenuIcon onOpenSidebar={() => setLeftSidebarOpen(!leftSidebarOpen)} />
             {/* Left Sidebar Toggle */}
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-              className={cn("flex-shrink-0", leftSidebarOpen && "bg-muted")}
+              className={cn("hidden md:inline-flex flex-shrink-0", leftSidebarOpen && "bg-muted")}
             >
               <PanelLeft className="h-4 w-4" />
             </Button>
@@ -787,6 +790,7 @@ ${chatInput}`;
           </div>
 
           <div className="flex items-center gap-1">
+            <MobileNYSgpt />
             {/* Save indicator */}
             <span className="text-xs text-muted-foreground mr-2">
               {isSaving ? "Saving..." : hasUnsavedChanges ? "Unsaved changes" : "Saved"}

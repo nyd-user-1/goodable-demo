@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X, MessageSquare, ScrollText, Users, Landmark, Wallet, GraduationCap, Trash2, PanelLeft, Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -170,9 +171,9 @@ const Chats2 = () => {
       )}
 
       {/* Main Container with padding */}
-      <div className="h-full p-2 bg-muted/30">
+      <div className="h-full md:p-2 bg-muted/30">
         {/* Inner container with rounded corners and border */}
-        <div className="w-full h-full rounded-2xl border bg-background overflow-hidden flex flex-col">
+        <div className="w-full h-full md:rounded-2xl md:border bg-background overflow-hidden flex flex-col">
           {/* Header */}
           <div className="flex-shrink-0 bg-background">
             <div className="px-4 py-4">
@@ -180,11 +181,12 @@ const Chats2 = () => {
                 {/* Title row with sidebar toggle and command button */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
+                    <MobileMenuIcon onOpenSidebar={() => setLeftSidebarOpen(!leftSidebarOpen)} />
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-                      className={cn("flex-shrink-0", leftSidebarOpen && "bg-muted")}
+                      className={cn("hidden md:inline-flex flex-shrink-0", leftSidebarOpen && "bg-muted")}
                     >
                       <PanelLeft className="h-4 w-4" />
                     </Button>
@@ -205,6 +207,7 @@ const Chats2 = () => {
                     >
                       <Command className="h-4 w-4" />
                     </Button>
+                    <MobileNYSgpt />
                   </div>
                 </div>
 

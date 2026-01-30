@@ -6,6 +6,7 @@ import { ArrowLeft, Trash2, ExternalLink, PanelLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
+import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
 import { ChatResponseFooter } from "@/components/ChatResponseFooter";
@@ -140,18 +141,20 @@ const ExcerptView = () => {
       )}
 
       {/* Main Container with padding */}
-      <div className="h-full p-2 bg-muted/30">
+      <div className="h-full md:p-2 bg-muted/30">
         {/* Inner container with rounded corners and border */}
-        <div className="w-full h-full rounded-2xl border bg-background overflow-hidden flex flex-col relative">
+        <div className="w-full h-full md:rounded-2xl md:border bg-background overflow-hidden flex flex-col relative">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b bg-background flex-shrink-0">
             <div className="flex items-center gap-2 min-w-0">
-              {/* Left Sidebar Toggle */}
+              {/* Mobile Sidebar Toggle */}
+              <MobileMenuIcon onOpenSidebar={() => setLeftSidebarOpen(!leftSidebarOpen)} />
+              {/* Left Sidebar Toggle (Desktop) */}
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-                className={cn("flex-shrink-0", leftSidebarOpen && "bg-muted")}
+                className={cn("hidden md:inline-flex flex-shrink-0", leftSidebarOpen && "bg-muted")}
               >
                 <PanelLeft className="h-4 w-4" />
               </Button>
@@ -208,6 +211,7 @@ const ExcerptView = () => {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+              <MobileNYSgpt />
             </div>
           </div>
 

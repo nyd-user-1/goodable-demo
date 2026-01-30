@@ -210,7 +210,7 @@ const FeatureCard = ({ feature }: { feature: Feature }) => {
       </div>
       <div className="relative">
         {/* Main image container */}
-        <div className="relative aspect-video overflow-hidden rounded-2xl border border-gray-200 shadow-lg">
+        <div className="relative aspect-video overflow-hidden md:rounded-2xl md:border border-gray-200 shadow-lg">
           <img
             src={feature.image}
             alt={feature.imageAlt}

@@ -26,6 +26,7 @@ import ReactMarkdown from 'react-markdown';
 import { useModel } from "@/contexts/ModelContext";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatHeader } from "@/components/ChatHeader";
+import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import {
   Dialog,
   DialogContent,
@@ -1409,11 +1410,11 @@ const NewChat = () => {
       )}
 
       {/* Main Content Container - different structure for public vs authenticated */}
-      <div className={cn("h-full", !isPublicPage && "p-2 bg-muted/30")}>
+      <div className={cn("h-full", !isPublicPage && "md:p-2 bg-muted/30")}>
         {/* Inner container - rounded with border for authenticated pages */}
         <div className={cn(
           "h-full flex flex-col relative",
-          !isPublicPage && "rounded-2xl border bg-background overflow-hidden"
+          !isPublicPage && "md:rounded-2xl md:border bg-background overflow-hidden"
         )}>
           {/* Header - ChatHeader for public, sidebar toggle + engine for authenticated */}
           {isPublicPage ? (
@@ -1422,11 +1423,12 @@ const NewChat = () => {
             <div className="flex items-center justify-between px-4 py-3 bg-background flex-shrink-0">
               {/* Left side: Sidebar toggle + NYSgpt button */}
               <div className="flex items-center gap-2">
+                <MobileMenuIcon onOpenSidebar={() => setLeftSidebarOpen(!leftSidebarOpen)} />
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-                  className={cn("flex-shrink-0", leftSidebarOpen && "bg-muted")}
+                  className={cn("hidden md:inline-flex flex-shrink-0", leftSidebarOpen && "bg-muted")}
                 >
                   <PanelLeft className="h-4 w-4" />
                 </Button>
@@ -1438,6 +1440,7 @@ const NewChat = () => {
                 </button>
               </div>
               {/* Right side: Model selector (hidden on mobile, shown in input area instead) */}
+              <MobileNYSgpt />
               <div className="hidden sm:block">
                 <EngineSelection />
               </div>
