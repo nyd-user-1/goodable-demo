@@ -81,7 +81,9 @@ export function useBudgetSearch(activeTab: BudgetTab) {
         query = query.eq(fundTypeCol, fundTypeFilter);
       }
 
-      query = query.limit(1000);
+      query = query
+        .order(agencyCol, { ascending: true })
+        .limit(1000);
 
       const { data, error } = await query;
       if (error) throw error;
