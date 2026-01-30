@@ -509,6 +509,25 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
         <Tooltip>
           <TooltipTrigger asChild>
             <NavLink
+              to="/new-note"
+              onClick={onClose}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
+                isActive("/new-note") ? "bg-muted" : "hover:bg-muted"
+              )}
+            >
+              <NotebookPen className="h-4 w-4" />
+              <span>New note</span>
+            </NavLink>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <p>Create a new note</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <NavLink
               to="/chats"
               onClick={onClose}
               className={cn(

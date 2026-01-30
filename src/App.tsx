@@ -74,6 +74,7 @@ import RealABCPopulator from "./pages/RealABCPopulator";
 import FixABCStructure from "./pages/FixABCStructure";
 import ExcerptView from "./pages/ExcerptView";
 import NoteView from "./pages/NoteView";
+import NewNote from "./pages/NewNote";
 import FreeTrial from "./pages/FreeTrial";
 import Contracts from "./pages/Contracts";
 import ContractDetail from "./pages/ContractDetail";
@@ -204,6 +205,7 @@ const App = () => {
                   <Route path="/nonprofits/social-advocacy" element={<NonprofitSocialAdvocacy />} />
                   <Route path="/nonprofits/directory" element={<NonprofitDirectory />} />
                   <Route path="/problems/:problemSlug" element={<ProblemPage />} />
+                  <Route path="/new-note" element={<ProtectedRoute><NewNote /></ProtectedRoute>} />
                   <Route path="/n/:noteId" element={<ProtectedRoute><NoteView /></ProtectedRoute>} />
                   <Route path="/e/:excerptId" element={<ProtectedRoute><ExcerptView /></ProtectedRoute>} />
                   <Route path="/new-chat" element={<ProtectedRoute><NewChat /></ProtectedRoute>} />
