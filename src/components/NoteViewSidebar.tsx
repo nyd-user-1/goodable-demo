@@ -630,7 +630,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             <div className="my-2 mx-3 border-t border-border/50" />
 
             {/* Pro Plan Section */}
-            <Collapsible defaultOpen className="group/pro">
+            <Collapsible className="group/pro">
               <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal text-foreground hover:bg-muted transition-colors">
                 <div className="flex items-center gap-3">
                   <CirclePlus className="h-4 w-4" />
