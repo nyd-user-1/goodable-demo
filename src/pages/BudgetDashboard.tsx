@@ -1,10 +1,10 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { PanelLeft, ChevronRight, ChevronDown, ArrowUp, TrendingUp, TrendingDown, Minus, MessageSquare, X } from 'lucide-react';
+import { PanelLeft, ChevronRight, ChevronDown, ArrowUp, TrendingUp, TrendingDown, Minus, MessageSquare, X, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Button } from '@/components/ui/button';
+import { BudgetChatDrawer } from '@/components/BudgetChatDrawer';
 import {
   useBudgetDashboard,
   formatCompactCurrency,
@@ -26,12 +26,13 @@ import {
 const TABS: DashboardTab[] = ['function', 'fundType', 'fpCategory'];
 
 const BudgetDashboard = () => {
-  const navigate = useNavigate();
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [sidebarMounted, setSidebarMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<DashboardTab>('function');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [selectedRow, setSelectedRow] = useState<string | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatFunctionName, setChatFunctionName] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
@@ -114,18 +115,20 @@ const BudgetDashboard = () => {
     ? `${selectedRowData.name} — FY ${primaryYearLabel}`
     : `FY ${primaryYearLabel} Estimated Total Spending`;
 
-  // Chat click: start a chat about a specific function/category
-  const handleChatClick = (row: DashboardRow) => {
-    const tabLabel = activeTab === 'function' ? 'functional area' : activeTab === 'fundType' ? 'fund type' : 'financial plan category';
-    const prompt = `Analyze NYS budget spending for the ${tabLabel} "${row.name}". Total estimated spending for FY ${primaryYearLabel}: ${formatFullCurrency(row.amount)}. Year-over-year change: ${row.yoyChange >= 0 ? '+' : ''}${row.yoyChange.toFixed(1)}%. What are the key trends and notable items?`;
-    navigate(`/new-chat?prompt=${encodeURIComponent(prompt)}`);
+  // Open chat drawer scoped to a budget function/category
+  const openChat = (functionNameForChat?: string | null) => {
+    setChatFunctionName(functionNameForChat || null);
+    setChatOpen(true);
   };
 
-  // Chat click for drill-down agency row
+  // Chat click: open drawer with function context
+  const handleChatClick = (row: DashboardRow) => {
+    openChat(activeTab === 'function' ? row.name : null);
+  };
+
+  // Chat click for drill-down agency row — also scoped to function
   const handleAgencyChatClick = (agency: DrillDownRow, parentName: string) => {
-    const displayName = reformatAgencyName(agency.name);
-    const prompt = `Tell me about NYS spending by ${displayName} under "${parentName}". Estimated spending for FY ${primaryYearLabel}: ${formatFullCurrency(agency.amount)}. Year-over-year change: ${agency.yoyChange >= 0 ? '+' : ''}${agency.yoyChange.toFixed(1)}%. What should I know?`;
-    navigate(`/new-chat?prompt=${encodeURIComponent(prompt)}`);
+    openChat(activeTab === 'function' ? parentName : null);
   };
 
   return (
@@ -167,7 +170,19 @@ const BudgetDashboard = () => {
                   </Button>
                   <h1 className="hidden md:block text-xl font-semibold">Budget Explorer</h1>
                 </div>
-                <MobileNYSgpt />
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openChat()}
+                    className="gap-1.5"
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Ask about this budget</span>
+                    <span className="sm:hidden">Ask AI</span>
+                  </Button>
+                  <MobileNYSgpt />
+                </div>
               </div>
 
               {/* Total Header */}
@@ -338,6 +353,13 @@ const BudgetDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Budget Chat Drawer */}
+      <BudgetChatDrawer
+        open={chatOpen}
+        onOpenChange={setChatOpen}
+        functionName={chatFunctionName}
+      />
     </div>
   );
 };
