@@ -1,11 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, PanelLeft, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { EngineSelection } from '@/components/EngineSelection';
 import { departmentPrompts, agencyPrompts, authorityPrompts } from '@/pages/Prompts';
+import { supabase } from '@/integrations/supabase/client';
+import { TABLE_MAP, agencyToSlug, reformatAgencyName, formatBudgetAmount } from '@/hooks/useBudgetSearch';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from '@/components/ui/carousel';
 
 // Find item across all prompt arrays
 function findBySlug(slug: string) {
@@ -52,6 +62,140 @@ export default function DepartmentDetail() {
   const item = slug ? findBySlug(slug) : null;
   const related = item ? getRelated(slug!, item.category) : [];
 
+  // Find matching agency name from budget tables by comparing slugs
+  const { data: matchedAgencyNames } = useQuery({
+    queryKey: ['budget-agency-match', slug],
+    queryFn: async () => {
+      if (!slug) return null;
+
+      // Fetch unique agency names from all three tables
+      const [apropsRes, capitalRes, spendingRes] = await Promise.all([
+        (supabase as any).from(TABLE_MAP.appropriations).select('"Agency Name"'),
+        (supabase as any).from(TABLE_MAP.capital).select('"Agency Name"'),
+        (supabase as any).from(TABLE_MAP.spending).select('Agency'),
+      ]);
+
+      const apropsNames = new Set<string>(
+        (apropsRes.data || []).map((d: any) => d['Agency Name']).filter(Boolean)
+      );
+      const capitalNames = new Set<string>(
+        (capitalRes.data || []).map((d: any) => d['Agency Name']).filter(Boolean)
+      );
+      const spendingNames = new Set<string>(
+        (spendingRes.data || []).map((d: any) => d['Agency']).filter(Boolean)
+      );
+
+      // Find matching name by slug comparison
+      let apropsMatch: string | null = null;
+      let capitalMatch: string | null = null;
+      let spendingMatch: string | null = null;
+
+      for (const name of apropsNames) {
+        if (agencyToSlug(name) === slug) { apropsMatch = name; break; }
+      }
+      for (const name of capitalNames) {
+        if (agencyToSlug(name) === slug) { capitalMatch = name; break; }
+      }
+      for (const name of spendingNames) {
+        if (agencyToSlug(name) === slug) { spendingMatch = name; break; }
+      }
+
+      return { apropsMatch, capitalMatch, spendingMatch };
+    },
+    enabled: !!slug,
+    staleTime: 30 * 60 * 1000,
+  });
+
+  // Fetch appropriations data
+  const { data: appropriationsData } = useQuery({
+    queryKey: ['dept-appropriations', matchedAgencyNames?.apropsMatch],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from(TABLE_MAP.appropriations)
+        .select('*')
+        .eq('Agency Name', matchedAgencyNames!.apropsMatch)
+        .limit(500);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!matchedAgencyNames?.apropsMatch,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // Fetch capital data
+  const { data: capitalData } = useQuery({
+    queryKey: ['dept-capital', matchedAgencyNames?.capitalMatch],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from(TABLE_MAP.capital)
+        .select('*')
+        .eq('Agency Name', matchedAgencyNames!.capitalMatch)
+        .limit(500);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!matchedAgencyNames?.capitalMatch,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // Fetch spending data
+  const { data: spendingData } = useQuery({
+    queryKey: ['dept-spending', matchedAgencyNames?.spendingMatch],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from(TABLE_MAP.spending)
+        .select('*')
+        .eq('Agency', matchedAgencyNames!.spendingMatch)
+        .limit(500);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!matchedAgencyNames?.spendingMatch,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const hasBudgetData = (appropriationsData && appropriationsData.length > 0)
+    || (capitalData && capitalData.length > 0)
+    || (spendingData && spendingData.length > 0);
+
+  // Compute budget summary rows
+  const budgetSummary = useMemo(() => {
+    if (!hasBudgetData) return null;
+
+    const parseNum = (val: string | null | undefined): number => {
+      if (!val || val.trim() === '' || val === '0') return 0;
+      const cleaned = val.replace(/[$,\s]/g, '');
+      const n = parseFloat(cleaned);
+      return isNaN(n) ? 0 : n;
+    };
+
+    const totalApprops = (appropriationsData || []).reduce(
+      (sum: number, row: any) => sum + parseNum(row['Appropriations Recommended 2026-27']), 0
+    );
+    const totalCapital = (capitalData || []).reduce(
+      (sum: number, row: any) => sum + parseNum(row['Appropriations Recommended 2026-27']), 0
+    );
+    const totalSpending = (spendingData || []).reduce(
+      (sum: number, row: any) => sum + parseNum(row['2026-27 Estimates']), 0
+    );
+
+    const programNames = new Set(
+      (appropriationsData || []).map((r: any) => r['Program Name']).filter(Boolean)
+    );
+    const fundTypes = new Set([
+      ...(appropriationsData || []).map((r: any) => r['Fund Type']).filter(Boolean),
+      ...(spendingData || []).map((r: any) => r['Fund Type']).filter(Boolean),
+    ]);
+
+    return {
+      totalApprops,
+      totalCapital,
+      totalSpending,
+      programCount: programNames.size,
+      fundTypes: [...fundTypes].sort().join(', '),
+    };
+  }, [appropriationsData, capitalData, spendingData, hasBudgetData]);
+
   if (!item) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -66,6 +210,16 @@ export default function DepartmentDetail() {
 
   const handleStartChat = () => {
     navigate(`/new-chat?prompt=${encodeURIComponent(item.prompt)}`);
+  };
+
+  const formatCurrency = (num: number): string => {
+    if (num === 0) return '$0';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(num);
   };
 
   return (
@@ -192,9 +346,9 @@ export default function DepartmentDetail() {
                 </div>
               </div>
 
-              {/* Information Section */}
+              {/* Budget Information Section */}
               <div className="mb-10">
-                <h2 className="text-lg font-semibold mb-4">Information</h2>
+                <h2 className="text-lg font-semibold mb-4">Budget Information</h2>
                 <div className="border rounded-xl divide-y">
                   <div className="flex items-center justify-between px-4 py-3">
                     <span className="text-sm text-muted-foreground">Category</span>
@@ -208,40 +362,213 @@ export default function DepartmentDetail() {
                     <span className="text-sm text-muted-foreground">Level</span>
                     <span className="text-sm font-medium">State Government</span>
                   </div>
+                  {budgetSummary && budgetSummary.totalApprops > 0 && (
+                    <div className="flex items-center justify-between px-4 py-3">
+                      <span className="text-sm text-muted-foreground">Total Appropriations 2026-27</span>
+                      <span className="text-sm font-medium">{formatCurrency(budgetSummary.totalApprops)}</span>
+                    </div>
+                  )}
+                  {budgetSummary && budgetSummary.totalCapital > 0 && (
+                    <div className="flex items-center justify-between px-4 py-3">
+                      <span className="text-sm text-muted-foreground">Total Capital 2026-27</span>
+                      <span className="text-sm font-medium">{formatCurrency(budgetSummary.totalCapital)}</span>
+                    </div>
+                  )}
+                  {budgetSummary && budgetSummary.totalSpending > 0 && (
+                    <div className="flex items-center justify-between px-4 py-3">
+                      <span className="text-sm text-muted-foreground">Total Spending Est. 2026-27</span>
+                      <span className="text-sm font-medium">{formatCurrency(budgetSummary.totalSpending)}</span>
+                    </div>
+                  )}
+                  {budgetSummary && budgetSummary.programCount > 0 && (
+                    <div className="flex items-center justify-between px-4 py-3">
+                      <span className="text-sm text-muted-foreground">Programs</span>
+                      <span className="text-sm font-medium">{budgetSummary.programCount}</span>
+                    </div>
+                  )}
+                  {budgetSummary && budgetSummary.fundTypes && (
+                    <div className="flex items-center justify-between px-4 py-3">
+                      <span className="text-sm text-muted-foreground">Fund Types</span>
+                      <span className="text-sm font-medium text-right max-w-[60%] truncate">{budgetSummary.fundTypes}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Related */}
-              {related.length > 0 && (
-                <div className="mb-10">
-                  <h2 className="text-lg font-semibold mb-4">Related</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {related.map((rel) => (
-                      <div
-                        key={rel.slug}
-                        onClick={() => navigate(`/departments/${rel.slug}`)}
-                        className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-5 cursor-pointer transition-all duration-200"
-                      >
-                        <h3 className="font-semibold text-sm">{rel.title}</h3>
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{rel.prompt}</p>
-                        <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-3 transition-all duration-200">
-                          <div className="flex justify-end">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/new-chat?prompt=${encodeURIComponent(rel.prompt)}`);
-                              }}
-                              className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
-                              title="Ask AI"
-                            >
-                              <ArrowUp className="h-4 w-4" />
-                            </button>
+              {/* Budget Carousels (when budget data exists) OR Related section */}
+              {hasBudgetData ? (
+                <>
+                  {/* Appropriations Carousel */}
+                  {appropriationsData && appropriationsData.length > 0 && (
+                    <div className="mb-10">
+                      <h2 className="text-lg font-semibold mb-4">Appropriations</h2>
+                      <Carousel opts={{ align: "start" }} className="w-full">
+                        <CarouselContent className="-ml-4">
+                          {appropriationsData.map((row: any, idx: number) => {
+                            const program = row['Program Name'] || 'General';
+                            const amount = row['Appropriations Recommended 2026-27'];
+                            const agency = reformatAgencyName(row['Agency Name'] || '');
+                            const promptText = `Tell me about the NYS budget appropriation for ${agency} for "${program}"${amount ? ` with a recommended appropriation of ${formatBudgetAmount(amount)}` : ''}. What is this funding used for?`;
+                            return (
+                              <CarouselItem key={idx} className="pl-4 sm:basis-1/2 md:basis-1/3">
+                                <div
+                                  className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-5 cursor-pointer transition-all duration-200 h-full"
+                                  onClick={() => navigate(`/new-chat?prompt=${encodeURIComponent(promptText)}`)}
+                                >
+                                  <div className="flex justify-between items-start mb-2">
+                                    <h3 className="font-semibold text-sm line-clamp-2">{program}</h3>
+                                    {amount && (
+                                      <span className="text-xs font-semibold text-green-600 dark:text-green-400 ml-2 whitespace-nowrap">
+                                        {formatBudgetAmount(amount)}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground line-clamp-2">{promptText}</p>
+                                  <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-3 transition-all duration-200">
+                                    <div className="flex justify-end">
+                                      <div className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity">
+                                        <ArrowUp className="h-4 w-4" />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </CarouselItem>
+                            );
+                          })}
+                        </CarouselContent>
+                        <div className="mt-4 flex justify-end gap-2">
+                          <CarouselPrevious className="static translate-x-0 translate-y-0" />
+                          <CarouselNext className="static translate-x-0 translate-y-0" />
+                        </div>
+                      </Carousel>
+                    </div>
+                  )}
+
+                  {/* Capital Carousel */}
+                  {capitalData && capitalData.length > 0 && (
+                    <div className="mb-10">
+                      <h2 className="text-lg font-semibold mb-4">Capital</h2>
+                      <Carousel opts={{ align: "start" }} className="w-full">
+                        <CarouselContent className="-ml-4">
+                          {capitalData.map((row: any, idx: number) => {
+                            const description = row['Description'] || row['Program Name'] || 'Capital Project';
+                            const amount = row['Appropriations Recommended 2026-27'];
+                            const agency = reformatAgencyName(row['Agency Name'] || '');
+                            const promptText = `Tell me about the NYS capital appropriation for ${agency} described as "${description}"${amount ? ` with a recommended amount of ${formatBudgetAmount(amount)}` : ''}. What is this capital project about?`;
+                            return (
+                              <CarouselItem key={idx} className="pl-4 sm:basis-1/2 md:basis-1/3">
+                                <div
+                                  className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-5 cursor-pointer transition-all duration-200 h-full"
+                                  onClick={() => navigate(`/new-chat?prompt=${encodeURIComponent(promptText)}`)}
+                                >
+                                  <div className="flex justify-between items-start mb-2">
+                                    <h3 className="font-semibold text-sm line-clamp-2">{description}</h3>
+                                    {amount && (
+                                      <span className="text-xs font-semibold text-green-600 dark:text-green-400 ml-2 whitespace-nowrap">
+                                        {formatBudgetAmount(amount)}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground line-clamp-2">{promptText}</p>
+                                  <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-3 transition-all duration-200">
+                                    <div className="flex justify-end">
+                                      <div className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity">
+                                        <ArrowUp className="h-4 w-4" />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </CarouselItem>
+                            );
+                          })}
+                        </CarouselContent>
+                        <div className="mt-4 flex justify-end gap-2">
+                          <CarouselPrevious className="static translate-x-0 translate-y-0" />
+                          <CarouselNext className="static translate-x-0 translate-y-0" />
+                        </div>
+                      </Carousel>
+                    </div>
+                  )}
+
+                  {/* Spending Carousel */}
+                  {spendingData && spendingData.length > 0 && (
+                    <div className="mb-10">
+                      <h2 className="text-lg font-semibold mb-4">Spending</h2>
+                      <Carousel opts={{ align: "start" }} className="w-full">
+                        <CarouselContent className="-ml-4">
+                          {spendingData.map((row: any, idx: number) => {
+                            const fn = row['Function'] || 'General';
+                            const estimate = row['2026-27 Estimates'];
+                            const agency = reformatAgencyName(row['Agency'] || '');
+                            const promptText = `Tell me about NYS spending by ${agency} under the "${fn}" function${estimate ? ` with estimated spending of ${formatBudgetAmount(estimate)}` : ''}. How has this spending changed over recent years?`;
+                            return (
+                              <CarouselItem key={idx} className="pl-4 sm:basis-1/2 md:basis-1/3">
+                                <div
+                                  className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-5 cursor-pointer transition-all duration-200 h-full"
+                                  onClick={() => navigate(`/new-chat?prompt=${encodeURIComponent(promptText)}`)}
+                                >
+                                  <div className="flex justify-between items-start mb-2">
+                                    <h3 className="font-semibold text-sm line-clamp-2">{fn}</h3>
+                                    {estimate && (
+                                      <span className="text-xs font-semibold text-green-600 dark:text-green-400 ml-2 whitespace-nowrap">
+                                        {formatBudgetAmount(estimate)}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground line-clamp-2">{promptText}</p>
+                                  <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-3 transition-all duration-200">
+                                    <div className="flex justify-end">
+                                      <div className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity">
+                                        <ArrowUp className="h-4 w-4" />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </CarouselItem>
+                            );
+                          })}
+                        </CarouselContent>
+                        <div className="mt-4 flex justify-end gap-2">
+                          <CarouselPrevious className="static translate-x-0 translate-y-0" />
+                          <CarouselNext className="static translate-x-0 translate-y-0" />
+                        </div>
+                      </Carousel>
+                    </div>
+                  )}
+                </>
+              ) : (
+                /* Related — shown only when no budget data exists */
+                related.length > 0 && (
+                  <div className="mb-10">
+                    <h2 className="text-lg font-semibold mb-4">Related</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {related.map((rel) => (
+                        <div
+                          key={rel.slug}
+                          onClick={() => navigate(`/departments/${rel.slug}`)}
+                          className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-5 cursor-pointer transition-all duration-200"
+                        >
+                          <h3 className="font-semibold text-sm">{rel.title}</h3>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{rel.prompt}</p>
+                          <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-3 transition-all duration-200">
+                            <div className="flex justify-end">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/new-chat?prompt=${encodeURIComponent(rel.prompt)}`);
+                                }}
+                                className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
+                                title="Ask AI"
+                              >
+                                <ArrowUp className="h-4 w-4" />
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )
               )}
             </div>
           </div>

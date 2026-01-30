@@ -35,11 +35,22 @@ export function reformatAgencyName(name: string): string {
   return `${after} ${before}`;
 }
 
+// Convert raw budget agency name to a URL slug matching departmentPrompts/agencyPrompts/authorityPrompts
+export function agencyToSlug(name: string): string {
+  return reformatAgencyName(name)
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 export function useBudgetSearch(activeTab: BudgetTab) {
   const [searchTerm, setSearchTerm] = useState('');
   const [agencyFilter, setAgencyFilter] = useState('');
   const [secondaryFilter, setSecondaryFilter] = useState('');
   const [fundTypeFilter, setFundTypeFilter] = useState('');
+  const [yearFilter, setYearFilter] = useState('');
 
   // Reset filters when tab changes
   const resetFilters = () => {
@@ -47,11 +58,12 @@ export function useBudgetSearch(activeTab: BudgetTab) {
     setAgencyFilter('');
     setSecondaryFilter('');
     setFundTypeFilter('');
+    setYearFilter('');
   };
 
   // Fetch data
   const { data, isLoading, error } = useQuery({
-    queryKey: ['budget', activeTab, agencyFilter, secondaryFilter, fundTypeFilter],
+    queryKey: ['budget', activeTab, agencyFilter, secondaryFilter, fundTypeFilter, yearFilter],
     queryFn: async () => {
       const table = TABLE_MAP[activeTab];
       const agencyCol = AGENCY_COL[activeTab];
@@ -79,6 +91,11 @@ export function useBudgetSearch(activeTab: BudgetTab) {
       // Server-side fund type filter
       if (fundTypeFilter) {
         query = query.eq(fundTypeCol, fundTypeFilter);
+      }
+
+      // Server-side year filter (spending tab only)
+      if (yearFilter && activeTab === 'spending') {
+        query = query.eq('Year', yearFilter);
       }
 
       query = query
@@ -168,6 +185,28 @@ export function useBudgetSearch(activeTab: BudgetTab) {
     staleTime: 30 * 60 * 1000,
   });
 
+  // Fetch unique Year values for the spending tab filter
+  const { data: yearOptions } = useQuery({
+    queryKey: ['budget-years'],
+    queryFn: async () => {
+      try {
+        const { data } = await (supabase as any)
+          .from(TABLE_MAP.spending)
+          .select('Year');
+
+        if (!data) return [];
+        const unique = [
+          ...new Set(data.map((d: any) => d['Year']).filter(Boolean)),
+        ] as string[];
+        return unique.sort();
+      } catch {
+        return [];
+      }
+    },
+    enabled: activeTab === 'spending',
+    staleTime: 30 * 60 * 1000,
+  });
+
   return {
     data: filtered,
     isLoading,
@@ -175,6 +214,7 @@ export function useBudgetSearch(activeTab: BudgetTab) {
     agencies: agencyOptions || [],
     secondaryOptions: secondaryOptions || [],
     fundTypeOptions: fundTypeOptions || [],
+    yearOptions: yearOptions || [],
     searchTerm,
     setSearchTerm,
     agencyFilter,
@@ -183,6 +223,8 @@ export function useBudgetSearch(activeTab: BudgetTab) {
     setSecondaryFilter,
     fundTypeFilter,
     setFundTypeFilter,
+    yearFilter,
+    setYearFilter,
     resetFilters,
   };
 }

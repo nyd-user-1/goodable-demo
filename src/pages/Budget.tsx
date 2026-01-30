@@ -12,7 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useBudgetSearch, formatBudgetAmount, reformatAgencyName, type BudgetTab } from '@/hooks/useBudgetSearch';
+import { useBudgetSearch, formatBudgetAmount, reformatAgencyName, agencyToSlug, type BudgetTab } from '@/hooks/useBudgetSearch';
+import { departmentPrompts, agencyPrompts, authorityPrompts } from '@/pages/Prompts';
 
 const tabs: { id: BudgetTab; label: string }[] = [
   { id: 'appropriations', label: 'Appropriations' },
@@ -51,6 +52,7 @@ const Budget = () => {
     agencies,
     secondaryOptions,
     fundTypeOptions,
+    yearOptions,
     searchTerm,
     setSearchTerm,
     agencyFilter,
@@ -59,6 +61,8 @@ const Budget = () => {
     setSecondaryFilter,
     fundTypeFilter,
     setFundTypeFilter,
+    yearFilter,
+    setYearFilter,
     resetFilters,
   } = useBudgetSearch(activeTab);
 
@@ -89,9 +93,10 @@ const Budget = () => {
     setAgencyFilter('');
     setSecondaryFilter('');
     setFundTypeFilter('');
+    setYearFilter('');
   };
 
-  const hasActiveFilters = searchTerm || agencyFilter || secondaryFilter || fundTypeFilter;
+  const hasActiveFilters = searchTerm || agencyFilter || secondaryFilter || fundTypeFilter || yearFilter;
 
   const openCommandPalette = () => {
     const event = new KeyboardEvent('keydown', {
@@ -130,8 +135,16 @@ const Budget = () => {
   };
 
   const handleCardClick = (item: any) => {
-    if (item.id) {
-      navigate(`/budget/${activeTab}/${item.id}`);
+    const agencyCol = activeTab === 'spending' ? 'Agency' : 'Agency Name';
+    const rawName = item[agencyCol];
+    if (!rawName) return;
+
+    const slug = agencyToSlug(rawName);
+    // Only navigate if the slug matches an existing department/agency/authority page
+    const allPrompts = [...departmentPrompts, ...agencyPrompts, ...authorityPrompts];
+    const match = allPrompts.find(p => p.slug === slug);
+    if (match) {
+      navigate(`/departments/${slug}`);
     }
   };
 
@@ -234,7 +247,7 @@ const Budget = () => {
                 {/* Filters row */}
                 <div className="flex flex-wrap gap-2">
                   <Select value={agencyFilter || 'all'} onValueChange={(v) => setAgencyFilter(v === 'all' ? '' : v)}>
-                    <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
+                    <SelectTrigger className="w-auto border-0 bg-muted/40 hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted focus:ring-0 focus:ring-offset-0">
                       <SelectValue placeholder="Agency" />
                     </SelectTrigger>
                     <SelectContent>
@@ -248,7 +261,7 @@ const Budget = () => {
                   </Select>
 
                   <Select value={secondaryFilter || 'all'} onValueChange={(v) => setSecondaryFilter(v === 'all' ? '' : v)}>
-                    <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
+                    <SelectTrigger className="w-auto border-0 bg-muted/40 hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted focus:ring-0 focus:ring-offset-0">
                       <SelectValue placeholder={SECONDARY_LABEL[activeTab]} />
                     </SelectTrigger>
                     <SelectContent>
@@ -262,7 +275,7 @@ const Budget = () => {
                   </Select>
 
                   <Select value={fundTypeFilter || 'all'} onValueChange={(v) => setFundTypeFilter(v === 'all' ? '' : v)}>
-                    <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
+                    <SelectTrigger className="w-auto border-0 bg-muted/40 hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted focus:ring-0 focus:ring-offset-0">
                       <SelectValue placeholder={FUND_TYPE_LABEL[activeTab]} />
                     </SelectTrigger>
                     <SelectContent>
@@ -274,6 +287,22 @@ const Budget = () => {
                       ))}
                     </SelectContent>
                   </Select>
+
+                  {activeTab === 'spending' && yearOptions.length > 0 && (
+                    <Select value={yearFilter || 'all'} onValueChange={(v) => setYearFilter(v === 'all' ? '' : v)}>
+                      <SelectTrigger className="w-auto border-0 bg-muted/40 hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted focus:ring-0 focus:ring-offset-0">
+                        <SelectValue placeholder="Year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all" className="focus:bg-muted focus:text-foreground">Year</SelectItem>
+                        {yearOptions.map((yr: string) => (
+                          <SelectItem key={yr} value={yr} className="focus:bg-muted focus:text-foreground">
+                            {yr}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               </div>
             </div>
