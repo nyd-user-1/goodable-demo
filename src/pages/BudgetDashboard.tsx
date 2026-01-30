@@ -286,7 +286,7 @@ const BudgetDashboard = () => {
             ) : rows.length === 0 ? (
               <div className="text-center py-12 px-4">
                 <p className="text-muted-foreground">Please log in to view thousands of budget records.</p>
-                <Button onClick={() => navigate('/auth-4')} className="mt-4">
+                <Button variant="ghost" onClick={() => navigate('/auth-4')} className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">
                   Sign Up
                 </Button>
               </div>
