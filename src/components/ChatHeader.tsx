@@ -196,7 +196,10 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
             onMouseLeave={() => setUseCasesOpen(false)}
           >
             <DropdownMenu open={useCasesOpen} onOpenChange={setUseCasesOpen} modal={false}>
-              <DropdownMenuTrigger className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none">
+              <DropdownMenuTrigger
+                className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none"
+                onClick={() => navigate('/use-cases')}
+              >
                 Use Cases
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" sideOffset={4} className="min-w-[160px]">

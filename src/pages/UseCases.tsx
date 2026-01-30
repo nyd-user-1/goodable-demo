@@ -1,36 +1,31 @@
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileText, Users, Building2, Lightbulb } from 'lucide-react';
 
 const useCases = [
   {
     title: 'Bills',
     description: 'Prompts based on active Senate and Assembly legislation.',
     href: '/use-cases/bills',
-    icon: FileText,
-    gradient: 'bg-gradient-to-br from-sky-400 via-sky-300 to-cyan-200',
+    gradient: 'bg-gradient-to-b from-sky-300 via-sky-400 to-sky-600',
   },
   {
     title: 'Committees',
     description: "Prompts to clarify each committee's focus and responsibilities.",
     href: '/use-cases/committees',
-    icon: Building2,
-    gradient: 'bg-gradient-to-br from-emerald-400 via-emerald-300 to-teal-200',
+    gradient: 'bg-gradient-to-b from-emerald-300 via-emerald-400 to-teal-600',
   },
   {
     title: 'Members',
     description: 'Prompts to help you research legislators and their priorities.',
     href: '/use-cases/members',
-    icon: Users,
-    gradient: 'bg-gradient-to-br from-purple-400 via-fuchsia-300 to-pink-300',
+    gradient: 'bg-gradient-to-b from-pink-200 via-fuchsia-300 to-purple-500',
   },
   {
     title: 'Policy',
     description: 'Seasoned public policy experts shared issues from their own experience.',
     href: '/use-cases/policy',
-    icon: Lightbulb,
-    gradient: 'bg-gradient-to-br from-amber-400 via-amber-300 to-yellow-200',
+    gradient: 'bg-gradient-to-b from-yellow-300 via-amber-400 to-amber-600',
   },
 ];
 
@@ -53,30 +48,23 @@ export default function UseCases() {
         </div>
 
         <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
-          {useCases.map((useCase) => {
-            const Icon = useCase.icon;
-            return (
+          {useCases.map((useCase) => (
               <Link
                 key={useCase.title}
                 to={useCase.href}
-                className="group relative block aspect-[4/5] overflow-hidden rounded-lg shadow-sm transition-shadow hover:shadow-md"
+                className="group relative block aspect-[4/5] overflow-hidden rounded-lg shadow-sm transition-shadow duration-300 hover:shadow-xl"
               >
                 <div className={`absolute inset-0 ${useCase.gradient} transition-transform duration-300 group-hover:scale-105`} />
-                <div className="absolute inset-0 flex items-center justify-center opacity-20 group-hover:opacity-30 transition-opacity duration-300">
-                  <Icon className="h-24 w-24 text-white" strokeWidth={1} />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
                 <div className="absolute bottom-0 left-0 p-4">
-                  <p className="text-sm font-medium text-white sm:text-base">
+                  <p className="text-base sm:text-lg font-bold text-white">
                     {useCase.title}
                   </p>
-                  <p className="text-xs text-white/80 line-clamp-2 mt-0.5">
+                  <p className="text-xs sm:text-sm font-normal text-white/80 line-clamp-2 mt-0.5">
                     {useCase.description}
                   </p>
                 </div>
               </Link>
-            );
-          })}
+          ))}
         </div>
 
         <div className="mt-12 text-center">
