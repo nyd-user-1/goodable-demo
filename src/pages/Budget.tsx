@@ -261,7 +261,7 @@ const Budget = () => {
                 {/* Filters row */}
                 <div className="flex flex-wrap gap-2">
                   <Select value={agencyFilter || 'all'} onValueChange={(v) => setAgencyFilter(v === 'all' ? '' : v)}>
-                    <SelectTrigger className="w-auto border-0 bg-muted/40 hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted focus:ring-0 focus:ring-offset-0">
+                    <SelectTrigger className="w-auto border-0 bg-muted/40 hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted focus:ring-0 focus:ring-offset-0 [&>svg]:hidden">
                       <SelectValue placeholder="Agency" />
                     </SelectTrigger>
                     <SelectContent>
@@ -275,7 +275,7 @@ const Budget = () => {
                   </Select>
 
                   <Select value={secondaryFilter || 'all'} onValueChange={(v) => setSecondaryFilter(v === 'all' ? '' : v)}>
-                    <SelectTrigger className="w-auto border-0 bg-muted/40 hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted focus:ring-0 focus:ring-offset-0">
+                    <SelectTrigger className="w-auto border-0 bg-muted/40 hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted focus:ring-0 focus:ring-offset-0 [&>svg]:hidden">
                       <SelectValue placeholder={SECONDARY_LABEL[activeTab]} />
                     </SelectTrigger>
                     <SelectContent>
@@ -289,7 +289,7 @@ const Budget = () => {
                   </Select>
 
                   <Select value={fundTypeFilter || 'all'} onValueChange={(v) => setFundTypeFilter(v === 'all' ? '' : v)}>
-                    <SelectTrigger className="w-auto border-0 bg-muted/40 hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted focus:ring-0 focus:ring-offset-0">
+                    <SelectTrigger className="w-auto border-0 bg-muted/40 hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted focus:ring-0 focus:ring-offset-0 [&>svg]:hidden">
                       <SelectValue placeholder={FUND_TYPE_LABEL[activeTab]} />
                     </SelectTrigger>
                     <SelectContent>
@@ -303,7 +303,7 @@ const Budget = () => {
                   </Select>
 
                   <Select value={extraFilter || 'all'} onValueChange={(v) => setExtraFilter(v === 'all' ? '' : v)}>
-                    <SelectTrigger className="w-auto border-0 bg-muted/40 hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted focus:ring-0 focus:ring-offset-0">
+                    <SelectTrigger className="w-auto border-0 bg-muted/40 hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted focus:ring-0 focus:ring-offset-0 [&>svg]:hidden">
                       <SelectValue placeholder={EXTRA_LABEL[activeTab]} />
                     </SelectTrigger>
                     <SelectContent>
@@ -318,7 +318,7 @@ const Budget = () => {
 
                   {activeTab === 'spending' && (
                     <Select value={yearFilter || 'all'} onValueChange={(v) => setYearFilter(v === 'all' ? '' : v)}>
-                      <SelectTrigger className="w-auto border-0 bg-muted/40 hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted focus:ring-0 focus:ring-offset-0">
+                      <SelectTrigger className="w-auto border-0 bg-muted/40 hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted focus:ring-0 focus:ring-offset-0 [&>svg]:hidden">
                         <SelectValue placeholder="Year" />
                       </SelectTrigger>
                       <SelectContent>
