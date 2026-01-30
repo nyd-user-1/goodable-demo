@@ -291,7 +291,7 @@ const BudgetDashboard = () => {
             ) : (
               <div className="divide-y">
                 {/* Column headers */}
-                <div className="hidden md:grid grid-cols-[1fr_44px_120px_100px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-muted/20 sticky top-0 z-10">
+                <div className="hidden md:grid grid-cols-[1fr_44px_120px_100px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
                   <span>Name</span>
                   <span className="flex items-center justify-center">
                     <MessageSquare className="h-3.5 w-3.5" />
