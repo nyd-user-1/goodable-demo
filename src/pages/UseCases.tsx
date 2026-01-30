@@ -69,7 +69,7 @@ export default function UseCases() {
 
         <div className="mt-12 text-center">
           <Button size="lg" variant="outline" asChild>
-            <Link to="/free-trial">Get Started with NYSgpt</Link>
+            <Link to="/">Get Started with NYSgpt</Link>
           </Button>
         </div>
       </div>
