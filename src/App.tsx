@@ -54,6 +54,7 @@ const Features = React.lazy(() => import("./pages/Features"));
 const Features2 = React.lazy(() => import("./pages/Features-2"));
 const Pricing = React.lazy(() => import("./pages/Pricing"));
 const AIFluency = React.lazy(() => import("./pages/AIFluency"));
+const UseCases = React.lazy(() => import("./pages/UseCases"));
 const UseCasesBills = React.lazy(() => import("./pages/UseCasesBills"));
 const UseCasesCommittees = React.lazy(() => import("./pages/UseCasesCommittees"));
 const UseCasesMembers = React.lazy(() => import("./pages/UseCasesMembers"));
@@ -204,6 +205,7 @@ const App = () => {
                   <Route path="/digital-bill-of-rights" element={<DigitalBillOfRights />} />
                   <Route path="/pricing" element={<Pricing />} />
                   <Route path="/ai-fluency" element={<AIFluency />} />
+                  <Route path="/use-cases" element={<UseCases />} />
                   <Route path="/use-cases/bills" element={<UseCasesBills />} />
                   <Route path="/use-cases/committees" element={<UseCasesCommittees />} />
                   <Route path="/use-cases/members" element={<UseCasesMembers />} />
