@@ -32,7 +32,6 @@ import { Badge } from "@/components/ui/badge";
 import { BillPDFSheet } from "@/components/features/bills/BillPDFSheet";
 import { EmailLetterSheet } from "@/components/features/bills/EmailLetterSheet";
 import { useToast } from "@/hooks/use-toast";
-import { jsPDF } from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 
@@ -142,7 +141,7 @@ export function ChatResponseFooter({
     });
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const extractText = (node: ReactNode): string => {
       if (typeof node === 'string') return node;
       if (typeof node === 'number') return String(node);
@@ -156,6 +155,7 @@ export function ChatResponseFooter({
     const text = extractText(messageContent);
 
     // Create PDF
+    const { jsPDF } = await import('jspdf');
     const pdf = new jsPDF();
     const pageWidth = pdf.internal.pageSize.getWidth();
     const margin = 20;

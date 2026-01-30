@@ -1,4 +1,5 @@
 // New Branch version - deployed to Vercel
+import React, { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SpeedInsights } from '@vercel/speed-insights/react';
@@ -15,87 +16,94 @@ import { useHubSpot } from "@/hooks/useHubSpot";
 import { NewAppSidebar } from "@/components/NewAppSidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { PageHeader } from "@/components/PageHeader";
-import Landing from "./pages/Landing";
-import LandingPageWaitlist from "./pages/Landing-Page-Waitlist";
-import Home from "./pages/Home";
-import Home2 from "./pages/Home-2";
-import Index from "./pages/Index";
-import { Auth } from "./pages/Auth";
-import Auth2 from "./pages/Auth2";
-import Auth4 from "./pages/Auth4";
-import ShadcnShowcase from "./pages/ShadcnShowcase";
-import Profile from "./pages/Profile";
-import Bills from "./pages/Bills";
-import Members from "./pages/Members";
-import Committees from "./pages/Committees";
-import Laws from "./pages/Laws";
-import LawsAdmin from "./pages/LawsAdmin";
-import LawsAdminSimple from "./pages/LawsAdminSimple";
-import LawsTest from "./pages/LawsTest";
-import LawsMinimal from "./pages/LawsMinimal";
-import LawsClean from "./pages/LawsClean";
-import LawsAdminWorking from "./pages/LawsAdminWorking";
-import Chats from "./pages/Chats";
-import NewChat from "./pages/NewChat";
-import NewChat2 from "./pages/NewChat2";
-import Playground from "./pages/Playground";
-import PolicyPortal from "./pages/PolicyPortal";
-import PolicyLab from "./pages/PolicyLab";
-import Plans from "./pages/Plans";
-import ChangeLog from "./pages/ChangeLog";
-import ProblemPage from "./pages/ProblemPage";
-import Problems from "./pages/Problems";
-import About from "./pages/About";
-import Academy from "./pages/Academy";
-import Features from "./pages/Features";
-import Features2 from "./pages/Features-2";
-import Pricing from "./pages/Pricing";
-import AIFluency from "./pages/AIFluency";
-import UseCasesBills from "./pages/UseCasesBills";
-import UseCasesCommittees from "./pages/UseCasesCommittees";
-import UseCasesMembers from "./pages/UseCasesMembers";
-import UseCasesPolicy from "./pages/UseCasesPolicy";
-import NonprofitEconomicAdvocacy from "./pages/NonprofitEconomicAdvocacy";
-import NonprofitEnvironmentalAdvocacy from "./pages/NonprofitEnvironmentalAdvocacy";
-import NonprofitLegalAdvocacy from "./pages/NonprofitLegalAdvocacy";
-import NonprofitSocialAdvocacy from "./pages/NonprofitSocialAdvocacy";
-import NonprofitDirectory from "./pages/NonprofitDirectory";
-import PublicPolicy from "./pages/PublicPolicy";
-import StyleGuide from "./pages/StyleGuide";
-import ImageSystem from "./pages/ImageSystem";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
-import Admin from "./pages/Admin";
-import FeedPage from "./pages/FeedPage";
-import ImageUploadTest from "./pages/ImageUploadTest";
-import Customerstory from "./pages/Customerstory";
-import DataPopulator from "./pages/DataPopulator";
-import RealABCPopulator from "./pages/RealABCPopulator";
-import FixABCStructure from "./pages/FixABCStructure";
-import ExcerptView from "./pages/ExcerptView";
-import NoteView from "./pages/NoteView";
-import NewNote from "./pages/NewNote";
-import FreeTrial from "./pages/FreeTrial";
-import Contracts from "./pages/Contracts";
-import ContractDetail from "./pages/ContractDetail";
-import Budget from "./pages/Budget";
-import BudgetDashboard from "./pages/BudgetDashboard";
 
-import Lobbying from "./pages/Lobbying";
-import LobbyingDetail from "./pages/LobbyingDetail";
-import SchoolFunding from "./pages/SchoolFunding";
-import SchoolFundingDetail from "./pages/SchoolFundingDetail";
-import Committees2 from "./pages/Committees2";
-import Members2 from "./pages/Members2";
-import Bills2 from "./pages/Bills2";
-import Chats2 from "./pages/Chats2";
-import Constitution from "./pages/Constitution";
-import DigitalBillOfRights from "./pages/DigitalBillOfRights";
-import LiveFeed from "./pages/LiveFeed";
-import Prompts from "./pages/Prompts";
-import DepartmentDetail from "./pages/DepartmentDetail";
+// Lazy-loaded page components
+const Landing = React.lazy(() => import("./pages/Landing"));
+const LandingPageWaitlist = React.lazy(() => import("./pages/Landing-Page-Waitlist"));
+const Home = React.lazy(() => import("./pages/Home"));
+const Home2 = React.lazy(() => import("./pages/Home-2"));
+const Index = React.lazy(() => import("./pages/Index"));
+const Auth = React.lazy(() => import("./pages/Auth"));
+const Auth2 = React.lazy(() => import("./pages/Auth2"));
+const Auth4 = React.lazy(() => import("./pages/Auth4"));
+const ShadcnShowcase = React.lazy(() => import("./pages/ShadcnShowcase"));
+const Profile = React.lazy(() => import("./pages/Profile"));
+const Bills = React.lazy(() => import("./pages/Bills"));
+const Members = React.lazy(() => import("./pages/Members"));
+const Committees = React.lazy(() => import("./pages/Committees"));
+const Laws = React.lazy(() => import("./pages/Laws"));
+const LawsAdmin = React.lazy(() => import("./pages/LawsAdmin"));
+const LawsAdminSimple = React.lazy(() => import("./pages/LawsAdminSimple"));
+const LawsTest = React.lazy(() => import("./pages/LawsTest"));
+const LawsMinimal = React.lazy(() => import("./pages/LawsMinimal"));
+const LawsClean = React.lazy(() => import("./pages/LawsClean"));
+const LawsAdminWorking = React.lazy(() => import("./pages/LawsAdminWorking"));
+const Chats = React.lazy(() => import("./pages/Chats"));
+const NewChat = React.lazy(() => import("./pages/NewChat"));
+const NewChat2 = React.lazy(() => import("./pages/NewChat2"));
+const Playground = React.lazy(() => import("./pages/Playground"));
+const PolicyPortal = React.lazy(() => import("./pages/PolicyPortal"));
+const PolicyLab = React.lazy(() => import("./pages/PolicyLab"));
+const Plans = React.lazy(() => import("./pages/Plans"));
+const ChangeLog = React.lazy(() => import("./pages/ChangeLog"));
+const ProblemPage = React.lazy(() => import("./pages/ProblemPage"));
+const Problems = React.lazy(() => import("./pages/Problems"));
+const About = React.lazy(() => import("./pages/About"));
+const Academy = React.lazy(() => import("./pages/Academy"));
+const Features = React.lazy(() => import("./pages/Features"));
+const Features2 = React.lazy(() => import("./pages/Features-2"));
+const Pricing = React.lazy(() => import("./pages/Pricing"));
+const AIFluency = React.lazy(() => import("./pages/AIFluency"));
+const UseCasesBills = React.lazy(() => import("./pages/UseCasesBills"));
+const UseCasesCommittees = React.lazy(() => import("./pages/UseCasesCommittees"));
+const UseCasesMembers = React.lazy(() => import("./pages/UseCasesMembers"));
+const UseCasesPolicy = React.lazy(() => import("./pages/UseCasesPolicy"));
+const NonprofitEconomicAdvocacy = React.lazy(() => import("./pages/NonprofitEconomicAdvocacy"));
+const NonprofitEnvironmentalAdvocacy = React.lazy(() => import("./pages/NonprofitEnvironmentalAdvocacy"));
+const NonprofitLegalAdvocacy = React.lazy(() => import("./pages/NonprofitLegalAdvocacy"));
+const NonprofitSocialAdvocacy = React.lazy(() => import("./pages/NonprofitSocialAdvocacy"));
+const NonprofitDirectory = React.lazy(() => import("./pages/NonprofitDirectory"));
+const PublicPolicy = React.lazy(() => import("./pages/PublicPolicy"));
+const StyleGuide = React.lazy(() => import("./pages/StyleGuide"));
+const ImageSystem = React.lazy(() => import("./pages/ImageSystem"));
+const Blog = React.lazy(() => import("./pages/Blog"));
+const BlogPost = React.lazy(() => import("./pages/BlogPost"));
+const Admin = React.lazy(() => import("./pages/Admin"));
+const FeedPage = React.lazy(() => import("./pages/FeedPage"));
+const ImageUploadTest = React.lazy(() => import("./pages/ImageUploadTest"));
+const Customerstory = React.lazy(() => import("./pages/Customerstory"));
+const DataPopulator = React.lazy(() => import("./pages/DataPopulator"));
+const RealABCPopulator = React.lazy(() => import("./pages/RealABCPopulator"));
+const FixABCStructure = React.lazy(() => import("./pages/FixABCStructure"));
+const ExcerptView = React.lazy(() => import("./pages/ExcerptView"));
+const NoteView = React.lazy(() => import("./pages/NoteView"));
+const NewNote = React.lazy(() => import("./pages/NewNote"));
+const FreeTrial = React.lazy(() => import("./pages/FreeTrial"));
+const Contracts = React.lazy(() => import("./pages/Contracts"));
+const ContractDetail = React.lazy(() => import("./pages/ContractDetail"));
+const Budget = React.lazy(() => import("./pages/Budget"));
+const BudgetDashboard = React.lazy(() => import("./pages/BudgetDashboard"));
+const Lobbying = React.lazy(() => import("./pages/Lobbying"));
+const LobbyingDetail = React.lazy(() => import("./pages/LobbyingDetail"));
+const SchoolFunding = React.lazy(() => import("./pages/SchoolFunding"));
+const SchoolFundingDetail = React.lazy(() => import("./pages/SchoolFundingDetail"));
+const Committees2 = React.lazy(() => import("./pages/Committees2"));
+const Members2 = React.lazy(() => import("./pages/Members2"));
+const Bills2 = React.lazy(() => import("./pages/Bills2"));
+const Chats2 = React.lazy(() => import("./pages/Chats2"));
+const Constitution = React.lazy(() => import("./pages/Constitution"));
+const DigitalBillOfRights = React.lazy(() => import("./pages/DigitalBillOfRights"));
+const LiveFeed = React.lazy(() => import("./pages/LiveFeed"));
+const Prompts = React.lazy(() => import("./pages/Prompts"));
+const DepartmentDetail = React.lazy(() => import("./pages/DepartmentDetail"));
 
 const queryClient = new QueryClient();
+
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center h-screen">
+    <div className="text-muted-foreground">Loading...</div>
+  </div>
+);
 
 // HubSpot tracker component - must be inside AuthProvider to access auth context
 function HubSpotTracker() {
@@ -179,6 +187,7 @@ const App = () => {
             <BrowserRouter>
               <ScrollToTop />
               <CommandPalette />
+              <Suspense fallback={<LoadingFallback />}>
               <PageTransition>
                 <Routes>
             <Route path="/" element={<NewChat />} />                  <Route path="/alt" element={<Landing />} />
@@ -225,6 +234,7 @@ const App = () => {
                   <Route path="*" element={<AppLayout />} />
                 </Routes>
               </PageTransition>
+              </Suspense>
             </BrowserRouter>
           </ModelProvider>
         </AuthProvider>

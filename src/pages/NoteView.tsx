@@ -43,7 +43,6 @@ import { useNotePersistence, ChatNote } from "@/hooks/useNotePersistence";
 import { supabase } from "@/integrations/supabase/client";
 import { TipTapEditor, TipTapEditorRef, editorCommands, isFormatActive, TEXT_COLORS } from "@/components/TipTapEditor";
 import { ensureHtml, htmlToMarkdown } from "@/utils/markdownUtils";
-import { jsPDF } from "jspdf";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -403,8 +402,9 @@ const NoteView = () => {
   const characterCount = htmlContent ? getPlainText(htmlContent).length : 0;
 
   // Export functions
-  const handleExportPDF = useCallback(() => {
+  const handleExportPDF = useCallback(async () => {
     const plainText = getPlainText(htmlContent);
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     const title = editableTitle || note?.title || 'Untitled';
 
