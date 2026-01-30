@@ -7,9 +7,8 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Square, Copy, Check } from 'lucide-react';
+import { ArrowUp, Square, Copy, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -91,6 +90,7 @@ export function BudgetChatDrawer({
   const abortControllerRef = useRef<AbortController | null>(null);
   const readerRef = useRef<ReadableStreamDefaultReader | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Build the system prompt
   const systemPrompt = functionName
@@ -313,7 +313,7 @@ export function BudgetChatDrawer({
 
         {/* Messages area */}
         <ScrollArea ref={scrollRef} className="flex-1 px-6 py-4">
-          <div className="space-y-4">
+          <div className="space-y-2">
             {/* Empty state with suggested questions */}
             {messages.length === 0 && !isLoading && (
               <div className="space-y-4 pt-8">
@@ -336,7 +336,7 @@ export function BudgetChatDrawer({
             )}
 
             {/* Chat messages */}
-            {messages.map((msg) => {
+            {messages.map((msg, index) => {
               const displayContent =
                 msg.isStreaming && msg.streamedContent !== undefined
                   ? msg.streamedContent
@@ -346,80 +346,44 @@ export function BudgetChatDrawer({
                 <div
                   key={msg.id}
                   className={cn(
-                    'flex min-w-0',
-                    msg.role === 'user' ? 'justify-end' : 'justify-start'
+                    'space-y-3',
+                    index > 0 && msg.role === 'user' ? 'mt-[80px]' : index > 0 ? 'mt-6' : ''
                   )}
                 >
-                  <div
-                    className={cn(
-                      'rounded-lg p-3 relative',
-                      msg.role === 'user'
-                        ? 'bg-slate-800 text-white max-w-[85%] ml-auto'
-                        : 'bg-muted max-w-[85%]'
-                    )}
-                    style={{
-                      maxWidth: '85%',
-                      width: 'fit-content',
-                      wordWrap: 'break-word',
-                      overflowWrap: 'break-word',
-                      wordBreak: 'break-word',
-                      overflowX: 'hidden',
-                    }}
-                  >
-                    {/* Copy button for assistant messages */}
-                    {msg.role === 'assistant' && !msg.isStreaming && displayContent && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleCopy(msg.content, msg.id)}
-                        className="absolute top-2 right-2 h-6 w-6 p-0 opacity-60 hover:opacity-100"
-                      >
-                        {copiedId === msg.id ? (
-                          <Check className="h-3 w-3" />
-                        ) : (
-                          <Copy className="h-3 w-3" />
-                        )}
-                      </Button>
-                    )}
-
-                    {msg.role === 'assistant' ? (
-                      <div
-                        className="chat-markdown-content text-sm prose prose-sm dark:prose-invert max-w-full pr-8"
-                        style={{
-                          maxWidth: '100%',
-                          width: '100%',
-                          wordWrap: 'break-word',
-                          overflowWrap: 'anywhere',
-                          wordBreak: 'break-word',
-                          hyphens: 'auto',
-                        }}
-                      >
+                  {msg.role === 'user' ? (
+                    <div className="flex justify-end">
+                      <div className="bg-muted/40 rounded-lg p-4 border-0 max-w-[70%]">
+                        <p className="text-base leading-relaxed">{displayContent}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="prose prose-sm max-w-none dark:prose-invert">
                         <ReactMarkdown
                           components={{
                             p: ({ children }) => (
-                              <p style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%', margin: '0.5em 0' }}>
-                                {children}
-                              </p>
+                              <p className="mb-3 leading-relaxed text-foreground">{children}</p>
                             ),
-                            li: ({ children }) => (
-                              <li style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>
-                                {children}
-                              </li>
+                            strong: ({ children }) => (
+                              <strong className="font-semibold text-foreground">{children}</strong>
                             ),
                             h1: ({ children }) => (
-                              <h1 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>{children}</h1>
+                              <h1 className="text-xl font-bold mt-6 mb-3 text-foreground">{children}</h1>
                             ),
                             h2: ({ children }) => (
-                              <h2 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>{children}</h2>
+                              <h2 className="text-lg font-semibold mt-5 mb-2 text-foreground">{children}</h2>
                             ),
                             h3: ({ children }) => (
-                              <h3 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>{children}</h3>
+                              <h3 className="text-base font-semibold mt-4 mb-2 text-foreground">{children}</h3>
                             ),
                             ul: ({ children }) => (
-                              <ul style={{ paddingLeft: '1.5em', maxWidth: '100%' }}>{children}</ul>
+                              <ul className="list-disc pl-6 space-y-1 my-2">{children}</ul>
                             ),
                             ol: ({ children }) => (
-                              <ol style={{ paddingLeft: '1.5em', maxWidth: '100%' }}>{children}</ol>
+                              <ol className="list-decimal pl-6 space-y-1 my-2">{children}</ol>
+                            ),
+                            li: ({ children }) => (
+                              <li className="leading-relaxed text-foreground">{children}</li>
                             ),
                           }}
                         >
@@ -429,62 +393,82 @@ export function BudgetChatDrawer({
                           <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1">|</span>
                         )}
                       </div>
-                    ) : (
-                      <p
-                        className="text-sm whitespace-pre-wrap"
-                        style={{
-                          wordWrap: 'break-word',
-                          overflowWrap: 'break-word',
-                          maxWidth: '100%',
-                        }}
-                      >
-                        {displayContent}
-                      </p>
-                    )}
-                  </div>
+
+                      {/* Copy button below assistant message */}
+                      {!msg.isStreaming && displayContent && (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCopy(msg.content, msg.id)}
+                            className="h-7 px-2 text-muted-foreground hover:text-foreground"
+                          >
+                            {copiedId === msg.id ? (
+                              <><Check className="h-3.5 w-3.5 mr-1" /> Copied</>
+                            ) : (
+                              <><Copy className="h-3.5 w-3.5 mr-1" /> Copy</>
+                            )}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
 
             {/* Loading indicator (only shown before first streaming content) */}
             {isLoading && messages[messages.length - 1]?.streamedContent === '' && (
-              <div className="flex justify-start">
-                <div className="bg-muted rounded-lg p-3 flex items-center gap-2">
-                  <div className="flex gap-1">
-                    <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                  </div>
-                  <span className="text-sm text-muted-foreground">
-                    Analyzing budget data...
-                  </span>
+              <div className="mt-6 flex items-center gap-2">
+                <div className="flex gap-1">
+                  <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
+                <span className="text-sm text-muted-foreground">
+                  Analyzing budget data...
+                </span>
               </div>
             )}
           </div>
         </ScrollArea>
 
-        {/* Input area */}
+        {/* Input area - matches NewChat standard */}
         <div className="flex-shrink-0 px-6 py-4 border-t bg-background">
-          <div className="flex gap-2">
-            <Input
+          <div className="flex items-end gap-2">
+            <textarea
+              ref={textareaRef}
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={(e) => {
+                setInputValue(e.target.value);
+                if (textareaRef.current) {
+                  textareaRef.current.style.height = 'auto';
+                  const maxHeight = 144;
+                  textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, maxHeight) + 'px';
+                  textareaRef.current.style.overflowY = textareaRef.current.scrollHeight > maxHeight ? 'auto' : 'hidden';
+                }
+              }}
               onKeyDown={handleKeyDown}
               placeholder="What are you researching?"
               disabled={isLoading}
-              className="flex-1"
+              rows={1}
+              className="flex-1 min-h-[40px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none p-0 placeholder:text-muted-foreground/60 text-base disabled:opacity-50"
             />
             <Button
               onClick={isLoading ? stopStream : handleSend}
               disabled={!isLoading && !inputValue.trim()}
               size="icon"
-              variant={isLoading ? 'destructive' : 'default'}
+              className={cn(
+                'h-9 w-9 rounded-lg flex-shrink-0',
+                isLoading
+                  ? 'bg-destructive hover:bg-destructive/90'
+                  : 'bg-foreground hover:bg-foreground/90'
+              )}
             >
               {isLoading ? (
-                <Square className="w-4 h-4" fill="currentColor" />
+                <Square className="h-4 w-4" fill="currentColor" />
               ) : (
-                <Send className="w-4 h-4" />
+                <ArrowUp className="h-4 w-4" />
               )}
             </Button>
           </div>
