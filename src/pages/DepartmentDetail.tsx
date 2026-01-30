@@ -141,20 +141,10 @@ export default function DepartmentDetail() {
       (sum: number, row: any) => sum + parseNum(row['2026-27 Estimates']), 0
     );
 
-    const programNames = new Set(
-      (appropriationsData || []).map((r: any) => r['Program Name']).filter(Boolean)
-    );
-    const fundTypes = new Set([
-      ...(appropriationsData || []).map((r: any) => r['Fund Type']).filter(Boolean),
-      ...(spendingData || []).map((r: any) => r['Fund Type']).filter(Boolean),
-    ]);
-
     return {
       totalApprops,
       totalCapital,
       totalSpending,
-      programCount: programNames.size,
-      fundTypes: [...fundTypes].sort().join(', '),
     };
   }, [appropriationsData, capitalData, spendingData, hasBudgetData]);
 
@@ -340,18 +330,6 @@ export default function DepartmentDetail() {
                     <div className="flex items-center justify-between px-4 py-3">
                       <span className="text-sm text-muted-foreground">Total Spending Est. 2026-27</span>
                       <span className="text-sm font-medium">{formatCurrency(budgetSummary.totalSpending)}</span>
-                    </div>
-                  )}
-                  {budgetSummary && budgetSummary.programCount > 0 && (
-                    <div className="flex items-center justify-between px-4 py-3">
-                      <span className="text-sm text-muted-foreground">Programs</span>
-                      <span className="text-sm font-medium">{budgetSummary.programCount}</span>
-                    </div>
-                  )}
-                  {budgetSummary && budgetSummary.fundTypes && (
-                    <div className="flex items-center justify-between px-4 py-3">
-                      <span className="text-sm text-muted-foreground">Fund Types</span>
-                      <span className="text-sm font-medium text-right max-w-[60%] truncate">{budgetSummary.fundTypes}</span>
                     </div>
                   )}
                 </div>
