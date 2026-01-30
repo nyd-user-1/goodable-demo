@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { PanelLeft, ChevronRight, ChevronDown, ArrowUp, TrendingUp, TrendingDown, Minus, MessageSquare, X, Sparkles } from 'lucide-react';
+import { PanelLeft, ChevronRight, ChevronDown, ArrowUp, MessageSquare, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
@@ -49,7 +49,6 @@ const BudgetDashboard = () => {
     priorGrandTotal,
     historicalTotals,
     primaryYear,
-    priorYear,
     getDrillDown,
     getHistoricalForGroup,
   } = useBudgetDashboard();
@@ -63,6 +62,7 @@ const BudgetDashboard = () => {
     }
   }, [activeTab, byFunction, byFundType, byFpCategory]);
 
+  // Toggle row: expand drill-down AND select for chart
   const toggleRow = (name: string) => {
     setExpandedRows((prev) => {
       const next = new Set(prev);
@@ -73,10 +73,7 @@ const BudgetDashboard = () => {
       }
       return next;
     });
-  };
-
-  // Toggle chart selection (independent of drill-down expand)
-  const toggleChartSelection = (name: string) => {
+    // Also toggle chart selection
     setSelectedRow((prev) => (prev === name ? null : name));
   };
 
@@ -111,9 +108,6 @@ const BudgetDashboard = () => {
   // Header values: show selected row's values when selected, otherwise grand totals
   const headerAmount = selectedRowData ? selectedRowData.amount : grandTotal;
   const headerYoy = selectedRowData ? selectedRowData.yoyChange : grandTotalYoy;
-  const headerLabel = selectedRowData
-    ? `${selectedRowData.name} — FY ${primaryYearLabel}`
-    : `FY ${primaryYearLabel} Estimated Total Spending`;
 
   // Open chat drawer scoped to a budget function/category
   const openChat = (functionNameForChat?: string | null) => {
@@ -157,7 +151,8 @@ const BudgetDashboard = () => {
           {/* Header */}
           <div className="flex-shrink-0 bg-background border-b">
             <div className="px-4 py-4 md:px-6">
-              <div className="flex items-center justify-between mb-4">
+              {/* Top row: sidebar + title left, amount right */}
+              <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <MobileMenuIcon onOpenSidebar={() => setLeftSidebarOpen(!leftSidebarOpen)} />
                   <Button
@@ -170,51 +165,25 @@ const BudgetDashboard = () => {
                   </Button>
                   <h1 className="hidden md:block text-xl font-semibold">Budget Explorer</h1>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openChat()}
-                    className="gap-1.5"
-                  >
-                    <Sparkles className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Ask about this budget</span>
-                    <span className="sm:hidden">Ask AI</span>
-                  </Button>
-                  <MobileNYSgpt />
-                </div>
-              </div>
 
-              {/* Total Header */}
-              {!isLoading && !error && (
-                <div className="mb-4">
-                  <div className="flex items-baseline gap-3 flex-wrap">
-                    <span className="text-3xl md:text-4xl font-bold tracking-tight transition-all duration-300">
-                      {formatCompactCurrency(headerAmount)}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      {headerLabel}
-                    </span>
-                    {selectedRow && (
-                      <button
-                        onClick={() => setSelectedRow(null)}
-                        className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
-                      >
-                        <X className="h-3 w-3" />
-                        Show All
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    {headerYoy > 0 ? (
-                      <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
-                    ) : headerYoy < 0 ? (
-                      <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
-                    ) : (
-                      <Minus className="h-4 w-4 text-muted-foreground" />
-                    )}
+                {/* Amount + YoY — top right */}
+                {!isLoading && !error && (
+                  <div className="text-right flex-shrink-0">
+                    <div className="flex items-baseline gap-2 justify-end">
+                      <span className="text-3xl md:text-4xl font-bold tracking-tight transition-all duration-300">
+                        {formatCompactCurrency(headerAmount)}
+                      </span>
+                      {selectedRow && (
+                        <button
+                          onClick={() => setSelectedRow(null)}
+                          className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
                     <span className={cn(
-                      "text-sm font-medium",
+                      "text-sm",
                       headerYoy > 0 ? "text-green-600 dark:text-green-400" :
                       headerYoy < 0 ? "text-red-600 dark:text-red-400" :
                       "text-muted-foreground"
@@ -222,8 +191,10 @@ const BudgetDashboard = () => {
                       {headerYoy >= 0 ? '+' : ''}{headerYoy.toFixed(1)}% from prior year
                     </span>
                   </div>
-                </div>
-              )}
+                )}
+
+                <MobileNYSgpt />
+              </div>
 
               {/* Mini Historical Chart */}
               {!isLoading && chartData.length > 1 && (
@@ -251,6 +222,11 @@ const BudgetDashboard = () => {
                         tickLine={false}
                         axisLine={false}
                         interval="preserveStartEnd"
+                        tickFormatter={(value) => {
+                          // Show just the ending year: "2026-27" → "2027"
+                          const parts = value.split('-');
+                          return parts.length === 2 ? `'${parts[1]}` : value;
+                        }}
                       />
                       <RechartsTooltip
                         contentStyle={{
@@ -260,29 +236,35 @@ const BudgetDashboard = () => {
                           fontSize: '12px',
                         }}
                         formatter={(value: number) => [formatFullCurrency(value), selectedRow || 'Total']}
-                        labelFormatter={(label) => `FY ${label}`}
+                        labelFormatter={(label) => `FY ${label} Enacted Budget`}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
               )}
 
-              {/* Tabs */}
-              <div className="flex gap-2">
+              {/* Tabs + Chat button */}
+              <div className="flex items-center gap-2">
                 {TABS.map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={cn(
-                      'px-4 py-2 rounded-full text-sm font-medium transition-colors',
+                      'px-3 py-2 rounded-lg text-sm transition-colors',
                       activeTab === tab
-                        ? 'bg-foreground text-background'
-                        : 'bg-muted hover:bg-muted/80 text-foreground'
+                        ? 'bg-muted text-foreground font-medium'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                     )}
                   >
                     {TAB_LABELS[tab]}
                   </button>
                 ))}
+                <button
+                  onClick={() => openChat()}
+                  className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center ml-1 hover:bg-foreground/80 transition-colors flex-shrink-0"
+                >
+                  <ArrowUp className="h-4 w-4" />
+                </button>
               </div>
             </div>
           </div>
@@ -311,7 +293,7 @@ const BudgetDashboard = () => {
                   <span className="flex items-center justify-center">
                     <MessageSquare className="h-3.5 w-3.5" />
                   </span>
-                  <span className="text-right">FY {primaryYearLabel}</span>
+                  <span className="text-right">{primaryYearLabel.split('-')[1] ? `'${primaryYearLabel.split('-')[1]}` : primaryYearLabel}</span>
                   <span className="text-right">Change</span>
                   <span className="text-right">Share</span>
                 </div>
@@ -324,7 +306,6 @@ const BudgetDashboard = () => {
                     isSelected={selectedRow === row.name}
                     hasSelection={selectedRow !== null}
                     onToggle={() => toggleRow(row.name)}
-                    onSelectForChart={() => toggleChartSelection(row.name)}
                     onChatClick={() => handleChatClick(row)}
                     tab={activeTab}
                     getDrillDown={getDrillDown}
@@ -372,7 +353,6 @@ interface DashboardRowItemProps {
   isSelected: boolean;
   hasSelection: boolean;
   onToggle: () => void;
-  onSelectForChart: () => void;
   onChatClick: () => void;
   tab: DashboardTab;
   getDrillDown: (tab: DashboardTab, groupValue: string) => DrillDownRow[];
@@ -386,7 +366,6 @@ function DashboardRowItem({
   isSelected,
   hasSelection,
   onToggle,
-  onSelectForChart,
   onChatClick,
   tab,
   getDrillDown,
@@ -398,11 +377,6 @@ function DashboardRowItem({
   const handleChatClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onChatClick();
-  };
-
-  const handleChartSelect = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onSelectForChart();
   };
 
   return (
@@ -421,26 +395,20 @@ function DashboardRowItem({
       >
         {/* Name with expand chevron */}
         <div className="flex items-center gap-2 min-w-0">
-          <button
-            onClick={handleChartSelect}
-            className={cn(
-              "flex-shrink-0 transition-colors",
-              isSelected ? "text-foreground" : "text-muted-foreground"
-            )}
-          >
+          <span className={cn(
+            "flex-shrink-0 transition-colors",
+            isSelected ? "text-foreground" : "text-muted-foreground"
+          )}>
             {isExpanded ? (
               <ChevronDown className="h-4 w-4" />
             ) : (
               <ChevronRight className="h-4 w-4" />
             )}
-          </button>
-          <span
-            className={cn(
-              "font-medium truncate cursor-pointer transition-colors",
-              isSelected && "text-foreground"
-            )}
-            onClick={(e) => { e.stopPropagation(); onSelectForChart(); }}
-          >
+          </span>
+          <span className={cn(
+            "font-medium truncate transition-colors",
+            isSelected && "text-foreground"
+          )}>
             {row.name}
           </span>
           {isSelected && (

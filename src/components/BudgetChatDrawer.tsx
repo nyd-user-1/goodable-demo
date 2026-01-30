@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import {
   Sheet,
   SheetContent,
@@ -19,7 +20,6 @@ import {
 interface BudgetChatDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** If provided, scopes the chat to a specific budget function/category */
   functionName?: string | null;
 }
 
@@ -88,15 +88,15 @@ export function BudgetChatDrawer({
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const streamIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const readerRef = useRef<ReadableStreamDefaultReader | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Build the system prompt — append function-specific context if available
+  // Build the system prompt
   const systemPrompt = functionName
     ? `${BUDGET_CHAT_SYSTEM_PROMPT}\n\nThe user is currently viewing the "${functionName}" budget category. Here is additional context:\n${getBudgetContextForFunction(functionName)}`
     : BUDGET_CHAT_SYSTEM_PROMPT;
 
-  // Get suggested questions based on function context
   const suggestions = functionName && FUNCTION_QUESTIONS[functionName]
     ? FUNCTION_QUESTIONS[functionName]
     : SUGGESTED_QUESTIONS;
@@ -104,72 +104,36 @@ export function BudgetChatDrawer({
   // Reset state when drawer closes
   useEffect(() => {
     if (!open) {
-      // Give the close animation time before clearing
       const timer = setTimeout(() => {
         setMessages([]);
         setInputValue('');
         setIsLoading(false);
-        if (streamIntervalRef.current) {
-          clearInterval(streamIntervalRef.current);
-          streamIntervalRef.current = null;
-        }
+        stopStream();
       }, 300);
       return () => clearTimeout(timer);
     }
   }, [open]);
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll on new content
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
-  // Stream text word-by-word
-  const streamText = (text: string, messageId: string) => {
-    if (streamIntervalRef.current) {
-      clearInterval(streamIntervalRef.current);
-    }
-
-    const words = text.split(' ');
-    let idx = 0;
-
-    streamIntervalRef.current = setInterval(() => {
-      if (idx < words.length) {
-        const streamed = words.slice(0, idx + 1).join(' ');
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === messageId
-              ? { ...m, streamedContent: streamed, isStreaming: true }
-              : m
-          )
-        );
-        idx++;
-      } else {
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === messageId
-              ? { ...m, isStreaming: false, streamedContent: text }
-              : m
-          )
-        );
-        if (streamIntervalRef.current) {
-          clearInterval(streamIntervalRef.current);
-          streamIntervalRef.current = null;
-        }
-      }
-    }, 30);
-  };
-
   const stopStream = () => {
-    if (streamIntervalRef.current) {
-      clearInterval(streamIntervalRef.current);
-      streamIntervalRef.current = null;
-      setMessages((prev) =>
-        prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m))
-      );
-      setIsLoading(false);
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
     }
+    if (readerRef.current) {
+      readerRef.current.cancel();
+      readerRef.current = null;
+    }
+    setMessages((prev) =>
+      prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m))
+    );
+    setIsLoading(false);
   };
 
   const sendMessage = async (text: string) => {
@@ -188,18 +152,45 @@ export function BudgetChatDrawer({
 
     const assistantId = `assistant-${Date.now()}`;
 
+    // Add placeholder assistant message for streaming
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: assistantId,
+        role: 'assistant' as const,
+        content: '',
+        timestamp: new Date(),
+        isStreaming: true,
+        streamedContent: '',
+      },
+    ]);
+
     try {
       const previousMessages = messages.slice(-10).map((m) => ({
         role: m.role,
         content: m.content,
       }));
 
-      const { data, error } = await supabase.functions.invoke(
-        'generate-with-openai',
+      // Use direct fetch for real SSE streaming (same pattern as NewChat)
+      const supabaseUrl = (supabase as any).supabaseUrl;
+      const supabaseKey = (supabase as any).supabaseKey;
+      const { data: { session } } = await supabase.auth.getSession();
+
+      abortControllerRef.current = new AbortController();
+
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/generate-with-openai`,
         {
-          body: {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.access_token || supabaseKey}`,
+            apikey: supabaseKey,
+          },
+          body: JSON.stringify({
             prompt: text,
             type: 'chat',
+            stream: true,
             model: 'gpt-4o-mini',
             context: {
               systemContext: systemPrompt,
@@ -207,37 +198,85 @@ export function BudgetChatDrawer({
             },
             enhanceWithNYSData: false,
             fastMode: true,
-          },
+          }),
+          signal: abortControllerRef.current.signal,
         }
       );
 
-      if (error) throw error;
+      // Stream SSE chunks
+      const reader = response.body?.getReader();
+      readerRef.current = reader || null;
+      const decoder = new TextDecoder();
+      let aiResponse = '';
 
-      const responseText =
-        data?.generatedText || "I'm sorry, I couldn't generate a response.";
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-      const assistantMsg: ChatMessage = {
-        id: assistantId,
-        role: 'assistant',
-        content: responseText,
-        timestamp: new Date(),
-        isStreaming: true,
-        streamedContent: '',
-      };
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
 
-      setMessages((prev) => [...prev, assistantMsg]);
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
+
+              try {
+                const parsed = JSON.parse(data);
+                let content = '';
+                if (parsed.choices?.[0]?.delta?.content) {
+                  content = parsed.choices[0].delta.content;
+                } else if (parsed.delta?.text) {
+                  content = parsed.delta.text;
+                }
+
+                if (content) {
+                  aiResponse += content;
+                  setMessages((prev) =>
+                    prev.map((m) =>
+                      m.id === assistantId
+                        ? { ...m, streamedContent: aiResponse, content: aiResponse }
+                        : m
+                    )
+                  );
+                }
+              } catch {
+                // Skip invalid JSON chunks
+              }
+            }
+          }
+        }
+      }
+
+      // Finalize message
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? { ...m, isStreaming: false, content: aiResponse, streamedContent: aiResponse }
+            : m
+        )
+      );
       setIsLoading(false);
-      streamText(responseText, assistantId);
-    } catch (err) {
+      readerRef.current = null;
+    } catch (err: any) {
+      if (err?.name === 'AbortError') {
+        setIsLoading(false);
+        return;
+      }
       console.error('Budget chat error:', err);
-      const errorMsg: ChatMessage = {
-        id: assistantId,
-        role: 'assistant',
-        content:
-          'Sorry, something went wrong. Please try again.',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMsg]);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? {
+                ...m,
+                isStreaming: false,
+                content: 'Sorry, something went wrong. Please try again.',
+                streamedContent: 'Sorry, something went wrong. Please try again.',
+              }
+            : m
+        )
+      );
       setIsLoading(false);
     }
   };
@@ -267,20 +306,17 @@ export function BudgetChatDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg flex flex-col h-full overflow-hidden p-0">
+      <SheetContent className="w-full sm:max-w-2xl flex flex-col h-full overflow-hidden p-0">
         <SheetHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b">
           <SheetTitle className="text-lg">{title}</SheetTitle>
-          <p className="text-xs text-muted-foreground">
-            Powered by the FY 2027 Executive Budget Briefing Book
-          </p>
         </SheetHeader>
 
         {/* Messages area */}
         <ScrollArea ref={scrollRef} className="flex-1 px-6 py-4">
           <div className="space-y-4">
             {/* Empty state with suggested questions */}
-            {messages.length === 0 && (
-              <div className="space-y-4">
+            {messages.length === 0 && !isLoading && (
+              <div className="space-y-4 pt-8">
                 <p className="text-sm text-muted-foreground">
                   Ask anything about the New York State FY 2027 Executive Budget.
                 </p>
@@ -290,7 +326,7 @@ export function BudgetChatDrawer({
                       key={q}
                       onClick={() => sendMessage(q)}
                       disabled={isLoading}
-                      className="text-left text-sm px-3 py-2 rounded-full border bg-background hover:bg-muted transition-colors disabled:opacity-50"
+                      className="text-left text-sm px-3 py-2 rounded-lg border bg-background hover:bg-muted transition-colors disabled:opacity-50"
                     >
                       {q}
                     </button>
@@ -310,48 +346,110 @@ export function BudgetChatDrawer({
                 <div
                   key={msg.id}
                   className={cn(
-                    'flex',
+                    'flex min-w-0',
                     msg.role === 'user' ? 'justify-end' : 'justify-start'
                   )}
                 >
                   <div
                     className={cn(
-                      'max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed',
+                      'rounded-lg p-3 relative',
                       msg.role === 'user'
-                        ? 'bg-foreground text-background'
-                        : 'bg-muted'
+                        ? 'bg-slate-800 text-white max-w-[85%] ml-auto'
+                        : 'bg-muted max-w-[85%]'
                     )}
+                    style={{
+                      maxWidth: '85%',
+                      width: 'fit-content',
+                      wordWrap: 'break-word',
+                      overflowWrap: 'break-word',
+                      wordBreak: 'break-word',
+                      overflowX: 'hidden',
+                    }}
                   >
-                    <div className="whitespace-pre-wrap break-words">
-                      {displayContent}
-                      {msg.isStreaming && (
-                        <span className="inline-block w-1.5 h-4 bg-current animate-pulse ml-0.5 align-text-bottom" />
-                      )}
-                    </div>
                     {/* Copy button for assistant messages */}
-                    {msg.role === 'assistant' && !msg.isStreaming && (
-                      <div className="flex justify-end mt-2">
-                        <button
-                          onClick={() => handleCopy(msg.content, msg.id)}
-                          className="text-muted-foreground hover:text-foreground transition-colors"
+                    {msg.role === 'assistant' && !msg.isStreaming && displayContent && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCopy(msg.content, msg.id)}
+                        className="absolute top-2 right-2 h-6 w-6 p-0 opacity-60 hover:opacity-100"
+                      >
+                        {copiedId === msg.id ? (
+                          <Check className="h-3 w-3" />
+                        ) : (
+                          <Copy className="h-3 w-3" />
+                        )}
+                      </Button>
+                    )}
+
+                    {msg.role === 'assistant' ? (
+                      <div
+                        className="chat-markdown-content text-sm prose prose-sm dark:prose-invert max-w-full pr-8"
+                        style={{
+                          maxWidth: '100%',
+                          width: '100%',
+                          wordWrap: 'break-word',
+                          overflowWrap: 'anywhere',
+                          wordBreak: 'break-word',
+                          hyphens: 'auto',
+                        }}
+                      >
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => (
+                              <p style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%', margin: '0.5em 0' }}>
+                                {children}
+                              </p>
+                            ),
+                            li: ({ children }) => (
+                              <li style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>
+                                {children}
+                              </li>
+                            ),
+                            h1: ({ children }) => (
+                              <h1 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>{children}</h1>
+                            ),
+                            h2: ({ children }) => (
+                              <h2 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>{children}</h2>
+                            ),
+                            h3: ({ children }) => (
+                              <h3 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>{children}</h3>
+                            ),
+                            ul: ({ children }) => (
+                              <ul style={{ paddingLeft: '1.5em', maxWidth: '100%' }}>{children}</ul>
+                            ),
+                            ol: ({ children }) => (
+                              <ol style={{ paddingLeft: '1.5em', maxWidth: '100%' }}>{children}</ol>
+                            ),
+                          }}
                         >
-                          {copiedId === msg.id ? (
-                            <Check className="h-3.5 w-3.5" />
-                          ) : (
-                            <Copy className="h-3.5 w-3.5" />
-                          )}
-                        </button>
+                          {displayContent}
+                        </ReactMarkdown>
+                        {msg.isStreaming && (
+                          <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1">|</span>
+                        )}
                       </div>
+                    ) : (
+                      <p
+                        className="text-sm whitespace-pre-wrap"
+                        style={{
+                          wordWrap: 'break-word',
+                          overflowWrap: 'break-word',
+                          maxWidth: '100%',
+                        }}
+                      >
+                        {displayContent}
+                      </p>
                     )}
                   </div>
                 </div>
               );
             })}
 
-            {/* Loading indicator */}
-            {isLoading && (
+            {/* Loading indicator (only shown before first streaming content) */}
+            {isLoading && messages[messages.length - 1]?.streamedContent === '' && (
               <div className="flex justify-start">
-                <div className="bg-muted rounded-2xl px-4 py-3 flex items-center gap-2">
+                <div className="bg-muted rounded-lg p-3 flex items-center gap-2">
                   <div className="flex gap-1">
                     <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                     <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -373,7 +471,7 @@ export function BudgetChatDrawer({
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask about the budget..."
+              placeholder="What are you researching?"
               disabled={isLoading}
               className="flex-1"
             />
