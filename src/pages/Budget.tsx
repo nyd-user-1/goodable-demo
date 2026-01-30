@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useBudgetSearch, formatBudgetAmount, reformatAgencyName, agencyToSlug, type BudgetTab } from '@/hooks/useBudgetSearch';
+import { useBudgetSearch, formatBudgetAmount, reformatAgencyName, type BudgetTab } from '@/hooks/useBudgetSearch';
 import { departmentPrompts, agencyPrompts, authorityPrompts } from '@/pages/Prompts';
 
 const tabs: { id: BudgetTab; label: string }[] = [
@@ -139,12 +139,14 @@ const Budget = () => {
     const rawName = item[agencyCol];
     if (!rawName) return;
 
-    const slug = agencyToSlug(rawName);
-    // Only navigate if the slug matches an existing department/agency/authority page
+    // Convert budget name (e.g. "Mental Health, Office of") to display title
+    const displayName = reformatAgencyName(rawName);
     const allPrompts = [...departmentPrompts, ...agencyPrompts, ...authorityPrompts];
-    const match = allPrompts.find(p => p.slug === slug);
+    const match = allPrompts.find(
+      (p) => p.title.toLowerCase() === displayName.toLowerCase()
+    );
     if (match) {
-      navigate(`/departments/${slug}`);
+      navigate(`/departments/${match.slug}`);
     }
   };
 

@@ -45,6 +45,38 @@ export function agencyToSlug(name: string): string {
     .replace(/^-|-$/g, '');
 }
 
+// Convert a Prompts title (e.g. "Office of Mental Health") to possible budget table name formats.
+// Budget tables store names comma-inverted: "Mental Health, Office of"
+export function titleToBudgetNames(title: string): string[] {
+  const candidates = [title];
+
+  const prefixes = [
+    'Offices of the ',
+    'Office for the ',
+    'Office for ',
+    'Office of the ',
+    'Office of ',
+    'Department of ',
+    'Division of the ',
+    'Division of ',
+    'Council on the ',
+    'Council on ',
+    'Commission on ',
+    'Commission of ',
+    'Board of ',
+  ];
+
+  for (const prefix of prefixes) {
+    if (title.startsWith(prefix)) {
+      const rest = title.substring(prefix.length);
+      candidates.push(`${rest}, ${prefix.trimEnd()}`);
+      break;
+    }
+  }
+
+  return candidates;
+}
+
 export function useBudgetSearch(activeTab: BudgetTab) {
   const [searchTerm, setSearchTerm] = useState('');
   const [agencyFilter, setAgencyFilter] = useState('');

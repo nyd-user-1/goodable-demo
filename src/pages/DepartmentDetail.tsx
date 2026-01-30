@@ -8,7 +8,7 @@ import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { EngineSelection } from '@/components/EngineSelection';
 import { departmentPrompts, agencyPrompts, authorityPrompts } from '@/pages/Prompts';
 import { supabase } from '@/integrations/supabase/client';
-import { TABLE_MAP, agencyToSlug, reformatAgencyName, formatBudgetAmount } from '@/hooks/useBudgetSearch';
+import { TABLE_MAP, titleToBudgetNames, reformatAgencyName, formatBudgetAmount } from '@/hooks/useBudgetSearch';
 import {
   Carousel,
   CarouselContent,
@@ -62,95 +62,57 @@ export default function DepartmentDetail() {
   const item = slug ? findBySlug(slug) : null;
   const related = item ? getRelated(slug!, item.category) : [];
 
-  // Find matching agency name from budget tables by comparing slugs
-  const { data: matchedAgencyNames } = useQuery({
-    queryKey: ['budget-agency-match', slug],
-    queryFn: async () => {
-      if (!slug) return null;
+  // Build candidate budget-table names from the Prompts title
+  const budgetCandidates = useMemo(
+    () => (item ? titleToBudgetNames(item.title) : []),
+    [item]
+  );
 
-      // Fetch unique agency names from all three tables
-      const [apropsRes, capitalRes, spendingRes] = await Promise.all([
-        (supabase as any).from(TABLE_MAP.appropriations).select('"Agency Name"'),
-        (supabase as any).from(TABLE_MAP.capital).select('"Agency Name"'),
-        (supabase as any).from(TABLE_MAP.spending).select('Agency'),
-      ]);
-
-      const apropsNames = new Set<string>(
-        (apropsRes.data || []).map((d: any) => d['Agency Name']).filter(Boolean)
-      );
-      const capitalNames = new Set<string>(
-        (capitalRes.data || []).map((d: any) => d['Agency Name']).filter(Boolean)
-      );
-      const spendingNames = new Set<string>(
-        (spendingRes.data || []).map((d: any) => d['Agency']).filter(Boolean)
-      );
-
-      // Find matching name by slug comparison
-      let apropsMatch: string | null = null;
-      let capitalMatch: string | null = null;
-      let spendingMatch: string | null = null;
-
-      for (const name of apropsNames) {
-        if (agencyToSlug(name) === slug) { apropsMatch = name; break; }
-      }
-      for (const name of capitalNames) {
-        if (agencyToSlug(name) === slug) { capitalMatch = name; break; }
-      }
-      for (const name of spendingNames) {
-        if (agencyToSlug(name) === slug) { spendingMatch = name; break; }
-      }
-
-      return { apropsMatch, capitalMatch, spendingMatch };
-    },
-    enabled: !!slug,
-    staleTime: 30 * 60 * 1000,
-  });
-
-  // Fetch appropriations data
+  // Fetch appropriations data directly using candidate names
   const { data: appropriationsData } = useQuery({
-    queryKey: ['dept-appropriations', matchedAgencyNames?.apropsMatch],
+    queryKey: ['dept-appropriations', budgetCandidates],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from(TABLE_MAP.appropriations)
         .select('*')
-        .eq('Agency Name', matchedAgencyNames!.apropsMatch)
+        .in('Agency Name', budgetCandidates)
         .limit(500);
       if (error) throw error;
       return data || [];
     },
-    enabled: !!matchedAgencyNames?.apropsMatch,
+    enabled: budgetCandidates.length > 0,
     staleTime: 10 * 60 * 1000,
   });
 
-  // Fetch capital data
+  // Fetch capital data directly using candidate names
   const { data: capitalData } = useQuery({
-    queryKey: ['dept-capital', matchedAgencyNames?.capitalMatch],
+    queryKey: ['dept-capital', budgetCandidates],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from(TABLE_MAP.capital)
         .select('*')
-        .eq('Agency Name', matchedAgencyNames!.capitalMatch)
+        .in('Agency Name', budgetCandidates)
         .limit(500);
       if (error) throw error;
       return data || [];
     },
-    enabled: !!matchedAgencyNames?.capitalMatch,
+    enabled: budgetCandidates.length > 0,
     staleTime: 10 * 60 * 1000,
   });
 
-  // Fetch spending data
+  // Fetch spending data directly using candidate names
   const { data: spendingData } = useQuery({
-    queryKey: ['dept-spending', matchedAgencyNames?.spendingMatch],
+    queryKey: ['dept-spending', budgetCandidates],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from(TABLE_MAP.spending)
         .select('*')
-        .eq('Agency', matchedAgencyNames!.spendingMatch)
+        .in('Agency', budgetCandidates)
         .limit(500);
       if (error) throw error;
       return data || [];
     },
-    enabled: !!matchedAgencyNames?.spendingMatch,
+    enabled: budgetCandidates.length > 0,
     staleTime: 10 * 60 * 1000,
   });
 
