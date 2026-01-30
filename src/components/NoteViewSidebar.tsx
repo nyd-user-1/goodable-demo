@@ -37,6 +37,7 @@ import {
   Trash2,
   Pencil,
   BookCheck,
+  BarChart3,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -624,6 +625,25 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               </TooltipTrigger>
               <TooltipContent side="right">
                 <p>NYS Budget data</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <NavLink
+                  to="/budget-dashboard"
+                  onClick={onClose}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-medium transition-colors",
+                    isActive("/budget-dashboard") ? "bg-muted" : "hover:bg-muted"
+                  )}
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  <span>Budget Explorer</span>
+                </NavLink>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Explore NYS budget spending data</p>
               </TooltipContent>
             </Tooltip>
 

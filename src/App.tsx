@@ -78,6 +78,7 @@ import FreeTrial from "./pages/FreeTrial";
 import Contracts from "./pages/Contracts";
 import ContractDetail from "./pages/ContractDetail";
 import Budget from "./pages/Budget";
+import BudgetDashboard from "./pages/BudgetDashboard";
 
 import Lobbying from "./pages/Lobbying";
 import LobbyingDetail from "./pages/LobbyingDetail";
@@ -214,6 +215,7 @@ const App = () => {
                   <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
                   <Route path="/lobbying" element={<ProtectedRoute><Lobbying /></ProtectedRoute>} />
                   <Route path="/budget" element={<ProtectedRoute><Budget /></ProtectedRoute>} />
+                  <Route path="/budget-dashboard" element={<ProtectedRoute><BudgetDashboard /></ProtectedRoute>} />
 
                   <Route path="/departments" element={<ProtectedRoute><Prompts /></ProtectedRoute>} />
                   <Route path="/departments/:slug" element={<ProtectedRoute><DepartmentDetail /></ProtectedRoute>} />
