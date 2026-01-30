@@ -338,7 +338,10 @@ const Budget = () => {
             ) : items.length === 0 ? (
               <div className="text-center py-12">
                 <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No budget items found matching your criteria.</p>
+                <p className="text-muted-foreground">Please log in to view thousands of budget records.</p>
+                <Button onClick={() => navigate('/auth-4')} className="mt-4">
+                  Sign Up
+                </Button>
                 {hasActiveFilters && (
                   <Button variant="link" onClick={clearFilters} className="mt-2">
                     Clear filters

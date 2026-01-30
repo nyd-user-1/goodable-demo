@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PanelLeft, ChevronRight, ChevronDown, ArrowUp, MessageSquare, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
@@ -26,6 +27,7 @@ import {
 const TABS: DashboardTab[] = ['function', 'fundType', 'fpCategory'];
 
 const BudgetDashboard = () => {
+  const navigate = useNavigate();
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [sidebarMounted, setSidebarMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<DashboardTab>('function');
@@ -283,7 +285,10 @@ const BudgetDashboard = () => {
               </div>
             ) : rows.length === 0 ? (
               <div className="text-center py-12 px-4">
-                <p className="text-muted-foreground">No spending data available.</p>
+                <p className="text-muted-foreground">Please log in to view thousands of budget records.</p>
+                <Button onClick={() => navigate('/auth-4')} className="mt-4">
+                  Sign Up
+                </Button>
               </div>
             ) : (
               <div className="divide-y">
