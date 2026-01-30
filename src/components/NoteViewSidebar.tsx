@@ -727,7 +727,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           <Collapsible defaultOpen className="group/chats mt-4">
             <div className="px-2">
               <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
-                Your chats
+                Chats
                 <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/chats:rotate-90" />
               </CollapsibleTrigger>
             </div>
