@@ -33,6 +33,12 @@ const FUND_TYPE_LABEL: Record<BudgetTab, string> = {
   spending: 'Fund Type',
 };
 
+const EXTRA_LABEL: Record<BudgetTab, string> = {
+  appropriations: 'Fund',
+  capital: 'Program',
+  spending: 'FP Category',
+};
+
 const Budget = () => {
   const navigate = useNavigate();
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -52,6 +58,7 @@ const Budget = () => {
     agencies,
     secondaryOptions,
     fundTypeOptions,
+    extraOptions,
     yearOptions,
     searchTerm,
     setSearchTerm,
@@ -61,6 +68,8 @@ const Budget = () => {
     setSecondaryFilter,
     fundTypeFilter,
     setFundTypeFilter,
+    extraFilter,
+    setExtraFilter,
     yearFilter,
     setYearFilter,
     resetFilters,
@@ -93,10 +102,11 @@ const Budget = () => {
     setAgencyFilter('');
     setSecondaryFilter('');
     setFundTypeFilter('');
+    setExtraFilter('');
     setYearFilter('');
   };
 
-  const hasActiveFilters = searchTerm || agencyFilter || secondaryFilter || fundTypeFilter || yearFilter;
+  const hasActiveFilters = searchTerm || agencyFilter || secondaryFilter || fundTypeFilter || extraFilter || yearFilter;
 
   const openCommandPalette = () => {
     const event = new KeyboardEvent('keydown', {
@@ -283,6 +293,20 @@ const Budget = () => {
                     <SelectContent>
                       <SelectItem value="all" className="focus:bg-muted focus:text-foreground">{FUND_TYPE_LABEL[activeTab]}</SelectItem>
                       {fundTypeOptions.map((opt: string) => (
+                        <SelectItem key={opt} value={opt} className="focus:bg-muted focus:text-foreground">
+                          {opt}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={extraFilter || 'all'} onValueChange={(v) => setExtraFilter(v === 'all' ? '' : v)}>
+                    <SelectTrigger className="w-auto border-0 bg-muted/40 hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted focus:ring-0 focus:ring-offset-0">
+                      <SelectValue placeholder={EXTRA_LABEL[activeTab]} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">{EXTRA_LABEL[activeTab]}</SelectItem>
+                      {extraOptions.map((opt: string) => (
                         <SelectItem key={opt} value={opt} className="focus:bg-muted focus:text-foreground">
                           {opt}
                         </SelectItem>

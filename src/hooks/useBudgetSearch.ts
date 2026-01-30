@@ -25,6 +25,18 @@ const FUND_TYPE_COL: Record<BudgetTab, string> = {
   spending: 'Fund Type',
 };
 
+// Extra filter column per tab: Fund Name (appropriations), Program Name (capital), FP Category (spending)
+const EXTRA_COL: Record<BudgetTab, string> = {
+  appropriations: 'Fund Name',
+  capital: 'Program Name',
+  spending: 'FP Category',
+};
+
+// Supabase PostgREST requires double-quoting column names that contain spaces in .select()
+function quoteCol(col: string): string {
+  return col.includes(' ') ? `"${col}"` : col;
+}
+
 // Reformat agency names like "Arts, Council on the" → "Council on the Arts"
 export function reformatAgencyName(name: string): string {
   if (!name) return name;
@@ -82,6 +94,7 @@ export function useBudgetSearch(activeTab: BudgetTab) {
   const [agencyFilter, setAgencyFilter] = useState('');
   const [secondaryFilter, setSecondaryFilter] = useState('');
   const [fundTypeFilter, setFundTypeFilter] = useState('');
+  const [extraFilter, setExtraFilter] = useState('');
   const [yearFilter, setYearFilter] = useState('');
 
   // Reset filters when tab changes
@@ -90,12 +103,13 @@ export function useBudgetSearch(activeTab: BudgetTab) {
     setAgencyFilter('');
     setSecondaryFilter('');
     setFundTypeFilter('');
+    setExtraFilter('');
     setYearFilter('');
   };
 
   // Fetch data
   const { data, isLoading, error } = useQuery({
-    queryKey: ['budget', activeTab, agencyFilter, secondaryFilter, fundTypeFilter, yearFilter],
+    queryKey: ['budget', activeTab, agencyFilter, secondaryFilter, fundTypeFilter, extraFilter, yearFilter],
     queryFn: async () => {
       const table = TABLE_MAP[activeTab];
       const agencyCol = AGENCY_COL[activeTab];
@@ -123,6 +137,11 @@ export function useBudgetSearch(activeTab: BudgetTab) {
       // Server-side fund type filter
       if (fundTypeFilter) {
         query = query.eq(fundTypeCol, fundTypeFilter);
+      }
+
+      // Server-side extra filter (Fund Name / Program Name / FP Category)
+      if (extraFilter) {
+        query = query.eq(EXTRA_COL[activeTab], extraFilter);
       }
 
       // Server-side year filter (spending tab only)
@@ -165,7 +184,7 @@ export function useBudgetSearch(activeTab: BudgetTab) {
 
       const { data } = await (supabase as any)
         .from(table)
-        .select(agencyCol);
+        .select(quoteCol(agencyCol));
 
       if (!data) return [];
       const unique = [
@@ -188,7 +207,7 @@ export function useBudgetSearch(activeTab: BudgetTab) {
           ? 'Financing Source'
           : 'Function';
 
-      const { data } = await (supabase as any).from(table).select(col);
+      const { data } = await (supabase as any).from(table).select(quoteCol(col));
 
       if (!data) return [];
       const unique = [
@@ -206,7 +225,25 @@ export function useBudgetSearch(activeTab: BudgetTab) {
       const table = TABLE_MAP[activeTab];
       const col = FUND_TYPE_COL[activeTab];
 
-      const { data } = await (supabase as any).from(table).select(col);
+      const { data } = await (supabase as any).from(table).select(quoteCol(col));
+
+      if (!data) return [];
+      const unique = [
+        ...new Set(data.map((d: any) => d[col]).filter(Boolean)),
+      ] as string[];
+      return unique.sort();
+    },
+    staleTime: 30 * 60 * 1000,
+  });
+
+  // Fetch unique values for the extra filter dropdown (Fund Name / Program Name / FP Category)
+  const { data: extraOptions } = useQuery({
+    queryKey: ['budget-extra', activeTab],
+    queryFn: async () => {
+      const table = TABLE_MAP[activeTab];
+      const col = EXTRA_COL[activeTab];
+
+      const { data } = await (supabase as any).from(table).select(quoteCol(col));
 
       if (!data) return [];
       const unique = [
@@ -246,6 +283,7 @@ export function useBudgetSearch(activeTab: BudgetTab) {
     agencies: agencyOptions || [],
     secondaryOptions: secondaryOptions || [],
     fundTypeOptions: fundTypeOptions || [],
+    extraOptions: extraOptions || [],
     yearOptions: yearOptions || [],
     searchTerm,
     setSearchTerm,
@@ -255,6 +293,8 @@ export function useBudgetSearch(activeTab: BudgetTab) {
     setSecondaryFilter,
     fundTypeFilter,
     setFundTypeFilter,
+    extraFilter,
+    setExtraFilter,
     yearFilter,
     setYearFilter,
     resetFilters,
