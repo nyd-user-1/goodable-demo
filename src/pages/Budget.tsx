@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useBudgetSearch, formatBudgetAmount, type BudgetTab } from '@/hooks/useBudgetSearch';
+import { useBudgetSearch, formatBudgetAmount, reformatAgencyName, type BudgetTab } from '@/hooks/useBudgetSearch';
 
 const tabs: { id: BudgetTab; label: string }[] = [
   { id: 'appropriations', label: 'Appropriations' },
@@ -24,6 +24,12 @@ const SECONDARY_LABEL: Record<BudgetTab, string> = {
   appropriations: 'Category',
   capital: 'Source',
   spending: 'Function',
+};
+
+const FUND_TYPE_LABEL: Record<BudgetTab, string> = {
+  appropriations: 'Fund Type',
+  capital: 'Fund Name',
+  spending: 'Fund Type',
 };
 
 const Budget = () => {
@@ -44,12 +50,15 @@ const Budget = () => {
     error,
     agencies,
     secondaryOptions,
+    fundTypeOptions,
     searchTerm,
     setSearchTerm,
     agencyFilter,
     setAgencyFilter,
     secondaryFilter,
     setSecondaryFilter,
+    fundTypeFilter,
+    setFundTypeFilter,
     resetFilters,
   } = useBudgetSearch(activeTab);
 
@@ -79,9 +88,10 @@ const Budget = () => {
     setSearchTerm('');
     setAgencyFilter('');
     setSecondaryFilter('');
+    setFundTypeFilter('');
   };
 
-  const hasActiveFilters = searchTerm || agencyFilter || secondaryFilter;
+  const hasActiveFilters = searchTerm || agencyFilter || secondaryFilter || fundTypeFilter;
 
   const openCommandPalette = () => {
     const event = new KeyboardEvent('keydown', {
@@ -95,21 +105,21 @@ const Budget = () => {
   const handleChatClick = (item: any) => {
     let prompt = '';
     if (activeTab === 'appropriations') {
-      const agency = item['Agency Name'] || 'this agency';
+      const agency = reformatAgencyName(item['Agency Name'] || 'this agency');
       const program = item['Program Name'] ? ` for "${item['Program Name']}"` : '';
       const amount = item['Appropriations Recommended 2026-27']
         ? ` with a recommended appropriation of ${formatBudgetAmount(item['Appropriations Recommended 2026-27'])}`
         : '';
       prompt = `Tell me about the NYS budget appropriation for ${agency}${program}${amount}. What is this funding used for and how has it changed from the prior year?`;
     } else if (activeTab === 'capital') {
-      const agency = item['Agency Name'] || 'this agency';
+      const agency = reformatAgencyName(item['Agency Name'] || 'this agency');
       const desc = item['Description'] ? ` described as "${item['Description']}"` : '';
       const amount = item['Appropriations Recommended 2026-27']
         ? ` with a recommended amount of ${formatBudgetAmount(item['Appropriations Recommended 2026-27'])}`
         : '';
       prompt = `Tell me about the NYS capital appropriation for ${agency}${desc}${amount}. What is this capital project about?`;
     } else {
-      const agency = item['Agency'] || 'this agency';
+      const agency = reformatAgencyName(item['Agency'] || 'this agency');
       const fn = item['Function'] ? ` under the "${item['Function']}" function` : '';
       const amount = item['2026-27 Estimates']
         ? ` with estimated spending of ${formatBudgetAmount(item['2026-27 Estimates'])}`
@@ -117,6 +127,12 @@ const Budget = () => {
       prompt = `Tell me about NYS spending by ${agency}${fn}${amount}. How has this spending changed over recent years?`;
     }
     navigate(`/new-chat?prompt=${encodeURIComponent(prompt)}`);
+  };
+
+  const handleCardClick = (item: any) => {
+    if (item.id) {
+      navigate(`/budget/${activeTab}/${item.id}`);
+    }
   };
 
   return (
@@ -244,6 +260,20 @@ const Budget = () => {
                       ))}
                     </SelectContent>
                   </Select>
+
+                  <Select value={fundTypeFilter || 'all'} onValueChange={(v) => setFundTypeFilter(v === 'all' ? '' : v)}>
+                    <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
+                      <SelectValue placeholder={FUND_TYPE_LABEL[activeTab]} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all" className="focus:bg-muted focus:text-foreground">{FUND_TYPE_LABEL[activeTab]}</SelectItem>
+                      {fundTypeOptions.map((opt: string) => (
+                        <SelectItem key={opt} value={opt} className="focus:bg-muted focus:text-foreground">
+                          {opt}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -279,6 +309,7 @@ const Budget = () => {
                     item={item}
                     tab={activeTab}
                     onChatClick={() => handleChatClick(item)}
+                    onCardClick={() => handleCardClick(item)}
                   />
                 ))}
               </div>
@@ -296,27 +327,28 @@ interface BudgetCardProps {
   item: any;
   tab: BudgetTab;
   onChatClick: () => void;
+  onCardClick: () => void;
 }
 
-function BudgetCard({ item, tab, onChatClick }: BudgetCardProps) {
+function BudgetCard({ item, tab, onChatClick, onCardClick }: BudgetCardProps) {
   const handleChat = (e: React.MouseEvent) => {
     e.stopPropagation();
     onChatClick();
   };
 
   if (tab === 'appropriations') {
-    return <AppropriationCard item={item} onChatClick={handleChat} />;
+    return <AppropriationCard item={item} onChatClick={handleChat} onCardClick={onCardClick} />;
   }
   if (tab === 'capital') {
-    return <CapitalCard item={item} onChatClick={handleChat} />;
+    return <CapitalCard item={item} onChatClick={handleChat} onCardClick={onCardClick} />;
   }
-  return <SpendingCard item={item} onChatClick={handleChat} />;
+  return <SpendingCard item={item} onChatClick={handleChat} onCardClick={onCardClick} />;
 }
 
 // ── Appropriations Card ───────────────────────────────────────────
 
-function AppropriationCard({ item, onChatClick }: { item: any; onChatClick: (e: React.MouseEvent) => void }) {
-  const agency = item['Agency Name'] || 'Unknown Agency';
+function AppropriationCard({ item, onChatClick, onCardClick }: { item: any; onChatClick: (e: React.MouseEvent) => void; onCardClick: () => void }) {
+  const agency = reformatAgencyName(item['Agency Name'] || 'Unknown Agency');
   const program = item['Program Name'];
   const category = item['Appropriation Category'];
   const recommended = item['Appropriations Recommended 2026-27'];
@@ -327,8 +359,15 @@ function AppropriationCard({ item, onChatClick }: { item: any; onChatClick: (e: 
   if (recommended) promptText += ` — ${formatBudgetAmount(recommended)} recommended for FY 2026-27`;
 
   return (
-    <div className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200">
-      <h3 className="font-semibold text-base mb-2">{agency}</h3>
+    <div onClick={onCardClick} className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200">
+      <div className="flex justify-between items-start mb-2">
+        <h3 className="font-semibold text-base">{agency}</h3>
+        {recommended && (
+          <span className="text-sm font-semibold text-green-600 dark:text-green-400 ml-3 whitespace-nowrap">
+            {formatBudgetAmount(recommended)}
+          </span>
+        )}
+      </div>
       <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
         {promptText}.
       </p>
@@ -394,8 +433,8 @@ function AppropriationCard({ item, onChatClick }: { item: any; onChatClick: (e: 
 
 // ── Capital Card ──────────────────────────────────────────────────
 
-function CapitalCard({ item, onChatClick }: { item: any; onChatClick: (e: React.MouseEvent) => void }) {
-  const agency = item['Agency Name'] || 'Unknown Agency';
+function CapitalCard({ item, onChatClick, onCardClick }: { item: any; onChatClick: (e: React.MouseEvent) => void; onCardClick: () => void }) {
+  const agency = reformatAgencyName(item['Agency Name'] || 'Unknown Agency');
   const description = item['Description'];
   const recommended = item['Appropriations Recommended 2026-27'];
 
@@ -404,8 +443,15 @@ function CapitalCard({ item, onChatClick }: { item: any; onChatClick: (e: React.
   if (recommended) promptText += ` — ${formatBudgetAmount(recommended)} recommended`;
 
   return (
-    <div className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200">
-      <h3 className="font-semibold text-base mb-2">{agency}</h3>
+    <div onClick={onCardClick} className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200">
+      <div className="flex justify-between items-start mb-2">
+        <h3 className="font-semibold text-base">{agency}</h3>
+        {recommended && (
+          <span className="text-sm font-semibold text-green-600 dark:text-green-400 ml-3 whitespace-nowrap">
+            {formatBudgetAmount(recommended)}
+          </span>
+        )}
+      </div>
       <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
         {promptText}.
       </p>
@@ -471,8 +517,8 @@ function CapitalCard({ item, onChatClick }: { item: any; onChatClick: (e: React.
 
 // ── Spending Card ─────────────────────────────────────────────────
 
-function SpendingCard({ item, onChatClick }: { item: any; onChatClick: (e: React.MouseEvent) => void }) {
-  const agency = item['Agency'] || 'Unknown Agency';
+function SpendingCard({ item, onChatClick, onCardClick }: { item: any; onChatClick: (e: React.MouseEvent) => void; onCardClick: () => void }) {
+  const agency = reformatAgencyName(item['Agency'] || 'Unknown Agency');
   const fn = item['Function'];
   const estimate = item['2026-27 Estimates'];
 
@@ -481,8 +527,15 @@ function SpendingCard({ item, onChatClick }: { item: any; onChatClick: (e: React
   if (estimate) promptText += `, ${formatBudgetAmount(estimate)} est. FY 2026-27`;
 
   return (
-    <div className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200">
-      <h3 className="font-semibold text-base mb-2">{agency}</h3>
+    <div onClick={onCardClick} className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200">
+      <div className="flex justify-between items-start mb-2">
+        <h3 className="font-semibold text-base">{agency}</h3>
+        {estimate && (
+          <span className="text-sm font-semibold text-green-600 dark:text-green-400 ml-3 whitespace-nowrap">
+            {formatBudgetAmount(estimate)}
+          </span>
+        )}
+      </div>
       <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
         {promptText}.
       </p>

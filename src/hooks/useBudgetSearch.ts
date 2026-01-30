@@ -5,7 +5,7 @@ import type { BudgetAppropriation, BudgetCapital, BudgetSpending } from '@/types
 
 export type BudgetTab = 'appropriations' | 'capital' | 'spending';
 
-const TABLE_MAP: Record<BudgetTab, string> = {
+export const TABLE_MAP: Record<BudgetTab, string> = {
   appropriations: 'budget_2027-aprops',
   capital: 'budget_2027_capital_aprops',
   spending: 'budget_2027_spending',
@@ -18,24 +18,44 @@ const AGENCY_COL: Record<BudgetTab, string> = {
   spending: 'Agency',
 };
 
+// Fund Type column: appropriations and spending have 'Fund Type', capital has 'Fund Name'
+const FUND_TYPE_COL: Record<BudgetTab, string> = {
+  appropriations: 'Fund Type',
+  capital: 'Fund Name',
+  spending: 'Fund Type',
+};
+
+// Reformat agency names like "Arts, Council on the" → "Council on the Arts"
+export function reformatAgencyName(name: string): string {
+  if (!name) return name;
+  const commaIndex = name.indexOf(',');
+  if (commaIndex === -1) return name;
+  const before = name.substring(0, commaIndex).trim();
+  const after = name.substring(commaIndex + 1).trim();
+  return `${after} ${before}`;
+}
+
 export function useBudgetSearch(activeTab: BudgetTab) {
   const [searchTerm, setSearchTerm] = useState('');
   const [agencyFilter, setAgencyFilter] = useState('');
   const [secondaryFilter, setSecondaryFilter] = useState('');
+  const [fundTypeFilter, setFundTypeFilter] = useState('');
 
   // Reset filters when tab changes
   const resetFilters = () => {
     setSearchTerm('');
     setAgencyFilter('');
     setSecondaryFilter('');
+    setFundTypeFilter('');
   };
 
   // Fetch data
   const { data, isLoading, error } = useQuery({
-    queryKey: ['budget', activeTab, agencyFilter, secondaryFilter],
+    queryKey: ['budget', activeTab, agencyFilter, secondaryFilter, fundTypeFilter],
     queryFn: async () => {
       const table = TABLE_MAP[activeTab];
       const agencyCol = AGENCY_COL[activeTab];
+      const fundTypeCol = FUND_TYPE_COL[activeTab];
 
       // Use .from() with any to handle non-typed tables
       let query = (supabase as any).from(table).select('*');
@@ -54,6 +74,11 @@ export function useBudgetSearch(activeTab: BudgetTab) {
         } else {
           query = query.eq('Function', secondaryFilter);
         }
+      }
+
+      // Server-side fund type filter
+      if (fundTypeFilter) {
+        query = query.eq(fundTypeCol, fundTypeFilter);
       }
 
       query = query.limit(1000);
@@ -123,18 +148,39 @@ export function useBudgetSearch(activeTab: BudgetTab) {
     staleTime: 30 * 60 * 1000,
   });
 
+  // Fetch unique values for the fund type filter dropdown
+  const { data: fundTypeOptions } = useQuery({
+    queryKey: ['budget-fund-type', activeTab],
+    queryFn: async () => {
+      const table = TABLE_MAP[activeTab];
+      const col = FUND_TYPE_COL[activeTab];
+
+      const { data } = await (supabase as any).from(table).select(col);
+
+      if (!data) return [];
+      const unique = [
+        ...new Set(data.map((d: any) => d[col]).filter(Boolean)),
+      ] as string[];
+      return unique.sort();
+    },
+    staleTime: 30 * 60 * 1000,
+  });
+
   return {
     data: filtered,
     isLoading,
     error,
     agencies: agencyOptions || [],
     secondaryOptions: secondaryOptions || [],
+    fundTypeOptions: fundTypeOptions || [],
     searchTerm,
     setSearchTerm,
     agencyFilter,
     setAgencyFilter,
     secondaryFilter,
     setSecondaryFilter,
+    fundTypeFilter,
+    setFundTypeFilter,
     resetFilters,
   };
 }
