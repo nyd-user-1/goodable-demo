@@ -314,7 +314,7 @@ const Budget = () => {
                     </SelectContent>
                   </Select>
 
-                  {activeTab === 'spending' && yearOptions.length > 0 && (
+                  {activeTab === 'spending' && (
                     <Select value={yearFilter || 'all'} onValueChange={(v) => setYearFilter(v === 'all' ? '' : v)}>
                       <SelectTrigger className="w-auto border-0 bg-muted/40 hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted focus:ring-0 focus:ring-offset-0">
                         <SelectValue placeholder="Year" />
