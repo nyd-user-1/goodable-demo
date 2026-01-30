@@ -38,7 +38,7 @@ import {
   Pencil,
   BookCheck,
   BarChart3,
-  Sparkles,
+  CirclePlus,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -610,38 +610,38 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             {/* Separator */}
             <div className="my-2 mx-3 border-t border-border/50" />
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <NavLink
-                  to="/budget"
-                  onClick={onClose}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                    isActive("/budget") ? "bg-muted" : "hover:bg-muted"
-                  )}
-                >
-                  <DollarSign className="h-4 w-4" />
-                  <span>Budget</span>
-                </NavLink>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>NYS Budget data</p>
-              </TooltipContent>
-            </Tooltip>
-
-            {/* Pro Section */}
+            {/* Pro Plan Section */}
             <Collapsible defaultOpen className="group/pro">
               <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal text-foreground hover:bg-muted transition-colors">
                 <div className="flex items-center gap-3">
-                  <Sparkles className="h-4 w-4" />
-                  <span>Pro</span>
+                  <CirclePlus className="h-4 w-4" />
+                  <span>Pro Plan</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary">Upgrade</span>
+                  <span className="text-[9px] font-medium uppercase tracking-wider px-1.5 py-px rounded-full bg-muted-foreground/10 text-muted-foreground">Upgrade</span>
                   <ChevronRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-data-[state=open]/pro:rotate-90" />
                 </div>
               </CollapsibleTrigger>
               <CollapsibleContent className="pl-4 space-y-1 mt-1">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <NavLink
+                      to="/budget"
+                      onClick={onClose}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
+                        isActive("/budget") ? "bg-muted" : "hover:bg-muted"
+                      )}
+                    >
+                      <DollarSign className="h-4 w-4" />
+                      <span>Budget</span>
+                    </NavLink>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>NYS Budget data</p>
+                  </TooltipContent>
+                </Tooltip>
+
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <NavLink
