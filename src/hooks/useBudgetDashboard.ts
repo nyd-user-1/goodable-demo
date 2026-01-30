@@ -222,6 +222,24 @@ export function useBudgetDashboard() {
     return rows;
   };
 
+  // Historical data filtered by a specific group value (for interactive chart)
+  const getHistoricalForGroup = (tab: DashboardTab, groupValue: string): { year: string; total: number; column: string; isEstimate: boolean }[] => {
+    if (!rawData || rawData.length === 0 || yearColumns.length === 0) return [];
+
+    const groupCol = TAB_COLUMN[tab];
+    const filtered = rawData.filter((row: any) => (row[groupCol] || 'Unclassified') === groupValue);
+
+    return yearColumns.map((col) => {
+      let total = 0;
+      for (const row of filtered) {
+        total += parseDollar(row[col]);
+      }
+      const yearLabel = col.replace(/\s+(Actuals|Estimates)$/i, '');
+      const isEstimate = col.toLowerCase().includes('estimate');
+      return { year: yearLabel, total, column: col, isEstimate };
+    }).reverse();
+  };
+
   return {
     isLoading,
     error,
@@ -235,6 +253,7 @@ export function useBudgetDashboard() {
     primaryYear,
     priorYear,
     getDrillDown,
+    getHistoricalForGroup,
   };
 }
 
