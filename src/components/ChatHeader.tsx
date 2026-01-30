@@ -92,13 +92,12 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 px-5 py-2 bg-background/80 backdrop-blur-sm">
       <div className="flex items-center justify-between">
-        {/* Left side - Menu icon on mobile, NYSgpt on desktop */}
+        {/* Left side - Logs menu icon */}
         <div className="flex items-center space-x-1">
-          {/* Mobile menu icon - opens sidebar */}
           {onOpenSidebar && (
             <button
               onClick={onOpenSidebar}
-              className="sm:hidden inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors"
+              className="inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors"
               aria-label="Open menu"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -108,24 +107,6 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
               </svg>
             </button>
           )}
-          {/* NYSgpt button - hidden on mobile when sidebar is available */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleHeartClick}
-                className={cn(
-                  "inline-flex items-center justify-center h-10 rounded-md px-3 text-black hover:bg-muted transition-colors font-semibold text-xl",
-                  onOpenSidebar && "hidden sm:inline-flex"
-                )}
-              >
-                NYSgpt
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="font-medium">
-              What is NYSgpt?
-            </TooltipContent>
-          </Tooltip>
-
         </div>
 
         {/* Center - Marketing Navigation (desktop only) */}
@@ -264,44 +245,37 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
               Command menu
             </TooltipContent>
           </Tooltip>
-          {/* Mobile: NYSgpt text when sidebar available, otherwise Log In icon */}
-          {onOpenSidebar ? (
-            <>
+          {/* Log In icon - hidden on mobile when sidebar available */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                className={cn(
+                  "items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors",
+                  onOpenSidebar ? "hidden sm:inline-flex" : "inline-flex"
+                )}
+                onClick={() => navigate('/auth')}
+              >
+                <LogIn className="h-5 w-5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Log In
+            </TooltipContent>
+          </Tooltip>
+          {/* NYSgpt button */}
+          <Tooltip>
+            <TooltipTrigger asChild>
               <button
                 onClick={handleHeartClick}
-                className="sm:hidden inline-flex items-center justify-center h-9 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-lg"
+                className="inline-flex items-center justify-center h-10 rounded-md px-3 text-black hover:bg-muted transition-colors font-semibold text-xl"
               >
                 NYSgpt
               </button>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    className="hidden sm:inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                    onClick={() => navigate('/auth')}
-                  >
-                    <LogIn className="h-5 w-5" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  Log In
-                </TooltipContent>
-              </Tooltip>
-            </>
-          ) : (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                  onClick={() => navigate('/auth')}
-                >
-                  <LogIn className="h-5 w-5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                Log In
-              </TooltipContent>
-            </Tooltip>
-          )}
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="font-medium">
+              What is NYSgpt?
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
     </nav>
