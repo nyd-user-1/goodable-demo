@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, DollarSign, ArrowUp, PanelLeft, Command } from 'lucide-react';
-import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
+import { Search, X, DollarSign, ArrowUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Input } from '@/components/ui/input';
@@ -76,12 +75,8 @@ const Budget = () => {
     resetFilters,
   } = useBudgetSearch(activeTab);
 
-  // Focus search on mount (desktop)
+  // Keyboard shortcut to focus search
   useEffect(() => {
-    if (window.innerWidth >= 768) {
-      searchInputRef.current?.focus();
-    }
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === '/' && !e.metaKey && !e.ctrlKey && document.activeElement?.tagName !== 'INPUT') {
         e.preventDefault();
@@ -108,15 +103,6 @@ const Budget = () => {
   };
 
   const hasActiveFilters = searchTerm || agencyFilter || secondaryFilter || fundTypeFilter || extraFilter || yearFilter;
-
-  const openCommandPalette = () => {
-    const event = new KeyboardEvent('keydown', {
-      key: 'k',
-      metaKey: true,
-      bubbles: true,
-    });
-    document.dispatchEvent(event);
-  };
 
   const handleChatClick = (item: any) => {
     let prompt = '';
@@ -193,15 +179,17 @@ const Budget = () => {
                 {/* Title row */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <MobileMenuIcon onOpenSidebar={() => setLeftSidebarOpen(!leftSidebarOpen)} />
-                    <Button
-                      variant="ghost"
-                      size="icon"
+                    <button
                       onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-                      className={cn("hidden md:inline-flex flex-shrink-0", leftSidebarOpen && "bg-muted")}
+                      className="inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors"
+                      aria-label="Open menu"
                     >
-                      <PanelLeft className="h-4 w-4" />
-                    </Button>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 5h1"/><path d="M3 12h1"/><path d="M3 19h1"/>
+                        <path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/>
+                        <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
+                      </svg>
+                    </button>
                     <h1 className="hidden md:block text-xl font-semibold">Budget</h1>
                   </div>
                   <div className="flex items-center gap-2">
@@ -211,15 +199,12 @@ const Budget = () => {
                         Clear filters
                       </Button>
                     )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={openCommandPalette}
-                      className="hidden md:inline-flex flex-shrink-0"
+                    <button
+                      onClick={() => navigate('/?prompt=What%20is%20NYSgpt%3F')}
+                      className="inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
                     >
-                      <Command className="h-4 w-4" />
-                    </Button>
-                    <MobileNYSgpt />
+                      NYSgpt
+                    </button>
                   </div>
                 </div>
 
@@ -228,7 +213,7 @@ const Budget = () => {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     ref={searchInputRef}
-                    placeholder={window.innerWidth < 768 ? "Search Budget" : "Search agencies, programs, funds... (press / to focus)"}
+                    placeholder="Search the budget..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10 pr-4 h-12 text-base"
