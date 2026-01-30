@@ -136,8 +136,10 @@ const Budget = () => {
     } else {
       const agency = reformatAgencyName(item['Agency'] || 'this agency');
       const fn = item['Function'] ? ` under the "${item['Function']}" function` : '';
-      const amount = item['2026-27 Estimates']
-        ? ` with estimated spending of ${formatBudgetAmount(item['2026-27 Estimates'])}`
+      const selectedYearCol = yearFilter || '2026-27 Estimates';
+      const fyLabel = selectedYearCol.replace(/\s+(Actuals|Estimates)$/i, '');
+      const amount = item[selectedYearCol]
+        ? ` with spending of ${formatBudgetAmount(item[selectedYearCol])} in FY ${fyLabel}`
         : '';
       prompt = `Tell me about NYS spending by ${agency}${fn}${amount}. How has this spending changed over recent years?`;
     }
@@ -363,6 +365,7 @@ const Budget = () => {
                     key={idx}
                     item={item}
                     tab={activeTab}
+                    yearCol={yearFilter || '2026-27 Estimates'}
                     onChatClick={() => handleChatClick(item)}
                     onCardClick={() => handleCardClick(item)}
                   />
@@ -381,11 +384,12 @@ const Budget = () => {
 interface BudgetCardProps {
   item: any;
   tab: BudgetTab;
+  yearCol: string;
   onChatClick: () => void;
   onCardClick: () => void;
 }
 
-function BudgetCard({ item, tab, onChatClick, onCardClick }: BudgetCardProps) {
+function BudgetCard({ item, tab, yearCol, onChatClick, onCardClick }: BudgetCardProps) {
   const handleChat = (e: React.MouseEvent) => {
     e.stopPropagation();
     onChatClick();
@@ -397,7 +401,7 @@ function BudgetCard({ item, tab, onChatClick, onCardClick }: BudgetCardProps) {
   if (tab === 'capital') {
     return <CapitalCard item={item} onChatClick={handleChat} onCardClick={onCardClick} />;
   }
-  return <SpendingCard item={item} onChatClick={handleChat} onCardClick={onCardClick} />;
+  return <SpendingCard item={item} yearCol={yearCol} onChatClick={handleChat} onCardClick={onCardClick} />;
 }
 
 // ── Appropriations Card ───────────────────────────────────────────
@@ -572,14 +576,17 @@ function CapitalCard({ item, onChatClick, onCardClick }: { item: any; onChatClic
 
 // ── Spending Card ─────────────────────────────────────────────────
 
-function SpendingCard({ item, onChatClick, onCardClick }: { item: any; onChatClick: (e: React.MouseEvent) => void; onCardClick: () => void }) {
+function SpendingCard({ item, yearCol, onChatClick, onCardClick }: { item: any; yearCol: string; onChatClick: (e: React.MouseEvent) => void; onCardClick: () => void }) {
   const agency = reformatAgencyName(item['Agency'] || 'Unknown Agency');
   const fn = item['Function'];
-  const estimate = item['2026-27 Estimates'];
+  const estimate = item[yearCol];
+  // Extract fiscal year label like "2026-27" from column name "2026-27 Estimates"
+  const fyLabel = yearCol.replace(/\s+(Actuals|Estimates)$/i, '');
+  const fyType = yearCol.includes('Estimates') ? 'est.' : 'actual';
 
   let promptText = `${agency} spending`;
   if (fn) promptText += ` — ${fn}`;
-  if (estimate) promptText += `, ${formatBudgetAmount(estimate)} est. FY 2026-27`;
+  if (estimate) promptText += `, ${formatBudgetAmount(estimate)} ${fyType} FY ${fyLabel}`;
 
   return (
     <div onClick={onCardClick} className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200">

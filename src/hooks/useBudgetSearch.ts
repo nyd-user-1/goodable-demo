@@ -109,7 +109,7 @@ export function useBudgetSearch(activeTab: BudgetTab) {
 
   // Fetch data
   const { data, isLoading, error } = useQuery({
-    queryKey: ['budget', activeTab, agencyFilter, secondaryFilter, fundTypeFilter, extraFilter, yearFilter],
+    queryKey: ['budget', activeTab, agencyFilter, secondaryFilter, fundTypeFilter, extraFilter],
     queryFn: async () => {
       const table = TABLE_MAP[activeTab];
       const agencyCol = AGENCY_COL[activeTab];
@@ -142,11 +142,6 @@ export function useBudgetSearch(activeTab: BudgetTab) {
       // Server-side extra filter (Fund Name / Program Name / FP Category)
       if (extraFilter) {
         query = query.eq(EXTRA_COL[activeTab], extraFilter);
-      }
-
-      // Server-side year filter (spending tab only)
-      if (yearFilter && activeTab === 'spending') {
-        query = query.eq('Year', yearFilter);
       }
 
       query = query
@@ -254,23 +249,24 @@ export function useBudgetSearch(activeTab: BudgetTab) {
     staleTime: 30 * 60 * 1000,
   });
 
-  // Fetch unique Year values for the spending tab filter
+  // Discover fiscal-year columns from the spending table (e.g. "2022-23 Actuals", "2026-27 Estimates")
   const { data: yearOptions } = useQuery({
-    queryKey: ['budget-years'],
+    queryKey: ['budget-year-columns'],
     queryFn: async () => {
-      try {
-        const { data } = await (supabase as any)
-          .from(TABLE_MAP.spending)
-          .select('Year');
+      const { data } = await (supabase as any)
+        .from(TABLE_MAP.spending)
+        .select('*')
+        .limit(1);
 
-        if (!data) return [];
-        const unique = [
-          ...new Set(data.map((d: any) => d['Year']).filter(Boolean)),
-        ] as string[];
-        return unique.sort();
-      } catch {
-        return [];
-      }
+      if (!data || data.length === 0) return [];
+
+      const cols = Object.keys(data[0]);
+      // Match columns like "2022-23 Actuals" or "2026-27 Estimates"
+      const yearCols = cols
+        .filter((col) => /^\d{4}-\d{2}\s/.test(col))
+        .sort()
+        .reverse(); // Most recent first
+      return yearCols;
     },
     enabled: activeTab === 'spending',
     staleTime: 30 * 60 * 1000,
