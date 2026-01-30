@@ -35,12 +35,13 @@ export interface DrillDownRow {
   pctOfParent: number;
 }
 
-// Parse a dollar string like "$1,234,567" or "1234567" into a number
+// Parse a dollar string like "$1,234,567" or "1234567" into a number.
+// The spending table stores values in thousands, so multiply by 1,000.
 function parseDollar(value: string | null | undefined): number {
   if (!value || value.trim() === '') return 0;
   const cleaned = value.replace(/[$,\s]/g, '');
   const num = parseFloat(cleaned);
-  return isNaN(num) ? 0 : num;
+  return isNaN(num) ? 0 : num * 1000;
 }
 
 export function useBudgetDashboard() {
