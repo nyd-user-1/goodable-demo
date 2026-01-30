@@ -161,7 +161,7 @@ const Bills2 = () => {
                     >
                       <PanelLeft className="h-4 w-4" />
                     </Button>
-                    <h1 className="text-xl font-semibold">Bills</h1>
+                    <h1 className="hidden md:block text-xl font-semibold">Bills</h1>
                   </div>
                   <div className="flex items-center gap-2">
                     {hasActiveFilters && (
@@ -174,7 +174,7 @@ const Bills2 = () => {
                       variant="ghost"
                       size="icon"
                       onClick={openCommandPalette}
-                      className="flex-shrink-0"
+                      className="hidden md:inline-flex flex-shrink-0"
                     >
                       <Command className="h-4 w-4" />
                     </Button>
@@ -187,7 +187,7 @@ const Bills2 = () => {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     ref={searchInputRef}
-                    placeholder="Search bills by number, title, description, or sponsor... (press / to focus)"
+                    placeholder={window.innerWidth < 768 ? "Search Bills" : "Search bills by number, title, description, or sponsor... (press / to focus)"}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10 pr-4 h-12 text-base"

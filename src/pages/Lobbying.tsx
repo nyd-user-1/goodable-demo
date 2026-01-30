@@ -179,7 +179,7 @@ List ALL the client names provided above as bullet points between these markers.
                     >
                       <PanelLeft className="h-4 w-4" />
                     </Button>
-                    <h1 className="text-xl font-semibold">Lobbying</h1>
+                    <h1 className="hidden md:block text-xl font-semibold">Lobbying</h1>
                   </div>
                   <div className="flex items-center gap-2">
                     {hasActiveFilters && (
@@ -192,7 +192,7 @@ List ALL the client names provided above as bullet points between these markers.
                       variant="ghost"
                       size="icon"
                       onClick={openCommandPalette}
-                      className="flex-shrink-0"
+                      className="hidden md:inline-flex flex-shrink-0"
                     >
                       <Command className="h-4 w-4" />
                     </Button>
@@ -205,9 +205,11 @@ List ALL the client names provided above as bullet points between these markers.
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     ref={searchInputRef}
-                    placeholder={activeTab === 'spend'
-                      ? "Search clients... (press / to focus)"
-                      : "Search lobbyists... (press / to focus)"
+                    placeholder={window.innerWidth < 768
+                      ? "Search Lobbying"
+                      : activeTab === 'spend'
+                        ? "Search clients... (press / to focus)"
+                        : "Search lobbyists... (press / to focus)"
                     }
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
