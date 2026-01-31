@@ -42,6 +42,7 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<BillNote | null>(null);
   const [billChats, setBillChats] = useState<Array<{ id: string; title: string; created_at: string }>>([]);
+  const [otherSessionBills, setOtherSessionBills] = useState<Array<{ session_id: number; bill_number: string; status_desc: string | null; bill_id: number }>>([]);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [sidebarMounted, setSidebarMounted] = useState(false);
 
@@ -208,9 +209,18 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
         );
       }
 
+      // Fetch same bill in other sessions
+      const { data: otherSessions } = await supabase
+        .from("Bills")
+        .select("session_id, bill_number, status_desc, bill_id")
+        .eq("bill_number", bill.bill_number)
+        .neq("bill_id", bill.bill_id)
+        .order("session_id", { ascending: false });
+
       setHistory(historyData || []);
       setSponsors(sponsorsWithPeople);
       setRollCalls(rollCallsWithVotes);
+      setOtherSessionBills(otherSessions || []);
 
     } catch {
       // Error handled silently
@@ -509,7 +519,7 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
 
               <TabsContent value="overview" className="mt-6 space-y-6">
                 {/* Bill Key Information Section */}
-                <BillKeyInformation bill={bill} sponsors={sponsors} totalSponsors={sponsors.length} />
+                <BillKeyInformation bill={bill} sponsors={sponsors} totalSponsors={sponsors.length} otherSessionBills={otherSessionBills} />
               </TabsContent>
 
               <TabsContent value="sponsors" className="mt-6">

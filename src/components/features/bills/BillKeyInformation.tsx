@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tables } from "@/integrations/supabase/types";
@@ -5,15 +6,23 @@ type Bill = Tables<"Bills">;
 type Sponsor = Tables<"Sponsors"> & {
   person?: Tables<"People">;
 };
+interface OtherSessionBill {
+  session_id: number;
+  bill_number: string;
+  status_desc: string | null;
+  bill_id: number;
+}
 interface BillKeyInformationProps {
   bill: Bill;
   sponsors: Sponsor[];
   totalSponsors: number;
+  otherSessionBills?: OtherSessionBill[];
 }
 export const BillKeyInformation = ({
   bill,
   sponsors,
-  totalSponsors
+  totalSponsors,
+  otherSessionBills
 }: BillKeyInformationProps) => {
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "No date";
@@ -94,6 +103,23 @@ export const BillKeyInformation = ({
               {bill.last_action}
             </p>
           </div>}
+
+        {otherSessionBills && otherSessionBills.length > 0 && (
+          <div className="mt-6 pt-6 border-t">
+            <h4 className="font-medium text-sm text-muted-foreground mb-2">Other Sessions</h4>
+            <div className="flex flex-wrap gap-2">
+              {otherSessionBills.map(other => (
+                <Link
+                  key={other.bill_id}
+                  to={`/bills/${other.bill_number}`}
+                  className="text-sm text-primary hover:underline"
+                >
+                  {other.session_id} Session
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>;
 };

@@ -6,14 +6,15 @@ import { Tables } from "@/integrations/supabase/types";
 import { useBillsData } from "@/hooks/useBillsData";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { 
-  BillsHeader, 
-  BillsSearchFilters, 
-  BillsGrid, 
-  BillsLoadingSkeleton, 
-  BillsErrorState, 
-  BillsEmptyState 
+import {
+  BillsHeader,
+  BillsSearchFilters,
+  BillsGrid,
+  BillsLoadingSkeleton,
+  BillsErrorState,
+  BillsEmptyState
 } from "@/components/features/bills";
+import { normalizeBillNumber } from "@/utils/billNumberUtils";
 
 type Bill = Tables<"Bills">;
 
@@ -66,18 +67,30 @@ const Bills = () => {
     const fetchBillByNumber = async () => {
       if (billNumber) {
         try {
-          // Query by bill_number, order by session_id descending to get most recent session first
-          // This handles cases where the same bill_number exists in multiple sessions (e.g., S00270 in 2025 and 2026)
-          let { data, error } = await supabase
+          const normalized = normalizeBillNumber(billNumber);
+
+          // Try normalized form first
+          let { data } = await supabase
             .from("Bills")
             .select("*")
-            .ilike("bill_number", billNumber)
+            .ilike("bill_number", normalized)
             .order("session_id", { ascending: false })
             .limit(1);
 
           let bill = data?.[0] || null;
 
-          // If not found, try without leading zeros (e.g., S00270 -> S270)
+          // Fallback: try the raw value (handles legacy non-padded entries)
+          if (!bill && normalized !== billNumber.toUpperCase()) {
+            const result = await supabase
+              .from("Bills")
+              .select("*")
+              .ilike("bill_number", billNumber)
+              .order("session_id", { ascending: false })
+              .limit(1);
+            bill = result.data?.[0] || null;
+          }
+
+          // Fallback: try without leading zeros (e.g., S00270 -> S270)
           if (!bill) {
             const strippedNumber = billNumber.replace(/^([A-Z]+)0+/, '$1');
             if (strippedNumber !== billNumber) {
@@ -92,6 +105,11 @@ const Bills = () => {
           }
 
           if (bill) {
+            // Redirect to canonical normalized URL if needed
+            const canonicalNumber = normalizeBillNumber(bill.bill_number);
+            if (billNumber !== canonicalNumber) {
+              navigate(`/bills/${canonicalNumber}`, { replace: true });
+            }
             setSelectedBill(bill);
           } else {
             console.error("Bill not found:", billNumber);
@@ -108,7 +126,7 @@ const Bills = () => {
     };
 
     fetchBillByNumber();
-  }, [billNumber]);
+  }, [billNumber, navigate]);
 
   useEffect(() => {
     fetchCommittees();

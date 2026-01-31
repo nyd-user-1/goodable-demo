@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Bill } from '@/types/bill';
+import { normalizeBillNumber } from '@/utils/billNumberUtils';
 
 export function useBillsSearch() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,14 +15,19 @@ export function useBillsSearch() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['bills-search', searchTerm, statusFilter, committeeFilter, sessionFilter, sponsorFilter],
     queryFn: async () => {
+      // Normalize search term if it looks like a bill number
+      const normalizedSearchTerm = /^[ASKask]\d+$/i.test(searchTerm)
+        ? normalizeBillNumber(searchTerm)
+        : searchTerm;
+
       // If searching, also search by sponsor name
       let sponsorSearchBillIds: number[] = [];
-      if (searchTerm && searchTerm.length >= 2) {
+      if (normalizedSearchTerm && normalizedSearchTerm.length >= 2) {
         // Search for people matching the search term
         const { data: matchingPeople } = await supabase
           .from('People')
           .select('people_id')
-          .or(`name.ilike.%${searchTerm}%,first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`);
+          .or(`name.ilike.%${normalizedSearchTerm}%,first_name.ilike.%${normalizedSearchTerm}%,last_name.ilike.%${normalizedSearchTerm}%`);
 
         if (matchingPeople && matchingPeople.length > 0) {
           const peopleIds = matchingPeople.map(p => p.people_id);
@@ -40,15 +46,15 @@ export function useBillsSearch() {
         .select('*', { count: 'exact' });
 
       // Server-side search across bill number, title, description, OR bills by matching sponsors
-      if (searchTerm && searchTerm.length >= 2) {
+      if (normalizedSearchTerm && normalizedSearchTerm.length >= 2) {
         if (sponsorSearchBillIds.length > 0) {
           // Search bill fields OR include bills from matching sponsors
           query = query.or(
-            `bill_number.ilike.%${searchTerm}%,title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,bill_id.in.(${sponsorSearchBillIds.join(',')})`
+            `bill_number.ilike.%${normalizedSearchTerm}%,title.ilike.%${normalizedSearchTerm}%,description.ilike.%${normalizedSearchTerm}%,bill_id.in.(${sponsorSearchBillIds.join(',')})`
           );
         } else {
           query = query.or(
-            `bill_number.ilike.%${searchTerm}%,title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`
+            `bill_number.ilike.%${normalizedSearchTerm}%,title.ilike.%${normalizedSearchTerm}%,description.ilike.%${normalizedSearchTerm}%`
           );
         }
       }

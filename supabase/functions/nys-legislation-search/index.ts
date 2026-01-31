@@ -7,6 +7,21 @@ const nysApiKey = Deno.env.get('NYS_LEGISLATION_API_KEY');
 const REQUEST_DELAY_MS = 100; // Respectful rate limiting
 const BATCH_SIZE = 100; // For batch inserts
 
+// Normalize bill number to NYS 5-digit zero-padded convention (e.g. "S256" → "S00256")
+function normalizeBillNumber(billNumber: string | null | undefined): string {
+  if (!billNumber) return '';
+  const match = billNumber.trim().toUpperCase().match(/^([A-Z])(\d+)([A-Z]?)$/);
+  if (!match) return billNumber.toUpperCase();
+  const [, prefix, digits, suffix] = match;
+  return `${prefix}${digits.padStart(5, '0')}${suffix}`;
+}
+
+// Get current NY legislative session year (odd years)
+function getCurrentSessionYear(): number {
+  const currentYear = new Date().getFullYear();
+  return currentYear % 2 === 1 ? currentYear : currentYear - 1;
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -32,7 +47,7 @@ serve(async (req) => {
     } else if (action === 'sync-law' && lawId) {
       return await syncSingleLaw(lawId);
     } else if (action === 'sync-bills') {
-      return await syncRecentBills(sessionYear || new Date().getFullYear());
+      return await syncRecentBills(sessionYear || getCurrentSessionYear());
     } else if (action === 'get-progress') {
       return await getProgress();
     } else if (action === 'get-bill-detail' && billNumber) {
@@ -694,9 +709,11 @@ async function upsertBill(supabase: any, bill: any, sessionYear: number): Promis
   const billNumericPart = billNumberMatch ? parseInt(billNumberMatch[1], 10) : 0;
   const generatedBillId = sessionYear * 1000000 + billNumericPart;
 
+  const normalizedBillNumber = normalizeBillNumber(bill.basePrintNo || bill.printNo);
+
   const billRecord = {
     bill_id: generatedBillId,
-    bill_number: bill.basePrintNo || bill.printNo,
+    bill_number: normalizedBillNumber,
     title: bill.title || "Untitled Bill",
     description: bill.summary || bill.title || null,
     status: mapStatusToCode(status.statusType || status.statusDesc),
@@ -704,8 +721,8 @@ async function upsertBill(supabase: any, bill: any, sessionYear: number): Promis
     committee: currentCommittee,
     committee_id: currentCommittee ? currentCommittee.toLowerCase().replace(/\s+/g, '-') : null,
     session_id: sessionYear,
-    url: `https://legislation.nysenate.gov/api/3/bills/${sessionYear}/${bill.basePrintNo}`,
-    state_link: `https://www.nysenate.gov/legislation/bills/${sessionYear}/${bill.basePrintNo}`,
+    url: `https://legislation.nysenate.gov/api/3/bills/${sessionYear}/${normalizedBillNumber}`,
+    state_link: `https://www.nysenate.gov/legislation/bills/${sessionYear}/${normalizedBillNumber}`,
     last_action_date: status.actionDate || bill.publishedDateTime || new Date().toISOString().split('T')[0],
     last_action: status.statusDesc || status.statusType || "Introduced"
   };

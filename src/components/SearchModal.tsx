@@ -37,6 +37,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { departmentPrompts, agencyPrompts, authorityPrompts } from "@/pages/Prompts";
 import { generateMemberSlug } from "@/utils/memberSlug";
 import { generateCommitteeSlug } from "@/utils/committeeSlug";
+import { normalizeBillNumber } from "@/utils/billNumberUtils";
 
 interface SearchModalProps {
   open: boolean;
@@ -321,7 +322,16 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
           .limit(500),
       ]);
 
-      if (billsResult.data) setPublicBills(billsResult.data);
+      if (billsResult.data) {
+        const seen = new Set<string>();
+        const deduped = billsResult.data.filter(b => {
+          const key = normalizeBillNumber(b.bill_number);
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        setPublicBills(deduped);
+      }
       if (membersResult.data) setPublicMembers(membersResult.data);
       if (committeesResult.data) setPublicCommittees(committeesResult.data);
       if (lobbyistsResult.data) setPublicLobbyists(lobbyistsResult.data as any);
@@ -372,6 +382,7 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
   );
   const filteredBills = publicBills.filter(
     (b) =>
+      normalizeBillNumber(b.bill_number).toLowerCase().includes(term) ||
       b.bill_number?.toLowerCase().includes(term) ||
       b.title?.toLowerCase().includes(term)
   );
@@ -691,13 +702,13 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
                   key={`bill-${bill.bill_number}`}
                   onClick={() => {
                     onOpenChange(false);
-                    navigate(`/bills/${bill.bill_number}`);
+                    navigate(`/bills/${normalizeBillNumber(bill.bill_number)}`);
                   }}
                   className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
                 >
                   <ScrollText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <span className="truncate">
-                    <span className="font-medium">{bill.bill_number}</span>
+                    <span className="font-medium">{normalizeBillNumber(bill.bill_number)}</span>
                     {bill.title && <span className="text-muted-foreground"> — {bill.title}</span>}
                   </span>
                 </button>

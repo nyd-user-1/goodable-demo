@@ -23,6 +23,15 @@ function getCurrentSessionYear(): number {
   return currentYear % 2 === 1 ? currentYear : currentYear - 1;
 }
 
+// Normalize bill number to NYS 5-digit zero-padded convention (e.g. "S256" → "S00256")
+function normalizeBillNumber(billNumber: string | null | undefined): string {
+  if (!billNumber) return '';
+  const match = billNumber.trim().toUpperCase().match(/^([A-Z])(\d+)([A-Z]?)$/);
+  if (!match) return billNumber.toUpperCase();
+  const [, prefix, digits, suffix] = match;
+  return `${prefix}${digits.padStart(5, '0')}${suffix}`;
+}
+
 // Enhanced system prompt for legislative analysis
 function getSystemPrompt(type, context = null, entityData = null) {
   const basePrompts = {
@@ -314,8 +323,8 @@ async function searchNYSgptDatabase(query: string, sessionYear?: number) {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Extract bill numbers if present (e.g., A00405, S1234)
-    const billNumberPattern = /[ASK]\d{4,}/gi;
+    // Extract bill numbers if present (e.g., A00405, S256, K123)
+    const billNumberPattern = /[ASK]\d{1,}/gi;
     const billNumbers = query.match(billNumberPattern);
 
     // Extract year from query if not provided
@@ -331,7 +340,7 @@ async function searchNYSgptDatabase(query: string, sessionYear?: number) {
       const { data, error } = await supabase
         .from('Bills')
         .select('*')
-        .in('bill_number', billNumbers.map(bn => bn.toUpperCase()))
+        .in('bill_number', billNumbers.map(bn => normalizeBillNumber(bn)))
         .limit(10);
 
       if (data && !error) {
@@ -499,7 +508,7 @@ serve(async (req) => {
 
     // Fast-path detection: skip NYS API for simple chat queries in fast mode
     // BUT always search NYSgpt database for legislative queries
-    const shouldSkipNYSData = fastMode && !prompt.match(/[ASK]\d{5,}/gi) && type !== 'media' && context !== 'landing_page';
+    const shouldSkipNYSData = fastMode && !prompt.match(/[ASK]\d{1,}/gi) && type !== 'media' && context !== 'landing_page';
 
     // Start data searches in parallel (non-blocking)
     let nysDataPromise: Promise<any> | null = null;

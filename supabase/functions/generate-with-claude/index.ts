@@ -20,13 +20,22 @@ function getCurrentSessionYear(): number {
   return currentYear % 2 === 1 ? currentYear : currentYear - 1;
 }
 
+// Normalize bill number to NYS 5-digit zero-padded convention (e.g. "S256" → "S00256")
+function normalizeBillNumber(billNumber: string | null | undefined): string {
+  if (!billNumber) return '';
+  const match = billNumber.trim().toUpperCase().match(/^([A-Z])(\d+)([A-Z]?)$/);
+  if (!match) return billNumber.toUpperCase();
+  const [, prefix, digits, suffix] = match;
+  return `${prefix}${digits.padStart(5, '0')}${suffix}`;
+}
+
 // Search NYSgpt's Supabase database for relevant bills
 async function searchNYSgptDatabase(query: string, sessionYear?: number) {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Extract bill numbers from query (e.g., A00405, S12345, K00123)
-    const billNumberPattern = /[ASK]\d{4,}/gi;
+    // Extract bill numbers from query (e.g., A00405, S256, K123)
+    const billNumberPattern = /[ASK]\d{1,}/gi;
     const billNumbers = query.match(billNumberPattern) || [];
 
     console.log('Searching NYSgpt database with query:', query.substring(0, 100));
@@ -39,7 +48,7 @@ async function searchNYSgptDatabase(query: string, sessionYear?: number) {
       const { data, error } = await supabase
         .from('Bills')
         .select('*')
-        .in('bill_number', billNumbers.map(b => b.toUpperCase()))
+        .in('bill_number', billNumbers.map(b => normalizeBillNumber(b)))
         .limit(10);
 
       if (!error && data) {
@@ -370,7 +379,7 @@ serve(async (req) => {
 
     // Fast-path detection: skip NYS API for simple chat queries in fast mode
     // BUT always search NYSgpt database for legislative queries
-    const shouldSkipNYSData = fastMode && !prompt.match(/[ASK]\d{5,}/gi) && type !== 'media' && context !== 'landing_page';
+    const shouldSkipNYSData = fastMode && !prompt.match(/[ASK]\d{1,}/gi) && type !== 'media' && context !== 'landing_page';
 
     // Start data searches in parallel (non-blocking)
     let nysDataPromise: Promise<any> | null = null;

@@ -37,6 +37,7 @@ import {
 import { CitationText } from "@/components/CitationText";
 import { ChatResponseFooter } from "@/components/ChatResponseFooter";
 import { PerplexityCitation, extractCitationNumbers, stripCitations } from "@/utils/citationParser";
+import { normalizeBillNumber } from "@/utils/billNumberUtils";
 import {
   Accordion,
   AccordionContent,
@@ -786,8 +787,8 @@ const NewChat = () => {
   // Fetch relevant bills from database to use as citations
   const fetchRelevantBills = async (query: string): Promise<BillCitation[]> => {
     try {
-      // Extract bill numbers (e.g., A00405, S12345, etc.)
-      const billNumberPattern = /[ASK]\d{5,}/gi;
+      // Extract bill numbers (e.g., A00405, S256, K123, etc.)
+      const billNumberPattern = /[ASK]\d{3,}/gi;
       const billNumbers = query.match(billNumberPattern) || [];
 
       // If specific bill numbers are mentioned, fetch those first
@@ -795,7 +796,7 @@ const NewChat = () => {
         const { data: exactBills, error } = await supabase
           .from("Bills")
           .select("bill_number, title, status_desc, description, committee, session_id")
-          .in("bill_number", billNumbers.map(b => b.toUpperCase()))
+          .in("bill_number", billNumbers.map(b => normalizeBillNumber(b)))
           .limit(5);
 
         if (error) throw error;
