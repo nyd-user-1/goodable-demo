@@ -199,7 +199,7 @@ export const SubscriptionPlans = ({ includeAuth = false }: SubscriptionPlansProp
       {/* Scrolling Cards */}
       <div
         ref={scrollContainerRef}
-        className="scrollbar-none flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4"
+        className="scrollbar-none flex snap-x snap-mandatory gap-6 overflow-x-auto pt-4 pb-4"
       >
         {subscriptionTiers.map((tierData) => (
           <div
