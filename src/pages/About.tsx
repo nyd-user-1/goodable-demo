@@ -13,7 +13,7 @@ const aboutPages = [
     subtitle: 'Civic Education',
     href: '/academy',
     image: '/bill-analysis-actions.png',
-    tags: ['Platform Training', 'Legislative Process', 'Advocacy Skills', 'Guest Speakers'],
+    tags: ['Platform Training', 'Legislative Process'],
     date: 'Jan 15, 2025',
   },
   {
@@ -21,7 +21,7 @@ const aboutPages = [
     subtitle: 'AI Fluency',
     href: '/ai-fluency',
     image: '/multi-engine-chat-main-2.png',
-    tags: ['Choice', 'Clarity', 'Critical Thinking', 'Coherence'],
+    tags: ['Choice', 'Clarity', 'Critical Thinking'],
     date: 'Feb 3, 2025',
   },
   {
@@ -29,7 +29,7 @@ const aboutPages = [
     subtitle: 'Constitutional AI',
     href: '/constitution',
     image: '/live-feed-table-2.png',
-    tags: ['Civic AI', 'Digital Ethics', 'Balanced Discourse', 'Accountability'],
+    tags: ['Civic AI', 'Digital Ethics', 'Accountability'],
     date: 'Mar 12, 2025',
   },
   {
@@ -37,7 +37,7 @@ const aboutPages = [
     subtitle: 'Digital Rights',
     href: '/digital-bill-of-rights',
     image: '/bills-image-2.png',
-    tags: ['Privacy', 'Well-Being', 'Security', '+7 more'],
+    tags: ['Privacy', 'Well-Being', 'Security'],
     date: 'Apr 8, 2025',
   },
   {
@@ -45,7 +45,7 @@ const aboutPages = [
     subtitle: 'NYS Legislative Intelligence',
     href: '/history',
     image: '/live-feed-2.png',
-    tags: ['Bill Tracking', 'AI Analysis', 'Civic Tools', '+5 more'],
+    tags: ['Bill Tracking', 'AI Analysis', 'Civic Tools'],
     date: 'May 1, 2025',
   },
 ];
@@ -74,7 +74,7 @@ const About = () => {
       <ChatHeader />
 
       <main className="flex-1 pt-16">
-        <div className="mx-auto max-w-[1100px] px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1300px] px-4 py-12 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mx-auto max-w-2xl text-center lg:max-w-4xl">
             <h1 className="text-foreground text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
@@ -127,16 +127,16 @@ const About = () => {
               ))}
             </div>
 
-            {/* Dot indicators - bottom left */}
-            <div className="absolute bottom-6 left-6 flex items-center gap-2">
+            {/* Dot indicators - centered */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
               {aboutPages.map((_, index) => (
                 <button
                   key={index}
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCurrentSlide(index); }}
                   className={`h-2 rounded-full transition-all ${
                     index === currentSlide
-                      ? 'bg-primary w-6'
-                      : 'bg-primary/30 hover:bg-primary/50 w-2'
+                      ? 'bg-black w-6'
+                      : 'bg-black/30 hover:bg-black/50 w-2'
                   }`}
                   aria-label={`Go to slide ${index + 1}`}
                 />

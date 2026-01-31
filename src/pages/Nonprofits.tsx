@@ -41,7 +41,7 @@ export default function Nonprofits() {
     <div className="min-h-screen bg-background flex flex-col">
       <ChatHeader />
     <main className="flex-1 pt-16">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1300px] px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center lg:max-w-4xl">
           <h1 className="text-foreground text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
             Advocacy Resources for Nonprofits
