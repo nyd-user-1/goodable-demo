@@ -41,17 +41,6 @@ const aboutDropdownItems = [
   { label: "Digital Bill of Rights", href: "/digital-bill-of-rights" },
 ];
 
-// Features dropdown items (sorted A-Z)
-const featuresDropdownItems = [
-  { label: "Bill Tracking", href: "/features/bill-tracking" },
-  { label: "Citations", href: "/features/citations" },
-  { label: "Contracts", href: "/features/contracts" },
-  { label: "Excerpts", href: "/features/excerpts" },
-  { label: "Letter Generation", href: "/features/letter-generation" },
-  { label: "Live Feed", href: "/live-feed" },
-  { label: "Multi-Engine Chat", href: "/features/multi-engine-chat" },
-  { label: "Prompt Library", href: "/features/prompt-library" },
-];
 
 interface ChatHeaderProps {
   onNewChat?: () => void;
@@ -63,7 +52,7 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
   const navigate = useNavigate();
   const location = useLocation();
   const [aboutOpen, setAboutOpen] = useState(false);
-  const [featuresOpen, setFeaturesOpen] = useState(false);
+
   const [useCasesOpen, setUseCasesOpen] = useState(false);
   const [nonProfitsOpen, setNonProfitsOpen] = useState(false);
 
@@ -167,27 +156,13 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
               </DropdownMenu>
             </div>
 
-            {/* Features - dropdown with clickable trigger */}
-            <div
-              onMouseEnter={() => setFeaturesOpen(true)}
-              onMouseLeave={() => setFeaturesOpen(false)}
+            {/* Features - simple link */}
+            <Link
+              to="/features"
+              className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
             >
-              <DropdownMenu open={featuresOpen} onOpenChange={setFeaturesOpen} modal={false}>
-                <DropdownMenuTrigger
-                  className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none"
-                  onClick={() => navigate('/features')}
-                >
-                  Features
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" sideOffset={4} className="min-w-[180px]">
-                  {featuresDropdownItems.map((item) => (
-                    <DropdownMenuItem key={item.label} asChild>
-                      <Link to={item.href}>{item.label}</Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+              Features
+            </Link>
 
             {/* Free Trial - simple link */}
             <Link
