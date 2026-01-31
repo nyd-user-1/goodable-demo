@@ -16,13 +16,6 @@ import { cn } from "@/lib/utils";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 
 
-// Use Cases dropdown items
-const useCasesDropdownItems = [
-  { label: "Bills", href: "/use-cases/bills" },
-  { label: "Committees", href: "/use-cases/committees" },
-  { label: "Members", href: "/use-cases/members" },
-  { label: "Policy", href: "/use-cases/policy" },
-];
 
 // About dropdown items
 const aboutDropdownItems = [
@@ -45,7 +38,6 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
   const location = useLocation();
   const [aboutOpen, setAboutOpen] = useState(false);
 
-  const [useCasesOpen, setUseCasesOpen] = useState(false);
 
 
   // Self-managed sidebar (used when no onOpenSidebar prop is provided)
@@ -164,27 +156,13 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
               Free Trial
             </Link>
 
-            {/* Use Cases - dropdown */}
-            <div
-              onMouseEnter={() => setUseCasesOpen(true)}
-              onMouseLeave={() => setUseCasesOpen(false)}
+            {/* Use Cases - simple link */}
+            <Link
+              to="/use-cases"
+              className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
             >
-              <DropdownMenu open={useCasesOpen} onOpenChange={setUseCasesOpen} modal={false}>
-                <DropdownMenuTrigger
-                  className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none"
-                  onClick={() => navigate('/use-cases')}
-                >
-                  Use Cases
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" sideOffset={4} className="min-w-[160px]">
-                  {useCasesDropdownItems.map((item) => (
-                    <DropdownMenuItem key={item.label} asChild>
-                      <Link to={item.href}>{item.label}</Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+              Use Cases
+            </Link>
 
             {/* Non Profits - simple link */}
             <Link
