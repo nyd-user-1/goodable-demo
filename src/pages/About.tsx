@@ -3,7 +3,7 @@ import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const About = () => {
   const [expanded, setExpanded] = useState(false);
@@ -104,6 +104,14 @@ const About = () => {
                     <Badge variant="outline">Excerpts</Badge>
                   </div>
                 </div>
+
+                <Button
+                  className="mt-4 w-full"
+                  onClick={() => setExpanded(!expanded)}
+                >
+                  {expanded ? 'Hide Full Story' : 'Read Our Full Story'}
+                  <ArrowRight className={`ml-2 h-4 w-4 transition-transform duration-300 ${expanded ? 'rotate-90' : ''}`} />
+                </Button>
               </div>
 
               {/* Right Column - Overview */}
@@ -124,17 +132,8 @@ const About = () => {
               </div>
             </div>
 
-            {/* Accordion trigger */}
-            <div className="mt-12 border-t pt-6">
-              <Button
-                variant="ghost"
-                className="w-full justify-center gap-2 text-base"
-                onClick={() => setExpanded(!expanded)}
-              >
-                {expanded ? 'Hide Full Story' : 'Read Our Full Story'}
-                <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${expanded ? 'rotate-180' : ''}`} />
-              </Button>
-            </div>
+            {/* Divider line */}
+            <div className="mt-12 border-t" />
 
             {/* Block 2: Expandable full content */}
             <div
