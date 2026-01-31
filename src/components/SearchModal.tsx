@@ -22,10 +22,20 @@ import {
   Landmark,
   Lightbulb,
   CornerDownLeft,
+  Building2,
+  Globe,
+  Shield,
+  FileText,
+  DollarSign,
+  GraduationCap,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { departmentPrompts, agencyPrompts, authorityPrompts } from "@/pages/Prompts";
+import { generateMemberSlug } from "@/utils/memberSlug";
+import { generateCommitteeSlug } from "@/utils/committeeSlug";
 
 interface SearchModalProps {
   open: boolean;
@@ -51,6 +61,33 @@ interface Prompt {
   title: string;
   prompt: string;
   category: "bills" | "members" | "committees" | "policy";
+}
+
+interface BillItem {
+  bill_number: string;
+  title: string;
+}
+
+interface MemberItem {
+  people_id: number;
+  name: string;
+  first_name: string;
+  last_name: string;
+  party: string;
+  chamber: string;
+}
+
+interface CommitteeItem {
+  committee_id: number;
+  committee_name: string;
+  chamber: string;
+  slug: string;
+}
+
+interface PageItem {
+  title: string;
+  slug: string;
+  category: "department" | "agency" | "authority";
 }
 
 // All prompts from Use Cases pages
@@ -103,6 +140,24 @@ const allPrompts: Prompt[] = [
   { title: "Building Coalition Support", prompt: "How do I build a coalition of support for a policy initiative across different interest groups?", category: "policy" },
 ];
 
+// Static department/agency/authority pages (computed once at module level)
+const allPages: PageItem[] = [
+  ...departmentPrompts.map((p) => ({ title: p.title, slug: p.slug, category: "department" as const })),
+  ...agencyPrompts.map((p) => ({ title: p.title, slug: p.slug, category: "agency" as const })),
+  ...authorityPrompts.map((p) => ({ title: p.title, slug: p.slug, category: "authority" as const })),
+];
+
+// Browse links for unauthenticated users
+const browseLinks = [
+  { title: "Bills", path: "/bills", icon: FileText },
+  { title: "Members", path: "/members", icon: Users },
+  { title: "Committees", path: "/committees", icon: Landmark },
+  { title: "Departments", path: "/prompts", icon: Building2 },
+  { title: "Lobbying", path: "/lobbying", icon: Briefcase },
+  { title: "Budget", path: "/budget", icon: DollarSign },
+  { title: "School Funding", path: "/school-funding", icon: GraduationCap },
+];
+
 type TabType = "all" | "library" | "prompts";
 
 export function SearchModal({ open, onOpenChange }: SearchModalProps) {
@@ -116,7 +171,13 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
   const [recentNotes, setRecentNotes] = useState<Note[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  // Fetch recent items
+  // Public data state (fetched once, cached in state)
+  const [publicBills, setPublicBills] = useState<BillItem[]>([]);
+  const [publicMembers, setPublicMembers] = useState<MemberItem[]>([]);
+  const [publicCommittees, setPublicCommittees] = useState<CommitteeItem[]>([]);
+  const [publicDataLoaded, setPublicDataLoaded] = useState(false);
+
+  // Fetch recent items (authenticated users only)
   const fetchRecents = useCallback(async () => {
     if (!user) return;
 
@@ -146,54 +207,143 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
     if (notesResult.data) setRecentNotes(notesResult.data);
   }, [user]);
 
+  // Fetch public data (bills, members, committees) - runs once for all users
+  const fetchPublicData = useCallback(async () => {
+    if (publicDataLoaded) return;
+
+    try {
+      const [billsResult, membersResult, committeesResult] = await Promise.all([
+        supabase
+          .from("Bills")
+          .select("bill_number, title"),
+        supabase
+          .from("People")
+          .select("people_id, name, first_name, last_name, party, chamber")
+          .not("chamber", "is", null)
+          .not("name", "is", null)
+          .order("first_name", { ascending: true }),
+        supabase
+          .from("Committees")
+          .select("committee_id, committee_name, chamber, slug")
+          .order("committee_name", { ascending: true }),
+      ]);
+
+      if (billsResult.data) setPublicBills(billsResult.data);
+      if (membersResult.data) setPublicMembers(membersResult.data);
+      if (committeesResult.data) setPublicCommittees(committeesResult.data);
+      setPublicDataLoaded(true);
+    } catch (error) {
+      console.error("Error fetching public search data:", error);
+    }
+  }, [publicDataLoaded]);
+
   useEffect(() => {
     if (open) {
       fetchRecents();
+      fetchPublicData();
       setSearchTerm("");
       setSelectedIndex(0);
       // Focus input after a short delay to ensure dialog is mounted
       setTimeout(() => inputRef.current?.focus(), 50);
     }
-  }, [open, fetchRecents]);
+  }, [open, fetchRecents, fetchPublicData]);
 
   // Filter items based on search term
+  const term = searchTerm.toLowerCase();
+
   const filteredChats = recentChats.filter((c) =>
-    c.title.toLowerCase().includes(searchTerm.toLowerCase())
+    c.title.toLowerCase().includes(term)
   );
   const filteredExcerpts = recentExcerpts.filter((e) =>
-    e.title.toLowerCase().includes(searchTerm.toLowerCase())
+    e.title.toLowerCase().includes(term)
   );
   const filteredNotes = recentNotes.filter((n) =>
-    n.title.toLowerCase().includes(searchTerm.toLowerCase())
+    n.title.toLowerCase().includes(term)
   );
   const filteredPrompts = allPrompts.filter(
     (p) =>
-      p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.prompt.toLowerCase().includes(searchTerm.toLowerCase())
+      p.title.toLowerCase().includes(term) ||
+      p.prompt.toLowerCase().includes(term)
+  );
+
+  // Filter public data
+  const filteredPages = allPages.filter((p) =>
+    p.title.toLowerCase().includes(term)
+  );
+  const filteredBills = publicBills.filter(
+    (b) =>
+      b.bill_number?.toLowerCase().includes(term) ||
+      b.title?.toLowerCase().includes(term)
+  );
+  const filteredMembers = publicMembers.filter((m) =>
+    m.name?.toLowerCase().includes(term)
+  );
+  const filteredCommittees = publicCommittees.filter((c) =>
+    c.committee_name?.toLowerCase().includes(term)
   );
 
   // Get items for current tab
   const getDisplayItems = () => {
     if (activeTab === "library") {
+      if (user) {
+        // Authenticated: existing Library behavior
+        return {
+          recents: [...filteredChats, ...filteredExcerpts, ...filteredNotes],
+          prompts: [],
+          bills: [] as BillItem[],
+          members: [] as MemberItem[],
+          committees: [] as CommitteeItem[],
+          pages: [] as PageItem[],
+          showBrowseLinks: false,
+        };
+      }
+      // Unauthenticated: Browse tab
+      if (!searchTerm) {
+        return {
+          recents: [],
+          prompts: [],
+          bills: [] as BillItem[],
+          members: [] as MemberItem[],
+          committees: [] as CommitteeItem[],
+          pages: [] as PageItem[],
+          showBrowseLinks: true,
+        };
+      }
+      // Unauthenticated with search: filter across all public data
       return {
-        recents: [...filteredChats, ...filteredExcerpts, ...filteredNotes],
+        recents: [],
         prompts: [],
+        bills: filteredBills,
+        members: filteredMembers,
+        committees: filteredCommittees,
+        pages: filteredPages,
+        showBrowseLinks: false,
       };
     }
     if (activeTab === "prompts") {
       return {
         recents: [],
         prompts: filteredPrompts,
+        bills: [] as BillItem[],
+        members: [] as MemberItem[],
+        committees: [] as CommitteeItem[],
+        pages: [] as PageItem[],
+        showBrowseLinks: false,
       };
     }
     // "all" tab
     return {
       recents: [...filteredChats.slice(0, 3), ...filteredExcerpts.slice(0, 2), ...filteredNotes.slice(0, 2)],
       prompts: filteredPrompts.slice(0, 5),
+      bills: filteredBills.slice(0, 3),
+      members: filteredMembers.slice(0, 3),
+      committees: filteredCommittees.slice(0, 3),
+      pages: filteredPages.slice(0, 3),
+      showBrowseLinks: false,
     };
   };
 
-  const { recents, prompts } = getDisplayItems();
+  const { recents, prompts, bills, members, committees, pages, showBrowseLinks } = getDisplayItems();
 
   const handleItemClick = (type: string, id: string) => {
     onOpenChange(false);
@@ -221,6 +371,21 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
         return <MessageSquare className="h-4 w-4" />;
     }
   };
+
+  const getPageIcon = (category: string) => {
+    switch (category) {
+      case "department":
+        return <Building2 className="h-4 w-4" />;
+      case "agency":
+        return <Globe className="h-4 w-4" />;
+      case "authority":
+        return <Shield className="h-4 w-4" />;
+      default:
+        return <Building2 className="h-4 w-4" />;
+    }
+  };
+
+  const hasResults = recents.length > 0 || prompts.length > 0 || bills.length > 0 || members.length > 0 || committees.length > 0 || pages.length > 0 || showBrowseLinks;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -268,7 +433,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                 : "hover:bg-muted/50 text-muted-foreground"
             )}
           >
-            Library
+            {user ? "Library" : "Browse"}
           </button>
           <button
             onClick={() => setActiveTab("prompts")}
@@ -285,6 +450,31 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
 
         {/* Results */}
         <div className="max-h-[304px] overflow-y-auto">
+          {/* Browse Links Section (unauthenticated, no search) */}
+          {showBrowseLinks && (
+            <div className="p-2">
+              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
+                Browse
+              </p>
+              {browseLinks.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <button
+                    key={link.path}
+                    onClick={() => {
+                      onOpenChange(false);
+                      navigate(link.path);
+                    }}
+                    className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
+                  >
+                    <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="truncate">{link.title}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {/* Recents Section */}
           {recents.length > 0 && (
             <div className="p-2">
@@ -331,8 +521,102 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
             </div>
           )}
 
+          {/* Bills Section */}
+          {bills.length > 0 && (
+            <div className="p-2">
+              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
+                Bills
+              </p>
+              {bills.map((bill) => (
+                <button
+                  key={`bill-${bill.bill_number}`}
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate(`/bills/${bill.bill_number}`);
+                  }}
+                  className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
+                >
+                  <ScrollText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="truncate">
+                    <span className="font-medium">{bill.bill_number}</span>
+                    {bill.title && <span className="text-muted-foreground"> — {bill.title}</span>}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Members Section */}
+          {members.length > 0 && (
+            <div className="p-2">
+              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
+                Members
+              </p>
+              {members.map((member) => (
+                <button
+                  key={`member-${member.people_id}`}
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate(`/members/${generateMemberSlug(member as any)}`);
+                  }}
+                  className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
+                >
+                  <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="truncate">{member.name}</span>
+                  <span className="ml-auto text-xs text-muted-foreground flex-shrink-0">
+                    {member.party} · {member.chamber}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Committees Section */}
+          {committees.length > 0 && (
+            <div className="p-2">
+              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
+                Committees
+              </p>
+              {committees.map((committee) => (
+                <button
+                  key={`committee-${committee.committee_id}`}
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate(`/committees/${generateCommitteeSlug(committee as any)}`);
+                  }}
+                  className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
+                >
+                  <Landmark className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="truncate">{committee.chamber} {committee.committee_name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Pages Section (Departments/Agencies/Authorities) */}
+          {pages.length > 0 && (
+            <div className="p-2">
+              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
+                Departments & Agencies
+              </p>
+              {pages.map((page) => (
+                <button
+                  key={`page-${page.slug}`}
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate(`/departments/${page.slug}`);
+                  }}
+                  className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
+                >
+                  {getPageIcon(page.category)}
+                  <span className="truncate">{page.title}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Empty State */}
-          {recents.length === 0 && prompts.length === 0 && (
+          {!hasResults && (
             <div className="p-8 text-center text-muted-foreground">
               <p>No results found</p>
             </div>
