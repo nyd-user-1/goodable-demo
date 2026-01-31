@@ -19,7 +19,6 @@ import { PageHeader } from "@/components/PageHeader";
 
 // Lazy-loaded page components
 const Landing = React.lazy(() => import("./pages/Landing"));
-const LandingPageWaitlist = React.lazy(() => import("./pages/Landing-Page-Waitlist"));
 const Home = React.lazy(() => import("./pages/Home"));
 const Home2 = React.lazy(() => import("./pages/Home-2"));
 const Index = React.lazy(() => import("./pages/Index"));
@@ -31,14 +30,10 @@ const Profile = React.lazy(() => import("./pages/Profile"));
 const Bills = React.lazy(() => import("./pages/Bills"));
 const Members = React.lazy(() => import("./pages/Members"));
 const Committees = React.lazy(() => import("./pages/Committees"));
-const Laws = React.lazy(() => import("./pages/Laws"));
 const LawsAdmin = React.lazy(() => import("./pages/LawsAdmin"));
-const LawsAdminSimple = React.lazy(() => import("./pages/LawsAdminSimple"));
 const LawsTest = React.lazy(() => import("./pages/LawsTest"));
-const LawsMinimal = React.lazy(() => import("./pages/LawsMinimal"));
 const LawsClean = React.lazy(() => import("./pages/LawsClean"));
 const LawsAdminWorking = React.lazy(() => import("./pages/LawsAdminWorking"));
-const Chats = React.lazy(() => import("./pages/Chats"));
 const NewChat = React.lazy(() => import("./pages/NewChat"));
 const NewChat2 = React.lazy(() => import("./pages/NewChat2"));
 const Playground = React.lazy(() => import("./pages/Playground"));
@@ -126,24 +121,16 @@ const AppLayout = () => {
               <Route path="/home" element={<Home />} />
               <Route path="/home-2" element={<Home2 />} />
               <Route path="/new-chat-2" element={<NewChat2 />} />
-              <Route path="/chats" element={<Chats2 />} />
               <Route path="/playground" element={<Playground />} />
               <Route path="/policy-portal" element={<PolicyPortal />} />
               <Route path="/policy-lab" element={<PolicyLab />} />
-              <Route path="/bills" element={<Bills2 />} />
               <Route path="/bills/:billNumber" element={<Bills />} />
-              <Route path="/contracts" element={<Contracts />} />
               <Route path="/contracts/:contractNumber" element={<ContractDetail />} />
-              <Route path="/lobbying" element={<Lobbying />} />
               <Route path="/lobbying/:id" element={<LobbyingDetail />} />
-              <Route path="/school-funding" element={<SchoolFunding />} />
               <Route path="/school-funding/:fundingId" element={<SchoolFundingDetail />} />
-              <Route path="/committees" element={<Committees2 />} />
               <Route path="/committees/:committeeSlug" element={<Committees />} />
-              <Route path="/members" element={<Members2 />} />
               <Route path="/members/:memberSlug" element={<Members />} />
               <Route path="/problems" element={<Problems />} />
-              <Route path="/problems/:problemSlug" element={<ProblemPage />} />
               <Route path="/laws" element={<LawsClean />} />
               <Route path="/laws/admin" element={<LawsAdminWorking />} />
               <Route path="/laws/admin-full" element={<LawsAdmin />} />
@@ -151,7 +138,6 @@ const AppLayout = () => {
               <Route path="/plans" element={<Plans />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/changelog" element={<ChangeLog />} />
-              <Route path="/about" element={<About />} />
               <Route path="/public-policy" element={<PublicPolicy />} />
               <Route path="/style-guide" element={<StyleGuide />} />
               <Route path="/image-system" element={<ImageSystem />} />
