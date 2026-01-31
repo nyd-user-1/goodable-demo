@@ -15,14 +15,6 @@ import {
 import { cn } from "@/lib/utils";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 
-// Non Profits dropdown items
-const nonProfitsDropdownItems = [
-  { label: "Directory", href: "/nonprofits/directory" },
-  { label: "Economic", href: "/nonprofits/economic-advocacy" },
-  { label: "Environmental", href: "/nonprofits/environmental-advocacy" },
-  { label: "Legal", href: "/nonprofits/legal-advocacy" },
-  { label: "Social", href: "/nonprofits/social-advocacy" },
-];
 
 // Use Cases dropdown items
 const useCasesDropdownItems = [
@@ -54,7 +46,7 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
   const [aboutOpen, setAboutOpen] = useState(false);
 
   const [useCasesOpen, setUseCasesOpen] = useState(false);
-  const [nonProfitsOpen, setNonProfitsOpen] = useState(false);
+
 
   // Self-managed sidebar (used when no onOpenSidebar prop is provided)
   const [internalSidebarOpen, setInternalSidebarOpen] = useState(false);
@@ -194,27 +186,13 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
               </DropdownMenu>
             </div>
 
-            {/* Non Profits - dropdown */}
-            <div
-              onMouseEnter={() => setNonProfitsOpen(true)}
-              onMouseLeave={() => setNonProfitsOpen(false)}
+            {/* Non Profits - simple link */}
+            <Link
+              to="/nonprofits"
+              className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
             >
-              <DropdownMenu open={nonProfitsOpen} onOpenChange={setNonProfitsOpen} modal={false}>
-                <DropdownMenuTrigger
-                  className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none"
-                  onClick={() => navigate('/nonprofits')}
-                >
-                  Non Profits
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" sideOffset={4} className="min-w-[160px]">
-                  {nonProfitsDropdownItems.map((item) => (
-                    <DropdownMenuItem key={item.label} asChild>
-                      <Link to={item.href}>{item.label}</Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+              Non Profits
+            </Link>
 
             {/* Pricing - simple link */}
             <Link
