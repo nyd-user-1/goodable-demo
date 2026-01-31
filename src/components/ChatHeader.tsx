@@ -197,7 +197,10 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
             onMouseLeave={() => setNonProfitsOpen(false)}
           >
             <DropdownMenu open={nonProfitsOpen} onOpenChange={setNonProfitsOpen} modal={false}>
-              <DropdownMenuTrigger className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none">
+              <DropdownMenuTrigger
+                className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none"
+                onClick={() => navigate('/nonprofits')}
+              >
                 Non Profits
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" sideOffset={4} className="min-w-[160px]">
