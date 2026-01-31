@@ -158,19 +158,6 @@ export const SubscriptionPlans = ({ includeAuth = false }: SubscriptionPlansProp
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Subscription Plans</h1>
-          <p className="text-muted-foreground">
-            Current tier: <span className="font-medium capitalize">{subscription.subscription_tier}</span>
-          </p>
-        </div>
-        <Button variant="outline" onClick={handleRefresh} disabled={loading}>
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh Status
-        </Button>
-      </div>
-
       <div className="flex items-center justify-center space-x-4">
         <Label htmlFor="billing-toggle" className={!isAnnual ? "font-semibold" : ""}>
           Monthly
