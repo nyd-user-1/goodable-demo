@@ -136,14 +136,6 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
             >
               Non Profits
             </Link>
-
-            {/* Pricing - simple link */}
-            <Link
-              to="/pricing"
-              className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
-            >
-              Pricing
-            </Link>
           </nav>
 
           {/* Right side - Controls */}
