@@ -6,6 +6,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 
@@ -80,7 +81,7 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
 
       <nav className="fixed top-0 left-0 right-0 z-50 px-5 py-2 bg-background/80 backdrop-blur-sm">
         <div className="flex items-center justify-between">
-          {/* Left side - Logs menu icon */}
+          {/* Left side - Logs menu icon + Log In */}
           <div className="flex items-center space-x-1">
             <button
               onClick={handleOpenSidebar}
@@ -92,6 +93,13 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
                 <path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/>
                 <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
               </svg>
+            </button>
+            <button
+              onClick={() => navigate('/auth')}
+              className="inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors"
+              aria-label="Log in"
+            >
+              <LogIn className="h-5 w-5" />
             </button>
           </div>
 

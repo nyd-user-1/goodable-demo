@@ -136,7 +136,6 @@ const AppLayout = () => {
               <Route path="/laws/admin" element={<LawsAdminWorking />} />
               <Route path="/laws/admin-full" element={<LawsAdmin />} />
               <Route path="/laws/test" element={<LawsTest />} />
-              <Route path="/plans" element={<Plans />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/changelog" element={<ChangeLog />} />
               <Route path="/public-policy" element={<PublicPolicy />} />
@@ -226,6 +225,7 @@ const App = () => {
                   <Route path="/departments" element={<ProtectedRoute><Prompts /></ProtectedRoute>} />
                   <Route path="/departments/:slug" element={<ProtectedRoute><DepartmentDetail /></ProtectedRoute>} />
                   <Route path="/chats" element={<ProtectedRoute><Chats2 /></ProtectedRoute>} />
+                  <Route path="/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
                   <Route path="*" element={<AppLayout />} />
                 </Routes>
               </PageTransition>
