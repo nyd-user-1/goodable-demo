@@ -39,6 +39,7 @@ const PerplexityIcon = ({ className }: { className?: string }) => (
 );
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { useNotePersistence, ChatNote } from "@/hooks/useNotePersistence";
 import { supabase } from "@/integrations/supabase/client";
 import { TipTapEditor, TipTapEditorRef, editorCommands, isFormatActive, TEXT_COLORS } from "@/components/TipTapEditor";
@@ -98,6 +99,7 @@ const NoteView = () => {
   const navigate = useNavigate();
   const { noteId } = useParams<{ noteId: string }>();
   const { toast } = useToast();
+  const { user } = useAuth();
   const { fetchNoteById, deleteNote, updateNote } = useNotePersistence();
 
   const [note, setNote] = useState<ChatNote | null>(null);
@@ -708,6 +710,17 @@ ${chatInput}`;
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [toolbarInitialized]);
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen gap-4">
+        <p className="text-muted-foreground">Please log in to view notes.</p>
+        <Button onClick={() => navigate("/auth-2")} className="font-semibold">
+          Sign Up
+        </Button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
