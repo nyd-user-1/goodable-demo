@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ChatHeader } from '@/components/ChatHeader';
 
 const useCases = [
   {
@@ -31,7 +32,9 @@ const useCases = [
 
 export default function UseCases() {
   return (
-    <div className="bg-background py-12 sm:py-16 lg:py-20">
+    <div className="min-h-screen bg-background">
+      <ChatHeader />
+    <div className="bg-background py-12 sm:py-16 lg:py-20 pt-28 sm:pt-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center lg:max-w-4xl">
           <Badge variant="secondary" className="mb-4">
@@ -73,6 +76,7 @@ export default function UseCases() {
           </Button>
         </div>
       </div>
+    </div>
     </div>
   );
 }

@@ -29,6 +29,7 @@ import {
   DollarSign,
   GraduationCap,
   Briefcase,
+  HandCoins,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -88,6 +89,32 @@ interface PageItem {
   title: string;
   slug: string;
   category: "department" | "agency" | "authority";
+}
+
+interface LobbyistItem {
+  contractual_client: string;
+  compensation_and_expenses: number | null;
+}
+
+interface ContractItem {
+  contract_number: string;
+  vendor_name: string;
+  contract_description: string | null;
+  department_facility: string | null;
+}
+
+interface BudgetItem {
+  "Agency Name": string;
+  "Program Name": string | null;
+  "Appropriations Recommended 2026-27": number | null;
+}
+
+interface SchoolFundingItem {
+  id: number;
+  district: string;
+  county: string;
+  enacted_budget: string | null;
+  total_change: string | null;
 }
 
 // All prompts from Use Cases pages
@@ -154,11 +181,22 @@ const browseLinks = [
   { title: "Committees", path: "/committees", icon: Landmark },
   { title: "Departments", path: "/prompts", icon: Building2 },
   { title: "Lobbying", path: "/lobbying", icon: Briefcase },
+  { title: "Contracts", path: "/contracts", icon: HandCoins },
   { title: "Budget", path: "/budget", icon: DollarSign },
   { title: "School Funding", path: "/school-funding", icon: GraduationCap },
 ];
 
 type TabType = "all" | "library" | "prompts";
+
+// Empty arrays (stable references to avoid re-renders)
+const emptyBills: BillItem[] = [];
+const emptyMembers: MemberItem[] = [];
+const emptyCommittees: CommitteeItem[] = [];
+const emptyPages: PageItem[] = [];
+const emptyLobbyists: LobbyistItem[] = [];
+const emptyContracts: ContractItem[] = [];
+const emptyBudget: BudgetItem[] = [];
+const emptySchoolFunding: SchoolFundingItem[] = [];
 
 export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOpenChange }: Partial<SearchModalProps>) {
   const navigate = useNavigate();
@@ -181,6 +219,10 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
   const [publicBills, setPublicBills] = useState<BillItem[]>([]);
   const [publicMembers, setPublicMembers] = useState<MemberItem[]>([]);
   const [publicCommittees, setPublicCommittees] = useState<CommitteeItem[]>([]);
+  const [publicLobbyists, setPublicLobbyists] = useState<LobbyistItem[]>([]);
+  const [publicContracts, setPublicContracts] = useState<ContractItem[]>([]);
+  const [publicBudget, setPublicBudget] = useState<BudgetItem[]>([]);
+  const [publicSchoolFunding, setPublicSchoolFunding] = useState<SchoolFundingItem[]>([]);
   const [publicDataLoaded, setPublicDataLoaded] = useState(false);
 
   // Cmd+K / Ctrl+K keyboard shortcut
@@ -225,12 +267,12 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
     if (notesResult.data) setRecentNotes(notesResult.data);
   }, [user]);
 
-  // Fetch public data (bills, members, committees) - runs once for all users
+  // Fetch public data - runs once for all users
   const fetchPublicData = useCallback(async () => {
     if (publicDataLoaded) return;
 
     try {
-      const [billsResult, membersResult, committeesResult] = await Promise.all([
+      const [billsResult, membersResult, committeesResult, lobbyistsResult, contractsResult, budgetResult, schoolFundingResult] = await Promise.all([
         supabase
           .from("Bills")
           .select("bill_number, title"),
@@ -244,11 +286,38 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
           .from("Committees")
           .select("committee_id, committee_name, chamber, slug")
           .order("committee_name", { ascending: true }),
+        supabase
+          .from("lobbying_spend")
+          .select("contractual_client, compensation_and_expenses")
+          .not("contractual_client", "is", null)
+          .order("compensation_and_expenses", { ascending: false, nullsFirst: false })
+          .limit(500),
+        supabase
+          .from("Contracts")
+          .select("contract_number, vendor_name, contract_description, department_facility")
+          .not("vendor_name", "is", null)
+          .order("current_contract_amount", { ascending: false, nullsFirst: false })
+          .limit(500),
+        supabase
+          .from("budget_2027-aprops")
+          .select('"Agency Name", "Program Name", "Appropriations Recommended 2026-27"')
+          .not("Agency Name", "is", null)
+          .limit(500),
+        supabase
+          .from("school_funding_totals")
+          .select("id, district, county, enacted_budget, total_change")
+          .not("district", "is", null)
+          .order("district", { ascending: true })
+          .limit(500),
       ]);
 
       if (billsResult.data) setPublicBills(billsResult.data);
       if (membersResult.data) setPublicMembers(membersResult.data);
       if (committeesResult.data) setPublicCommittees(committeesResult.data);
+      if (lobbyistsResult.data) setPublicLobbyists(lobbyistsResult.data as any);
+      if (contractsResult.data) setPublicContracts(contractsResult.data as any);
+      if (budgetResult.data) setPublicBudget(budgetResult.data as any);
+      if (schoolFundingResult.data) setPublicSchoolFunding(schoolFundingResult.data as any);
       setPublicDataLoaded(true);
     } catch (error) {
       console.error("Error fetching public search data:", error);
@@ -299,54 +368,59 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
   const filteredCommittees = publicCommittees.filter((c) =>
     c.committee_name?.toLowerCase().includes(term)
   );
+  const filteredLobbyists = publicLobbyists.filter((l) =>
+    l.contractual_client?.toLowerCase().includes(term)
+  );
+  const filteredContracts = publicContracts.filter(
+    (c) =>
+      c.vendor_name?.toLowerCase().includes(term) ||
+      c.contract_number?.toLowerCase().includes(term) ||
+      c.contract_description?.toLowerCase().includes(term)
+  );
+  const filteredBudget = publicBudget.filter(
+    (b) =>
+      b["Agency Name"]?.toLowerCase().includes(term) ||
+      b["Program Name"]?.toLowerCase().includes(term)
+  );
+  const filteredSchoolFunding = publicSchoolFunding.filter(
+    (s) =>
+      s.district?.toLowerCase().includes(term) ||
+      s.county?.toLowerCase().includes(term)
+  );
 
   // Get items for current tab
   const getDisplayItems = () => {
     if (activeTab === "library") {
       if (user) {
-        // Authenticated: existing Library behavior
         return {
           recents: [...filteredChats, ...filteredExcerpts, ...filteredNotes],
           prompts: [],
-          bills: [] as BillItem[],
-          members: [] as MemberItem[],
-          committees: [] as CommitteeItem[],
-          pages: [] as PageItem[],
-          showBrowseLinks: false,
+          bills: emptyBills, members: emptyMembers, committees: emptyCommittees,
+          pages: emptyPages, lobbyists: emptyLobbyists, contracts: emptyContracts,
+          budget: emptyBudget, schoolFunding: emptySchoolFunding, showBrowseLinks: false,
         };
       }
-      // Unauthenticated: Browse tab
       if (!searchTerm) {
         return {
-          recents: [],
-          prompts: [],
-          bills: [] as BillItem[],
-          members: [] as MemberItem[],
-          committees: [] as CommitteeItem[],
-          pages: [] as PageItem[],
-          showBrowseLinks: true,
+          recents: [], prompts: [],
+          bills: emptyBills, members: emptyMembers, committees: emptyCommittees,
+          pages: emptyPages, lobbyists: emptyLobbyists, contracts: emptyContracts,
+          budget: emptyBudget, schoolFunding: emptySchoolFunding, showBrowseLinks: true,
         };
       }
-      // Unauthenticated with search: filter across all public data
       return {
-        recents: [],
-        prompts: [],
-        bills: filteredBills,
-        members: filteredMembers,
-        committees: filteredCommittees,
-        pages: filteredPages,
-        showBrowseLinks: false,
+        recents: [], prompts: [],
+        bills: filteredBills, members: filteredMembers, committees: filteredCommittees,
+        pages: filteredPages, lobbyists: filteredLobbyists, contracts: filteredContracts,
+        budget: filteredBudget, schoolFunding: filteredSchoolFunding, showBrowseLinks: false,
       };
     }
     if (activeTab === "prompts") {
       return {
-        recents: [],
-        prompts: filteredPrompts,
-        bills: [] as BillItem[],
-        members: [] as MemberItem[],
-        committees: [] as CommitteeItem[],
-        pages: [] as PageItem[],
-        showBrowseLinks: false,
+        recents: [], prompts: filteredPrompts,
+        bills: emptyBills, members: emptyMembers, committees: emptyCommittees,
+        pages: emptyPages, lobbyists: emptyLobbyists, contracts: emptyContracts,
+        budget: emptyBudget, schoolFunding: emptySchoolFunding, showBrowseLinks: false,
       };
     }
     // "all" tab
@@ -357,11 +431,15 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
       members: filteredMembers.slice(0, 3),
       committees: filteredCommittees.slice(0, 3),
       pages: filteredPages.slice(0, 3),
+      lobbyists: filteredLobbyists.slice(0, 3),
+      contracts: filteredContracts.slice(0, 3),
+      budget: filteredBudget.slice(0, 3),
+      schoolFunding: filteredSchoolFunding.slice(0, 3),
       showBrowseLinks: false,
     };
   };
 
-  const { recents, prompts, bills, members, committees, pages, showBrowseLinks } = getDisplayItems();
+  const { recents, prompts, bills, members, committees, pages, lobbyists, contracts, budget, schoolFunding, showBrowseLinks } = getDisplayItems();
 
   const handleItemClick = (type: string, id: string) => {
     onOpenChange(false);
@@ -403,7 +481,12 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
     }
   };
 
-  const hasResults = recents.length > 0 || prompts.length > 0 || bills.length > 0 || members.length > 0 || committees.length > 0 || pages.length > 0 || showBrowseLinks;
+  const formatCurrency = (val: number | null) => {
+    if (val == null) return "";
+    return val.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  };
+
+  const hasResults = recents.length > 0 || prompts.length > 0 || bills.length > 0 || members.length > 0 || committees.length > 0 || pages.length > 0 || lobbyists.length > 0 || contracts.length > 0 || budget.length > 0 || schoolFunding.length > 0 || showBrowseLinks;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -467,7 +550,7 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
         </div>
 
         {/* Results */}
-        <div className="max-h-[304px] overflow-y-auto">
+        <div className="max-h-[400px] overflow-y-auto">
           {/* Browse Links Section (unauthenticated, no search) */}
           {showBrowseLinks && (
             <div className="p-2">
@@ -524,16 +607,19 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
           {prompts.length > 0 && (
             <div className="p-2">
               <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
-                {activeTab === "prompts" ? "Prompts" : "Suggestions"}
+                Prompts
               </p>
               {prompts.map((item, idx) => (
                 <button
                   key={`prompt-${idx}`}
                   onClick={() => handlePromptClick(item.prompt)}
-                  className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
+                  className="flex items-start gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
                 >
-                  {getCategoryIcon(item.category)}
-                  <span className="truncate">{item.title}</span>
+                  <span className="mt-0.5 flex-shrink-0">{getCategoryIcon(item.category)}</span>
+                  <span className="min-w-0">
+                    <span className="font-medium block truncate">{item.title}</span>
+                    <span className="text-muted-foreground text-xs line-clamp-1">{item.prompt}</span>
+                  </span>
                 </button>
               ))}
             </div>
@@ -606,6 +692,114 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
                 >
                   <Landmark className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <span className="truncate">{committee.chamber} {committee.committee_name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Lobbyists Section */}
+          {lobbyists.length > 0 && (
+            <div className="p-2">
+              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
+                Lobbying
+              </p>
+              {lobbyists.map((item, idx) => (
+                <button
+                  key={`lobby-${idx}`}
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate("/lobbying");
+                  }}
+                  className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
+                >
+                  <Briefcase className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="truncate">
+                    <span className="font-medium">{item.contractual_client}</span>
+                    {item.compensation_and_expenses != null && (
+                      <span className="text-muted-foreground"> — {formatCurrency(item.compensation_and_expenses)}</span>
+                    )}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Contracts Section */}
+          {contracts.length > 0 && (
+            <div className="p-2">
+              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
+                Contracts
+              </p>
+              {contracts.map((item) => (
+                <button
+                  key={`contract-${item.contract_number}`}
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate(`/contracts/${item.contract_number}`);
+                  }}
+                  className="flex items-start gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
+                >
+                  <HandCoins className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                  <span className="min-w-0">
+                    <span className="font-medium block truncate">{item.vendor_name}</span>
+                    {item.contract_description && (
+                      <span className="text-muted-foreground text-xs line-clamp-1">{item.contract_description}</span>
+                    )}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Budget Section */}
+          {budget.length > 0 && (
+            <div className="p-2">
+              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
+                Budget
+              </p>
+              {budget.map((item, idx) => (
+                <button
+                  key={`budget-${idx}`}
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate("/budget");
+                  }}
+                  className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
+                >
+                  <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="truncate">
+                    <span className="font-medium">{item["Agency Name"]}</span>
+                    {item["Program Name"] && <span className="text-muted-foreground"> — {item["Program Name"]}</span>}
+                    {item["Appropriations Recommended 2026-27"] != null && (
+                      <span className="text-muted-foreground"> ({formatCurrency(item["Appropriations Recommended 2026-27"])})</span>
+                    )}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* School Funding Section */}
+          {schoolFunding.length > 0 && (
+            <div className="p-2">
+              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
+                School Funding
+              </p>
+              {schoolFunding.map((item) => (
+                <button
+                  key={`school-${item.id}`}
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate(`/school-funding/${item.id}`);
+                  }}
+                  className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
+                >
+                  <GraduationCap className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="truncate">
+                    <span className="font-medium">{item.district}</span>
+                    <span className="text-muted-foreground"> — {item.county}</span>
+                    {item.total_change && <span className="text-muted-foreground"> ({item.total_change})</span>}
+                  </span>
                 </button>
               ))}
             </div>
