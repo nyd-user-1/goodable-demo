@@ -64,24 +64,6 @@ const About = () => {
               <div className="space-y-6 md:col-span-1">
                 <div>
                   <h4 className="text-muted-foreground text-sm font-medium tracking-wider uppercase">
-                    Mission
-                  </h4>
-                  <p className="mt-1 text-lg font-medium">
-                    Democracy that works for everyone
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="text-muted-foreground text-sm font-medium tracking-wider uppercase">
-                    Platform
-                  </h4>
-                  <p className="mt-1 text-lg font-medium">
-                    NYS Legislative Intelligence
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="text-muted-foreground text-sm font-medium tracking-wider uppercase">
                     Focus
                   </h4>
                   <p className="mt-1 text-lg font-medium">
