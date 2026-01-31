@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { useExcerptPersistence } from "@/hooks/useExcerptPersistence";
 import { Tables } from "@/integrations/supabase/types";
 import { ArrowLeft, Trash2, ExternalLink, PanelLeft } from "lucide-react";
@@ -37,6 +38,7 @@ interface BillCitation {
 const ExcerptView = () => {
   const { excerptId } = useParams<{ excerptId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { toast } = useToast();
   const { fetchExcerptById, deleteExcerpt } = useExcerptPersistence();
   const [excerpt, setExcerpt] = useState<Excerpt | null>(null);
@@ -98,6 +100,17 @@ const ExcerptView = () => {
       });
     }
   };
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen gap-4">
+        <p className="text-muted-foreground">Please log in to view excerpts.</p>
+        <Button onClick={() => navigate("/auth-2")} className="font-semibold">
+          Sign Up
+        </Button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
