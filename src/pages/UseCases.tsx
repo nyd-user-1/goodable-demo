@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
@@ -33,17 +32,14 @@ const useCases = [
 
 export default function UseCases() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <ChatHeader />
-    <div className="bg-background py-12 sm:py-16 lg:py-20 pt-28 sm:pt-32">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <main className="flex-1 pt-16">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center lg:max-w-4xl">
-          <Badge variant="secondary" className="mb-4">
-            Use Cases
-          </Badge>
-          <h2 className="text-foreground text-3xl font-bold tracking-tight sm:text-4xl">
+          <h1 className="text-foreground text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
             Chats for Legislative Research
-          </h2>
+          </h1>
           <p className="text-muted-foreground mt-4 text-lg">
             Tap into curated prompts for bills, committees, members, and policy
             development. Each use case gives you a head start on the research
@@ -77,7 +73,7 @@ export default function UseCases() {
           </Button>
         </div>
       </div>
-    </div>
+    </main>
     <FooterSimple />
     </div>
   );
