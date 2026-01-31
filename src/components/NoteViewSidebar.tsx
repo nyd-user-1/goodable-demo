@@ -445,13 +445,13 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           </Button>
         )}
 
-        {/* Search and Add buttons */}
+        {/* Action buttons */}
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => {
-            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true, bubbles: true }));
-          }}>
-            <Search className="h-5 w-5" />
-          </Button>
+          {!user && (
+            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => navigate('/auth')}>
+              <LogIn className="h-5 w-5" />
+            </Button>
+          )}
 
           {/* Log close icon - all screen sizes */}
           <Button
@@ -522,6 +522,23 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           </TooltipTrigger>
           <TooltipContent side="right">
             <p>Create a new note</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => {
+                document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true, bubbles: true }));
+              }}
+              className="flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors hover:bg-muted w-full text-left"
+            >
+              <Search className="h-4 w-4" />
+              <span>Search</span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <p>Search across all content</p>
           </TooltipContent>
         </Tooltip>
 
