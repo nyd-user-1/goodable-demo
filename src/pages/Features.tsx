@@ -2,7 +2,7 @@ import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
 const features = [
@@ -120,8 +120,6 @@ const features = [
 
 const Features = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const navigate = useNavigate();
-
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % features.length);
   }, []);
@@ -151,16 +149,6 @@ const Features = () => {
             <p className="text-muted-foreground mx-auto max-w-[700px] md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
               Everything you need to engage with the legislative process, from tracking bills to taking action.
             </p>
-            <div className="flex justify-center pt-4">
-              <Button
-                size="lg"
-                className="bg-foreground text-background hover:bg-foreground/90"
-                onClick={() => navigate('/auth-4')}
-              >
-                Sign Up
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 h-4 w-4"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
-              </Button>
-            </div>
           </div>
 
           {/* Carousel */}
@@ -247,6 +235,12 @@ const Features = () => {
                 />
               ))}
             </div>
+          </div>
+
+          <div className="mt-12 text-center">
+            <Button size="lg" variant="outline" asChild>
+              <Link to="/">Get Started with NYSgpt</Link>
+            </Button>
           </div>
         </section>
       </main>

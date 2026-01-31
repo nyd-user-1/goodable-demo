@@ -117,30 +117,33 @@ const About = () => {
               {/* Right Column - Overview */}
               <div className="md:col-span-2">
                 <h4 className="mb-6 text-xl font-semibold md:text-2xl">
-                  We're all heart.
-                </h4>
-                <p className="text-muted-foreground mb-8 text-lg">
-                  NYSgpt began with a simple observation: the tools we use to participate in democracy haven't kept pace with the complexity of the challenges we face. While technology has transformed how we shop, communicate, and work, the fundamental processes of civic engagement remain largely unchanged from a century ago. We built NYSgpt to close that gap—not by replacing human judgment with algorithms, but by giving people the information and tools they need to engage meaningfully with the legislative process.
-                </p>
-
-                <h4 className="mb-6 text-xl font-semibold md:text-2xl">
-                  What we believe
+                  How it started.
                 </h4>
                 <p className="text-muted-foreground text-lg">
-                  When citizens can easily understand what their government is doing, track the issues that matter to them, and connect with others who share their concerns, democracy works better for everyone. We provide the same sophisticated tools that professional lobbyists use—bill tracking, legislative analysis, contact management, coalition building—but we make them accessible to everyone.
+                  NYSgpt began with a simple observation: the tools we use to participate in democracy haven't kept pace with the complexity of the challenges we face.
                 </p>
-              </div>
-            </div>
 
-            {/* Divider line */}
-            <div className="mt-12 border-t" />
+                {/* Divider line */}
+                <div className="mt-6 border-t" />
 
-            {/* Block 2: Expandable full content */}
-            <div
-              className={`grid transition-[grid-template-rows] duration-500 ease-in-out ${expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
-            >
-              <div className="overflow-hidden">
-                <article className="prose prose-lg dark:prose-invert max-w-none pt-8">
+                {/* Expandable full content */}
+                <div
+                  className={`grid transition-[grid-template-rows] duration-500 ease-in-out ${expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+                >
+                  <div className="overflow-hidden">
+                    <article className="prose prose-lg dark:prose-invert max-w-none pt-8">
+                      <section className="mb-10">
+                        <p>
+                          While technology has transformed how we shop, communicate, and work, the fundamental processes of civic engagement remain largely unchanged from a century ago. We built NYSgpt to close that gap—not by replacing human judgment with algorithms, but by giving people the information and tools they need to engage meaningfully with the legislative process.
+                        </p>
+                      </section>
+
+                      <section className="mb-10">
+                        <h2 className="text-2xl font-semibold mb-4">What we believe</h2>
+                        <p>
+                          When citizens can easily understand what their government is doing, track the issues that matter to them, and connect with others who share their concerns, democracy works better for everyone. We provide the same sophisticated tools that professional lobbyists use—bill tracking, legislative analysis, contact management, coalition building—but we make them accessible to everyone.
+                        </p>
+                      </section>
                   <section className="mb-10">
                     <h2 className="text-2xl font-semibold mb-4">The Challenge We're Addressing</h2>
                     <p>
@@ -246,7 +249,9 @@ const About = () => {
                       Welcome to NYSgpt. Let's build something good together.
                     </p>
                   </section>
-                </article>
+                    </article>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
