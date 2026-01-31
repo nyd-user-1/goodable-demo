@@ -83,17 +83,10 @@ export default function FreeTrial() {
               <Button
                 size="lg"
                 className="bg-foreground text-background hover:bg-foreground/90"
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/auth-4')}
               >
-                Start Exploring
+                Sign Up
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 h-4 w-4"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => navigate('/use-cases/bills')}
-              >
-                Sample Prompts
               </Button>
             </div>
           </div>

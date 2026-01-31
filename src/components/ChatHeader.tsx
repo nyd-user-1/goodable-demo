@@ -35,6 +35,7 @@ const useCasesDropdownItems = [
 // About dropdown items
 const aboutDropdownItems = [
   { label: "About", href: "/about" },
+  { label: "Academy", href: "/academy" },
   { label: "AI Fluency", href: "/ai-fluency" },
   { label: "Constitution", href: "/constitution" },
   { label: "Digital Bill of Rights", href: "/digital-bill-of-rights" },
@@ -143,7 +144,7 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
           </div>
 
           {/* Center - Marketing Navigation (desktop only) */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center justify-center gap-6 absolute left-1/2 -translate-x-1/2">
             {/* About - dropdown with clickable trigger */}
             <div
               onMouseEnter={() => setAboutOpen(true)}
@@ -165,14 +166,6 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-
-            {/* Academy - simple link */}
-            <Link
-              to="/academy"
-              className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
-            >
-              Academy
-            </Link>
 
             {/* Features - dropdown with clickable trigger */}
             <div
