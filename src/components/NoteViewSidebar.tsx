@@ -888,7 +888,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
       {/* Bottom Section */}
       <div className="flex-shrink-0 p-3 pb-6 space-y-3 border-t">
         {/* Plan Usage Card - Collapsible (only for authenticated users) */}
-        {user && <Collapsible open={planUsageOpen} onOpenChange={setPlanUsageOpen}>
+        <Collapsible open={planUsageOpen} onOpenChange={setPlanUsageOpen}>
           <div className="border rounded-lg overflow-hidden">
             <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2 hover:bg-muted/50 transition-colors">
               <div className="flex items-center gap-2">
@@ -938,7 +938,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               </div>
             </CollapsibleContent>
           </div>
-        </Collapsible>}
+        </Collapsible>
 
       </div>
 
