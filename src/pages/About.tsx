@@ -5,6 +5,7 @@ import FooterSimple from '@/components/marketing/FooterSimple';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const aboutPages = [
   {
@@ -13,6 +14,7 @@ const aboutPages = [
     href: '/academy',
     image: '/bill-analysis-actions.png',
     tags: ['Platform Training', 'Legislative Process', 'Advocacy Skills', 'Guest Speakers'],
+    date: 'Jan 15, 2025',
   },
   {
     title: 'Practical principles for responsible AI',
@@ -20,6 +22,7 @@ const aboutPages = [
     href: '/ai-fluency',
     image: '/multi-engine-chat-main-2.png',
     tags: ['Choice', 'Clarity', 'Critical Thinking', 'Coherence'],
+    date: 'Feb 3, 2025',
   },
   {
     title: 'Transparent values for democratic technology',
@@ -27,6 +30,7 @@ const aboutPages = [
     href: '/constitution',
     image: '/live-feed-table-2.png',
     tags: ['Civic AI', 'Digital Ethics', 'Balanced Discourse', 'Accountability'],
+    date: 'Mar 12, 2025',
   },
   {
     title: 'Protecting human dignity in the digital age',
@@ -34,6 +38,7 @@ const aboutPages = [
     href: '/digital-bill-of-rights',
     image: '/bills-image-2.png',
     tags: ['Privacy', 'Well-Being', 'Security', '+7 more'],
+    date: 'Apr 8, 2025',
   },
   {
     title: 'Closing the gap between citizens and government',
@@ -41,6 +46,7 @@ const aboutPages = [
     href: '/history',
     image: '/live-feed-2.png',
     tags: ['Bill Tracking', 'AI Analysis', 'Civic Tools', '+5 more'],
+    date: 'May 1, 2025',
   },
 ];
 
@@ -148,6 +154,32 @@ const About = () => {
                   }`}
                   aria-label={`Go to slide ${index + 1}`}
                 />
+              ))}
+            </div>
+          </div>
+
+          {/* Block 2: Article List */}
+          <div className="mt-12">
+            <div className="divide-y divide-border rounded-xl border">
+              {aboutPages.map((page, index) => (
+                <Link
+                  key={page.title}
+                  to={page.href}
+                  className={cn(
+                    "flex items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-muted/50",
+                    index === 0 && "rounded-t-xl",
+                    index === aboutPages.length - 1 && "rounded-b-xl"
+                  )}
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-foreground">{page.title}</p>
+                    <div className="mt-1 flex items-center gap-3">
+                      <span className="text-xs font-medium text-muted-foreground">{page.subtitle}</span>
+                      <span className="text-xs text-muted-foreground/60">{page.date}</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Link>
               ))}
             </div>
           </div>
