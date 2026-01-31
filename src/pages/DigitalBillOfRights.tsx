@@ -14,7 +14,7 @@ const DigitalBillOfRights = () => {
       <ChatHeader />
 
       <main className="flex-1 pt-16">
-        <section className="container mx-auto px-4 py-12 md:px-6 2xl:max-w-[1400px]">
+        <section className="container mx-auto px-4 py-12 md:px-6 max-w-[1100px]">
           <div>
             {/* Section Header */}
             <div className="mb-12 text-center">

@@ -4,7 +4,7 @@ import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const aboutPages = [
@@ -74,7 +74,7 @@ const About = () => {
       <ChatHeader />
 
       <main className="flex-1 pt-16">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1100px] px-4 py-12 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mx-auto max-w-2xl text-center lg:max-w-4xl">
             <h1 className="text-foreground text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
@@ -127,34 +127,42 @@ const About = () => {
               ))}
             </div>
 
-            {/* Navigation arrows */}
-            <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); prevSlide(); }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur hover:bg-white/30 flex items-center justify-center transition-colors"
-              aria-label="Previous slide"
-            >
-              <ChevronLeft className="h-5 w-5 text-white" />
-            </button>
-            <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); nextSlide(); }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur hover:bg-white/30 flex items-center justify-center transition-colors"
-              aria-label="Next slide"
-            >
-              <ChevronRight className="h-5 w-5 text-white" />
-            </button>
-
-            {/* Dot indicators */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+            {/* Dot indicators - bottom left */}
+            <div className="absolute bottom-6 left-6 flex items-center gap-2">
               {aboutPages.map((_, index) => (
                 <button
                   key={index}
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCurrentSlide(index); }}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    index === currentSlide ? 'bg-white' : 'bg-white/40'
+                  className={`h-2 rounded-full transition-all ${
+                    index === currentSlide
+                      ? 'bg-primary w-6'
+                      : 'bg-primary/30 hover:bg-primary/50 w-2'
                   }`}
                   aria-label={`Go to slide ${index + 1}`}
                 />
               ))}
+            </div>
+
+            {/* Navigation arrows - bottom right */}
+            <div className="absolute right-6 bottom-6 flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); prevSlide(); }}
+                className="bg-background/50 hover:bg-background/80 backdrop-blur-sm"
+                aria-label="Previous slide"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); nextSlide(); }}
+                className="bg-background/50 hover:bg-background/80 backdrop-blur-sm"
+                aria-label="Next slide"
+              >
+                <ArrowRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
 
