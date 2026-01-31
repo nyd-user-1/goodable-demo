@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { Command, LogIn } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { cn } from "@/lib/utils";
 import confetti from "canvas-confetti";
 import {
   Tooltip,
@@ -223,45 +221,6 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
 
         {/* Right side - Controls */}
         <div className="flex items-center gap-2">
-          {/* Command menu - desktop only */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                className="hidden md:inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                onClick={() => {
-                  const event = new KeyboardEvent('keydown', {
-                    key: 'k',
-                    metaKey: true,
-                    ctrlKey: true,
-                    bubbles: true
-                  });
-                  document.dispatchEvent(event);
-                }}
-              >
-                <Command className="h-4 w-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              Command menu
-            </TooltipContent>
-          </Tooltip>
-          {/* Log In icon - hidden on mobile when sidebar available */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                className={cn(
-                  "items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors",
-                  onOpenSidebar ? "hidden sm:inline-flex" : "inline-flex"
-                )}
-                onClick={() => navigate('/auth')}
-              >
-                <LogIn className="h-5 w-5" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              Log In
-            </TooltipContent>
-          </Tooltip>
           {/* NYSgpt button */}
           <Tooltip>
             <TooltipTrigger asChild>

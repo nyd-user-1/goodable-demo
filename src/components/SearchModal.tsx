@@ -160,10 +160,16 @@ const browseLinks = [
 
 type TabType = "all" | "library" | "prompts";
 
-export function SearchModal({ open, onOpenChange }: SearchModalProps) {
+export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOpenChange }: Partial<SearchModalProps>) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Self-managed state (used when no props are passed, e.g. App-level mount)
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const onOpenChange = controlledOnOpenChange ?? setInternalOpen;
+
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<TabType>("all");
   const [recentChats, setRecentChats] = useState<ChatSession[]>([]);
@@ -176,6 +182,18 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
   const [publicMembers, setPublicMembers] = useState<MemberItem[]>([]);
   const [publicCommittees, setPublicCommittees] = useState<CommitteeItem[]>([]);
   const [publicDataLoaded, setPublicDataLoaded] = useState(false);
+
+  // Cmd+K / Ctrl+K keyboard shortcut
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        onOpenChange(!open);
+      }
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, [open, onOpenChange]);
 
   // Fetch recent items (authenticated users only)
   const fetchRecents = useCallback(async () => {

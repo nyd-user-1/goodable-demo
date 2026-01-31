@@ -10,7 +10,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ModelProvider } from "@/contexts/ModelContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { PageTransition } from "@/components/PageTransition";
-import { CommandPalette } from "@/components/CommandPalette";
+import { SearchModal } from "@/components/SearchModal";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { useHubSpot } from "@/hooks/useHubSpot";
 import { NewAppSidebar } from "@/components/NewAppSidebar";
@@ -187,7 +187,7 @@ const App = () => {
             <HubSpotTracker />
             <BrowserRouter>
               <ScrollToTop />
-              <CommandPalette />
+              <SearchModal />
               <Suspense fallback={<LoadingFallback />}>
               <PageTransition>
                 <Routes>

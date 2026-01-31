@@ -60,7 +60,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-import { SearchModal } from "@/components/SearchModal";
 import { useAIUsage } from "@/hooks/useAIUsage";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useRecentChats } from "@/hooks/useRecentChats";
@@ -137,7 +136,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const [newChatHover, setNewChatHover] = useState(false);
   const [planUsageOpen, setPlanUsageOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [itemToRename, setItemToRename] = useState<{ id: string; title: string; type: 'chat' | 'note' } | null>(null);
   const [renameValue, setRenameValue] = useState("");
@@ -449,7 +447,9 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
 
         {/* Search and Add buttons */}
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setSearchModalOpen(true)}>
+          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => {
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true, bubbles: true }));
+          }}>
             <Search className="h-5 w-5" />
           </Button>
 
@@ -924,9 +924,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
         </Collapsible>}
 
       </div>
-
-      {/* Search Modal */}
-      <SearchModal open={searchModalOpen} onOpenChange={setSearchModalOpen} />
 
       {/* Rename Chat Dialog */}
       <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
