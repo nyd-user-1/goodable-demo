@@ -135,18 +135,15 @@ const About = () => {
                   </section>
 
                   <section className="mb-10">
-                    <h2 className="text-2xl font-semibold mb-4">The Next Generation of Citizen Legislators</h2>
+                    <h2 className="text-2xl font-semibold mb-4">The Next Generation of Civic Advocates</h2>
                     <p>
-                      We believe that the future of American democracy depends on a new generation of engaged citizens who see participation in government not as a burden but as an opportunity. We call these people "citizen legislators"—not because they hold elected office, but because they take ownership of the legislative process in their communities.
+                      We believe that the future of American democracy depends on a new generation of engaged citizens who see participation in government not as a burden but as an opportunity—people who take ownership of the legislative process in their communities.
                     </p>
                     <p>
-                      Citizen legislators come from every background. They're the parent who organizes their school district to advocate for better funding. The small business owner who testifies before the city council about zoning regulations. The retiree who tracks state pension legislation and keeps their former colleagues informed. The college student who registers voters on campus and helps their peers understand what's on the ballot.
+                      They come from every background. They're the parent who organizes their school district to advocate for better funding. The small business owner who testifies before the city council about zoning regulations. The retiree who tracks state pension legislation and keeps their former colleagues informed. The college student who registers voters on campus and helps their peers understand what's on the ballot.
                     </p>
                     <p>
-                      What unites citizen legislators is a belief that democracy is participatory—that showing up matters, that individual voices can make a difference, and that the health of our republic depends on people taking responsibility for their communities. NYSgpt exists to support these people, to give them the tools they need to be effective, and to help them find and connect with others who share their commitment.
-                    </p>
-                    <p>
-                      We're particularly focused on making civic engagement accessible to people who have historically been excluded from the political process. This means building tools that work on mobile devices, since many Americans access the internet primarily through their phones. It means providing information in multiple languages and at various reading levels. It means designing for users who may have never contacted their representative before and need guidance on where to start.
+                      We're particularly focused on making civic engagement accessible to people who have historically been excluded from the political process. This means building tools that work on mobile devices, providing information in multiple languages and at various reading levels, and designing for users who may have never contacted their representative before.
                     </p>
                   </section>
 
@@ -156,7 +153,7 @@ const About = () => {
                       We're still in the early days of building NYSgpt, and we have ambitious plans for what comes next. We're expanding our coverage to include more states and eventually the federal government. We're building new tools for coalition organizing and grassroots advocacy. We're developing educational resources to help people understand not just what's happening in their government, but how to effectively participate in it.
                     </p>
                     <p>
-                      Most importantly, we're listening to our users. The best ideas for new features come from the citizen legislators who use our platform every day. They tell us what's working, what's missing, and what they need to be more effective advocates for their communities. This feedback shapes our roadmap and keeps us focused on what matters.
+                      Most importantly, we're listening to our users. The best ideas for new features come from the people who use our platform every day. They tell us what's working, what's missing, and what they need to be more effective advocates for their communities. This feedback shapes our roadmap and keeps us focused on what matters.
                     </p>
                     <p>
                       We believe that the tools we're building can make a real difference in the lives of ordinary Americans. Not by replacing human judgment with algorithms, but by giving people the information and capabilities they need to participate meaningfully in their democracy. When citizens can easily understand what their government is doing, hold their representatives accountable, and work together to advocate for change, policies tend to better reflect the needs of working families.
