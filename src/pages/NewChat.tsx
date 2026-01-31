@@ -1685,6 +1685,16 @@ const NewChat = () => {
                                 {children}
                               </h2>
                             ),
+                            h3: ({ children }) => (
+                              <h3 className="text-base font-semibold mb-2 text-foreground">
+                                {children}
+                              </h3>
+                            ),
+                            h4: ({ children }) => (
+                              <h4 className="text-sm font-semibold mb-1 text-foreground">
+                                {children}
+                              </h4>
+                            ),
                             ul: ({ children }) => (
                               <ul className="list-disc pl-5 mb-3 space-y-1">
                                 {children}
@@ -1725,6 +1735,16 @@ const NewChat = () => {
                                     <h2 className="text-lg font-semibold mb-2 text-foreground">
                                       {children}
                                     </h2>
+                                  ),
+                                  h3: ({ children }) => (
+                                    <h3 className="text-base font-semibold mb-2 text-foreground">
+                                      {children}
+                                    </h3>
+                                  ),
+                                  h4: ({ children }) => (
+                                    <h4 className="text-sm font-semibold mb-1 text-foreground">
+                                      {children}
+                                    </h4>
                                   ),
                                   ul: ({ children }) => (
                                     <ul className="list-disc pl-5 mb-3 space-y-1">
@@ -1775,6 +1795,16 @@ const NewChat = () => {
                                     {children}
                                   </h2>
                                 ),
+                                h3: ({ children }) => (
+                                  <h3 className="text-base font-semibold mb-2 text-foreground">
+                                    {children}
+                                  </h3>
+                                ),
+                                h4: ({ children }) => (
+                                  <h4 className="text-sm font-semibold mb-1 text-foreground">
+                                    {children}
+                                  </h4>
+                                ),
                                 ul: ({ children }) => (
                                   <ul className="list-disc pl-5 mb-3 space-y-1">
                                     {children}
@@ -1813,6 +1843,16 @@ const NewChat = () => {
                                         <h2 className="text-lg font-semibold mb-2 text-foreground">
                                           {children}
                                         </h2>
+                                      ),
+                                      h3: ({ children }) => (
+                                        <h3 className="text-base font-semibold mb-2 text-foreground">
+                                          {children}
+                                        </h3>
+                                      ),
+                                      h4: ({ children }) => (
+                                        <h4 className="text-sm font-semibold mb-1 text-foreground">
+                                          {children}
+                                        </h4>
                                       ),
                                       ul: ({ children }) => (
                                         <ul className="list-disc pl-5 mb-3 space-y-1">

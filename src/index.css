@@ -164,7 +164,11 @@
 
 @layer components {
   .chat-markdown-content h1,
-  .chat-markdown-content h2 {
+  .chat-markdown-content h2,
+  .chat-markdown-content h3,
+  .chat-markdown-content h4,
+  .chat-markdown-content h5,
+  .chat-markdown-content h6 {
     color: hsl(var(--foreground));
   }
 
