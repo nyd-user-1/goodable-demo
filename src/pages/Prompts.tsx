@@ -1,12 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronRight, ChevronLeft, PanelLeft, ArrowUp } from 'lucide-react';
+import { Search, ChevronRight, ChevronLeft, ArrowUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
-import { EngineSelection } from '@/components/EngineSelection';
-import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
+import { MobileMenuIcon } from '@/components/MobileMenuButton';
 
 // Departments (sorted alphabetically)
 export const departmentPrompts = [
@@ -248,29 +247,28 @@ export default function Prompts() {
         <div className="h-full flex flex-col relative md:rounded-2xl md:border bg-background overflow-hidden">
           {/* Header with sidebar toggle and model selector */}
           <div className="flex items-center justify-between px-4 py-3 bg-background flex-shrink-0">
-            {/* Left side: Sidebar toggle + NYSgpt button */}
+            {/* Left side: Sidebar toggle */}
             <div className="flex items-center gap-2">
               <MobileMenuIcon onOpenSidebar={() => setLeftSidebarOpen(!leftSidebarOpen)} />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-                className={cn("hidden md:inline-flex flex-shrink-0", leftSidebarOpen && "bg-muted")}
-              >
-                <PanelLeft className="h-4 w-4" />
-              </Button>
               <button
-                onClick={() => navigate('/new-chat')}
-                className="hidden sm:inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
+                onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+                className={cn("hidden md:inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors", leftSidebarOpen && "bg-muted")}
+                aria-label="Open menu"
               >
-                NYSgpt
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 5h1"/><path d="M3 12h1"/><path d="M3 19h1"/>
+                  <path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/>
+                  <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
+                </svg>
               </button>
             </div>
-            {/* Right side: Model selector */}
-            <MobileNYSgpt />
-            <div className="hidden sm:block">
-              <EngineSelection />
-            </div>
+            {/* Right side: NYSgpt */}
+            <button
+              onClick={() => navigate('/?prompt=What%20is%20NYSgpt%3F')}
+              className="inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
+            >
+              NYSgpt
+            </button>
           </div>
 
           {/* Scrollable Content Area */}
@@ -287,7 +285,7 @@ export default function Prompts() {
                 <div className="relative w-64 hidden sm:block">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search departments"
+                    placeholder={`Search ${activeTab}`}
                     className="pl-9 bg-muted/50 border-0"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}

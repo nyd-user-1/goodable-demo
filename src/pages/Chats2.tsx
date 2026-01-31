@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, MessageSquare, ScrollText, Users, Landmark, Wallet, GraduationCap, Trash2, PanelLeft, Command } from 'lucide-react';
+import { Search, X, MessageSquare, ScrollText, Users, Landmark, Wallet, GraduationCap, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
+import { MobileMenuIcon } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Select,
   SelectContent,
@@ -36,6 +37,8 @@ type ChatType = 'all' | 'bill' | 'member' | 'committee' | 'school-funding' | 'co
 
 const Chats2 = () => {
   const navigate = useNavigate();
+  const { session } = useAuth();
+  const isAuthenticated = !!session;
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
@@ -52,10 +55,8 @@ const Chats2 = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<ChatType>('all');
 
-  // Focus search on mount and keyboard shortcut
+  // Keyboard shortcut to focus search
   useEffect(() => {
-    searchInputRef.current?.focus();
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === '/' && !e.metaKey && !e.ctrlKey && document.activeElement?.tagName !== 'INPUT') {
         e.preventDefault();
@@ -129,15 +130,6 @@ const Chats2 = () => {
 
   const hasActiveFilters = searchTerm || typeFilter !== 'all';
 
-  const openCommandPalette = () => {
-    const event = new KeyboardEvent('keydown', {
-      key: 'k',
-      metaKey: true,
-      bubbles: true,
-    });
-    document.dispatchEvent(event);
-  };
-
   // Get counts by type using getChatType for consistency
   const typeCounts = {
     all: chatSessions.length,
@@ -182,14 +174,17 @@ const Chats2 = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <MobileMenuIcon onOpenSidebar={() => setLeftSidebarOpen(!leftSidebarOpen)} />
-                    <Button
-                      variant="ghost"
-                      size="icon"
+                    <button
                       onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-                      className={cn("hidden md:inline-flex flex-shrink-0", leftSidebarOpen && "bg-muted")}
+                      className={cn("hidden md:inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors", leftSidebarOpen && "bg-muted")}
+                      aria-label="Open menu"
                     >
-                      <PanelLeft className="h-4 w-4" />
-                    </Button>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 5h1"/><path d="M3 12h1"/><path d="M3 19h1"/>
+                        <path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/>
+                        <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
+                      </svg>
+                    </button>
                     <h1 className="text-xl font-semibold">Chat History</h1>
                   </div>
                   <div className="flex items-center gap-2">
@@ -199,15 +194,12 @@ const Chats2 = () => {
                         Clear filters
                       </Button>
                     )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={openCommandPalette}
-                      className="flex-shrink-0"
+                    <button
+                      onClick={() => navigate('/?prompt=What%20is%20NYSgpt%3F')}
+                      className="inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
                     >
-                      <Command className="h-4 w-4" />
-                    </Button>
-                    <MobileNYSgpt />
+                      NYSgpt
+                    </button>
                   </div>
                 </div>
 
@@ -263,11 +255,23 @@ const Chats2 = () => {
             ) : filteredChats.length === 0 ? (
               <div className="text-center py-12">
                 <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No chats found matching your criteria.</p>
-                {hasActiveFilters && (
-                  <Button variant="link" onClick={clearFilters} className="mt-2">
-                    Clear filters
-                  </Button>
+                {!isAuthenticated ? (
+                  <>
+                    <p className="text-muted-foreground">Please sign in to view your complete chat history.</p>
+                    <Button variant="ghost" onClick={() => navigate('/auth-4')}
+                      className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">
+                      Sign Up
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-muted-foreground">No chats found matching your criteria.</p>
+                    {hasActiveFilters && (
+                      <Button variant="link" onClick={clearFilters} className="mt-2">
+                        Clear filters
+                      </Button>
+                    )}
+                  </>
                 )}
               </div>
             ) : (
