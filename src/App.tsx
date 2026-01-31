@@ -128,7 +128,7 @@ const AppLayout = () => {
               <Route path="/contracts/:contractNumber" element={<ContractDetail />} />
               <Route path="/lobbying/:id" element={<LobbyingDetail />} />
               <Route path="/school-funding/:fundingId" element={<SchoolFundingDetail />} />
-              <Route path="/committees/:committeeSlug" element={<Committees />} />
+
               <Route path="/members/:memberSlug" element={<Members />} />
               <Route path="/problems" element={<Problems />} />
               <Route path="/laws" element={<LawsClean />} />
@@ -211,6 +211,7 @@ const App = () => {
                   <Route path="/c/:sessionId" element={<ProtectedRoute><NewChat /></ProtectedRoute>} />
                   <Route path="/bills" element={<ProtectedRoute><Bills2 /></ProtectedRoute>} />
                   <Route path="/committees" element={<ProtectedRoute><Committees2 /></ProtectedRoute>} />
+                  <Route path="/committees/:committeeSlug" element={<ProtectedRoute><Committees /></ProtectedRoute>} />
                   <Route path="/members" element={<ProtectedRoute><Members2 /></ProtectedRoute>} />
                   <Route path="/school-funding" element={<ProtectedRoute><SchoolFunding /></ProtectedRoute>} />
                   <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />

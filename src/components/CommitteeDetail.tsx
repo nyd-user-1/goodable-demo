@@ -9,13 +9,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowLeft, Plus, Pencil, Trash2, ExternalLink, Command } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { ArrowLeft, Plus, Pencil, Trash2, ExternalLink } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { supabase } from "@/integrations/supabase/client";
 import {
   CommitteeInformation,
@@ -51,6 +47,14 @@ export const CommitteeDetail = ({ committee, onBack }: CommitteeDetailProps) => 
   const [committeeChats, setCommitteeChats] = useState<Array<{ id: string; title: string; created_at: string }>>([]);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<CommitteeNote | null>(null);
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+  const [sidebarMounted, setSidebarMounted] = useState(false);
+
+  // Enable sidebar transitions after mount to prevent flash
+  useEffect(() => {
+    const timer = setTimeout(() => setSidebarMounted(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   const { notes, addNote, updateNote, deleteNote } = useCommitteeNotes(committee.committee_id);
 
@@ -119,55 +123,74 @@ export const CommitteeDetail = ({ committee, onBack }: CommitteeDetailProps) => 
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 bg-background min-h-screen">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Navigation Section */}
-        <div className="pb-6 flex items-center justify-between">
-          <Button
-            variant="outline"
-            onClick={onBack}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Back to Committees</span>
-            <span className="sm:hidden">Back</span>
-          </Button>
+    <div className="fixed inset-0 overflow-hidden">
+      {/* Left Sidebar - slides in from off-screen */}
+      <div
+        className={cn(
+          "fixed left-0 top-0 bottom-0 w-[85vw] max-w-sm md:w-72 bg-background border-r z-50",
+          sidebarMounted && "transition-transform duration-300 ease-in-out",
+          leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <NoteViewSidebar onClose={() => setLeftSidebarOpen(false)} />
+      </div>
 
-          {/* Right side controls */}
-          <div className="flex items-center gap-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div>
-                  <ThemeToggle />
+      {/* Backdrop overlay when sidebar is open */}
+      {leftSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 z-40 transition-opacity"
+          onClick={() => setLeftSidebarOpen(false)}
+        />
+      )}
+
+      {/* Main Container with padding */}
+      <div className="h-full md:p-2 bg-muted/30">
+        <div className="w-full h-full md:rounded-2xl md:border bg-background overflow-hidden flex flex-col">
+          {/* Header */}
+          <div className="flex-shrink-0 bg-background">
+            <div className="px-4 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+                    className="inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors"
+                    aria-label="Open menu"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 5h1"/><path d="M3 12h1"/><path d="M3 19h1"/>
+                      <path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/>
+                      <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
+                    </svg>
+                  </button>
                 </div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                Toggle theme
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                  onClick={() => {
-                    const event = new KeyboardEvent('keydown', {
-                      key: 'k',
-                      metaKey: true,
-                      ctrlKey: true,
-                      bubbles: true
-                    });
-                    document.dispatchEvent(event);
-                  }}
-                >
-                  <Command className="h-4 w-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                Command menu
-              </TooltipContent>
-            </Tooltip>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => navigate('/?prompt=What%20is%20NYSgpt%3F')}
+                    className="inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
+                  >
+                    NYSgpt
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="container mx-auto px-4 sm:px-6 py-6">
+              <div className="max-w-7xl mx-auto space-y-6">
+                {/* Back to Committees button */}
+                <div>
+                  <Button
+                    variant="outline"
+                    onClick={onBack}
+                    className="flex items-center gap-2"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    <span className="hidden sm:inline">Back to Committees</span>
+                    <span className="sm:hidden">Back</span>
+                  </Button>
+                </div>
 
         {/* Committee Header Card */}
         <Card className="overflow-hidden">
@@ -320,6 +343,10 @@ export const CommitteeDetail = ({ committee, onBack }: CommitteeDetailProps) => 
         <section>
           <CommitteeTabs committee={committee} />
         </section>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Note Dialog */}
