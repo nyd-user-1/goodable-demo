@@ -6,25 +6,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
-
-
-
-// About dropdown items
-const aboutDropdownItems = [
-  { label: "About", href: "/about" },
-  { label: "Academy", href: "/academy" },
-  { label: "AI Fluency", href: "/ai-fluency" },
-  { label: "Constitution", href: "/constitution" },
-  { label: "Digital Bill of Rights", href: "/digital-bill-of-rights" },
-];
 
 
 interface ChatHeaderProps {
@@ -36,10 +19,6 @@ interface ChatHeaderProps {
 export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatHeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [aboutOpen, setAboutOpen] = useState(false);
-
-
-
   // Self-managed sidebar (used when no onOpenSidebar prop is provided)
   const [internalSidebarOpen, setInternalSidebarOpen] = useState(false);
   const [sidebarMounted, setSidebarMounted] = useState(false);
@@ -118,27 +97,13 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
 
           {/* Center - Marketing Navigation (desktop only) */}
           <nav className="hidden md:flex items-center justify-center gap-6 absolute left-1/2 -translate-x-1/2">
-            {/* About - dropdown with clickable trigger */}
-            <div
-              onMouseEnter={() => setAboutOpen(true)}
-              onMouseLeave={() => setAboutOpen(false)}
+            {/* About - simple link */}
+            <Link
+              to="/about"
+              className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
             >
-              <DropdownMenu open={aboutOpen} onOpenChange={setAboutOpen} modal={false}>
-                <DropdownMenuTrigger
-                  className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none"
-                  onClick={() => navigate('/about')}
-                >
-                  About
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" sideOffset={4} className="min-w-[180px]">
-                  {aboutDropdownItems.map((item) => (
-                    <DropdownMenuItem key={item.label} asChild>
-                      <Link to={item.href}>{item.label}</Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+              About
+            </Link>
 
             {/* Features - simple link */}
             <Link

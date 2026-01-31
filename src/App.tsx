@@ -44,6 +44,7 @@ const ChangeLog = React.lazy(() => import("./pages/ChangeLog"));
 const ProblemPage = React.lazy(() => import("./pages/ProblemPage"));
 const Problems = React.lazy(() => import("./pages/Problems"));
 const About = React.lazy(() => import("./pages/About"));
+const History = React.lazy(() => import("./pages/History"));
 const Academy = React.lazy(() => import("./pages/Academy"));
 const Features = React.lazy(() => import("./pages/Features"));
 const Features2 = React.lazy(() => import("./pages/Features-2"));
@@ -187,6 +188,7 @@ const App = () => {
                   <Route path="/free-trial" element={<FreeTrial />} />
                   <Route path="/live-feed" element={<LiveFeed />} />
                   <Route path="/about" element={<About />} />
+                  <Route path="/history" element={<History />} />
                   <Route path="/academy" element={<Academy />} />
                   <Route path="/constitution" element={<Constitution />} />
                   <Route path="/digital-bill-of-rights" element={<DigitalBillOfRights />} />
