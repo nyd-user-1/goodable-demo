@@ -204,7 +204,7 @@ const SchoolFundingDetail = () => {
   const isPositiveChange = funding.total_change >= 0;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-muted/30 flex flex-col">
       {/* Slide-in sidebar */}
       <div
         className={cn(
@@ -248,9 +248,10 @@ const SchoolFundingDetail = () => {
       </nav>
 
       {/* Content */}
-      <main className="flex-1 pt-16">
-        <div className="container mx-auto px-4 sm:px-6 py-6">
-          <div className="max-w-[1300px] mx-auto space-y-6">
+      <main className="flex-1 pt-16 md:p-2">
+        <div className="w-full md:rounded-2xl md:border bg-background overflow-hidden">
+          <div className="container mx-auto px-4 sm:px-6 py-6">
+            <div className="max-w-[1300px] mx-auto space-y-6">
             {/* Back button */}
             <Button
               variant="outline"
@@ -540,6 +541,7 @@ const SchoolFundingDetail = () => {
                 )}
               </CardContent>
             </Card>
+            </div>
           </div>
         </div>
       </main>
