@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PanelLeft, ChevronRight, ChevronDown, ArrowUp, MessageSquare, X } from 'lucide-react';
+import { ChevronRight, ChevronDown, ArrowUp, MessageSquare, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
@@ -160,14 +160,17 @@ const BudgetDashboard = () => {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <MobileMenuIcon onOpenSidebar={() => setLeftSidebarOpen(!leftSidebarOpen)} />
-                  <Button
-                    variant="ghost"
-                    size="icon"
+                  <button
                     onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-                    className={cn("hidden md:inline-flex flex-shrink-0", leftSidebarOpen && "bg-muted")}
+                    className={cn("hidden md:inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors", leftSidebarOpen && "bg-muted")}
+                    aria-label="Open menu"
                   >
-                    <PanelLeft className="h-4 w-4" />
-                  </Button>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 5h1"/><path d="M3 12h1"/><path d="M3 19h1"/>
+                      <path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/>
+                      <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
+                    </svg>
+                  </button>
                   <h1 className="hidden md:block text-xl font-semibold">Budget Explorer</h1>
                 </div>
 
@@ -304,7 +307,7 @@ const BudgetDashboard = () => {
                     <span className="text-right">Share</span>
                   </div>
 
-                  {(isAuthenticated ? rows : rows.slice(0, 9)).map((row) => (
+                  {(isAuthenticated ? rows : rows.slice(0, 6)).map((row) => (
                     <DashboardRowItem
                       key={row.name}
                       row={row}
