@@ -64,7 +64,7 @@ const About = () => {
               <div className="space-y-6 md:col-span-1">
                 <div>
                   <h4 className="text-muted-foreground text-sm font-medium tracking-wider uppercase">
-                    Focus
+                    Background
                   </h4>
                   <p className="mt-1 text-lg font-medium">
                     New York State Legislature
@@ -105,12 +105,6 @@ const About = () => {
                         </p>
                       </section>
 
-                      <section className="mb-10">
-                        <h2 className="text-2xl font-semibold mb-4">What we believe</h2>
-                        <p>
-                          When citizens can easily understand what their government is doing, track the issues that matter to them, and connect with others who share their concerns, democracy works better for everyone. We provide the same sophisticated tools that professional lobbyists use—bill tracking, legislative analysis, contact management, coalition building—but we make them accessible to everyone.
-                        </p>
-                      </section>
                   <section className="mb-10">
                     <h2 className="text-2xl font-semibold mb-4">The Challenge We're Addressing</h2>
                     <p>
@@ -121,19 +115,6 @@ const About = () => {
                     </p>
                     <p>
                       NYSgpt exists to level that playing field. We provide the same sophisticated tools that professional lobbyists use—bill tracking, legislative analysis, contact management, coalition building—but we make them accessible to everyone. A teacher in Ohio can now follow education funding bills with the same precision as a K Street lobbying firm. A small business owner in Arizona can understand exactly how proposed tax changes would affect their bottom line. A recent graduate in Michigan can track criminal justice reform efforts and know exactly when to make their voice heard.
-                    </p>
-                  </section>
-
-                  <section className="mb-10">
-                    <h2 className="text-2xl font-semibold mb-4">AI in Service of Democracy</h2>
-                    <p>
-                      Artificial intelligence is transforming every industry, and civic technology is no exception. But we approach AI differently than most companies. We're not interested in using AI to manipulate, persuade, or automate away human decision-making. Instead, we use AI to illuminate—to make complex legislation understandable, to surface connections between bills that might otherwise go unnoticed, to help people find their voice when engaging with their representatives.
-                    </p>
-                    <p>
-                      Our AI systems are built on a foundation we call "constitutional AI for civic engagement." This means our tools are governed by a set of principles that prioritize accuracy, transparency, and the empowerment of citizens. When our AI summarizes a bill, it presents the facts without spin. When it identifies potential impacts, it acknowledges uncertainty and presents multiple perspectives. When it helps someone draft a letter to their representative, it amplifies their voice rather than replacing it.
-                    </p>
-                    <p>
-                      We ask ourselves one central question when building every feature: Does this help restore and grow the American middle class? That might sound ambitious for a technology company, but we believe that giving ordinary people better tools to engage with their government is one of the most direct paths to policies that work for working families.
                     </p>
                   </section>
 
@@ -170,25 +151,6 @@ const About = () => {
                   </section>
 
                   <section className="mb-10">
-                    <h2 className="text-2xl font-semibold mb-4">Our Approach to Building Technology</h2>
-                    <p>
-                      NYSgpt is built on the belief that technology should serve human values, not the other way around. This shapes everything from how we design our user interface to how we train our AI models to how we structure our company.
-                    </p>
-                    <p>
-                      We prioritize clarity over cleverness. Our interface is designed to be intuitive for first-time users while still being powerful enough for policy professionals. We avoid dark patterns and manipulation—we want users to engage because they find value in our tools, not because we've tricked them into staying.
-                    </p>
-                    <p>
-                      We're committed to accuracy and honesty. Our AI systems are trained to acknowledge uncertainty, present multiple perspectives on contested issues, and clearly distinguish between facts and interpretation. When we make mistakes—and we will—we commit to correcting them quickly and transparently.
-                    </p>
-                    <p>
-                      We protect user privacy. Civic engagement can be sensitive, and users need to trust that their activity on our platform won't be used against them. We collect only the data necessary to provide our services, we don't sell user information, and we give users control over their own data.
-                    </p>
-                    <p>
-                      We build for the long term. The challenges facing American democracy won't be solved overnight, and we're building a company that can sustain this work for decades. This means making responsible business decisions, building a team that shares our values, and maintaining the trust of our users above all else.
-                    </p>
-                  </section>
-
-                  <section className="mb-10">
                     <h2 className="text-2xl font-semibold mb-4">Looking Forward</h2>
                     <p>
                       We're still in the early days of building NYSgpt, and we have ambitious plans for what comes next. We're expanding our coverage to include more states and eventually the federal government. We're building new tools for coalition organizing and grassroots advocacy. We're developing educational resources to help people understand not just what's happening in their government, but how to effectively participate in it.
@@ -204,18 +166,6 @@ const About = () => {
                     </p>
                   </section>
 
-                  <section className="mb-10">
-                    <h2 className="text-2xl font-semibold mb-4">Get Involved</h2>
-                    <p>
-                      Whether you're a seasoned activist or someone who's never contacted their representative, there's a place for you at NYSgpt. Start by exploring the bills that affect the issues you care about. Set up alerts so you never miss an important vote. Use our AI tools to understand complex legislation and draft effective communications. Connect with others in your community who share your concerns.
-                    </p>
-                    <p>
-                      Democracy is not a spectator sport. The policies that shape our lives—from healthcare to education to economic opportunity—are decided by the people who show up. NYSgpt is here to help you show up, to give you the tools you need to be heard, and to connect you with a community of citizen legislators who believe that a better future is possible.
-                    </p>
-                    <p>
-                      Welcome to NYSgpt. Let's build something good together.
-                    </p>
-                  </section>
                     </article>
                   </div>
                 </div>
