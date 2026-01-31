@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChatHeader } from '@/components/ChatHeader';
+import FooterSimple from '@/components/marketing/FooterSimple';
 
 const nonprofitCategories = [
   {
@@ -83,6 +84,7 @@ export default function Nonprofits() {
         </div>
       </div>
     </div>
+    <FooterSimple />
     </div>
   );
 }
