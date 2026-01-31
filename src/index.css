@@ -163,6 +163,11 @@
 }
 
 @layer components {
+  .chat-markdown-content h1,
+  .chat-markdown-content h2 {
+    color: hsl(var(--foreground));
+  }
+
   .button-generate {
     @apply px-8 py-2 h-10;
     width: auto;

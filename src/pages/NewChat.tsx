@@ -2033,7 +2033,7 @@ const NewChat = () => {
                     }
                   }}
                   placeholder="What are you researching?"
-                  className="flex-1 min-h-[40px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 placeholder:text-muted-foreground/60 text-base"
+                  className="flex-1 min-h-[40px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 placeholder:text-muted-foreground/60 text-base text-black dark:text-black"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       if (isMobilePhone) {
