@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Select,
   SelectContent,
@@ -18,6 +19,8 @@ import { supabase } from '@/integrations/supabase/client';
 
 const SchoolFundingPage = () => {
   const navigate = useNavigate();
+  const { session } = useAuth();
+  const isAuthenticated = !!session;
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [sidebarMounted, setSidebarMounted] = useState(false);
@@ -261,10 +264,7 @@ const SchoolFundingPage = () => {
             ) : records.length === 0 ? (
               <div className="text-center py-12">
                 <GraduationCap className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">Please log in to view thousands of school funding records.</p>
-                <Button variant="ghost" onClick={() => navigate('/auth-4')} className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">
-                  Sign Up
-                </Button>
+                <p className="text-muted-foreground">No school funding records found matching your criteria.</p>
                 {hasActiveFilters && (
                   <Button variant="link" onClick={clearFilters} className="mt-2">
                     Clear filters
@@ -272,16 +272,29 @@ const SchoolFundingPage = () => {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {records.map((record) => (
-                  <SchoolFundingCard
-                    key={record.id}
-                    record={record}
-                    onClick={() => handleRecordClick(record)}
-                    onChatClick={() => handleChatClick(record)}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {(isAuthenticated ? records : records.slice(0, 9)).map((record) => (
+                    <SchoolFundingCard
+                      key={record.id}
+                      record={record}
+                      onClick={() => handleRecordClick(record)}
+                      onChatClick={() => handleChatClick(record)}
+                    />
+                  ))}
+                </div>
+                {!isAuthenticated && (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground">
+                      Please log in to view thousands of school funding records.
+                    </p>
+                    <Button variant="ghost" onClick={() => navigate('/auth-4')}
+                      className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">
+                      Sign Up
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

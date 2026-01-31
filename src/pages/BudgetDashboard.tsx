@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 import { BudgetChatDrawer } from '@/components/BudgetChatDrawer';
 import {
   useBudgetDashboard,
@@ -28,6 +29,8 @@ const TABS: DashboardTab[] = ['function', 'fundType', 'fpCategory'];
 
 const BudgetDashboard = () => {
   const navigate = useNavigate();
+  const { session } = useAuth();
+  const isAuthenticated = !!session;
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [sidebarMounted, setSidebarMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<DashboardTab>('function');
@@ -285,56 +288,66 @@ const BudgetDashboard = () => {
               </div>
             ) : rows.length === 0 ? (
               <div className="text-center py-12 px-4">
-                <p className="text-muted-foreground">Please log in to view thousands of budget records.</p>
-                <Button variant="ghost" onClick={() => navigate('/auth-4')} className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">
-                  Sign Up
-                </Button>
+                <p className="text-muted-foreground">No budget records found matching your criteria.</p>
               </div>
             ) : (
-              <div className="divide-y">
-                {/* Column headers */}
-                <div className="hidden md:grid grid-cols-[1fr_44px_120px_100px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
-                  <span>Name</span>
-                  <span className="flex items-center justify-center">
-                    <MessageSquare className="h-3.5 w-3.5" />
-                  </span>
-                  <span className="text-right">{primaryYearLabel.split('-')[1] ? `'${primaryYearLabel.split('-')[1]}` : primaryYearLabel}</span>
-                  <span className="text-right">Change</span>
-                  <span className="text-right">Share</span>
-                </div>
+              <>
+                <div className="divide-y">
+                  {/* Column headers */}
+                  <div className="hidden md:grid grid-cols-[1fr_44px_120px_100px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                    <span>Name</span>
+                    <span className="flex items-center justify-center">
+                      <MessageSquare className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="text-right">{primaryYearLabel.split('-')[1] ? `'${primaryYearLabel.split('-')[1]}` : primaryYearLabel}</span>
+                    <span className="text-right">Change</span>
+                    <span className="text-right">Share</span>
+                  </div>
 
-                {rows.map((row) => (
-                  <DashboardRowItem
-                    key={row.name}
-                    row={row}
-                    isExpanded={expandedRows.has(row.name)}
-                    isSelected={selectedRow === row.name}
-                    hasSelection={selectedRow !== null}
-                    onToggle={() => toggleRow(row.name)}
-                    onChatClick={() => handleChatClick(row)}
-                    tab={activeTab}
-                    getDrillDown={getDrillDown}
-                    onAgencyChatClick={(agency) => handleAgencyChatClick(agency, row.name)}
-                    primaryYearLabel={primaryYearLabel}
-                  />
-                ))}
+                  {(isAuthenticated ? rows : rows.slice(0, 9)).map((row) => (
+                    <DashboardRowItem
+                      key={row.name}
+                      row={row}
+                      isExpanded={expandedRows.has(row.name)}
+                      isSelected={selectedRow === row.name}
+                      hasSelection={selectedRow !== null}
+                      onToggle={() => toggleRow(row.name)}
+                      onChatClick={() => handleChatClick(row)}
+                      tab={activeTab}
+                      getDrillDown={getDrillDown}
+                      onAgencyChatClick={(agency) => handleAgencyChatClick(agency, row.name)}
+                      primaryYearLabel={primaryYearLabel}
+                    />
+                  ))}
 
-                {/* Grand total row */}
-                <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_120px_100px_80px] gap-4 px-4 md:px-6 py-4 bg-muted/30 font-semibold">
-                  <span>Total</span>
-                  <span className="hidden md:block" />
-                  <span className="text-right">{formatCompactCurrency(grandTotal)}</span>
-                  <span className={cn(
-                    "hidden md:block text-right",
-                    grandTotalYoy > 0 ? "text-green-600 dark:text-green-400" :
-                    grandTotalYoy < 0 ? "text-red-600 dark:text-red-400" :
-                    "text-muted-foreground"
-                  )}>
-                    {grandTotalYoy >= 0 ? '+' : ''}{grandTotalYoy.toFixed(1)}%
-                  </span>
-                  <span className="hidden md:block text-right">100%</span>
+                  {/* Grand total row */}
+                  <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_120px_100px_80px] gap-4 px-4 md:px-6 py-4 bg-muted/30 font-semibold">
+                    <span>Total</span>
+                    <span className="hidden md:block" />
+                    <span className="text-right">{formatCompactCurrency(grandTotal)}</span>
+                    <span className={cn(
+                      "hidden md:block text-right",
+                      grandTotalYoy > 0 ? "text-green-600 dark:text-green-400" :
+                      grandTotalYoy < 0 ? "text-red-600 dark:text-red-400" :
+                      "text-muted-foreground"
+                    )}>
+                      {grandTotalYoy >= 0 ? '+' : ''}{grandTotalYoy.toFixed(1)}%
+                    </span>
+                    <span className="hidden md:block text-right">100%</span>
+                  </div>
                 </div>
-              </div>
+                {!isAuthenticated && (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground">
+                      Please log in to view thousands of budget records.
+                    </p>
+                    <Button variant="ghost" onClick={() => navigate('/auth-4')}
+                      className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">
+                      Sign Up
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,8 @@ import { LobbyingSpend, LobbyistCompensation, LobbyistClient } from '@/types/lob
 
 const Lobbying = () => {
   const navigate = useNavigate();
+  const { session } = useAuth();
+  const isAuthenticated = !!session;
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [sidebarMounted, setSidebarMounted] = useState(false);
@@ -248,10 +251,7 @@ List ALL the client names provided above as bullet points between these markers.
             ) : records.length === 0 ? (
               <div className="text-center py-12">
                 <HandCoins className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">Please log in to view thousands of lobbying records.</p>
-                <Button variant="ghost" onClick={() => navigate('/auth-4')} className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">
-                  Sign Up
-                </Button>
+                <p className="text-muted-foreground">No lobbying records found matching your criteria.</p>
                 {hasActiveFilters && (
                   <Button variant="link" onClick={clearFilters} className="mt-2">
                     Clear filters
@@ -259,31 +259,57 @@ List ALL the client names provided above as bullet points between these markers.
                 )}
               </div>
             ) : activeTab === 'spend' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {spendRecords.map((record) => (
-                  <SpendCard
-                    key={record.id}
-                    record={record}
-                    onClick={() => handleSpendClick(record)}
-                    onChatClick={() => handleSpendChatClick(record)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {compensationRecords.map((record) => {
-                  const clients = getClientsForCompensation(record);
-                  return (
-                    <CompensationCard
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {(isAuthenticated ? spendRecords : spendRecords.slice(0, 9)).map((record) => (
+                    <SpendCard
                       key={record.id}
                       record={record}
-                      clients={clients}
-                      onClick={() => handleCompensationClick(record)}
-                      onChatClick={() => handleCompensationChatClick(record, clients)}
+                      onClick={() => handleSpendClick(record)}
+                      onChatClick={() => handleSpendChatClick(record)}
                     />
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+                {!isAuthenticated && (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground">
+                      Please log in to view thousands of lobbying records.
+                    </p>
+                    <Button variant="ghost" onClick={() => navigate('/auth-4')}
+                      className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">
+                      Sign Up
+                    </Button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {(isAuthenticated ? compensationRecords : compensationRecords.slice(0, 9)).map((record) => {
+                    const clients = getClientsForCompensation(record);
+                    return (
+                      <CompensationCard
+                        key={record.id}
+                        record={record}
+                        clients={clients}
+                        onClick={() => handleCompensationClick(record)}
+                        onChatClick={() => handleCompensationChatClick(record, clients)}
+                      />
+                    );
+                  })}
+                </div>
+                {!isAuthenticated && (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground">
+                      Please log in to view thousands of lobbying records.
+                    </p>
+                    <Button variant="ghost" onClick={() => navigate('/auth-4')}
+                      className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">
+                      Sign Up
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
