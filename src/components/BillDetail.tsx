@@ -12,13 +12,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowLeft, User, Pencil, Plus, Trash2, ExternalLink, Command } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { ArrowLeft, User, Pencil, Plus, Trash2, ExternalLink } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { BillSummary, BillKeyInformation, QuickReviewNoteDialog } from "./features/bills";
@@ -46,6 +42,14 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<BillNote | null>(null);
   const [billChats, setBillChats] = useState<Array<{ id: string; title: string; created_at: string }>>([]);
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+  const [sidebarMounted, setSidebarMounted] = useState(false);
+
+  // Enable sidebar transitions after mount to prevent flash
+  useEffect(() => {
+    const timer = setTimeout(() => setSidebarMounted(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   const { getReviewForBill, saveReview, addNote, updateNote, deleteNote } = useBillReviews();
   const billReview = getReviewForBill(bill.bill_id);
@@ -268,55 +272,74 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
   };
 
   return (
-    <div className="page-container min-h-screen bg-background p-4 sm:p-6 lg:p-8">
-      <div className="content-wrapper max-w-7xl mx-auto">
-        <div className="space-y-6">
-          {/* Navigation Section */}
-          <div className="flex items-center justify-between">
-            <Button
-              variant="outline"
-              onClick={onBack}
-              className="btn-secondary font-medium py-3 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Bills
-            </Button>
+    <div className="fixed inset-0 overflow-hidden">
+      {/* Left Sidebar - slides in from off-screen */}
+      <div
+        className={cn(
+          "fixed left-0 top-0 bottom-0 w-[85vw] max-w-sm md:w-72 bg-background border-r z-50",
+          sidebarMounted && "transition-transform duration-300 ease-in-out",
+          leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <NoteViewSidebar onClose={() => setLeftSidebarOpen(false)} />
+      </div>
 
-            {/* Right side controls */}
-            <div className="flex items-center gap-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>
-                    <ThemeToggle />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  Toggle theme
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
+      {/* Backdrop overlay when sidebar is open */}
+      {leftSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 z-40 transition-opacity"
+          onClick={() => setLeftSidebarOpen(false)}
+        />
+      )}
+
+      {/* Main Container with padding */}
+      <div className="h-full md:p-2 bg-muted/30">
+        <div className="w-full h-full md:rounded-2xl md:border bg-background overflow-hidden flex flex-col">
+          {/* Header */}
+          <div className="flex-shrink-0 bg-background">
+            <div className="px-4 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
                   <button
-                    className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                    onClick={() => {
-                      const event = new KeyboardEvent('keydown', {
-                        key: 'k',
-                        metaKey: true,
-                        ctrlKey: true,
-                        bubbles: true
-                      });
-                      document.dispatchEvent(event);
-                    }}
+                    onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+                    className="inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors"
+                    aria-label="Open menu"
                   >
-                    <Command className="h-4 w-4" />
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 5h1"/><path d="M3 12h1"/><path d="M3 19h1"/>
+                      <path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/>
+                      <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
+                    </svg>
                   </button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  Command menu
-                </TooltipContent>
-              </Tooltip>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => navigate('/?prompt=What%20is%20NYSgpt%3F')}
+                    className="inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
+                  >
+                    NYSgpt
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-4 sm:p-6 lg:p-8">
+              <div className="max-w-7xl mx-auto space-y-6">
+                {/* Back to Bills button */}
+                <div>
+                  <Button
+                    variant="outline"
+                    onClick={onBack}
+                    className="flex items-center gap-2"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    <span className="hidden sm:inline">Back to Bills</span>
+                    <span className="sm:hidden">Back</span>
+                  </Button>
+                </div>
 
           {/* Bill Summary Section - Full Width */}
           <BillSummary
@@ -779,6 +802,9 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
               </TabsContent>
             </Tabs>
           </section>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

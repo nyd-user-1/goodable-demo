@@ -9,13 +9,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowLeft, ChevronLeft, ChevronRight, Command, Plus, Pencil, Trash2, ExternalLink } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { ArrowLeft, ChevronLeft, ChevronRight, Plus, Pencil, Trash2, ExternalLink } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { Tables } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -42,6 +38,14 @@ export const MemberDetail = ({ member, onBack, onPrevious, onNext, hasPrevious =
   const [memberChats, setMemberChats] = useState<Array<{ id: string; title: string; created_at: string }>>([]);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<MemberNote | null>(null);
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+  const [sidebarMounted, setSidebarMounted] = useState(false);
+
+  // Enable sidebar transitions after mount to prevent flash
+  useEffect(() => {
+    const timer = setTimeout(() => setSidebarMounted(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   const { notes, addNote, updateNote, deleteNote } = useMemberNotes(member.people_id);
 
@@ -112,79 +116,96 @@ export const MemberDetail = ({ member, onBack, onPrevious, onNext, hasPrevious =
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 bg-background min-h-screen">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Navigation Section */}
-        <div className="pb-6 flex items-center justify-between">
-          <Button
-            variant="outline"
-            onClick={onBack}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Back to Members</span>
-            <span className="sm:hidden">Back</span>
-          </Button>
+    <div className="fixed inset-0 overflow-hidden">
+      {/* Left Sidebar - slides in from off-screen */}
+      <div
+        className={cn(
+          "fixed left-0 top-0 bottom-0 w-[85vw] max-w-sm md:w-72 bg-background border-r z-50",
+          sidebarMounted && "transition-transform duration-300 ease-in-out",
+          leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <NoteViewSidebar onClose={() => setLeftSidebarOpen(false)} />
+      </div>
 
-          {/* Right side controls */}
-          <div className="flex items-center gap-2">
-            {/* Member Navigation Buttons */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onPrevious}
-              disabled={!hasPrevious}
-              className="h-8 w-8 p-0"
-              title="Previous member"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onNext}
-              disabled={!hasNext}
-              className="h-8 w-8 p-0"
-              title="Next member"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+      {/* Backdrop overlay when sidebar is open */}
+      {leftSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 z-40 transition-opacity"
+          onClick={() => setLeftSidebarOpen(false)}
+        />
+      )}
 
-            <div className="w-px h-6 bg-border mx-1" />
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div>
-                  <ThemeToggle />
+      {/* Main Container with padding */}
+      <div className="h-full md:p-2 bg-muted/30">
+        <div className="w-full h-full md:rounded-2xl md:border bg-background overflow-hidden flex flex-col">
+          {/* Header */}
+          <div className="flex-shrink-0 bg-background">
+            <div className="px-4 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+                    className="inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors"
+                    aria-label="Open menu"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 5h1"/><path d="M3 12h1"/><path d="M3 19h1"/>
+                      <path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/>
+                      <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
+                    </svg>
+                  </button>
                 </div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                Toggle theme
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                  onClick={() => {
-                    const event = new KeyboardEvent('keydown', {
-                      key: 'k',
-                      metaKey: true,
-                      ctrlKey: true,
-                      bubbles: true
-                    });
-                    document.dispatchEvent(event);
-                  }}
-                >
-                  <Command className="h-4 w-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                Command menu
-              </TooltipContent>
-            </Tooltip>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => navigate('/?prompt=What%20is%20NYSgpt%3F')}
+                    className="inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
+                  >
+                    NYSgpt
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="container mx-auto px-4 sm:px-6 py-6">
+              <div className="max-w-7xl mx-auto space-y-6">
+                {/* Back to Members button + navigation */}
+                <div className="flex items-center justify-between">
+                  <Button
+                    variant="outline"
+                    onClick={onBack}
+                    className="flex items-center gap-2"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    <span className="hidden sm:inline">Back to Members</span>
+                    <span className="sm:hidden">Back</span>
+                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={onPrevious}
+                      disabled={!hasPrevious}
+                      className="h-8 w-8 p-0"
+                      title="Previous member"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={onNext}
+                      disabled={!hasNext}
+                      className="h-8 w-8 p-0"
+                      title="Next member"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
 
         {/* Member Header Card */}
         <Card className="overflow-hidden">
@@ -337,6 +358,10 @@ export const MemberDetail = ({ member, onBack, onPrevious, onNext, hasPrevious =
         <section>
           <MemberTabs member={member} />
         </section>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Note Dialog */}

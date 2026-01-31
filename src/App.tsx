@@ -124,12 +124,12 @@ const AppLayout = () => {
               <Route path="/playground" element={<Playground />} />
               <Route path="/policy-portal" element={<PolicyPortal />} />
               <Route path="/policy-lab" element={<PolicyLab />} />
-              <Route path="/bills/:billNumber" element={<Bills />} />
+
               <Route path="/contracts/:contractNumber" element={<ContractDetail />} />
               <Route path="/lobbying/:id" element={<LobbyingDetail />} />
               <Route path="/school-funding/:fundingId" element={<SchoolFundingDetail />} />
 
-              <Route path="/members/:memberSlug" element={<Members />} />
+
               <Route path="/problems" element={<Problems />} />
               <Route path="/laws" element={<LawsClean />} />
               <Route path="/laws/admin" element={<LawsAdminWorking />} />
@@ -210,9 +210,11 @@ const App = () => {
                   <Route path="/new-chat" element={<ProtectedRoute><NewChat /></ProtectedRoute>} />
                   <Route path="/c/:sessionId" element={<ProtectedRoute><NewChat /></ProtectedRoute>} />
                   <Route path="/bills" element={<ProtectedRoute><Bills2 /></ProtectedRoute>} />
+                  <Route path="/bills/:billNumber" element={<ProtectedRoute><Bills /></ProtectedRoute>} />
                   <Route path="/committees" element={<ProtectedRoute><Committees2 /></ProtectedRoute>} />
                   <Route path="/committees/:committeeSlug" element={<ProtectedRoute><Committees /></ProtectedRoute>} />
                   <Route path="/members" element={<ProtectedRoute><Members2 /></ProtectedRoute>} />
+                  <Route path="/members/:memberSlug" element={<ProtectedRoute><Members /></ProtectedRoute>} />
                   <Route path="/school-funding" element={<ProtectedRoute><SchoolFunding /></ProtectedRoute>} />
                   <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
                   <Route path="/lobbying" element={<ProtectedRoute><Lobbying /></ProtectedRoute>} />
