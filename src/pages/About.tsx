@@ -64,10 +64,10 @@ const About = () => {
               <div className="space-y-6 md:col-span-1">
                 <div>
                   <h4 className="text-muted-foreground text-sm font-medium tracking-wider uppercase">
-                    Background
+                    Focus
                   </h4>
                   <p className="mt-1 text-lg font-medium">
-                    New York State Legislature
+                    About Us
                   </p>
                 </div>
 
