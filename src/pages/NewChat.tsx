@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChatPersistence } from "@/hooks/useChatPersistence";
-import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, PanelLeft, HandCoins, Lightbulb, ScrollText } from "lucide-react";
+import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, PanelLeft, HandCoins, Lightbulb } from "lucide-react";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { Contract } from "@/types/contracts";
 import { Button } from "@/components/ui/button";
@@ -1423,14 +1423,17 @@ const NewChat = () => {
             <div className="flex items-center justify-between px-4 py-3 bg-background flex-shrink-0">
               {/* Left side: Logs button */}
               <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate('/chats')}
-                  className="flex-shrink-0"
+                <button
+                  onClick={() => setLeftSidebarOpen(true)}
+                  className="inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors flex-shrink-0"
+                  aria-label="Open menu"
                 >
-                  <ScrollText className="h-4 w-4" />
-                </Button>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 5h1"/><path d="M3 12h1"/><path d="M3 19h1"/>
+                    <path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/>
+                    <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
+                  </svg>
+                </button>
               </div>
               {/* Right side: NYSgpt */}
               <button
