@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChatPersistence } from "@/hooks/useChatPersistence";
-import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, PanelLeft, HandCoins, Lightbulb } from "lucide-react";
+import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, PanelLeft, HandCoins, Lightbulb, ScrollText } from "lucide-react";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { Contract } from "@/types/contracts";
 import { Button } from "@/components/ui/button";
@@ -1421,29 +1421,24 @@ const NewChat = () => {
             <ChatHeader onNewChat={handleNewChat} onWhatIsGoodable={handleWhatIsGoodable} onOpenSidebar={() => setLeftSidebarOpen(true)} />
           ) : (
             <div className="flex items-center justify-between px-4 py-3 bg-background flex-shrink-0">
-              {/* Left side: Sidebar toggle + NYSgpt button */}
+              {/* Left side: Logs button */}
               <div className="flex items-center gap-2">
-                <MobileMenuIcon onOpenSidebar={() => setLeftSidebarOpen(!leftSidebarOpen)} />
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-                  className={cn("hidden md:inline-flex flex-shrink-0", leftSidebarOpen && "bg-muted")}
+                  onClick={() => navigate('/chats')}
+                  className="flex-shrink-0"
                 >
-                  <PanelLeft className="h-4 w-4" />
+                  <ScrollText className="h-4 w-4" />
                 </Button>
-                <button
-                  onClick={() => navigate('/?prompt=What%20is%20NYSgpt%3F')}
-                  className="hidden sm:inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
-                >
-                  NYSgpt
-                </button>
               </div>
-              {/* Right side: Model selector (hidden on mobile, shown in input area instead) */}
-              <MobileNYSgpt />
-              <div className="hidden sm:block">
-                <EngineSelection />
-              </div>
+              {/* Right side: NYSgpt */}
+              <button
+                onClick={() => navigate('/?prompt=What%20is%20NYSgpt%3F')}
+                className="inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
+              >
+                NYSgpt
+              </button>
             </div>
           )}
 

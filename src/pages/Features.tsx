@@ -1,7 +1,7 @@
 import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const features = [
   {
@@ -117,13 +117,23 @@ const features = [
 ];
 
 const Features = () => {
-  const [current, setCurrent] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-  const goTo = useCallback((index: number) => {
-    setCurrent((index + features.length) % features.length);
+  const nextSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev + 1) % features.length);
   }, []);
 
-  const feature = features[current];
+  const prevSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev - 1 + features.length) % features.length);
+  }, []);
+
+  // Auto-advance carousel
+  useEffect(() => {
+    const timer = setInterval(() => {
+      nextSlide();
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [nextSlide]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -141,75 +151,84 @@ const Features = () => {
           </div>
 
           {/* Carousel */}
-          <div className="relative">
+          <div className="relative overflow-hidden rounded-2xl">
+            {/* Sliding track */}
             <div
-              className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${feature.gradient} transition-all duration-500`}
+              className="flex transition-transform duration-500 ease-out"
+              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
             >
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 sm:p-8 md:p-12 min-h-[420px] md:min-h-[480px]">
-                {/* Text content */}
-                <div className="flex flex-col justify-center">
-                  <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">{feature.title}</h3>
-                  <p className="text-white/90 text-sm sm:text-base leading-relaxed">{feature.description}</p>
-                </div>
-
-                {/* Stacked images */}
-                <div className="relative flex items-center justify-center">
-                  <div className="relative w-full max-w-[500px]">
-                    {/* Main image */}
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-white/20 shadow-2xl">
-                      <img
-                        src={feature.image}
-                        alt={feature.imageAlt}
-                        className="object-cover object-top w-full h-full"
-                      />
+              {features.map((feature) => (
+                <div
+                  key={feature.title}
+                  className={`min-w-full bg-gradient-to-br ${feature.gradient}`}
+                >
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 sm:p-8 md:p-12 min-h-[420px] md:min-h-[480px]">
+                    {/* Text content */}
+                    <div className="flex flex-col justify-center">
+                      <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">{feature.title}</h3>
+                      <p className="text-white/90 text-sm sm:text-base leading-relaxed">{feature.description}</p>
                     </div>
-                    {/* Zoom overlay image */}
-                    {feature.zoomImage && (
-                      <div
-                        className="absolute -bottom-4 -right-4 rounded-xl border border-white/30 shadow-2xl overflow-hidden bg-white"
-                        style={{
-                          width: Math.min(feature.zoomSize?.width || 300, 300),
-                          height: Math.min(feature.zoomSize?.height || 150, 200),
-                        }}
-                      >
-                        <img
-                          src={feature.zoomImage}
-                          alt={`${feature.title} detail view`}
-                          className="object-cover w-full h-full"
-                        />
+
+                    {/* Stacked images */}
+                    <div className="hidden md:flex relative items-center justify-center">
+                      <div className="relative w-full max-w-[500px]">
+                        {/* Main image */}
+                        <div className="relative aspect-video overflow-hidden rounded-xl border border-white/20 shadow-lg shadow-black/20">
+                          <img
+                            src={feature.image}
+                            alt={feature.imageAlt}
+                            className="object-cover object-top w-full h-full"
+                          />
+                        </div>
+                        {/* Zoom overlay image — uses original dimensions to avoid cropping */}
+                        {feature.zoomImage && (
+                          <div
+                            className="absolute -bottom-4 -right-4 rounded-xl border border-white/30 shadow-lg shadow-black/20 overflow-hidden bg-white"
+                            style={{
+                              width: feature.zoomSize.width,
+                              height: feature.zoomSize.height,
+                            }}
+                          >
+                            <img
+                              src={feature.zoomImage}
+                              alt={`${feature.title} detail view`}
+                              className="object-cover w-full h-full"
+                            />
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Navigation arrows */}
-              <button
-                onClick={() => goTo(current - 1)}
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/30 hover:bg-white/50 backdrop-blur-sm flex items-center justify-center transition-colors"
-                aria-label="Previous feature"
-              >
-                <ChevronLeft className="w-5 h-5 text-white" />
-              </button>
-              <button
-                onClick={() => goTo(current + 1)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/30 hover:bg-white/50 backdrop-blur-sm flex items-center justify-center transition-colors"
-                aria-label="Next feature"
-              >
-                <ChevronRight className="w-5 h-5 text-white" />
-              </button>
+              ))}
             </div>
 
-            {/* Dot indicators */}
-            <div className="flex justify-center gap-2 mt-6">
+            {/* Navigation arrows */}
+            <button
+              onClick={(e) => { e.stopPropagation(); prevSlide(); }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur hover:bg-white/30 flex items-center justify-center transition-colors"
+              aria-label="Previous feature"
+            >
+              <ChevronLeft className="h-5 w-5 text-white" />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); nextSlide(); }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur hover:bg-white/30 flex items-center justify-center transition-colors"
+              aria-label="Next feature"
+            >
+              <ChevronRight className="h-5 w-5 text-white" />
+            </button>
+
+            {/* Dot indicators inside carousel */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
               {features.map((_, index) => (
                 <button
                   key={index}
-                  onClick={() => goTo(index)}
-                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                    index === current
-                      ? 'bg-foreground scale-110'
-                      : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                  onClick={(e) => { e.stopPropagation(); setCurrentSlide(index); }}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    index === currentSlide
+                      ? 'bg-white'
+                      : 'bg-white/40'
                   }`}
                   aria-label={`Go to feature ${index + 1}`}
                 />
