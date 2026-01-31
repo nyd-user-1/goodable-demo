@@ -11,7 +11,7 @@ const Pricing = () => {
       {/* Main Content */}
       <main className="flex-1 pt-20 pb-16">
         {/* Subscription Plans Component */}
-        <div className="container mx-auto px-4 max-w-6xl">
+        <div className="mx-auto w-full max-w-7xl px-6">
           <SubscriptionPlans />
         </div>
       </main>

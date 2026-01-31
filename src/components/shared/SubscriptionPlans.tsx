@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { SubscriptionTierCard } from '../SubscriptionTierCard';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
@@ -146,11 +146,21 @@ export const SubscriptionPlans = ({ includeAuth = false }: SubscriptionPlansProp
     });
   };
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const scrollAmount = direction === 'left' ? -container.clientWidth : container.clientWidth;
+      container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="scrollbar-none flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-96 bg-muted animate-pulse rounded-lg" />
+          <div key={i} className="h-96 w-[calc(100%-2rem)] flex-none snap-start bg-muted animate-pulse rounded-lg sm:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1rem)]" />
         ))}
       </div>
     );
@@ -158,34 +168,53 @@ export const SubscriptionPlans = ({ includeAuth = false }: SubscriptionPlansProp
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-center space-x-4">
-        <Label htmlFor="billing-toggle" className={!isAnnual ? "font-semibold" : ""}>
-          Monthly
-        </Label>
-        <Switch
-          id="billing-toggle"
-          checked={isAnnual}
-          onCheckedChange={setIsAnnual}
-        />
-        <Label htmlFor="billing-toggle" className={isAnnual ? "font-semibold" : ""}>
-          Annual
-          <span className="ml-1 text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full">
-            Save 20%
-          </span>
-        </Label>
+      {/* Header with billing toggle and scroll arrows */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Label htmlFor="billing-toggle" className={!isAnnual ? "font-semibold" : ""}>
+            Monthly
+          </Label>
+          <Switch
+            id="billing-toggle"
+            checked={isAnnual}
+            onCheckedChange={setIsAnnual}
+          />
+          <Label htmlFor="billing-toggle" className={isAnnual ? "font-semibold" : ""}>
+            Annual
+            <span className="ml-1 text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full">
+              Save 20%
+            </span>
+          </Label>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="icon" onClick={() => scroll('left')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => scroll('right')}>
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {/* Scrolling Cards */}
+      <div
+        ref={scrollContainerRef}
+        className="scrollbar-none flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4"
+      >
         {subscriptionTiers.map((tierData) => (
-          <SubscriptionTierCard
+          <div
             key={tierData.tier}
-            {...tierData}
-            price={isAnnual ? tierData.annualPrice : tierData.monthlyPrice}
-            billingCycle={isAnnual ? 'annually' : 'monthly'}
-            isCurrentTier={subscription.subscription_tier === tierData.tier}
-            onSelect={() => handleTierSelect(tierData.tier)}
-            disabled={processingTier === tierData.tier}
-          />
+            className="w-[calc(100%-2rem)] flex-none snap-start sm:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1rem)]"
+          >
+            <SubscriptionTierCard
+              {...tierData}
+              price={isAnnual ? tierData.annualPrice : tierData.monthlyPrice}
+              billingCycle={isAnnual ? 'annually' : 'monthly'}
+              isCurrentTier={subscription.subscription_tier === tierData.tier}
+              onSelect={() => handleTierSelect(tierData.tier)}
+              disabled={processingTier === tierData.tier}
+            />
+          </div>
         ))}
       </div>
     </div>
