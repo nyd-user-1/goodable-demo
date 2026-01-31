@@ -71,27 +71,12 @@ const About = () => {
                   </p>
                 </div>
 
-                <div>
-                  <h4 className="text-muted-foreground text-sm font-medium tracking-wider uppercase">
-                    Capabilities
-                  </h4>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <Badge variant="outline">Bill Tracking</Badge>
-                    <Badge variant="outline">AI Analysis</Badge>
-                    <Badge variant="outline">Letter Generation</Badge>
-                    <Badge variant="outline">Live Feed</Badge>
-                    <Badge variant="outline">Multi-Engine Chat</Badge>
-                    <Badge variant="outline">Citations</Badge>
-                    <Badge variant="outline">Contracts</Badge>
-                    <Badge variant="outline">Excerpts</Badge>
-                  </div>
-                </div>
-
                 <Button
+                  variant="outline"
                   className="mt-4 w-full"
                   onClick={() => setExpanded(!expanded)}
                 >
-                  {expanded ? 'Hide Full Story' : 'Read Our Full Story'}
+                  {expanded ? 'Hide Full Article' : 'View Full Article'}
                   <ArrowRight className={`ml-2 h-4 w-4 transition-transform duration-300 ${expanded ? 'rotate-90' : ''}`} />
                 </Button>
               </div>
