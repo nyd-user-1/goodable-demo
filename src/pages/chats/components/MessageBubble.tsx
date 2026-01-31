@@ -165,8 +165,8 @@ export const MessageBubble = ({
                   p: ({ children }) => <p style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%', margin: '0.5em 0' }}>{children}</p>,
                   li: ({ children }) => <li style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</li>,
                   div: ({ children }) => <div style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</div>,
-                  h1: ({ children }) => <h1 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</h1>,
-                  h2: ({ children }) => <h2 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</h2>,
+                  h1: ({ children }) => <h1 className="text-foreground" style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</h1>,
+                  h2: ({ children }) => <h2 className="text-foreground" style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</h2>,
                   h3: ({ children }) => <h3 style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', wordBreak: 'break-word', maxWidth: '100%' }}>{children}</h3>,
                   ul: ({ children }) => <ul style={{ paddingLeft: '1.5em', maxWidth: '100%' }}>{children}</ul>,
                   ol: ({ children }) => <ol style={{ paddingLeft: '1.5em', maxWidth: '100%' }}>{children}</ol>
