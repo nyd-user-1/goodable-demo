@@ -10,31 +10,36 @@ const aboutPages = [
     title: 'Academy',
     description: 'Learn the tools of modern civic engagement and become an effective advocate for your community.',
     href: '/academy',
-    gradient: 'bg-gradient-to-b from-sky-300 via-sky-400 to-sky-600',
+    gradient: 'from-sky-400/80 to-sky-600/90',
+    image: '/excerpts-zoom.png',
   },
   {
     title: 'AI Fluency',
     description: 'Practical principles for responsible AI grounded in the 4C Framework.',
     href: '/ai-fluency',
-    gradient: 'bg-gradient-to-b from-emerald-300 via-emerald-400 to-teal-600',
+    gradient: 'from-emerald-400/80 to-teal-600/90',
+    image: '/citations-zoom.png',
   },
   {
     title: 'Constitution',
     description: 'Transparent values for democratic technology. The principles that govern our AI systems.',
     href: '/constitution',
-    gradient: 'bg-gradient-to-b from-pink-200 via-fuchsia-300 to-purple-500',
+    gradient: 'from-fuchsia-400/80 to-purple-600/90',
+    image: '/dashboard-analytics.png',
   },
   {
     title: 'Digital Bill of Rights',
     description: 'Protecting human dignity in the digital age. Fundamental rights and freedoms for all.',
     href: '/digital-bill-of-rights',
-    gradient: 'bg-gradient-to-b from-orange-300 via-rose-400 to-rose-600',
+    gradient: 'from-rose-400/80 to-rose-600/90',
+    image: '/letter-generation-zoom.png',
   },
   {
     title: 'History',
     description: 'How NYSgpt began and where we\'re headed. Closing the gap between citizens and government.',
     href: '/history',
-    gradient: 'bg-gradient-to-b from-yellow-300 via-amber-400 to-amber-600',
+    gradient: 'from-amber-400/80 to-amber-600/90',
+    image: '/contracts-zoom.png',
   },
 ];
 
@@ -86,15 +91,24 @@ const About = () => {
                     to={page.href}
                     className="w-full flex-shrink-0 block"
                   >
-                    <div className={`relative ${page.gradient} rounded-2xl p-8 sm:p-12 md:p-16 min-h-[320px] sm:min-h-[400px] flex flex-col justify-end`}>
-                      <div className="max-w-xl">
+                    <div className="relative rounded-2xl overflow-hidden min-h-[320px] sm:min-h-[400px] md:min-h-[500px]">
+                      {/* Background Image */}
+                      <img
+                        src={page.image}
+                        alt={page.title}
+                        className="absolute inset-0 w-full h-full object-cover object-top"
+                      />
+                      {/* Gradient Overlay */}
+                      <div className={`absolute inset-0 bg-gradient-to-t ${page.gradient}`} />
+                      {/* Content */}
+                      <div className="absolute bottom-0 left-0 p-6 sm:p-8 md:p-12 md:max-w-[60%]">
                         <p className="text-sm font-medium text-white/70 mb-2">
                           About NYSgpt
                         </p>
-                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3">
                           {page.title}
                         </h2>
-                        <p className="text-base sm:text-lg text-white/90 leading-relaxed">
+                        <p className="text-sm sm:text-base text-white/90 leading-relaxed">
                           {page.description}
                         </p>
                       </div>
@@ -106,14 +120,14 @@ const About = () => {
 
             {/* Carousel Controls */}
             <button
-              onClick={prevSlide}
+              onClick={(e) => { e.preventDefault(); prevSlide(); }}
               className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur hover:bg-white/30 text-white rounded-full p-2 transition-colors"
               aria-label="Previous slide"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <button
-              onClick={nextSlide}
+              onClick={(e) => { e.preventDefault(); nextSlide(); }}
               className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur hover:bg-white/30 text-white rounded-full p-2 transition-colors"
               aria-label="Next slide"
             >
@@ -135,27 +149,6 @@ const About = () => {
                 />
               ))}
             </div>
-          </div>
-
-          {/* Grid of Cards */}
-          <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 lg:gap-6">
-            {aboutPages.map((page) => (
-              <Link
-                key={page.title}
-                to={page.href}
-                className="group relative block aspect-[4/5] overflow-hidden rounded-lg shadow-sm transition-shadow duration-300 hover:shadow-xl"
-              >
-                <div className={`absolute inset-0 ${page.gradient} transition-transform duration-300 group-hover:scale-105`} />
-                <div className="absolute bottom-0 left-0 p-4">
-                  <p className="text-base sm:text-lg font-bold text-white">
-                    {page.title}
-                  </p>
-                  <p className="text-xs sm:text-sm font-normal text-white/80 line-clamp-2 mt-0.5">
-                    {page.description}
-                  </p>
-                </div>
-              </Link>
-            ))}
           </div>
 
           {/* CTA */}
