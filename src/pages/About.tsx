@@ -8,49 +8,39 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const aboutPages = [
   {
-    title: 'Academy',
+    title: 'From learning to leading',
     subtitle: 'Civic Education',
-    description: 'Learn the tools of modern civic engagement and become an effective advocate for your community.',
     href: '/academy',
-    gradient: 'from-sky-400 to-cyan-300',
-    image: '/excerpts-zoom.png',
-    tags: ['Platform Training', 'Legislative Process', 'Advocacy Skills'],
+    image: '/bill-analysis-actions.png',
+    tags: ['Platform Training', 'Legislative Process', 'Advocacy Skills', 'Guest Speakers'],
   },
   {
-    title: 'AI Fluency',
-    subtitle: 'The 4C Framework',
-    description: 'Practical principles for responsible AI. Choice, Clarity, Critical Thinking, and Coherence.',
+    title: 'Practical principles for responsible AI',
+    subtitle: 'AI Fluency',
     href: '/ai-fluency',
-    gradient: 'from-emerald-400 to-teal-300',
-    image: '/citations-zoom.png',
+    image: '/multi-engine-chat-main-2.png',
     tags: ['Choice', 'Clarity', 'Critical Thinking', 'Coherence'],
   },
   {
-    title: 'Constitution',
+    title: 'Transparent values for democratic technology',
     subtitle: 'Constitutional AI',
-    description: 'Transparent values for democratic technology. The principles that govern our AI systems.',
     href: '/constitution',
-    gradient: 'from-fuchsia-400 to-purple-300',
-    image: '/dashboard-analytics.png',
-    tags: ['Civic AI', 'Digital Ethics', 'Balanced Discourse'],
+    image: '/live-feed-table-2.png',
+    tags: ['Civic AI', 'Digital Ethics', 'Balanced Discourse', 'Accountability'],
   },
   {
-    title: 'Digital Bill of Rights',
+    title: 'Protecting human dignity in the digital age',
     subtitle: 'Digital Rights',
-    description: 'Protecting human dignity in the digital age. Fundamental rights and freedoms for all.',
     href: '/digital-bill-of-rights',
-    gradient: 'from-rose-400 to-orange-300',
-    image: '/letter-generation-zoom.png',
-    tags: ['Privacy', 'Well-Being', 'Security'],
+    image: '/bills-image-2.png',
+    tags: ['Privacy', 'Well-Being', 'Security', '+7 more'],
   },
   {
-    title: 'History',
-    subtitle: 'Our Story',
-    description: 'How NYSgpt began and where we\'re headed. Closing the gap between citizens and government.',
+    title: 'Closing the gap between citizens and government',
+    subtitle: 'NYS Legislative Intelligence',
     href: '/history',
-    gradient: 'from-amber-400 to-yellow-300',
-    image: '/contracts-zoom.png',
-    tags: ['Bill Tracking', 'AI Analysis', 'Civic Tools'],
+    image: '/live-feed-2.png',
+    tags: ['Bill Tracking', 'AI Analysis', 'Civic Tools', '+5 more'],
   },
 ];
 
@@ -90,7 +80,7 @@ const About = () => {
           </div>
 
           {/* Carousel */}
-          <div className="relative mt-12 overflow-hidden rounded-2xl">
+          <div className="relative mt-12 overflow-hidden rounded-xl">
             <div
               className="flex transition-transform duration-500 ease-out"
               style={{ transform: `translateX(-${currentSlide * 100}%)` }}
@@ -99,39 +89,31 @@ const About = () => {
                 <Link
                   key={page.title}
                   to={page.href}
-                  className={`min-w-full bg-gradient-to-br ${page.gradient} block`}
+                  className="min-w-full block"
                 >
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 sm:p-8 md:p-12 min-h-[420px] md:min-h-[480px]">
-                    {/* Text content */}
-                    <div className="flex flex-col justify-center">
-                      <p className="text-sm font-medium text-white/70 mb-1">
+                  <div className="relative h-64 sm:h-80 md:h-[500px] w-full overflow-hidden">
+                    {/* Background Image */}
+                    <img
+                      src={page.image}
+                      alt={page.title}
+                      className="object-cover object-top w-full h-full"
+                    />
+                    {/* Gradient overlay from bottom */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
+                    {/* Content at bottom */}
+                    <div className="absolute bottom-0 left-0 p-6 sm:p-8 md:max-w-[60%]">
+                      <p className="mb-2 text-sm font-medium text-white/80">
                         {page.subtitle}
                       </p>
-                      <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">
+                      <h3 className="mb-4 text-2xl font-bold text-white sm:text-3xl md:text-4xl">
                         {page.title}
-                      </h2>
-                      <p className="text-white/90 text-sm sm:text-base leading-relaxed mb-6">
-                        {page.description}
-                      </p>
+                      </h3>
                       <div className="flex flex-wrap gap-2">
                         {page.tags.map((tag) => (
-                          <Badge key={tag} variant="secondary" className="bg-white/20 text-white hover:bg-white/30 border-0">
+                          <Badge key={tag} variant="secondary" className="bg-white/20 text-white hover:bg-white/30">
                             {tag}
                           </Badge>
                         ))}
-                      </div>
-                    </div>
-
-                    {/* Floating image */}
-                    <div className="hidden md:flex relative items-center justify-center">
-                      <div className="relative w-full max-w-[500px]">
-                        <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-white/20 shadow-lg shadow-black/20">
-                          <img
-                            src={page.image}
-                            alt={page.title}
-                            className="object-cover object-top w-full h-full"
-                          />
-                        </div>
                       </div>
                     </div>
                   </div>
