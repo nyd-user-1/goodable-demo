@@ -70,7 +70,7 @@ export const BillKeyInformation = ({
           
           <div className="space-y-3">
             <div>
-              
+              <h4 className="font-medium text-sm text-muted-foreground mb-1">Session</h4>
               <p className="text-sm">{bill.session_id || "Not specified"}</p>
             </div>
             
@@ -111,7 +111,7 @@ export const BillKeyInformation = ({
               {otherSessionBills.map(other => (
                 <Link
                   key={other.bill_id}
-                  to={`/bills/${other.bill_number}`}
+                  to={`/bills/${other.bill_number}?session=${other.session_id}`}
                   className="text-sm text-primary hover:underline"
                 >
                   {other.session_id} Session

@@ -68,23 +68,32 @@ const Bills = () => {
       if (billNumber) {
         try {
           const normalized = normalizeBillNumber(billNumber);
+          const sessionParam = searchParams.get('session');
 
-          // Try normalized form first
-          let { data } = await supabase
+          // Build query — optionally filter by session
+          let query = supabase
             .from("Bills")
             .select("*")
-            .ilike("bill_number", normalized)
+            .ilike("bill_number", normalized);
+          if (sessionParam) {
+            query = query.eq("session_id", parseInt(sessionParam));
+          }
+          let { data } = await query
             .order("session_id", { ascending: false })
             .limit(1);
 
           let bill = data?.[0] || null;
 
-          // Fallback: try the raw value (handles legacy non-padded entries)
+          // Fallback: try the raw value (handles legacy padded entries)
           if (!bill && normalized !== billNumber.toUpperCase()) {
-            const result = await supabase
+            let fallbackQuery = supabase
               .from("Bills")
               .select("*")
-              .ilike("bill_number", billNumber)
+              .ilike("bill_number", billNumber);
+            if (sessionParam) {
+              fallbackQuery = fallbackQuery.eq("session_id", parseInt(sessionParam));
+            }
+            const result = await fallbackQuery
               .order("session_id", { ascending: false })
               .limit(1);
             bill = result.data?.[0] || null;
@@ -93,11 +102,15 @@ const Bills = () => {
           // Fallback: try without leading zeros (e.g., S00270 -> S270)
           if (!bill) {
             const strippedNumber = billNumber.replace(/^([A-Z]+)0+/, '$1');
-            if (strippedNumber !== billNumber) {
-              const result = await supabase
+            if (strippedNumber !== billNumber && strippedNumber !== normalized) {
+              let stripQuery = supabase
                 .from("Bills")
                 .select("*")
-                .ilike("bill_number", strippedNumber)
+                .ilike("bill_number", strippedNumber);
+              if (sessionParam) {
+                stripQuery = stripQuery.eq("session_id", parseInt(sessionParam));
+              }
+              const result = await stripQuery
                 .order("session_id", { ascending: false })
                 .limit(1);
               bill = result.data?.[0] || null;
@@ -105,10 +118,11 @@ const Bills = () => {
           }
 
           if (bill) {
-            // Redirect to canonical normalized URL if needed
-            const canonicalNumber = normalizeBillNumber(bill.bill_number);
-            if (billNumber !== canonicalNumber) {
-              navigate(`/bills/${canonicalNumber}`, { replace: true });
+            // Redirect to canonical URL using the bill_number as stored in DB
+            const canonical = bill.bill_number;
+            const sessionSuffix = sessionParam ? `?session=${sessionParam}` : '';
+            if (billNumber !== canonical) {
+              navigate(`/bills/${canonical}${sessionSuffix}`, { replace: true });
             }
             setSelectedBill(bill);
           } else {
@@ -126,7 +140,7 @@ const Bills = () => {
     };
 
     fetchBillByNumber();
-  }, [billNumber, navigate]);
+  }, [billNumber, navigate, searchParams]);
 
   useEffect(() => {
     fetchCommittees();

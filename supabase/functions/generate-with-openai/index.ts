@@ -23,13 +23,13 @@ function getCurrentSessionYear(): number {
   return currentYear % 2 === 1 ? currentYear : currentYear - 1;
 }
 
-// Normalize bill number to NYS 5-digit zero-padded convention (e.g. "S256" → "S00256")
+// Normalize bill number by uppercasing and stripping leading zeros (e.g. "S00256" → "S256")
 function normalizeBillNumber(billNumber: string | null | undefined): string {
   if (!billNumber) return '';
   const match = billNumber.trim().toUpperCase().match(/^([A-Z])(\d+)([A-Z]?)$/);
   if (!match) return billNumber.toUpperCase();
   const [, prefix, digits, suffix] = match;
-  return `${prefix}${digits.padStart(5, '0')}${suffix}`;
+  return `${prefix}${digits.replace(/^0+/, '') || '0'}${suffix}`;
 }
 
 // Enhanced system prompt for legislative analysis
