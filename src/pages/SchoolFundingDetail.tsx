@@ -10,13 +10,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowLeft, Plus, ExternalLink, Command, MapPin, Calendar, DollarSign, TrendingUp, TrendingDown, Pencil, Trash2 } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { ArrowLeft, Plus, ExternalLink, MapPin, Calendar, DollarSign, TrendingUp, TrendingDown, Pencil, Trash2 } from "lucide-react";
+import { NoteViewSidebar } from "@/components/NoteViewSidebar";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { SchoolFundingTotals, SchoolFunding } from "@/types/schoolFunding";
 import { formatCurrency, formatPercent } from "@/hooks/useSchoolFundingSearch";
@@ -27,11 +23,17 @@ const SchoolFundingDetail = () => {
   const navigate = useNavigate();
   const { fundingId } = useParams<{ fundingId: string }>();
   const [fundingChats, setFundingChats] = useState<Array<{ id: string; title: string; created_at: string }>>([]);
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+  const [sidebarMounted, setSidebarMounted] = useState(false);
 
   // Notes state
   const { notes, addNote, updateNote, deleteNote } = useSchoolFundingNotes(fundingId);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<{ id: string; content: string } | null>(null);
+
+  useEffect(() => {
+    setSidebarMounted(true);
+  }, []);
 
   // Fetch school funding totals data
   const { data: funding, isLoading, error } = useQuery({
@@ -172,7 +174,7 @@ const SchoolFundingDetail = () => {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 sm:px-6 py-6 bg-background min-h-screen">
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="max-w-[1300px] mx-auto space-y-6">
           <div className="h-10 w-40 bg-muted rounded animate-pulse" />
           <div className="h-48 bg-muted rounded-xl animate-pulse" />
           <div className="h-32 bg-muted rounded-xl animate-pulse" />
@@ -184,7 +186,7 @@ const SchoolFundingDetail = () => {
   if (error || !funding) {
     return (
       <div className="container mx-auto px-4 sm:px-6 py-6 bg-background min-h-screen">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-[1300px] mx-auto">
           <Button variant="outline" onClick={handleBack} className="mb-6">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to School Funding
@@ -202,335 +204,345 @@ const SchoolFundingDetail = () => {
   const isPositiveChange = funding.total_change >= 0;
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 bg-background min-h-screen">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Navigation Section */}
-        <div className="pb-6 flex items-center justify-between">
-          <Button
-            variant="outline"
-            onClick={handleBack}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Back to School Funding</span>
-            <span className="sm:hidden">Back</span>
-          </Button>
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Slide-in sidebar */}
+      <div
+        className={cn(
+          "fixed left-0 top-0 bottom-0 w-[85vw] max-w-sm md:w-72 bg-background border-r z-[60]",
+          sidebarMounted && "transition-transform duration-300 ease-in-out",
+          leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <NoteViewSidebar onClose={() => setLeftSidebarOpen(false)} />
+      </div>
+      {leftSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 z-50 transition-opacity"
+          onClick={() => setLeftSidebarOpen(false)}
+        />
+      )}
 
-          {/* Right side controls */}
-          <div className="flex items-center gap-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div>
-                  <ThemeToggle />
+      {/* Header */}
+      <nav className="fixed top-0 left-0 right-0 z-40 px-5 py-2 bg-background/80 backdrop-blur-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={() => setLeftSidebarOpen(true)}
+              className="inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors"
+              aria-label="Open menu"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 5h1"/><path d="M3 12h1"/><path d="M3 19h1"/>
+                <path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/>
+                <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
+              </svg>
+            </button>
+          </div>
+          <button
+            onClick={() => navigate('/?prompt=What%20is%20NYSgpt%3F')}
+            className="inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
+          >
+            NYSgpt
+          </button>
+        </div>
+      </nav>
+
+      {/* Content */}
+      <main className="flex-1 pt-16">
+        <div className="container mx-auto px-4 sm:px-6 py-6">
+          <div className="max-w-[1300px] mx-auto space-y-6">
+            {/* Back button */}
+            <Button
+              variant="outline"
+              onClick={handleBack}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Back to School Funding</span>
+              <span className="sm:hidden">Back</span>
+            </Button>
+
+            {/* School Funding Header Card */}
+            <Card className="overflow-hidden">
+              <CardContent className="p-6">
+                <div className="space-y-6 relative">
+                  {/* Header */}
+                  <div className="pb-4 border-b">
+                    <h1 className="text-2xl font-semibold text-foreground">
+                      {funding.district}
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                      {funding.county && `${funding.county} County`}
+                    </p>
+                  </div>
+
+                  {/* Summary Stats */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-muted/30 rounded-lg p-4">
+                      <div className="text-xs text-muted-foreground mb-1">Budget Year</div>
+                      <div className="font-semibold">{funding.enacted_budget}</div>
+                    </div>
+                    <div className="bg-muted/30 rounded-lg p-4">
+                      <div className="text-xs text-muted-foreground mb-1">Total Change</div>
+                      <div className={`font-semibold flex items-center gap-1 ${isPositiveChange ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {isPositiveChange ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                        {formatCurrency(funding.total_change)}
+                      </div>
+                    </div>
+                    <div className="bg-muted/30 rounded-lg p-4">
+                      <div className="text-xs text-muted-foreground mb-1">Percent Change</div>
+                      <div className={`font-semibold ${isPositiveChange ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {formatPercent(funding.percent_change)}
+                      </div>
+                    </div>
+                    <div className="bg-muted/30 rounded-lg p-4">
+                      <div className="text-xs text-muted-foreground mb-1">Aid Categories</div>
+                      <div className="font-semibold">{funding.category_count}</div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Left Column */}
+                    <div className="space-y-6">
+                      {/* Base Year Total */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-foreground font-medium">
+                          <DollarSign className="h-4 w-4" />
+                          <span>Base Year Total</span>
+                        </div>
+                        <div className="text-muted-foreground ml-6">
+                          {formatCurrency(funding.total_base_year)}
+                        </div>
+                      </div>
+
+                      {/* School Year Total */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-foreground font-medium">
+                          <DollarSign className="h-4 w-4" />
+                          <span>School Year Total</span>
+                        </div>
+                        <div className="text-muted-foreground ml-6">
+                          {formatCurrency(funding.total_school_year)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Column */}
+                    <div className="space-y-6">
+                      {/* County */}
+                      {funding.county && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-foreground font-medium">
+                            <MapPin className="h-4 w-4" />
+                            <span>County</span>
+                          </div>
+                          <div className="text-muted-foreground ml-6">
+                            {funding.county}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Budget Year */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-foreground font-medium">
+                          <Calendar className="h-4 w-4" />
+                          <span>Enacted Budget</span>
+                        </div>
+                        <div className="text-muted-foreground ml-6">
+                          {funding.enacted_budget}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                Toggle theme
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                  onClick={() => {
-                    const event = new KeyboardEvent('keydown', {
-                      key: 'k',
-                      metaKey: true,
-                      ctrlKey: true,
-                      bubbles: true
-                    });
-                    document.dispatchEvent(event);
-                  }}
-                >
-                  <Command className="h-4 w-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                Command menu
-              </TooltipContent>
-            </Tooltip>
+              </CardContent>
+            </Card>
+
+            {/* Aid Categories Breakdown */}
+            {categories && categories.length > 0 && (
+              <Card className="bg-card rounded-xl shadow-sm border">
+                <CardHeader className="px-6 py-4 border-b">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <CardTitle className="text-lg font-semibold">
+                        Aid Categories Breakdown
+                      </CardTitle>
+                      <Badge variant="secondary" className="text-xs">
+                        {categories.length} {categories.length === 1 ? 'category' : 'categories'}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-3">
+                    {categories.map((category, index) => {
+                      const change = parseFloat(category.Change || '0');
+                      const pctChange = parseFloat(category.percent_change || '0');
+                      const isPositive = change >= 0;
+
+                      return (
+                        <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                          <div className="flex-1">
+                            <div className="font-medium text-sm">{category.aid_category || 'Unknown Category'}</div>
+                          </div>
+                          <div className="flex items-center gap-4 text-right">
+                            <div className={`font-semibold text-sm ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                              {formatCurrency(change)}
+                            </div>
+                            <div className={`text-xs ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                              {pctChange >= 0 ? '+' : ''}{pctChange.toFixed(2)}%
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Your Notes Section */}
+            <Card className="bg-card rounded-xl shadow-sm border">
+              <CardHeader className="px-6 py-4 border-b">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <CardTitle className="text-lg font-semibold">
+                      Your Notes
+                    </CardTitle>
+                    {notes.length > 0 && (
+                      <Badge variant="secondary" className="text-xs">
+                        {notes.length} {notes.length === 1 ? 'note' : 'notes'}
+                      </Badge>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddNote}
+                    className="gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Note
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                {notes.length === 0 ? (
+                  <div className="bg-muted/30 rounded-lg p-4 text-sm">
+                    <span className="text-muted-foreground italic">No notes yet. Add a note to keep track of important information.</span>
+                  </div>
+                ) : (
+                  <Accordion type="single" collapsible className="w-full">
+                    {notes.map((note) => (
+                      <AccordionItem key={note.id} value={note.id} className="border-b last:border-b-0">
+                        <AccordionTrigger className="hover:no-underline py-3">
+                          <div className="flex items-center gap-3 text-left">
+                            <span className="text-xs text-muted-foreground">
+                              {formatNoteDate(note.created_at)}
+                            </span>
+                            <span className="text-sm truncate max-w-[300px]">
+                              {note.content.substring(0, 50)}{note.content.length > 50 ? '...' : ''}
+                            </span>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-4">
+                          <div className="text-sm text-muted-foreground whitespace-pre-wrap mb-4">
+                            {note.content}
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditNote(note)}
+                              className="gap-1"
+                            >
+                              <Pencil className="h-3 w-3" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteNote(note.id)}
+                              className="gap-1 text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              Delete
+                            </Button>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Related Chats Section */}
+            <Card className="bg-card rounded-xl shadow-sm border">
+              <CardHeader className="px-6 py-4 border-b">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <CardTitle className="text-lg font-semibold">
+                      Related Chats
+                    </CardTitle>
+                    {fundingChats.length > 0 && (
+                      <Badge variant="secondary" className="text-xs">
+                        {fundingChats.length} {fundingChats.length === 1 ? 'chat' : 'chats'}
+                      </Badge>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNewChat}
+                    className="gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    New Chat
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                {fundingChats.length === 0 ? (
+                  <div className="bg-muted/30 rounded-lg p-4 text-sm">
+                    <span className="text-muted-foreground italic">No chats yet. Start a conversation about this district's funding.</span>
+                  </div>
+                ) : (
+                  <Accordion type="single" collapsible className="w-full">
+                    {fundingChats.map((chat) => (
+                      <AccordionItem key={chat.id} value={chat.id} className="border-b last:border-b-0">
+                        <AccordionTrigger className="hover:no-underline py-3">
+                          <div className="flex items-center gap-3 text-left">
+                            <span className="text-xs text-muted-foreground">
+                              {formatNoteDate(chat.created_at)}
+                            </span>
+                            <span className="text-sm truncate max-w-[300px]">
+                              {chat.title}
+                            </span>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-4">
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/c/${chat.id}`)}
+                              className="gap-1"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              Open Chat
+                            </Button>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
-
-        {/* School Funding Header Card */}
-        <Card className="overflow-hidden">
-          <CardContent className="p-6">
-            <div className="space-y-6 relative">
-              {/* Header */}
-              <div className="pb-4 border-b">
-                <h1 className="text-2xl font-semibold text-foreground">
-                  {funding.district}
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  {funding.county && `${funding.county} County`}
-                </p>
-              </div>
-
-              {/* Summary Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-muted/30 rounded-lg p-4">
-                  <div className="text-xs text-muted-foreground mb-1">Budget Year</div>
-                  <div className="font-semibold">{funding.enacted_budget}</div>
-                </div>
-                <div className="bg-muted/30 rounded-lg p-4">
-                  <div className="text-xs text-muted-foreground mb-1">Total Change</div>
-                  <div className={`font-semibold flex items-center gap-1 ${isPositiveChange ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {isPositiveChange ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                    {formatCurrency(funding.total_change)}
-                  </div>
-                </div>
-                <div className="bg-muted/30 rounded-lg p-4">
-                  <div className="text-xs text-muted-foreground mb-1">Percent Change</div>
-                  <div className={`font-semibold ${isPositiveChange ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {formatPercent(funding.percent_change)}
-                  </div>
-                </div>
-                <div className="bg-muted/30 rounded-lg p-4">
-                  <div className="text-xs text-muted-foreground mb-1">Aid Categories</div>
-                  <div className="font-semibold">{funding.category_count}</div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Left Column */}
-                <div className="space-y-6">
-                  {/* Base Year Total */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-foreground font-medium">
-                      <DollarSign className="h-4 w-4" />
-                      <span>Base Year Total</span>
-                    </div>
-                    <div className="text-muted-foreground ml-6">
-                      {formatCurrency(funding.total_base_year)}
-                    </div>
-                  </div>
-
-                  {/* School Year Total */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-foreground font-medium">
-                      <DollarSign className="h-4 w-4" />
-                      <span>School Year Total</span>
-                    </div>
-                    <div className="text-muted-foreground ml-6">
-                      {formatCurrency(funding.total_school_year)}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Column */}
-                <div className="space-y-6">
-                  {/* County */}
-                  {funding.county && (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-foreground font-medium">
-                        <MapPin className="h-4 w-4" />
-                        <span>County</span>
-                      </div>
-                      <div className="text-muted-foreground ml-6">
-                        {funding.county}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Budget Year */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-foreground font-medium">
-                      <Calendar className="h-4 w-4" />
-                      <span>Enacted Budget</span>
-                    </div>
-                    <div className="text-muted-foreground ml-6">
-                      {funding.enacted_budget}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Aid Categories Breakdown */}
-        {categories && categories.length > 0 && (
-          <Card className="bg-card rounded-xl shadow-sm border">
-            <CardHeader className="px-6 py-4 border-b">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <CardTitle className="text-lg font-semibold">
-                    Aid Categories Breakdown
-                  </CardTitle>
-                  <Badge variant="secondary" className="text-xs">
-                    {categories.length} {categories.length === 1 ? 'category' : 'categories'}
-                  </Badge>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-3">
-                {categories.map((category, index) => {
-                  const change = parseFloat(category.Change || '0');
-                  const pctChange = parseFloat(category.percent_change || '0');
-                  const isPositive = change >= 0;
-
-                  return (
-                    <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div className="flex-1">
-                        <div className="font-medium text-sm">{category.aid_category || 'Unknown Category'}</div>
-                      </div>
-                      <div className="flex items-center gap-4 text-right">
-                        <div className={`font-semibold text-sm ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                          {formatCurrency(change)}
-                        </div>
-                        <div className={`text-xs ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                          {pctChange >= 0 ? '+' : ''}{pctChange.toFixed(2)}%
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Your Notes Section */}
-        <Card className="bg-card rounded-xl shadow-sm border">
-          <CardHeader className="px-6 py-4 border-b">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <CardTitle className="text-lg font-semibold">
-                  Your Notes
-                </CardTitle>
-                {notes.length > 0 && (
-                  <Badge variant="secondary" className="text-xs">
-                    {notes.length} {notes.length === 1 ? 'note' : 'notes'}
-                  </Badge>
-                )}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleAddNote}
-                className="gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Add Note
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-6">
-            {notes.length === 0 ? (
-              <div className="bg-muted/30 rounded-lg p-4 text-sm">
-                <span className="text-muted-foreground italic">No notes yet. Add a note to keep track of important information.</span>
-              </div>
-            ) : (
-              <Accordion type="single" collapsible className="w-full">
-                {notes.map((note) => (
-                  <AccordionItem key={note.id} value={note.id} className="border-b last:border-b-0">
-                    <AccordionTrigger className="hover:no-underline py-3">
-                      <div className="flex items-center gap-3 text-left">
-                        <span className="text-xs text-muted-foreground">
-                          {formatNoteDate(note.created_at)}
-                        </span>
-                        <span className="text-sm truncate max-w-[300px]">
-                          {note.content.substring(0, 50)}{note.content.length > 50 ? '...' : ''}
-                        </span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-4">
-                      <div className="text-sm text-muted-foreground whitespace-pre-wrap mb-4">
-                        {note.content}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditNote(note)}
-                          className="gap-1"
-                        >
-                          <Pencil className="h-3 w-3" />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteNote(note.id)}
-                          className="gap-1 text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                          Delete
-                        </Button>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Related Chats Section */}
-        <Card className="bg-card rounded-xl shadow-sm border">
-          <CardHeader className="px-6 py-4 border-b">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <CardTitle className="text-lg font-semibold">
-                  Related Chats
-                </CardTitle>
-                {fundingChats.length > 0 && (
-                  <Badge variant="secondary" className="text-xs">
-                    {fundingChats.length} {fundingChats.length === 1 ? 'chat' : 'chats'}
-                  </Badge>
-                )}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleNewChat}
-                className="gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                New Chat
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-6">
-            {fundingChats.length === 0 ? (
-              <div className="bg-muted/30 rounded-lg p-4 text-sm">
-                <span className="text-muted-foreground italic">No chats yet. Start a conversation about this district's funding.</span>
-              </div>
-            ) : (
-              <Accordion type="single" collapsible className="w-full">
-                {fundingChats.map((chat) => (
-                  <AccordionItem key={chat.id} value={chat.id} className="border-b last:border-b-0">
-                    <AccordionTrigger className="hover:no-underline py-3">
-                      <div className="flex items-center gap-3 text-left">
-                        <span className="text-xs text-muted-foreground">
-                          {formatNoteDate(chat.created_at)}
-                        </span>
-                        <span className="text-sm truncate max-w-[300px]">
-                          {chat.title}
-                        </span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-4">
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigate(`/c/${chat.id}`)}
-                          className="gap-1"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          Open Chat
-                        </Button>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      </main>
 
       {/* Note Dialog */}
       <NoteDialog

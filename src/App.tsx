@@ -126,11 +126,6 @@ const AppLayout = () => {
               <Route path="/policy-portal" element={<PolicyPortal />} />
               <Route path="/policy-lab" element={<PolicyLab />} />
 
-              <Route path="/contracts/:contractNumber" element={<ContractDetail />} />
-              <Route path="/lobbying/:id" element={<LobbyingDetail />} />
-              <Route path="/school-funding/:fundingId" element={<SchoolFundingDetail />} />
-
-
               <Route path="/problems" element={<Problems />} />
               <Route path="/laws" element={<LawsClean />} />
               <Route path="/laws/admin" element={<LawsAdminWorking />} />
@@ -217,8 +212,11 @@ const App = () => {
                   <Route path="/members" element={<ProtectedRoute><Members2 /></ProtectedRoute>} />
                   <Route path="/members/:memberSlug" element={<ProtectedRoute><Members /></ProtectedRoute>} />
                   <Route path="/school-funding" element={<ProtectedRoute><SchoolFunding /></ProtectedRoute>} />
+                  <Route path="/school-funding/:fundingId" element={<ProtectedRoute><SchoolFundingDetail /></ProtectedRoute>} />
                   <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
+                  <Route path="/contracts/:contractNumber" element={<ProtectedRoute><ContractDetail /></ProtectedRoute>} />
                   <Route path="/lobbying" element={<ProtectedRoute><Lobbying /></ProtectedRoute>} />
+                  <Route path="/lobbying/:id" element={<ProtectedRoute><LobbyingDetail /></ProtectedRoute>} />
                   <Route path="/budget" element={<ProtectedRoute><Budget /></ProtectedRoute>} />
                   <Route path="/budget-dashboard" element={<ProtectedRoute><BudgetDashboard /></ProtectedRoute>} />
 

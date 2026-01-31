@@ -11,13 +11,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowLeft, Plus, ExternalLink, Command, DollarSign, ArrowUpDown, ChevronDown } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { ArrowLeft, Plus, ExternalLink, DollarSign, ArrowUpDown, ChevronDown } from "lucide-react";
+import { NoteViewSidebar } from "@/components/NoteViewSidebar";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -239,6 +235,12 @@ const LobbyingDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [relatedChats, setRelatedChats] = useState<Array<{ id: string; title: string; created_at: string }>>([]);
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+  const [sidebarMounted, setSidebarMounted] = useState(false);
+
+  useEffect(() => {
+    setSidebarMounted(true);
+  }, []);
 
   // Parse the ID to determine type and actual ID
   const isSpend = id?.startsWith('spend-');
@@ -380,10 +382,57 @@ const LobbyingDetail = () => {
     navigate('/lobbying');
   };
 
+  // Sidebar + Header JSX shared across render paths
+  const renderSidebarAndHeader = () => (
+    <>
+      {/* Slide-in sidebar */}
+      <div
+        className={cn(
+          "fixed left-0 top-0 bottom-0 w-[85vw] max-w-sm md:w-72 bg-background border-r z-[60]",
+          sidebarMounted && "transition-transform duration-300 ease-in-out",
+          leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <NoteViewSidebar onClose={() => setLeftSidebarOpen(false)} />
+      </div>
+      {leftSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 z-50 transition-opacity"
+          onClick={() => setLeftSidebarOpen(false)}
+        />
+      )}
+
+      {/* Header */}
+      <nav className="fixed top-0 left-0 right-0 z-40 px-5 py-2 bg-background/80 backdrop-blur-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={() => setLeftSidebarOpen(true)}
+              className="inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors"
+              aria-label="Open menu"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 5h1"/><path d="M3 12h1"/><path d="M3 19h1"/>
+                <path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/>
+                <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
+              </svg>
+            </button>
+          </div>
+          <button
+            onClick={() => navigate('/?prompt=What%20is%20NYSgpt%3F')}
+            className="inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
+          >
+            NYSgpt
+          </button>
+        </div>
+      </nav>
+    </>
+  );
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 sm:px-6 py-6 bg-background min-h-screen">
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="max-w-[1300px] mx-auto space-y-6">
           <div className="h-10 w-40 bg-muted rounded animate-pulse" />
           <div className="h-48 bg-muted rounded-xl animate-pulse" />
           <div className="h-32 bg-muted rounded-xl animate-pulse" />
@@ -395,7 +444,7 @@ const LobbyingDetail = () => {
   if (error || !record) {
     return (
       <div className="container mx-auto px-4 sm:px-6 py-6 bg-background min-h-screen">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-[1300px] mx-auto">
           <Button variant="outline" onClick={handleBack} className="mb-6">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Lobbying
@@ -413,198 +462,169 @@ const LobbyingDetail = () => {
   // Render Spend Detail
   if (isSpend && spendRecord) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-6 bg-background min-h-screen">
-        <div className="max-w-7xl mx-auto space-y-6">
-          {/* Navigation Section */}
-          <div className="pb-6 flex items-center justify-between">
-            <Button
-              variant="outline"
-              onClick={handleBack}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Back to Lobbying</span>
-              <span className="sm:hidden">Back</span>
-            </Button>
+      <div className="min-h-screen bg-background flex flex-col">
+        {renderSidebarAndHeader()}
 
-            <div className="flex items-center gap-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>
-                    <ThemeToggle />
+        {/* Content */}
+        <main className="flex-1 pt-16">
+          <div className="container mx-auto px-4 sm:px-6 py-6">
+            <div className="max-w-[1300px] mx-auto space-y-6">
+              {/* Back button */}
+              <Button
+                variant="outline"
+                onClick={handleBack}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Back to Lobbying</span>
+                <span className="sm:hidden">Back</span>
+              </Button>
+
+              {/* Header Card */}
+              <Card className="overflow-hidden">
+                <CardContent className="p-6">
+                  <div className="space-y-6 relative">
+                    <div className="pb-4 border-b">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant="secondary">Client Spending</Badge>
+                      </div>
+                      <h1 className="text-2xl font-semibold text-foreground">
+                        {spendRecord.contractual_client || 'Unknown Client'}
+                      </h1>
+                    </div>
+
+                    {/* Summary Stats Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div className="bg-muted/30 rounded-lg p-4">
+                        <div className="text-xs text-muted-foreground mb-1">Compensation</div>
+                        <div className="font-semibold text-green-600 dark:text-green-400">
+                          {formatLobbyingCurrency(spendRecord.compensation)}
+                        </div>
+                      </div>
+                      <div className="bg-muted/30 rounded-lg p-4">
+                        <div className="text-xs text-muted-foreground mb-1">Total Expenses</div>
+                        <div className="font-semibold">
+                          {formatLobbyingCurrency(spendRecord.total_expenses)}
+                        </div>
+                      </div>
+                      <div className="bg-muted/30 rounded-lg p-4">
+                        <div className="text-xs text-muted-foreground mb-1">Total (Comp + Expenses)</div>
+                        <div className="font-semibold text-green-600 dark:text-green-400">
+                          {formatLobbyingCurrency(spendRecord.compensation_and_expenses)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Additional Details */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-6">
+                        {spendRecord.expenses_less_than_75 && (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-foreground font-medium">
+                              <DollarSign className="h-4 w-4" />
+                              <span>Expenses less than $75</span>
+                            </div>
+                            <div className="text-muted-foreground ml-6">
+                              {spendRecord.expenses_less_than_75}
+                            </div>
+                          </div>
+                        )}
+                        {spendRecord.salaries_no_lobbying_employees && (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-foreground font-medium">
+                              <DollarSign className="h-4 w-4" />
+                              <span>Non-Lobbying Salaries</span>
+                            </div>
+                            <div className="text-muted-foreground ml-6">
+                              {spendRecord.salaries_no_lobbying_employees}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-6">
+                        {spendRecord.itemized_expenses && (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-foreground font-medium">
+                              <DollarSign className="h-4 w-4" />
+                              <span>Itemized Expenses</span>
+                            </div>
+                            <div className="text-muted-foreground ml-6">
+                              {spendRecord.itemized_expenses}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  Toggle theme
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                    onClick={() => {
-                      const event = new KeyboardEvent('keydown', {
-                        key: 'k',
-                        metaKey: true,
-                        ctrlKey: true,
-                        bubbles: true
-                      });
-                      document.dispatchEvent(event);
-                    }}
-                  >
-                    <Command className="h-4 w-4" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  Command menu
-                </TooltipContent>
-              </Tooltip>
+                </CardContent>
+              </Card>
+
+              {/* Related Chats Section */}
+              <Card className="bg-card rounded-xl shadow-sm border">
+                <CardHeader className="px-6 py-4 border-b">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <CardTitle className="text-lg font-semibold">
+                        Related Chats
+                      </CardTitle>
+                      {relatedChats.length > 0 && (
+                        <Badge variant="secondary" className="text-xs">
+                          {relatedChats.length} {relatedChats.length === 1 ? 'chat' : 'chats'}
+                        </Badge>
+                      )}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleNewChat}
+                      className="gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      New Chat
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {relatedChats.length === 0 ? (
+                    <div className="bg-muted/30 rounded-lg p-4 text-sm">
+                      <span className="text-muted-foreground italic">No chats yet. Start a conversation about this client.</span>
+                    </div>
+                  ) : (
+                    <Accordion type="single" collapsible className="w-full">
+                      {relatedChats.map((chat) => (
+                        <AccordionItem key={chat.id} value={chat.id} className="border-b last:border-b-0">
+                          <AccordionTrigger className="hover:no-underline py-3">
+                            <div className="flex items-center gap-3 text-left">
+                              <span className="text-xs text-muted-foreground">
+                                {formatNoteDate(chat.created_at)}
+                              </span>
+                              <span className="text-sm truncate max-w-[300px]">
+                                {chat.title}
+                              </span>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="pb-4">
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(`/c/${chat.id}`)}
+                                className="gap-1"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                                Open Chat
+                              </Button>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </div>
-
-          {/* Header Card */}
-          <Card className="overflow-hidden">
-            <CardContent className="p-6">
-              <div className="space-y-6 relative">
-                <div className="pb-4 border-b">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="secondary">Client Spending</Badge>
-                  </div>
-                  <h1 className="text-2xl font-semibold text-foreground">
-                    {spendRecord.contractual_client || 'Unknown Client'}
-                  </h1>
-                </div>
-
-                {/* Summary Stats Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="bg-muted/30 rounded-lg p-4">
-                    <div className="text-xs text-muted-foreground mb-1">Compensation</div>
-                    <div className="font-semibold text-green-600 dark:text-green-400">
-                      {formatLobbyingCurrency(spendRecord.compensation)}
-                    </div>
-                  </div>
-                  <div className="bg-muted/30 rounded-lg p-4">
-                    <div className="text-xs text-muted-foreground mb-1">Total Expenses</div>
-                    <div className="font-semibold">
-                      {formatLobbyingCurrency(spendRecord.total_expenses)}
-                    </div>
-                  </div>
-                  <div className="bg-muted/30 rounded-lg p-4">
-                    <div className="text-xs text-muted-foreground mb-1">Total (Comp + Expenses)</div>
-                    <div className="font-semibold text-green-600 dark:text-green-400">
-                      {formatLobbyingCurrency(spendRecord.compensation_and_expenses)}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Additional Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-6">
-                    {spendRecord.expenses_less_than_75 && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-foreground font-medium">
-                          <DollarSign className="h-4 w-4" />
-                          <span>Expenses less than $75</span>
-                        </div>
-                        <div className="text-muted-foreground ml-6">
-                          {spendRecord.expenses_less_than_75}
-                        </div>
-                      </div>
-                    )}
-                    {spendRecord.salaries_no_lobbying_employees && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-foreground font-medium">
-                          <DollarSign className="h-4 w-4" />
-                          <span>Non-Lobbying Salaries</span>
-                        </div>
-                        <div className="text-muted-foreground ml-6">
-                          {spendRecord.salaries_no_lobbying_employees}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="space-y-6">
-                    {spendRecord.itemized_expenses && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-foreground font-medium">
-                          <DollarSign className="h-4 w-4" />
-                          <span>Itemized Expenses</span>
-                        </div>
-                        <div className="text-muted-foreground ml-6">
-                          {spendRecord.itemized_expenses}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Related Chats Section */}
-          <Card className="bg-card rounded-xl shadow-sm border">
-            <CardHeader className="px-6 py-4 border-b">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <CardTitle className="text-lg font-semibold">
-                    Related Chats
-                  </CardTitle>
-                  {relatedChats.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      {relatedChats.length} {relatedChats.length === 1 ? 'chat' : 'chats'}
-                    </Badge>
-                  )}
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleNewChat}
-                  className="gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  New Chat
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              {relatedChats.length === 0 ? (
-                <div className="bg-muted/30 rounded-lg p-4 text-sm">
-                  <span className="text-muted-foreground italic">No chats yet. Start a conversation about this client.</span>
-                </div>
-              ) : (
-                <Accordion type="single" collapsible className="w-full">
-                  {relatedChats.map((chat) => (
-                    <AccordionItem key={chat.id} value={chat.id} className="border-b last:border-b-0">
-                      <AccordionTrigger className="hover:no-underline py-3">
-                        <div className="flex items-center gap-3 text-left">
-                          <span className="text-xs text-muted-foreground">
-                            {formatNoteDate(chat.created_at)}
-                          </span>
-                          <span className="text-sm truncate max-w-[300px]">
-                            {chat.title}
-                          </span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-4">
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate(`/c/${chat.id}`)}
-                            className="gap-1"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            Open Chat
-                          </Button>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+        </main>
       </div>
     );
   }
@@ -612,176 +632,147 @@ const LobbyingDetail = () => {
   // Render Compensation Detail
   if (isCompensation && compensationRecord) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-6 bg-background min-h-screen">
-        <div className="max-w-7xl mx-auto space-y-6">
-          {/* Navigation Section */}
-          <div className="pb-6 flex items-center justify-between">
-            <Button
-              variant="outline"
-              onClick={handleBack}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Back to Lobbying</span>
-              <span className="sm:hidden">Back</span>
-            </Button>
+      <div className="min-h-screen bg-background flex flex-col">
+        {renderSidebarAndHeader()}
 
-            <div className="flex items-center gap-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>
-                    <ThemeToggle />
+        {/* Content */}
+        <main className="flex-1 pt-16">
+          <div className="container mx-auto px-4 sm:px-6 py-6">
+            <div className="max-w-[1300px] mx-auto space-y-6">
+              {/* Back button */}
+              <Button
+                variant="outline"
+                onClick={handleBack}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Back to Lobbying</span>
+                <span className="sm:hidden">Back</span>
+              </Button>
+
+              {/* Header Card */}
+              <Card className="overflow-hidden">
+                <CardContent className="p-6">
+                  <div className="space-y-6 relative">
+                    <div className="pb-4 border-b">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant="secondary">Lobbyist Earnings</Badge>
+                      </div>
+                      <h1 className="text-2xl font-semibold text-foreground">
+                        {compensationRecord.principal_lobbyist || 'Unknown Lobbyist'}
+                      </h1>
+                    </div>
+
+                    {/* Summary Stats Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div className="bg-muted/30 rounded-lg p-4">
+                        <div className="text-xs text-muted-foreground mb-1">Compensation</div>
+                        <div className="font-semibold text-green-600 dark:text-green-400">
+                          {formatLobbyingCurrency(compensationRecord.compensation)}
+                        </div>
+                      </div>
+                      <div className="bg-muted/30 rounded-lg p-4">
+                        <div className="text-xs text-muted-foreground mb-1">Reimbursed Expenses</div>
+                        <div className="font-semibold">
+                          {formatLobbyingCurrency(compensationRecord.reimbursed_expenses)}
+                        </div>
+                      </div>
+                      <div className="bg-muted/30 rounded-lg p-4">
+                        <div className="text-xs text-muted-foreground mb-1">Grand Total</div>
+                        <div className="font-semibold text-green-600 dark:text-green-400">
+                          {formatLobbyingCurrency(compensationRecord.grand_total_compensation_expenses)}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  Toggle theme
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                    onClick={() => {
-                      const event = new KeyboardEvent('keydown', {
-                        key: 'k',
-                        metaKey: true,
-                        ctrlKey: true,
-                        bubbles: true
-                      });
-                      document.dispatchEvent(event);
-                    }}
-                  >
-                    <Command className="h-4 w-4" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  Command menu
-                </TooltipContent>
-              </Tooltip>
+                </CardContent>
+              </Card>
+
+              {/* Related Chats Section */}
+              <Card className="bg-card rounded-xl shadow-sm border">
+                <CardHeader className="px-6 py-4 border-b">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <CardTitle className="text-lg font-semibold">
+                        Related Chats
+                      </CardTitle>
+                      {relatedChats.length > 0 && (
+                        <Badge variant="secondary" className="text-xs">
+                          {relatedChats.length} {relatedChats.length === 1 ? 'chat' : 'chats'}
+                        </Badge>
+                      )}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleNewChat}
+                      className="gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      New Chat
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {relatedChats.length === 0 ? (
+                    <div className="bg-muted/30 rounded-lg p-4 text-sm">
+                      <span className="text-muted-foreground italic">No chats yet. Start a conversation about this lobbyist.</span>
+                    </div>
+                  ) : (
+                    <Accordion type="single" collapsible className="w-full">
+                      {relatedChats.map((chat) => (
+                        <AccordionItem key={chat.id} value={chat.id} className="border-b last:border-b-0">
+                          <AccordionTrigger className="hover:no-underline py-3">
+                            <div className="flex items-center gap-3 text-left">
+                              <span className="text-xs text-muted-foreground">
+                                {formatNoteDate(chat.created_at)}
+                              </span>
+                              <span className="text-sm truncate max-w-[300px]">
+                                {chat.title}
+                              </span>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="pb-4">
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(`/c/${chat.id}`)}
+                                className="gap-1"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                                Open Chat
+                              </Button>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Clients Section */}
+              {lobbyistClients && lobbyistClients.length > 0 && (
+                <Card className="bg-card rounded-xl shadow-sm border">
+                  <CardHeader className="px-6 py-4 border-b">
+                    <div className="flex items-center gap-3">
+                      <CardTitle className="text-lg font-semibold">
+                        Clients
+                      </CardTitle>
+                      <Badge variant="secondary" className="text-xs">
+                        {lobbyistClients.length} {lobbyistClients.length === 1 ? 'client' : 'clients'}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <ClientsDataTable data={lobbyistClients} />
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
-
-          {/* Header Card */}
-          <Card className="overflow-hidden">
-            <CardContent className="p-6">
-              <div className="space-y-6 relative">
-                <div className="pb-4 border-b">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="secondary">Lobbyist Earnings</Badge>
-                  </div>
-                  <h1 className="text-2xl font-semibold text-foreground">
-                    {compensationRecord.principal_lobbyist || 'Unknown Lobbyist'}
-                  </h1>
-                </div>
-
-                {/* Summary Stats Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="bg-muted/30 rounded-lg p-4">
-                    <div className="text-xs text-muted-foreground mb-1">Compensation</div>
-                    <div className="font-semibold text-green-600 dark:text-green-400">
-                      {formatLobbyingCurrency(compensationRecord.compensation)}
-                    </div>
-                  </div>
-                  <div className="bg-muted/30 rounded-lg p-4">
-                    <div className="text-xs text-muted-foreground mb-1">Reimbursed Expenses</div>
-                    <div className="font-semibold">
-                      {formatLobbyingCurrency(compensationRecord.reimbursed_expenses)}
-                    </div>
-                  </div>
-                  <div className="bg-muted/30 rounded-lg p-4">
-                    <div className="text-xs text-muted-foreground mb-1">Grand Total</div>
-                    <div className="font-semibold text-green-600 dark:text-green-400">
-                      {formatLobbyingCurrency(compensationRecord.grand_total_compensation_expenses)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Related Chats Section */}
-          <Card className="bg-card rounded-xl shadow-sm border">
-            <CardHeader className="px-6 py-4 border-b">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <CardTitle className="text-lg font-semibold">
-                    Related Chats
-                  </CardTitle>
-                  {relatedChats.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      {relatedChats.length} {relatedChats.length === 1 ? 'chat' : 'chats'}
-                    </Badge>
-                  )}
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleNewChat}
-                  className="gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  New Chat
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              {relatedChats.length === 0 ? (
-                <div className="bg-muted/30 rounded-lg p-4 text-sm">
-                  <span className="text-muted-foreground italic">No chats yet. Start a conversation about this lobbyist.</span>
-                </div>
-              ) : (
-                <Accordion type="single" collapsible className="w-full">
-                  {relatedChats.map((chat) => (
-                    <AccordionItem key={chat.id} value={chat.id} className="border-b last:border-b-0">
-                      <AccordionTrigger className="hover:no-underline py-3">
-                        <div className="flex items-center gap-3 text-left">
-                          <span className="text-xs text-muted-foreground">
-                            {formatNoteDate(chat.created_at)}
-                          </span>
-                          <span className="text-sm truncate max-w-[300px]">
-                            {chat.title}
-                          </span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-4">
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate(`/c/${chat.id}`)}
-                            className="gap-1"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            Open Chat
-                          </Button>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Clients Section */}
-          {lobbyistClients && lobbyistClients.length > 0 && (
-            <Card className="bg-card rounded-xl shadow-sm border">
-              <CardHeader className="px-6 py-4 border-b">
-                <div className="flex items-center gap-3">
-                  <CardTitle className="text-lg font-semibold">
-                    Clients
-                  </CardTitle>
-                  <Badge variant="secondary" className="text-xs">
-                    {lobbyistClients.length} {lobbyistClients.length === 1 ? 'client' : 'clients'}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <ClientsDataTable data={lobbyistClients} />
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        </main>
       </div>
     );
   }
