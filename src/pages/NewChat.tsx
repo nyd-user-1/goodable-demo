@@ -286,7 +286,8 @@ const NewChat = () => {
   const [chatStarted, setChatStarted] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(() => {
-    if (typeof window !== 'undefined') {
+    // Don't open sidebar by default on the public landing page
+    if (typeof window !== 'undefined' && window.location.pathname !== '/') {
       return localStorage.getItem('nysgpt_sidebar_open') === 'true';
     }
     return false;
@@ -1400,10 +1401,10 @@ const NewChat = () => {
         <NoteViewSidebar onClose={() => setLeftSidebarOpen(false)} />
       </div>
 
-      {/* Backdrop overlay when sidebar is open */}
+      {/* Backdrop overlay when sidebar is open (mobile only) */}
       {leftSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/20 z-50 transition-opacity"
+          className="fixed inset-0 bg-black/20 z-50 transition-opacity md:hidden"
           onClick={() => setLeftSidebarOpen(false)}
         />
       )}
