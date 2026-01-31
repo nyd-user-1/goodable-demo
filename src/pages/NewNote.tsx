@@ -1,14 +1,17 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { useNotePersistence } from "@/hooks/useNotePersistence";
+import { Button } from "@/components/ui/button";
 
 export default function NewNote() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { createNote } = useNotePersistence();
   const creating = useRef(false);
 
   useEffect(() => {
-    if (creating.current) return;
+    if (!user || creating.current) return;
     creating.current = true;
 
     createNote({
@@ -23,7 +26,18 @@ export default function NewNote() {
       console.error("Failed to create note:", err);
       creating.current = false;
     });
-  }, []);
+  }, [user]);
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen gap-4">
+        <p className="text-muted-foreground">Please log in to create notes.</p>
+        <Button onClick={() => navigate("/auth-2")} className="font-semibold">
+          Sign Up
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center h-screen">
