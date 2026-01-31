@@ -186,7 +186,7 @@ const browseLinks = [
   { title: "School Funding", path: "/school-funding", icon: GraduationCap },
 ];
 
-type TabType = "all" | "library" | "prompts";
+type TabType = "all" | "history" | "library" | "prompts";
 
 // Empty arrays (stable references to avoid re-renders)
 const emptyBills: BillItem[] = [];
@@ -213,6 +213,7 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
   const [recentChats, setRecentChats] = useState<ChatSession[]>([]);
   const [recentExcerpts, setRecentExcerpts] = useState<Excerpt[]>([]);
   const [recentNotes, setRecentNotes] = useState<Note[]>([]);
+  const [allChats, setAllChats] = useState<ChatSession[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   // Public data state (fetched once, cached in state)
@@ -265,6 +266,15 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
     if (chatsResult.data) setRecentChats(chatsResult.data);
     if (excerptsResult.data) setRecentExcerpts(excerptsResult.data);
     if (notesResult.data) setRecentNotes(notesResult.data);
+
+    // Fetch all chats for the History tab (no limit)
+    const allChatsResult = await supabase
+      .from("chat_sessions")
+      .select("id, title")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false });
+
+    if (allChatsResult.data) setAllChats(allChatsResult.data);
   }, [user]);
 
   // Fetch public data - runs once for all users
@@ -347,6 +357,9 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
   const filteredNotes = recentNotes.filter((n) =>
     n.title.toLowerCase().includes(term)
   );
+  const filteredAllChats = allChats.filter((c) =>
+    c.title.toLowerCase().includes(term)
+  );
   const filteredPrompts = allPrompts.filter(
     (p) =>
       p.title.toLowerCase().includes(term) ||
@@ -389,12 +402,21 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
   );
 
   // Get items for current tab
+  const emptyHistoryChats: ChatSession[] = [];
   const getDisplayItems = () => {
+    if (activeTab === "history") {
+      return {
+        recents: [], prompts: [], historyChats: filteredAllChats,
+        bills: emptyBills, members: emptyMembers, committees: emptyCommittees,
+        pages: emptyPages, lobbyists: emptyLobbyists, contracts: emptyContracts,
+        budget: emptyBudget, schoolFunding: emptySchoolFunding, showBrowseLinks: false,
+      };
+    }
     if (activeTab === "library") {
       if (user) {
         return {
           recents: [...filteredChats, ...filteredExcerpts, ...filteredNotes],
-          prompts: [],
+          prompts: [], historyChats: emptyHistoryChats,
           bills: emptyBills, members: emptyMembers, committees: emptyCommittees,
           pages: emptyPages, lobbyists: emptyLobbyists, contracts: emptyContracts,
           budget: emptyBudget, schoolFunding: emptySchoolFunding, showBrowseLinks: false,
@@ -402,14 +424,14 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
       }
       if (!searchTerm) {
         return {
-          recents: [], prompts: [],
+          recents: [], prompts: [], historyChats: emptyHistoryChats,
           bills: emptyBills, members: emptyMembers, committees: emptyCommittees,
           pages: emptyPages, lobbyists: emptyLobbyists, contracts: emptyContracts,
           budget: emptyBudget, schoolFunding: emptySchoolFunding, showBrowseLinks: true,
         };
       }
       return {
-        recents: [], prompts: [],
+        recents: [], prompts: [], historyChats: emptyHistoryChats,
         bills: filteredBills, members: filteredMembers, committees: filteredCommittees,
         pages: filteredPages, lobbyists: filteredLobbyists, contracts: filteredContracts,
         budget: filteredBudget, schoolFunding: filteredSchoolFunding, showBrowseLinks: false,
@@ -417,7 +439,7 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
     }
     if (activeTab === "prompts") {
       return {
-        recents: [], prompts: filteredPrompts,
+        recents: [], prompts: filteredPrompts, historyChats: emptyHistoryChats,
         bills: emptyBills, members: emptyMembers, committees: emptyCommittees,
         pages: emptyPages, lobbyists: emptyLobbyists, contracts: emptyContracts,
         budget: emptyBudget, schoolFunding: emptySchoolFunding, showBrowseLinks: false,
@@ -427,6 +449,7 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
     return {
       recents: [...filteredChats.slice(0, 3), ...filteredExcerpts.slice(0, 2), ...filteredNotes.slice(0, 2)],
       prompts: filteredPrompts.slice(0, 5),
+      historyChats: emptyHistoryChats,
       bills: filteredBills.slice(0, 3),
       members: filteredMembers.slice(0, 3),
       committees: filteredCommittees.slice(0, 3),
@@ -439,7 +462,7 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
     };
   };
 
-  const { recents, prompts, bills, members, committees, pages, lobbyists, contracts, budget, schoolFunding, showBrowseLinks } = getDisplayItems();
+  const { recents, prompts, historyChats, bills, members, committees, pages, lobbyists, contracts, budget, schoolFunding, showBrowseLinks } = getDisplayItems();
 
   const handleItemClick = (type: string, id: string) => {
     onOpenChange(false);
@@ -486,7 +509,7 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
     return val.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
   };
 
-  const hasResults = recents.length > 0 || prompts.length > 0 || bills.length > 0 || members.length > 0 || committees.length > 0 || pages.length > 0 || lobbyists.length > 0 || contracts.length > 0 || budget.length > 0 || schoolFunding.length > 0 || showBrowseLinks;
+  const hasResults = recents.length > 0 || historyChats.length > 0 || prompts.length > 0 || bills.length > 0 || members.length > 0 || committees.length > 0 || pages.length > 0 || lobbyists.length > 0 || contracts.length > 0 || budget.length > 0 || schoolFunding.length > 0 || showBrowseLinks;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -525,6 +548,19 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
           >
             All
           </button>
+          {user && (
+            <button
+              onClick={() => setActiveTab("history")}
+              className={cn(
+                "px-3 py-1.5 text-sm rounded-md transition-colors",
+                activeTab === "history"
+                  ? "bg-muted font-medium"
+                  : "hover:bg-muted/50 text-muted-foreground"
+              )}
+            >
+              History
+            </button>
+          )}
           <button
             onClick={() => setActiveTab("library")}
             className={cn(
@@ -600,6 +636,25 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
                   </button>
                 );
               })}
+            </div>
+          )}
+
+          {/* History Section */}
+          {historyChats.length > 0 && (
+            <div className="p-2">
+              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
+                Chat History ({historyChats.length})
+              </p>
+              {historyChats.map((chat) => (
+                <button
+                  key={`history-${chat.id}`}
+                  onClick={() => handleItemClick("chat", chat.id)}
+                  className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
+                >
+                  <MessagesSquare className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="truncate">{chat.title}</span>
+                </button>
+              ))}
             </div>
           )}
 
