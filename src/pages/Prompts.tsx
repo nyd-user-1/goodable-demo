@@ -164,15 +164,19 @@ const featuredItems = [
   },
 ];
 
-const tabs = [
+const filters = [
+  { id: 'all', label: 'All' },
   { id: 'departments', label: 'Departments' },
   { id: 'agencies', label: 'Agencies' },
   { id: 'authorities', label: 'Authorities' },
 ];
 
+const ITEMS_PER_PAGE = 24;
+
 export default function Prompts() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('departments');
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentSlide, setCurrentSlide] = useState(0);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
@@ -186,21 +190,26 @@ export default function Prompts() {
   }, []);
 
 
-  const getPrompts = () => {
-    switch (activeTab) {
-      case 'agencies':
-        return agencyPrompts;
-      case 'authorities':
-        return authorityPrompts;
-      default:
-        return departmentPrompts;
-    }
-  };
+  // Combine all prompts with category tags
+  const allPrompts = [
+    ...departmentPrompts.map(p => ({ ...p, category: 'departments' as const })),
+    ...agencyPrompts.map(p => ({ ...p, category: 'agencies' as const })),
+    ...authorityPrompts.map(p => ({ ...p, category: 'authorities' as const })),
+  ];
 
-  const filteredPrompts = getPrompts().filter(
-    (p) =>
-      p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.prompt.toLowerCase().includes(searchQuery.toLowerCase())
+  // Filter by category and search
+  const filteredPrompts = allPrompts.filter((p) => {
+    const matchesCategory = activeFilter === 'all' || p.category === activeFilter;
+    const query = searchQuery.toLowerCase();
+    const matchesSearch = !query || p.title.toLowerCase().includes(query) || p.prompt.toLowerCase().includes(query);
+    return matchesCategory && matchesSearch;
+  });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredPrompts.length / ITEMS_PER_PAGE);
+  const paginatedPrompts = filteredPrompts.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
   );
 
   const handlePromptClick = (prompt: string) => {
@@ -208,7 +217,8 @@ export default function Prompts() {
   };
 
   const handleFeaturedClick = (item: typeof featuredItems[0]) => {
-    setActiveTab(item.id);
+    setActiveFilter(item.id);
+    setCurrentPage(1);
   };
 
   const nextSlide = () => {
@@ -285,10 +295,10 @@ export default function Prompts() {
                 <div className="relative w-64 hidden sm:block">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder={`Search ${activeTab}`}
+                    placeholder="Search all"
                     className="pl-9 bg-muted/50 border-0"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
                   />
                 </div>
               </div>
@@ -383,36 +393,36 @@ export default function Prompts() {
               <div className="relative mb-4 sm:hidden">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search departments"
+                  placeholder="Search all"
                   className="pl-9 bg-muted/50 border-0"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
                 />
               </div>
 
-              {/* Tabs */}
+              {/* Filters */}
               <div className="flex gap-2 mb-8">
-                {tabs.map((tab) => (
+                {filters.map((filter) => (
                   <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
+                    key={filter.id}
+                    onClick={() => { setActiveFilter(filter.id); setCurrentPage(1); }}
                     className={cn(
                       'px-4 py-2 rounded-full text-sm font-medium transition-colors',
-                      activeTab === tab.id
+                      activeFilter === filter.id
                         ? 'bg-foreground text-background'
                         : 'bg-muted hover:bg-muted/80 text-foreground'
                     )}
                   >
-                    {tab.label}
+                    {filter.label}
                   </button>
                 ))}
               </div>
 
               {/* Prompts Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {filteredPrompts.map((item, idx) => (
+                {paginatedPrompts.map((item, idx) => (
                   <div
-                    key={idx}
+                    key={`${item.category}-${idx}`}
                     onClick={() => navigate(`/departments/${item.slug}`)}
                     className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200 text-left"
                   >
@@ -443,6 +453,40 @@ export default function Prompts() {
               {filteredPrompts.length === 0 && (
                 <div className="text-center py-12 text-muted-foreground">
                   No results found matching "{searchQuery}"
+                </div>
+              )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8 pb-4">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-30 hover:bg-muted"
+                  >
+                    Previous
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={cn(
+                        'w-9 h-9 rounded-lg text-sm font-medium transition-colors',
+                        currentPage === page
+                          ? 'bg-foreground text-background'
+                          : 'hover:bg-muted text-muted-foreground'
+                      )}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-30 hover:bg-muted"
+                  >
+                    Next
+                  </button>
                 </div>
               )}
             </div>
