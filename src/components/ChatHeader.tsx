@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import confetti from "canvas-confetti";
 import {
@@ -12,6 +12,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 
 // Non Profits dropdown items
 const nonProfitsDropdownItems = [
@@ -64,6 +66,19 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
   const [useCasesOpen, setUseCasesOpen] = useState(false);
   const [nonProfitsOpen, setNonProfitsOpen] = useState(false);
 
+  // Self-managed sidebar (used when no onOpenSidebar prop is provided)
+  const [internalSidebarOpen, setInternalSidebarOpen] = useState(false);
+  const [sidebarMounted, setSidebarMounted] = useState(false);
+  const manageOwnSidebar = !onOpenSidebar;
+
+  useEffect(() => {
+    if (manageOwnSidebar) {
+      setSidebarMounted(true);
+    }
+  }, [manageOwnSidebar]);
+
+  const handleOpenSidebar = onOpenSidebar ?? (() => setInternalSidebarOpen(true));
+
   const handleNewChat = () => {
     // If already on root, force a page reload to reset chat state
     if (location.pathname === '/') {
@@ -88,13 +103,34 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 px-5 py-2 bg-background/80 backdrop-blur-sm">
-      <div className="flex items-center justify-between">
-        {/* Left side - Logs menu icon */}
-        <div className="flex items-center space-x-1">
-          {onOpenSidebar && (
+    <>
+      {/* Self-managed sidebar */}
+      {manageOwnSidebar && (
+        <>
+          <div
+            className={cn(
+              "fixed left-0 top-0 bottom-0 w-[85vw] max-w-sm md:w-72 bg-background border-r z-[60]",
+              sidebarMounted && "transition-transform duration-300 ease-in-out",
+              internalSidebarOpen ? "translate-x-0" : "-translate-x-full"
+            )}
+          >
+            <NoteViewSidebar onClose={() => setInternalSidebarOpen(false)} />
+          </div>
+          {internalSidebarOpen && (
+            <div
+              className="fixed inset-0 bg-black/20 z-50 transition-opacity"
+              onClick={() => setInternalSidebarOpen(false)}
+            />
+          )}
+        </>
+      )}
+
+      <nav className="fixed top-0 left-0 right-0 z-50 px-5 py-2 bg-background/80 backdrop-blur-sm">
+        <div className="flex items-center justify-between">
+          {/* Left side - Logs menu icon */}
+          <div className="flex items-center space-x-1">
             <button
-              onClick={onOpenSidebar}
+              onClick={handleOpenSidebar}
               className="inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors"
               aria-label="Open menu"
             >
@@ -104,142 +140,142 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
                 <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
               </svg>
             </button>
-          )}
+          </div>
+
+          {/* Center - Marketing Navigation (desktop only) */}
+          <nav className="hidden md:flex items-center gap-1">
+            {/* About - dropdown with clickable trigger */}
+            <div
+              onMouseEnter={() => setAboutOpen(true)}
+              onMouseLeave={() => setAboutOpen(false)}
+            >
+              <DropdownMenu open={aboutOpen} onOpenChange={setAboutOpen} modal={false}>
+                <DropdownMenuTrigger
+                  className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none"
+                  onClick={() => navigate('/about')}
+                >
+                  About
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" sideOffset={4} className="min-w-[180px]">
+                  {aboutDropdownItems.map((item) => (
+                    <DropdownMenuItem key={item.label} asChild>
+                      <Link to={item.href}>{item.label}</Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Academy - simple link */}
+            <Link
+              to="/academy"
+              className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
+            >
+              Academy
+            </Link>
+
+            {/* Features - dropdown with clickable trigger */}
+            <div
+              onMouseEnter={() => setFeaturesOpen(true)}
+              onMouseLeave={() => setFeaturesOpen(false)}
+            >
+              <DropdownMenu open={featuresOpen} onOpenChange={setFeaturesOpen} modal={false}>
+                <DropdownMenuTrigger
+                  className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none"
+                  onClick={() => navigate('/features')}
+                >
+                  Features
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" sideOffset={4} className="min-w-[180px]">
+                  {featuresDropdownItems.map((item) => (
+                    <DropdownMenuItem key={item.label} asChild>
+                      <Link to={item.href}>{item.label}</Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Free Trial - simple link */}
+            <Link
+              to="/free-trial"
+              className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
+            >
+              Free Trial
+            </Link>
+
+            {/* Use Cases - dropdown */}
+            <div
+              onMouseEnter={() => setUseCasesOpen(true)}
+              onMouseLeave={() => setUseCasesOpen(false)}
+            >
+              <DropdownMenu open={useCasesOpen} onOpenChange={setUseCasesOpen} modal={false}>
+                <DropdownMenuTrigger
+                  className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none"
+                  onClick={() => navigate('/use-cases')}
+                >
+                  Use Cases
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" sideOffset={4} className="min-w-[160px]">
+                  {useCasesDropdownItems.map((item) => (
+                    <DropdownMenuItem key={item.label} asChild>
+                      <Link to={item.href}>{item.label}</Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Non Profits - dropdown */}
+            <div
+              onMouseEnter={() => setNonProfitsOpen(true)}
+              onMouseLeave={() => setNonProfitsOpen(false)}
+            >
+              <DropdownMenu open={nonProfitsOpen} onOpenChange={setNonProfitsOpen} modal={false}>
+                <DropdownMenuTrigger
+                  className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none"
+                  onClick={() => navigate('/nonprofits')}
+                >
+                  Non Profits
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" sideOffset={4} className="min-w-[160px]">
+                  {nonProfitsDropdownItems.map((item) => (
+                    <DropdownMenuItem key={item.label} asChild>
+                      <Link to={item.href}>{item.label}</Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Pricing - simple link */}
+            <Link
+              to="/pricing"
+              className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
+            >
+              Pricing
+            </Link>
+          </nav>
+
+          {/* Right side - Controls */}
+          <div className="flex items-center gap-2">
+            {/* NYSgpt button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleHeartClick}
+                  className="inline-flex items-center justify-center h-10 rounded-md px-3 text-black hover:bg-muted transition-colors font-semibold text-xl"
+                >
+                  NYSgpt
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="font-medium">
+                What is NYSgpt?
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
-
-        {/* Center - Marketing Navigation (desktop only) */}
-        <nav className="hidden md:flex items-center gap-1">
-          {/* About - dropdown with clickable trigger */}
-          <div
-            onMouseEnter={() => setAboutOpen(true)}
-            onMouseLeave={() => setAboutOpen(false)}
-          >
-            <DropdownMenu open={aboutOpen} onOpenChange={setAboutOpen} modal={false}>
-              <DropdownMenuTrigger
-                className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none"
-                onClick={() => navigate('/about')}
-              >
-                About
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" sideOffset={4} className="min-w-[180px]">
-                {aboutDropdownItems.map((item) => (
-                  <DropdownMenuItem key={item.label} asChild>
-                    <Link to={item.href}>{item.label}</Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Academy - simple link */}
-          <Link
-            to="/academy"
-            className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
-          >
-            Academy
-          </Link>
-
-          {/* Features - dropdown with clickable trigger */}
-          <div
-            onMouseEnter={() => setFeaturesOpen(true)}
-            onMouseLeave={() => setFeaturesOpen(false)}
-          >
-            <DropdownMenu open={featuresOpen} onOpenChange={setFeaturesOpen} modal={false}>
-              <DropdownMenuTrigger
-                className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none"
-                onClick={() => navigate('/features')}
-              >
-                Features
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" sideOffset={4} className="min-w-[180px]">
-                {featuresDropdownItems.map((item) => (
-                  <DropdownMenuItem key={item.label} asChild>
-                    <Link to={item.href}>{item.label}</Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Free Trial - simple link */}
-          <Link
-            to="/free-trial"
-            className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
-          >
-            Free Trial
-          </Link>
-
-          {/* Use Cases - dropdown */}
-          <div
-            onMouseEnter={() => setUseCasesOpen(true)}
-            onMouseLeave={() => setUseCasesOpen(false)}
-          >
-            <DropdownMenu open={useCasesOpen} onOpenChange={setUseCasesOpen} modal={false}>
-              <DropdownMenuTrigger
-                className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none"
-                onClick={() => navigate('/use-cases')}
-              >
-                Use Cases
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" sideOffset={4} className="min-w-[160px]">
-                {useCasesDropdownItems.map((item) => (
-                  <DropdownMenuItem key={item.label} asChild>
-                    <Link to={item.href}>{item.label}</Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Non Profits - dropdown */}
-          <div
-            onMouseEnter={() => setNonProfitsOpen(true)}
-            onMouseLeave={() => setNonProfitsOpen(false)}
-          >
-            <DropdownMenu open={nonProfitsOpen} onOpenChange={setNonProfitsOpen} modal={false}>
-              <DropdownMenuTrigger
-                className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors outline-none"
-                onClick={() => navigate('/nonprofits')}
-              >
-                Non Profits
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" sideOffset={4} className="min-w-[160px]">
-                {nonProfitsDropdownItems.map((item) => (
-                  <DropdownMenuItem key={item.label} asChild>
-                    <Link to={item.href}>{item.label}</Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Pricing - simple link */}
-          <Link
-            to="/pricing"
-            className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
-          >
-            Pricing
-          </Link>
-        </nav>
-
-        {/* Right side - Controls */}
-        <div className="flex items-center gap-2">
-          {/* NYSgpt button */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleHeartClick}
-                className="inline-flex items-center justify-center h-10 rounded-md px-3 text-black hover:bg-muted transition-colors font-semibold text-xl"
-              >
-                NYSgpt
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="font-medium">
-              What is NYSgpt?
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 }
