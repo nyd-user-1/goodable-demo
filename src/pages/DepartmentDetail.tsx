@@ -1,12 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronRight, PanelLeft, ArrowUp } from 'lucide-react';
+import { ChevronRight, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
-import { EngineSelection } from '@/components/EngineSelection';
-import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
+import { MobileMenuIcon } from '@/components/MobileMenuButton';
 import { departmentPrompts, agencyPrompts, authorityPrompts } from '@/pages/Prompts';
 import { supabase } from '@/integrations/supabase/client';
 import { TABLE_MAP, titleToBudgetNames, reformatAgencyName, formatBudgetAmount } from '@/hooks/useBudgetSearch';
@@ -43,22 +42,13 @@ function getRelated(slug: string, category: string) {
 export default function DepartmentDetail() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const [leftSidebarOpen, setLeftSidebarOpen] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('nysgpt_sidebar_open') === 'true';
-    }
-    return false;
-  });
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [sidebarMounted, setSidebarMounted] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
     return () => clearTimeout(timer);
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem('nysgpt_sidebar_open', String(leftSidebarOpen));
-  }, [leftSidebarOpen]);
 
   const item = slug ? findBySlug(slug) : null;
   const related = item ? getRelated(slug!, item.category) : [];
@@ -203,25 +193,24 @@ export default function DepartmentDetail() {
           <div className="flex items-center justify-between px-4 py-3 bg-background flex-shrink-0">
             <div className="flex items-center gap-2">
               <MobileMenuIcon onOpenSidebar={() => setLeftSidebarOpen(!leftSidebarOpen)} />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-                className={cn("hidden md:inline-flex flex-shrink-0", leftSidebarOpen && "bg-muted")}
-              >
-                <PanelLeft className="h-4 w-4" />
-              </Button>
               <button
-                onClick={() => navigate('/new-chat')}
-                className="hidden sm:inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
+                onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+                className={cn("hidden md:inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors", leftSidebarOpen && "bg-muted")}
+                aria-label="Open menu"
               >
-                NYSgpt
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 5h1"/><path d="M3 12h1"/><path d="M3 19h1"/>
+                  <path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/>
+                  <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
+                </svg>
               </button>
             </div>
-            <MobileNYSgpt />
-            <div className="hidden sm:block">
-              <EngineSelection />
-            </div>
+            <button
+              onClick={() => navigate('/?prompt=What%20is%20NYSgpt%3F')}
+              className="inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
+            >
+              NYSgpt
+            </button>
           </div>
 
           {/* Scrollable Content */}
