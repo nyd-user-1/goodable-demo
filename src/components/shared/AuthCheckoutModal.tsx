@@ -48,13 +48,13 @@ export const AuthCheckoutModal = ({
     try {
       const { error: signInError } = await signIn(email, password);
       if (signInError) {
-        setError(signInError.message || 'Sign in failed');
+        setError(signInError.message || 'Log in failed');
         return;
       }
       resetForm();
       onAuthenticated();
     } catch (err: any) {
-      setError(err.message || 'Sign in failed');
+      setError(err.message || 'Log in failed');
     } finally {
       setLoading(false);
     }
@@ -134,7 +134,7 @@ export const AuthCheckoutModal = ({
         </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button type="submit" className="w-full bg-black hover:bg-black/90 text-white" disabled={loading}>
         {loading ? 'Loading...' : submitLabel}
       </Button>
     </form>
@@ -144,20 +144,20 @@ export const AuthCheckoutModal = ({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Sign in to upgrade to {tierName}</DialogTitle>
+          <DialogTitle>Log in to upgrade to {tierName}</DialogTitle>
           <DialogDescription>
-            Sign in or create an account to continue to checkout.
+            Log in or create an account to continue to checkout.
           </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="signin" className="w-full" onValueChange={() => setError(null)}>
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="signin">Sign In</TabsTrigger>
+            <TabsTrigger value="signin">Log In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
 
           <TabsContent value="signin">
-            {emailPasswordForm(handleSignIn, 'Sign in')}
+            {emailPasswordForm(handleSignIn, 'Log in')}
           </TabsContent>
 
           <TabsContent value="signup">
