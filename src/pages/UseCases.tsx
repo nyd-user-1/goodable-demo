@@ -30,6 +30,12 @@ const researchCards = [
     href: '/use-cases/policy',
     gradient: 'bg-gradient-to-b from-yellow-300 via-amber-400 to-amber-600',
   },
+  {
+    title: 'Departments',
+    description: 'Explore NYS departments, agencies, and public authorities.',
+    href: '/use-cases/departments',
+    gradient: 'bg-gradient-to-b from-slate-300 via-slate-400 to-slate-600',
+  },
 ];
 
 const advocacyCards = [
@@ -72,7 +78,7 @@ const tabContent: Record<Tab, { heading: string; subtitle: string; cards: typeof
     heading: 'Chats for Legislative Research',
     subtitle: 'Tap into curated prompts for bills, committees, members, and policy development. Each use case gives you a head start on the research that matters most.',
     cards: researchCards,
-    gridCols: 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-4',
+    gridCols: 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-5',
   },
   advocacy: {
     heading: 'Advocacy Resources for Nonprofits',

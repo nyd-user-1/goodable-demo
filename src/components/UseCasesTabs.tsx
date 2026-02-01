@@ -6,6 +6,7 @@ const tabs = [
   { label: 'Committees', href: '/use-cases/committees' },
   { label: 'Members', href: '/use-cases/members' },
   { label: 'Policy', href: '/use-cases/policy' },
+  { label: 'Departments', href: '/use-cases/departments' },
 ];
 
 export function UseCasesTabs() {

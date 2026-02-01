@@ -54,6 +54,7 @@ const UseCasesBills = React.lazy(() => import("./pages/UseCasesBills"));
 const UseCasesCommittees = React.lazy(() => import("./pages/UseCasesCommittees"));
 const UseCasesMembers = React.lazy(() => import("./pages/UseCasesMembers"));
 const UseCasesPolicy = React.lazy(() => import("./pages/UseCasesPolicy"));
+const UseCasesDepartments = React.lazy(() => import("./pages/UseCasesDepartments"));
 const Nonprofits = React.lazy(() => import("./pages/Nonprofits"));
 const NonprofitEconomicAdvocacy = React.lazy(() => import("./pages/NonprofitEconomicAdvocacy"));
 const NonprofitEnvironmentalAdvocacy = React.lazy(() => import("./pages/NonprofitEnvironmentalAdvocacy"));
@@ -189,6 +190,7 @@ const App = () => {
                   <Route path="/use-cases/committees" element={<UseCasesCommittees />} />
                   <Route path="/use-cases/members" element={<UseCasesMembers />} />
                   <Route path="/use-cases/policy" element={<UseCasesPolicy />} />
+                  <Route path="/use-cases/departments" element={<UseCasesDepartments />} />
                   <Route path="/nonprofits" element={<Nonprofits />} />
                   <Route path="/nonprofits/economic-advocacy" element={<NonprofitEconomicAdvocacy />} />
                   <Route path="/nonprofits/environmental-advocacy" element={<NonprofitEnvironmentalAdvocacy />} />
