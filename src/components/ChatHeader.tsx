@@ -93,22 +93,17 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
                 <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
               </svg>
             </button>
-            <Link
-              to="/"
-              aria-label="Home"
-              className="inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 13V2l8 4-8 4"/>
-                <path d="M20.561 10.222a9 9 0 1 1-12.55-5.29"/>
-                <path d="M8.002 9.997a5 5 0 1 0 8.9 2.02"/>
-              </svg>
-            </Link>
           </div>
 
           {/* Center - Marketing Navigation (desktop only) */}
           <nav className="hidden md:flex items-center justify-center gap-6 absolute left-1/2 -translate-x-1/2">
-            {/* About - simple link */}
+            <Link
+              to="/"
+              className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
+            >
+              Chat
+            </Link>
+
             <Link
               to="/about"
               className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
