@@ -22,8 +22,6 @@ import {
   NotebookPen,
   Search,
   Settings,
-  UserPlus,
-  Briefcase,
   Sun,
   Moon,
   LogIn,
@@ -378,23 +376,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <UserPlus className="h-4 w-4 mr-2" />
-                Invite members
-              </DropdownMenuItem>
-
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <Briefcase className="h-4 w-4 mr-2" />
-                  Switch workspace
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuItem>Personal</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>Create workspace</DropdownMenuItem>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
                   {isDarkMode ? <Moon className="h-4 w-4 mr-2" /> : <Sun className="h-4 w-4 mr-2" />}
@@ -417,10 +398,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               <DropdownMenuItem>
                 <FileText className="h-4 w-4 mr-2" />
                 User guide
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Talk to a person
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Mail className="h-4 w-4 mr-2" />
