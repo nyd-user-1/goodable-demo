@@ -382,8 +382,8 @@ const LobbyingDetail = () => {
     navigate('/lobbying');
   };
 
-  // Sidebar + Header JSX shared across render paths
-  const renderSidebarAndHeader = () => (
+  // Sidebar JSX shared across render paths
+  const renderSidebar = () => (
     <>
       {/* Slide-in sidebar */}
       <div
@@ -401,11 +401,15 @@ const LobbyingDetail = () => {
           onClick={() => setLeftSidebarOpen(false)}
         />
       )}
+    </>
+  );
 
-      {/* Header */}
-      <nav className="fixed top-0 left-0 right-0 z-40 px-5 py-2 bg-background/80 backdrop-blur-sm">
+  // Header JSX to be rendered inside each card container
+  const renderHeader = () => (
+    <div className="flex-shrink-0 bg-background">
+      <div className="px-4 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setLeftSidebarOpen(true)}
               className="inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors"
@@ -418,15 +422,17 @@ const LobbyingDetail = () => {
               </svg>
             </button>
           </div>
-          <button
-            onClick={() => navigate('/?prompt=What%20is%20NYSgpt%3F')}
-            className="inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
-          >
-            NYSgpt
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/?prompt=What%20is%20NYSgpt%3F')}
+              className="inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
+            >
+              NYSgpt
+            </button>
+          </div>
         </div>
-      </nav>
-    </>
+      </div>
+    </div>
   );
 
   if (isLoading) {
@@ -462,14 +468,17 @@ const LobbyingDetail = () => {
   // Render Spend Detail
   if (isSpend && spendRecord) {
     return (
-      <div className="min-h-screen bg-muted/30 flex flex-col">
-        {renderSidebarAndHeader()}
+      <div className="fixed inset-0 overflow-hidden">
+        {renderSidebar()}
 
-        {/* Content */}
-        <main className="flex-1 pt-16 md:px-2 md:pb-2">
-          <div className="w-full md:rounded-2xl md:border bg-background overflow-hidden">
-            <div className="container mx-auto px-4 sm:px-6 py-6">
-              <div className="max-w-[1300px] mx-auto space-y-6">
+        <div className="h-full md:p-2 bg-muted/30">
+          <div className="w-full h-full md:rounded-2xl md:border bg-background overflow-hidden flex flex-col">
+            {renderHeader()}
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-4 sm:p-6 lg:p-8">
+                <div className="max-w-7xl mx-auto space-y-6">
               {/* Back button */}
               <Button
                 variant="outline"
@@ -623,10 +632,11 @@ const LobbyingDetail = () => {
                   )}
                 </CardContent>
               </Card>
+                </div>
               </div>
             </div>
           </div>
-        </main>
+        </div>
       </div>
     );
   }
@@ -634,14 +644,17 @@ const LobbyingDetail = () => {
   // Render Compensation Detail
   if (isCompensation && compensationRecord) {
     return (
-      <div className="min-h-screen bg-muted/30 flex flex-col">
-        {renderSidebarAndHeader()}
+      <div className="fixed inset-0 overflow-hidden">
+        {renderSidebar()}
 
-        {/* Content */}
-        <main className="flex-1 pt-16 md:px-2 md:pb-2">
-          <div className="w-full md:rounded-2xl md:border bg-background overflow-hidden">
-            <div className="container mx-auto px-4 sm:px-6 py-6">
-              <div className="max-w-[1300px] mx-auto space-y-6">
+        <div className="h-full md:p-2 bg-muted/30">
+          <div className="w-full h-full md:rounded-2xl md:border bg-background overflow-hidden flex flex-col">
+            {renderHeader()}
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-4 sm:p-6 lg:p-8">
+                <div className="max-w-7xl mx-auto space-y-6">
               {/* Back button */}
               <Button
                 variant="outline"
@@ -773,10 +786,11 @@ const LobbyingDetail = () => {
                   </CardContent>
                 </Card>
               )}
+                </div>
               </div>
             </div>
           </div>
-        </main>
+        </div>
       </div>
     );
   }

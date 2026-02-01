@@ -204,7 +204,7 @@ const SchoolFundingDetail = () => {
   const isPositiveChange = funding.total_change >= 0;
 
   return (
-    <div className="min-h-screen bg-muted/30 flex flex-col">
+    <div className="fixed inset-0 overflow-hidden">
       {/* Slide-in sidebar */}
       <div
         className={cn(
@@ -222,36 +222,42 @@ const SchoolFundingDetail = () => {
         />
       )}
 
-      {/* Header */}
-      <nav className="fixed top-0 left-0 right-0 z-40 px-5 py-2 bg-background/80 backdrop-blur-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-1">
-            <button
-              onClick={() => setLeftSidebarOpen(true)}
-              className="inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors"
-              aria-label="Open menu"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 5h1"/><path d="M3 12h1"/><path d="M3 19h1"/>
-                <path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/>
-                <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
-              </svg>
-            </button>
+      {/* Main Container with padding */}
+      <div className="h-full md:p-2 bg-muted/30">
+        <div className="w-full h-full md:rounded-2xl md:border bg-background overflow-hidden flex flex-col">
+          {/* Header */}
+          <div className="flex-shrink-0 bg-background">
+            <div className="px-4 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setLeftSidebarOpen(true)}
+                    className="inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors"
+                    aria-label="Open menu"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 5h1"/><path d="M3 12h1"/><path d="M3 19h1"/>
+                      <path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/>
+                      <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
+                    </svg>
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => navigate('/?prompt=What%20is%20NYSgpt%3F')}
+                    className="inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
+                  >
+                    NYSgpt
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-          <button
-            onClick={() => navigate('/?prompt=What%20is%20NYSgpt%3F')}
-            className="inline-flex items-center justify-center h-10 rounded-md px-3 text-foreground hover:bg-muted transition-colors font-semibold text-xl"
-          >
-            NYSgpt
-          </button>
-        </div>
-      </nav>
 
-      {/* Content */}
-      <main className="flex-1 pt-16 md:px-2 md:pb-2">
-        <div className="w-full md:rounded-2xl md:border bg-background overflow-hidden">
-          <div className="container mx-auto px-4 sm:px-6 py-6">
-            <div className="max-w-[1300px] mx-auto space-y-6">
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-4 sm:p-6 lg:p-8">
+              <div className="max-w-7xl mx-auto space-y-6">
             {/* Back button */}
             <Button
               variant="outline"
@@ -541,10 +547,11 @@ const SchoolFundingDetail = () => {
                 )}
               </CardContent>
             </Card>
+              </div>
             </div>
           </div>
         </div>
-      </main>
+      </div>
 
       {/* Note Dialog */}
       <NoteDialog
