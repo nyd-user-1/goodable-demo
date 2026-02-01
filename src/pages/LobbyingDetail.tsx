@@ -466,7 +466,7 @@ const LobbyingDetail = () => {
         {renderSidebarAndHeader()}
 
         {/* Content */}
-        <main className="flex-1 pt-16 md:p-2">
+        <main className="flex-1 pt-16 md:px-2 md:pb-2">
           <div className="w-full md:rounded-2xl md:border bg-background overflow-hidden">
             <div className="container mx-auto px-4 sm:px-6 py-6">
               <div className="max-w-[1300px] mx-auto space-y-6">
@@ -638,7 +638,7 @@ const LobbyingDetail = () => {
         {renderSidebarAndHeader()}
 
         {/* Content */}
-        <main className="flex-1 pt-16 md:p-2">
+        <main className="flex-1 pt-16 md:px-2 md:pb-2">
           <div className="w-full md:rounded-2xl md:border bg-background overflow-hidden">
             <div className="container mx-auto px-4 sm:px-6 py-6">
               <div className="max-w-[1300px] mx-auto space-y-6">
