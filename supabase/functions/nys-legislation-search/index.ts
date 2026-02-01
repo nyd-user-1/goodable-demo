@@ -48,6 +48,12 @@ serve(async (req) => {
       return await syncSingleLaw(lawId);
     } else if (action === 'sync-bills') {
       return await syncRecentBills(sessionYear || getCurrentSessionYear());
+    } else if (action === 'resync') {
+      const batchSize = requestBody.batchSize || 50;
+      const offset = requestBody.offset || 0;
+      return await resyncExistingBills(sessionYear || getCurrentSessionYear(), batchSize, offset);
+    } else if (action === 'resync-bill' && billNumber) {
+      return await resyncSingleBill(billNumber, sessionYear || getCurrentSessionYear());
     } else if (action === 'get-progress') {
       return await getProgress();
     } else if (action === 'get-bill-detail' && billNumber) {
@@ -698,6 +704,188 @@ async function syncAllBillsForSession(supabase: any, sessionYear: number) {
   }
 }
 
+// Re-sync a single bill by bill number
+async function resyncSingleBill(billNumber: string, sessionYear: number) {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+  _peopleCache = null; // fresh cache
+
+  // Find the bill in our database
+  const normalized = normalizeBillNumber(billNumber);
+  const { data: dbBill } = await supabase
+    .from("Bills")
+    .select("bill_id, bill_number, session_id")
+    .eq("bill_number", normalized)
+    .eq("session_id", sessionYear)
+    .single();
+
+  if (!dbBill) {
+    throw new Error(`Bill ${normalized} (${sessionYear}) not found in database`);
+  }
+
+  // Fetch full bill from NYS API
+  const billUrl = `https://legislation.nysenate.gov/api/3/bills/${sessionYear}/${normalized}?key=${nysApiKey}`;
+  const billResponse = await fetch(billUrl);
+  if (!billResponse.ok) throw new Error(`NYS API error: ${billResponse.status}`);
+  const billData = await billResponse.json();
+  if (!billData.success || !billData.result) throw new Error("Invalid bill data from API");
+
+  const bill = billData.result;
+
+  // Log what we're working with for debugging
+  const sponsor = bill.sponsor?.member;
+  if (sponsor) {
+    console.log(`Sponsor: ${sponsor.fullName}, districtCode=${sponsor.districtCode}, chamber=${sponsor.chamber}, keys=${Object.keys(sponsor).join(',')}`);
+  }
+  const coSponsors = bill.coSponsors?.items || [];
+  for (const c of coSponsors) {
+    const m = c.member || c;
+    console.log(`CoSponsor: ${m.fullName}, districtCode=${m.districtCode}, chamber=${m.chamber}, keys=${Object.keys(m).join(',')}`);
+  }
+  const multiSponsors = bill.multiSponsors?.items || [];
+  for (const ms of multiSponsors) {
+    const m = ms.member || ms;
+    console.log(`MultiSponsor: ${m.fullName}, districtCode=${m.districtCode}, chamber=${m.chamber}, keys=${Object.keys(m).join(',')}`);
+  }
+
+  // Re-sync
+  await syncSponsors(supabase, bill, dbBill.bill_id);
+  await syncHistory(supabase, bill, dbBill.bill_id);
+  await syncVotes(supabase, bill, dbBill.bill_id);
+
+  return new Response(
+    JSON.stringify({ success: true, billNumber: normalized, sessionYear, billId: dbBill.bill_id, message: "Resynced" }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
+// Re-sync existing bills: fetch each bill from NYS API and re-run sponsor/vote matching
+async function resyncExistingBills(sessionYear: number, batchSize: number, offset: number) {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error("Missing Supabase configuration");
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const startTime = Date.now();
+
+  // Clear People cache so it loads fresh
+  _peopleCache = null;
+
+  // Get all bills for this session, ordered by bill_id, paginated
+  const { data: bills, error: fetchError, count } = await supabase
+    .from("Bills")
+    .select("bill_id, bill_number, session_id", { count: "exact" })
+    .eq("session_id", sessionYear)
+    .order("bill_id", { ascending: true })
+    .range(offset, offset + batchSize - 1);
+
+  if (fetchError) {
+    throw new Error(`Failed to fetch bills: ${fetchError.message}`);
+  }
+
+  const totalBills = count || 0;
+
+  if (!bills || bills.length === 0) {
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "No bills to resync in this range",
+        sessionYear,
+        totalBills,
+        offset,
+        batchSize,
+        processed: 0,
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  let processedCount = 0;
+  let successCount = 0;
+  let errorCount = 0;
+  let unmatchedSponsors = 0;
+  const errors: { billNumber: string; error: string }[] = [];
+
+  console.log(`Resync: processing ${bills.length} bills (offset ${offset} of ${totalBills} total)`);
+
+  for (const dbBill of bills) {
+    const billNumber = dbBill.bill_number;
+    const session = dbBill.session_id || sessionYear;
+
+    try {
+      // Fetch full bill detail from NYS API
+      const billUrl = `https://legislation.nysenate.gov/api/3/bills/${session}/${billNumber}?key=${nysApiKey}`;
+      const billResponse = await fetch(billUrl);
+
+      if (!billResponse.ok) {
+        throw new Error(`HTTP ${billResponse.status}`);
+      }
+
+      const billData = await billResponse.json();
+
+      if (!billData.success || !billData.result) {
+        throw new Error("Invalid bill data from API");
+      }
+
+      const bill = billData.result;
+
+      // Re-run sponsor, history, and vote syncing (uses name-matching)
+      await syncSponsors(supabase, bill, dbBill.bill_id);
+      await syncHistory(supabase, bill, dbBill.bill_id);
+      await syncVotes(supabase, bill, dbBill.bill_id);
+
+      successCount++;
+      processedCount++;
+
+      if (processedCount % 10 === 0) {
+        console.log(`Resync progress: ${processedCount}/${bills.length}`);
+      }
+
+      // Rate limiting
+      await delay(REQUEST_DELAY_MS);
+
+      // Safety valve: stop before edge function timeout (50s to leave margin)
+      if (Date.now() - startTime > 50000) {
+        console.log("Approaching timeout, stopping early");
+        break;
+      }
+
+    } catch (error) {
+      errorCount++;
+      errors.push({ billNumber, error: error.message });
+      console.warn(`Resync failed for ${billNumber}: ${error.message}`);
+      processedCount++;
+    }
+  }
+
+  const duration = (Date.now() - startTime) / 1000;
+  const nextOffset = offset + processedCount;
+  const hasMore = nextOffset < totalBills;
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      sessionYear,
+      totalBills,
+      offset,
+      batchSize,
+      processed: processedCount,
+      succeeded: successCount,
+      errors: errorCount,
+      duration: `${duration}s`,
+      nextOffset: hasMore ? nextOffset : null,
+      hasMore,
+      errorDetails: errors.slice(0, 10),
+    }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
 async function upsertBill(supabase: any, bill: any, sessionYear: number): Promise<{inserted: boolean, updated: boolean}> {
   // Transform NYS API bill data to match Bills table schema
   const status = bill.status || {};
@@ -757,21 +945,26 @@ async function upsertBill(supabase: any, bill: any, sessionYear: number): Promis
   };
 }
 
-// Cache of People records for name-based matching (loaded once per invocation)
-let _peopleCache: { people_id: number; name: string; first_name: string; last_name: string }[] | null = null;
+// Cache of People records for matching (loaded once per invocation)
+let _peopleCache: { people_id: number; name: string; first_name: string; last_name: string; district: string }[] | null = null;
 
 async function loadPeopleCache(supabase: any) {
   if (_peopleCache) return _peopleCache;
   const { data } = await supabase
     .from("People")
-    .select("people_id, name, first_name, last_name");
+    .select("people_id, name, first_name, last_name, district");
   _peopleCache = data || [];
   return _peopleCache;
 }
 
-// Normalize a name for flexible matching: lowercase, strip periods, suffixes, middle initials
+// Strip accents/diacritics (José → Jose, Sepúlveda → Sepulveda)
+function stripAccents(str: string): string {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+// Normalize a name for flexible matching
 function normalizeName(name: string): string {
-  return name
+  return stripAccents(name)
     .toLowerCase()
     .replace(/\./g, '')
     .replace(/,/g, '')
@@ -781,7 +974,16 @@ function normalizeName(name: string): string {
     .trim();
 }
 
-// Match an NYS API member to a People record by name. Never creates rows.
+// Convert API districtCode + chamber to our format: SD-008, HD-075
+function apiDistrictToDbFormat(districtCode: number | string | null, chamber: string | null): string | null {
+  if (!districtCode || !chamber) return null;
+  const num = typeof districtCode === 'string' ? parseInt(districtCode, 10) : districtCode;
+  if (isNaN(num)) return null;
+  const prefix = chamber.toUpperCase().includes('SENATE') ? 'SD' : 'HD';
+  return `${prefix}-${String(num).padStart(3, '0')}`;
+}
+
+// Match an NYS API member to a People record. Never creates rows.
 async function upsertPerson(supabase: any, member: any): Promise<number | null> {
   if (!member || !member.memberId) return null;
 
@@ -791,47 +993,60 @@ async function upsertPerson(supabase: any, member: any): Promise<number | null> 
   const fullName = member.fullName || member.shortName || null;
   const firstName = (member.firstName || '').toLowerCase().trim();
   const lastName = (member.lastName || '').toLowerCase().trim();
+  const lastNameNorm = stripAccents(lastName);
 
-  // Strategy 1: Exact match on full name
-  if (fullName) {
-    const target = fullName.toLowerCase().trim();
-    const match = cache.find(p => p.name?.toLowerCase().trim() === target);
-    if (match) return match.people_id;
-  }
-
-  // Strategy 2: Match by first_name + last_name fields
-  if (firstName && lastName) {
+  // Strategy 1 (PRIMARY): Last name + district match
+  // API gives districtCode (e.g. 8) + chamber (SENATE/ASSEMBLY) → we convert to SD-008 / HD-075
+  const apiDistrict = apiDistrictToDbFormat(member.districtCode, member.chamber);
+  if (lastNameNorm && apiDistrict) {
     const match = cache.find(p =>
-      p.first_name?.toLowerCase().trim() === firstName &&
-      p.last_name?.toLowerCase().trim() === lastName
+      p.district === apiDistrict &&
+      stripAccents(p.last_name || '').toLowerCase().trim() === lastNameNorm
     );
     if (match) return match.people_id;
   }
 
-  // Strategy 3: Normalized matching (handles middle initials, Jr/Sr, periods)
+  // Strategy 2: Exact match on full name
+  if (fullName) {
+    const target = stripAccents(fullName).toLowerCase().trim();
+    const match = cache.find(p => stripAccents(p.name || '').toLowerCase().trim() === target);
+    if (match) return match.people_id;
+  }
+
+  // Strategy 3: Match by first_name + last_name fields (accent-insensitive)
+  if (firstName && lastName) {
+    const firstNorm = stripAccents(firstName);
+    const match = cache.find(p =>
+      stripAccents(p.first_name || '').toLowerCase().trim() === firstNorm &&
+      stripAccents(p.last_name || '').toLowerCase().trim() === lastNameNorm
+    );
+    if (match) return match.people_id;
+  }
+
+  // Strategy 4: Normalized matching (handles middle initials, Jr/Sr, periods, accents)
   if (fullName) {
     const normalizedTarget = normalizeName(fullName);
     const match = cache.find(p => p.name && normalizeName(p.name) === normalizedTarget);
     if (match) return match.people_id;
   }
 
-  // Strategy 4: Last name exact + first name starts with same letter
-  if (firstName && lastName) {
-    const firstChar = firstName.charAt(0);
+  // Strategy 5: Last name exact (accent-insensitive) + first name starts with same letter
+  if (firstName && lastNameNorm) {
+    const firstChar = stripAccents(firstName).charAt(0);
     const matches = cache.filter(p =>
-      p.last_name?.toLowerCase().trim() === lastName
+      stripAccents(p.last_name || '').toLowerCase().trim() === lastNameNorm
     );
     if (matches.length === 1) return matches[0].people_id;
     if (matches.length > 1) {
       const refined = matches.find(p =>
-        p.first_name?.toLowerCase().trim().startsWith(firstChar)
+        stripAccents(p.first_name || '').toLowerCase().trim().startsWith(firstChar)
       );
       if (refined) return refined.people_id;
     }
   }
 
   // No match — don't create a row, just log
-  console.warn(`No People match for: ${fullName || `${firstName} ${lastName}`} (API memberId: ${member.memberId})`);
+  console.warn(`No People match for: ${fullName || `${firstName} ${lastName}`} (API memberId: ${member.memberId}, district: ${apiDistrict || 'unknown'})`);
   return null;
 }
 

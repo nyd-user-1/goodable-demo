@@ -316,7 +316,7 @@ function BillCard({ bill, onClick, onChatClick }: BillCardProps) {
   return (
     <div
       onClick={onClick}
-      className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
+      className="group bg-muted/30 rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg"
     >
       <div className="flex items-start justify-between mb-3">
         <h3 className="font-semibold text-base">
@@ -330,11 +330,9 @@ function BillCard({ bill, onClick, onChatClick }: BillCardProps) {
         {previewText}
       </p>
 
-      {/* Details and button - render on hover */}
-      <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
-        {/* Bill details grid */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
-          {/* Row 1: Sponsor, Status */}
+      {/* Bill details grid - always visible */}
+      <div className="mt-4">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
           <div>
             <span className="text-muted-foreground">Sponsor</span>
             <p className="font-medium">{bill.sponsor_name || '—'}</p>
@@ -343,7 +341,6 @@ function BillCard({ bill, onClick, onChatClick }: BillCardProps) {
             <span className="text-muted-foreground">Status</span>
             <p className="font-medium">{bill.status_desc || '—'}</p>
           </div>
-          {/* Row 2: Last Action Date, Last Action */}
           <div>
             <span className="text-muted-foreground">Last Action Date</span>
             <p className="font-medium">{bill.last_action_date ? formatBillDate(bill.last_action_date) : '—'}</p>
@@ -354,8 +351,8 @@ function BillCard({ bill, onClick, onChatClick }: BillCardProps) {
           </div>
         </div>
 
-        {/* Action button */}
-        <div className="flex justify-end">
+        {/* Action button - appears on hover */}
+        <div className="flex justify-end mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
