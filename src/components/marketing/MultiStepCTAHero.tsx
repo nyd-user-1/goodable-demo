@@ -29,8 +29,8 @@ const socialProof = [
   '/claude-ai-icon-65aa.png',
   '/OAI%20LOGO.png',
   '/PPLX%20LOGO.png',
-  '/nys-assembly-seal.png',
-  '/nys-senate-seal.png',
+  '/nys-assembly-seal.avif',
+  '/nys-senate-seal.avif',
 ];
 
 export default function MultiStepCTAHero() {

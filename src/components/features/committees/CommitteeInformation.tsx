@@ -36,8 +36,8 @@ interface CommitteeInformationProps {
 export const CommitteeInformation = ({ committee, hasNotes = false }: CommitteeInformationProps) => {
   // Get chamber seal image
   const chamberSeal = committee.chamber?.toLowerCase() === 'senate'
-    ? '/nys-senate-seal.png'
-    : '/nys-assembly-seal.png';
+    ? '/nys-senate-seal.avif'
+    : '/nys-assembly-seal.avif';
 
   // Get full committee name with chamber prefix
   const fullCommitteeName = committee.chamber

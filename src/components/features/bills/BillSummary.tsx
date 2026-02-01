@@ -35,8 +35,8 @@ export const BillSummary = ({
 
   const chamber = getChamberFromBillNumber(bill.bill_number);
   const chamberSeal = chamber === 'senate'
-    ? '/nys-senate-seal.png'
-    : '/nys-assembly-seal.png';
+    ? '/nys-senate-seal.avif'
+    : '/nys-assembly-seal.avif';
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "No date";

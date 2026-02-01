@@ -72,8 +72,8 @@ export const MemberCommitteesTable = ({ member }: MemberCommitteesTableProps) =>
                     <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
                       <img
                         src={committee.chamber?.toLowerCase().includes("senate")
-                          ? "/nys-senate-seal.png"
-                          : "/nys-assembly-seal.png"
+                          ? "/nys-senate-seal.avif"
+                          : "/nys-assembly-seal.avif"
                         }
                         alt={committee.chamber || "Committee"}
                         className="w-8 h-8 object-contain"
