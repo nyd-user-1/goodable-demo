@@ -95,7 +95,7 @@ export const useMembersData = () => {
         .not("chamber", "is", null)
         .not("name", "is", null)
         .order("last_name", { ascending: true })
-        .limit(200);
+        .limit(300);
 
       if (error) throw error;
 

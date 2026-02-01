@@ -757,33 +757,10 @@ async function upsertBill(supabase: any, bill: any, sessionYear: number): Promis
   };
 }
 
-// Upsert a person from the NYS API member object into the People table
-async function upsertPerson(supabase: any, member: any): Promise<number | null> {
+// DISABLED: Upsert was overwriting existing People data with sparse API data.
+// Now only returns the memberId for sponsor/vote linking without touching the People table.
+async function upsertPerson(_supabase: any, member: any): Promise<number | null> {
   if (!member || !member.memberId) return null;
-
-  const personRecord: any = {
-    people_id: member.memberId,
-    name: member.fullName || member.shortName || null,
-    first_name: member.firstName || null,
-    last_name: member.lastName || null,
-    chamber: member.chamber === 'SENATE' ? 'Senate' : member.chamber === 'ASSEMBLY' ? 'Assembly' : member.chamber || null,
-    district: member.districtCode?.toString() || null,
-    party: member.party || null,
-  };
-
-  // Only set photo_url if available from API
-  if (member.imgName) {
-    personRecord.photo_url = `https://www.nysenate.gov/sites/default/files/${member.imgName}`;
-  }
-
-  const { error } = await supabase
-    .from("People")
-    .upsert(personRecord, { onConflict: "people_id", ignoreDuplicates: false });
-
-  if (error) {
-    console.warn(`Warning upserting person ${member.memberId}: ${error.message}`);
-  }
-
   return member.memberId;
 }
 
