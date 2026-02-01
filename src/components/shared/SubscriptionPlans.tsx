@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { SubscriptionTierCard } from '../SubscriptionTierCard';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useToast } from '@/hooks/use-toast';
@@ -107,6 +108,7 @@ interface SubscriptionPlansProps {
 export const SubscriptionPlans = ({ includeAuth = false }: SubscriptionPlansProps) => {
   const { subscription, loading, checkSubscription, createCheckout } = useSubscription();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const auth = includeAuth ? useAuth() : null;
   const [processingTier, setProcessingTier] = useState<string | null>(null);
   const [isAnnual, setIsAnnual] = useState(false);
@@ -128,11 +130,20 @@ export const SubscriptionPlans = ({ includeAuth = false }: SubscriptionPlansProp
         description: "Please complete your subscription in the new tab.",
       });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create checkout session",
-        variant: "destructive",
-      });
+      const message = error instanceof Error ? error.message : "";
+      if (message.toLowerCase().includes("authenticated") || message.toLowerCase().includes("auth")) {
+        toast({
+          title: "Sign In",
+          description: "Please sign up to complete your upgrade.",
+        });
+        navigate('/auth-4');
+      } else {
+        toast({
+          title: "Error",
+          description: message || "Failed to create checkout session",
+          variant: "destructive",
+        });
+      }
     } finally {
       setProcessingTier(null);
     }
@@ -200,7 +211,7 @@ export const SubscriptionPlans = ({ includeAuth = false }: SubscriptionPlansProp
       <div className="flex justify-center">
         <div
           ref={scrollContainerRef}
-          className="scrollbar-none flex snap-x snap-mandatory gap-8 overflow-x-auto px-4 py-6 max-w-full"
+          className="scrollbar-none flex snap-x snap-mandatory gap-8 overflow-x-auto px-1 py-6 max-w-full"
         >
           {subscriptionTiers.map((tierData) => (
             <div
