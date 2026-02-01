@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { isAdmin } from '@/utils/adminHelpers';
+import { trackEvent } from '@/utils/analytics';
 
 interface AuthContextType {
   user: User | null;
@@ -40,7 +41,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
-        
+
+        if (event === 'SIGNED_IN' && session?.user) {
+          trackEvent('login', { method: session.user.app_metadata?.provider || 'email' });
+        }
+
         // Check subscription status on auth state change
         if (session?.user) {
           supabase.functions.invoke('check-subscription').catch(console.error);
@@ -77,6 +82,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
       }
     });
+    if (!error) trackEvent('sign_up', { method: 'email' });
     return { error };
   };
 

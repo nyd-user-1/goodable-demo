@@ -8,6 +8,7 @@ import { Contract } from "@/types/contracts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/utils/analytics";
 // Safe sidebar hook that doesn't throw on public pages without SidebarProvider
 import { createContext, useContext } from "react";
 
@@ -876,6 +877,7 @@ const NewChat = () => {
 
     // Check if daily word limit is exceeded
     if (isLimitExceeded) {
+      trackEvent('daily_limit_reached');
       toast({
         title: "Daily limit reached",
         description: "You've reached your daily AI word limit. Upgrade your plan for more words.",

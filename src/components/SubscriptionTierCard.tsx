@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, Star, ArrowRight } from 'lucide-react';
+import { trackEvent } from '@/utils/analytics';
 
 interface SubscriptionTierCardProps {
   tier: string;
@@ -90,7 +91,7 @@ export const SubscriptionTierCard = ({
           {!isCurrentTier && (
             <Button
               variant="ghost"
-              onClick={onSelect}
+              onClick={() => { trackEvent('begin_checkout', { tier, price: displayPrice }); onSelect(); }}
               disabled={disabled}
               className="-translate-x-2 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100"
             >

@@ -61,6 +61,7 @@ import { cn } from "@/lib/utils";
 import { useAIUsage } from "@/hooks/useAIUsage";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useRecentChats } from "@/hooks/useRecentChats";
+import { trackEvent } from "@/utils/analytics";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -907,7 +908,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                 {(subscription?.subscription_tier === 'free' || !subscription?.subscription_tier) && (
                   <Button
                     className="w-full bg-foreground hover:bg-foreground/90 text-background"
-                    onClick={() => { navigate('/plans'); onClose?.(); }}
+                    onClick={() => { trackEvent('upgrade_prompt_clicked', { source: 'sidebar' }); navigate('/plans'); onClose?.(); }}
                   >
                     Upgrade
                   </Button>
