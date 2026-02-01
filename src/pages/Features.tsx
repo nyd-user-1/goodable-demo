@@ -1,11 +1,61 @@
 import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
-const features = [
+interface Feature {
+  title: string;
+  description: string;
+  image: string;
+  imageAlt: string;
+  zoomImage?: string;
+  zoomSize?: { width: number; height: number };
+  stats?: { label: string; value: string }[];
+  gradient: string;
+}
+
+const features: Feature[] = [
+  {
+    title: 'Every bill at your fingertips',
+    description:
+      'Access the full NYS legislative database with live updates. Browse bills by session, view full texts, track status changes, and see committee assignments—all in one place.',
+    image: '/bills-image-2.png',
+    imageAlt: 'Bills database interface',
+    stats: [
+      { label: 'Active Bills', value: '15K+' },
+      { label: 'Sessions', value: '10+' },
+      { label: 'Live Updates', value: '24/7' },
+    ],
+    gradient: 'from-blue-400 to-cyan-300',
+  },
+  {
+    title: 'Know your representatives',
+    description:
+      'Detailed profiles for every legislator including party affiliations, districts, voting patterns, and committee memberships. Plus comprehensive committee data with leadership roles and jurisdictions.',
+    image: '/live-feed-2.png',
+    imageAlt: 'Legislative activity feed',
+    stats: [
+      { label: 'Legislators', value: '213' },
+      { label: 'Committees', value: '70+' },
+      { label: 'Vote Records', value: '100K+' },
+    ],
+    gradient: 'from-emerald-400 to-teal-300',
+  },
+  {
+    title: 'Turn insight into action',
+    description:
+      'Every bill analysis includes tools to email sponsors directly, generate personalized letters, view official documents, and track your positions. Make your voice heard with one click.',
+    image: '/bill-analysis-actions.png',
+    imageAlt: 'Bill analysis and action tools',
+    stats: [
+      { label: 'Email Templates', value: '50+' },
+      { label: 'Letter Formats', value: '12' },
+      { label: 'Doc Types', value: '8' },
+    ],
+    gradient: 'from-purple-400 to-pink-300',
+  },
   {
     title: 'Bill Tracking',
     description:
@@ -167,22 +217,32 @@ const Features = () => {
                     {/* Text content */}
                     <div className="flex flex-col justify-center">
                       <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">{feature.title}</h3>
-                      <p className="text-white/90 text-sm sm:text-base leading-relaxed">{feature.description}</p>
+                      <p className="text-white/90 text-sm sm:text-base leading-relaxed mb-8">{feature.description}</p>
+                      {feature.stats && (
+                        <div className="grid grid-cols-3 gap-4">
+                          {feature.stats.map((stat) => (
+                            <div key={stat.label}>
+                              <p className="text-2xl font-bold text-white">{stat.value}</p>
+                              <p className="text-white/70 text-sm">{stat.label}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Stacked images */}
+                    {/* Image */}
                     <div className="hidden md:flex relative items-center justify-center">
                       <div className="relative w-full max-w-[500px]">
                         {/* Main image */}
-                        <div className="relative aspect-video overflow-hidden rounded-xl border border-white/20 shadow-lg shadow-black/20">
+                        <div className={`relative ${feature.zoomImage ? 'aspect-video' : 'aspect-[4/3]'} overflow-hidden rounded-xl border border-white/20 shadow-lg shadow-black/20`}>
                           <img
                             src={feature.image}
                             alt={feature.imageAlt}
                             className="object-cover object-top w-full h-full"
                           />
                         </div>
-                        {/* Zoom overlay image — uses original dimensions to avoid cropping */}
-                        {feature.zoomImage && (
+                        {/* Zoom overlay image */}
+                        {feature.zoomImage && feature.zoomSize && (
                           <div
                             className="absolute -bottom-4 -right-4 rounded-xl border border-white/30 shadow-lg shadow-black/20 overflow-hidden bg-white"
                             style={{
@@ -204,36 +264,41 @@ const Features = () => {
               ))}
             </div>
 
-            {/* Navigation arrows */}
-            <button
-              onClick={(e) => { e.stopPropagation(); prevSlide(); }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur hover:bg-white/30 flex items-center justify-center transition-colors"
-              aria-label="Previous feature"
-            >
-              <ChevronLeft className="h-5 w-5 text-white" />
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); nextSlide(); }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur hover:bg-white/30 flex items-center justify-center transition-colors"
-              aria-label="Next feature"
-            >
-              <ChevronRight className="h-5 w-5 text-white" />
-            </button>
+            {/* Bottom bar: pill indicators (left) + arrow buttons (right) */}
+            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+              {/* Pill indicators */}
+              <div className="flex items-center gap-1.5 bg-black/20 backdrop-blur-sm rounded-full px-2 py-1.5">
+                {features.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={(e) => { e.stopPropagation(); setCurrentSlide(index); }}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      index === currentSlide
+                        ? 'w-6 bg-white'
+                        : 'w-2 bg-white/40 hover:bg-white/60'
+                    }`}
+                    aria-label={`Go to feature ${index + 1}`}
+                  />
+                ))}
+              </div>
 
-            {/* Dot indicators inside carousel */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-              {features.map((_, index) => (
+              {/* Arrow buttons */}
+              <div className="flex items-center gap-2">
                 <button
-                  key={index}
-                  onClick={(e) => { e.stopPropagation(); setCurrentSlide(index); }}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    index === currentSlide
-                      ? 'bg-white'
-                      : 'bg-white/40'
-                  }`}
-                  aria-label={`Go to feature ${index + 1}`}
-                />
-              ))}
+                  onClick={(e) => { e.stopPropagation(); prevSlide(); }}
+                  className="w-9 h-9 rounded-lg bg-white/20 backdrop-blur-sm hover:bg-white/30 flex items-center justify-center transition-colors border border-white/10"
+                  aria-label="Previous feature"
+                >
+                  <ArrowLeft className="h-4 w-4 text-white" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); nextSlide(); }}
+                  className="w-9 h-9 rounded-lg bg-white/20 backdrop-blur-sm hover:bg-white/30 flex items-center justify-center transition-colors border border-white/10"
+                  aria-label="Next feature"
+                >
+                  <ArrowRight className="h-4 w-4 text-white" />
+                </button>
+              </div>
             </div>
           </div>
 

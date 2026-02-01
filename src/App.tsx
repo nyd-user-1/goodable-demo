@@ -75,7 +75,6 @@ const FixABCStructure = React.lazy(() => import("./pages/FixABCStructure"));
 const ExcerptView = React.lazy(() => import("./pages/ExcerptView"));
 const NoteView = React.lazy(() => import("./pages/NoteView"));
 const NewNote = React.lazy(() => import("./pages/NewNote"));
-const FreeTrial = React.lazy(() => import("./pages/FreeTrial"));
 const Contracts = React.lazy(() => import("./pages/Contracts"));
 const ContractDetail = React.lazy(() => import("./pages/ContractDetail"));
 const Budget = React.lazy(() => import("./pages/Budget"));
@@ -178,7 +177,6 @@ const App = () => {
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/auth-2" element={<Auth2 />} />
                   <Route path="/auth-4" element={<Auth4 />} />
-                  <Route path="/free-trial" element={<FreeTrial />} />
                   <Route path="/live-feed" element={<LiveFeed />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/history" element={<History />} />
