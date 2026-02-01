@@ -163,8 +163,8 @@ const App = () => {
             <Sonner />
             <SpeedInsights />
             <Analytics />
-            <HubSpotTracker />
             <BrowserRouter>
+              <HubSpotTracker />
               <ScrollToTop />
               <SearchModal />
               <Suspense fallback={<LoadingFallback />}>
