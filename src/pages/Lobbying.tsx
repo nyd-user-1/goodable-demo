@@ -340,15 +340,15 @@ function SpendCard({ record, onClick, onChatClick }: SpendCardProps) {
   return (
     <div
       onClick={onClick}
-      className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
+      className="group bg-muted/30 rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg"
     >
       <h3 className="font-semibold text-base mb-3">{client}</h3>
       <p className="text-sm text-muted-foreground leading-relaxed">{promptText}</p>
 
-      {/* Details and arrow - render on hover */}
-      <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
+      {/* Details - always visible */}
+      <div className="mt-4">
         {/* Details grid */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
           {record.compensation && (
             <div>
               <span className="text-muted-foreground">Compensation</span>
@@ -381,11 +381,11 @@ function SpendCard({ record, onClick, onChatClick }: SpendCardProps) {
           )}
         </div>
 
-        {/* Arrow button - initiates chat */}
-        <div className="flex justify-end">
+        {/* Action button - appears on hover */}
+        <div className="flex justify-end mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <button
             onClick={handleChatClick}
-            className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors"
+            className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
           >
             <ArrowUp className="h-5 w-5" />
           </button>
@@ -539,7 +539,7 @@ function CompensationCard({ record, clients, onClick, onChatClick }: Compensatio
     <>
       <div
         onClick={onClick}
-        className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
+        className="group bg-muted/30 rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg"
       >
         {/* Header row with lobbyist name and clients button */}
         <div className="flex items-start justify-between gap-3 mb-3">
@@ -555,10 +555,10 @@ function CompensationCard({ record, clients, onClick, onChatClick }: Compensatio
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">{promptText}</p>
 
-        {/* Details and arrow - render on hover */}
-        <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
+        {/* Details - always visible */}
+        <div className="mt-4">
           {/* Details grid */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
             {record.compensation && (
               <div>
                 <span className="text-muted-foreground">Compensation</span>
@@ -581,11 +581,11 @@ function CompensationCard({ record, clients, onClick, onChatClick }: Compensatio
             )}
           </div>
 
-          {/* Arrow button - initiates chat */}
-          <div className="flex items-center justify-end">
+          {/* Action button - appears on hover */}
+          <div className="flex items-center justify-end mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
               onClick={handleChatClick}
-              className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors"
+              className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
             >
               <ArrowUp className="h-5 w-5" />
             </button>

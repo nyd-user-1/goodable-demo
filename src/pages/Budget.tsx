@@ -421,7 +421,7 @@ function AppropriationCard({ item, onChatClick, onCardClick }: { item: any; onCh
   if (recommended) promptText += ` — ${formatBudgetAmount(recommended)} recommended for FY 2026-27`;
 
   return (
-    <div onClick={onCardClick} className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200">
+    <div onClick={onCardClick} className="group bg-muted/30 hover:shadow-lg rounded-2xl p-6 cursor-pointer transition-all duration-200">
       <div className="flex justify-between items-start mb-2">
         <h3 className="font-semibold text-base">{agency}</h3>
         {recommended && (
@@ -434,8 +434,8 @@ function AppropriationCard({ item, onChatClick, onCardClick }: { item: any; onCh
         {promptText}.
       </p>
 
-      <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
+      <div className="mt-4">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
           {program && (
             <div>
               <span className="text-muted-foreground">Program</span>
@@ -480,10 +480,10 @@ function AppropriationCard({ item, onChatClick, onCardClick }: { item: any; onCh
           )}
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <button
             onClick={onChatClick}
-            className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors"
+            className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
           >
             <ArrowUp className="h-5 w-5" />
           </button>
@@ -505,7 +505,7 @@ function CapitalCard({ item, onChatClick, onCardClick }: { item: any; onChatClic
   if (recommended) promptText += ` — ${formatBudgetAmount(recommended)} recommended`;
 
   return (
-    <div onClick={onCardClick} className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200">
+    <div onClick={onCardClick} className="group bg-muted/30 hover:shadow-lg rounded-2xl p-6 cursor-pointer transition-all duration-200">
       <div className="flex justify-between items-start mb-2">
         <h3 className="font-semibold text-base">{agency}</h3>
         {recommended && (
@@ -518,8 +518,8 @@ function CapitalCard({ item, onChatClick, onCardClick }: { item: any; onChatClic
         {promptText}.
       </p>
 
-      <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
+      <div className="mt-4">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
           {item['Program Name'] && (
             <div>
               <span className="text-muted-foreground">Program</span>
@@ -564,10 +564,10 @@ function CapitalCard({ item, onChatClick, onCardClick }: { item: any; onChatClic
           )}
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <button
             onClick={onChatClick}
-            className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors"
+            className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
           >
             <ArrowUp className="h-5 w-5" />
           </button>
@@ -592,7 +592,7 @@ function SpendingCard({ item, yearCol, onChatClick, onCardClick }: { item: any; 
   if (estimate) promptText += `, ${formatBudgetAmount(estimate)} ${fyType} FY ${fyLabel}`;
 
   return (
-    <div onClick={onCardClick} className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200">
+    <div onClick={onCardClick} className="group bg-muted/30 hover:shadow-lg rounded-2xl p-6 cursor-pointer transition-all duration-200">
       <div className="flex justify-between items-start mb-2">
         <h3 className="font-semibold text-base">{agency}</h3>
         {estimate && (
@@ -605,8 +605,8 @@ function SpendingCard({ item, yearCol, onChatClick, onCardClick }: { item: any; 
         {promptText}.
       </p>
 
-      <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
+      <div className="mt-4">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
           {fn && (
             <div>
               <span className="text-muted-foreground">Function</span>
@@ -657,10 +657,10 @@ function SpendingCard({ item, yearCol, onChatClick, onCardClick }: { item: any; 
           )}
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <button
             onClick={onChatClick}
-            className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors"
+            className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
           >
             <ArrowUp className="h-5 w-5" />
           </button>

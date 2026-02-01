@@ -330,7 +330,7 @@ function SchoolFundingCard({ record, onClick, onChatClick }: SchoolFundingCardPr
   return (
     <div
       onClick={onClick}
-      className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
+      className="group bg-muted/30 rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg"
     >
       <div className="flex items-start justify-between mb-2">
         <h3 className="font-semibold text-base">
@@ -351,10 +351,9 @@ function SchoolFundingCard({ record, onClick, onChatClick }: SchoolFundingCardPr
         </p>
       )}
 
-      {/* Details and arrow - render on hover */}
-      <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
-        {/* Record details grid */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
+      {/* Record details grid - always visible */}
+      <div className="mt-4">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
           <div>
             <span className="text-muted-foreground">Base Year Total</span>
             <p className="font-medium">{formatCurrency(record.total_base_year)}</p>
@@ -375,11 +374,11 @@ function SchoolFundingCard({ record, onClick, onChatClick }: SchoolFundingCardPr
           </div>
         </div>
 
-        {/* Arrow button - initiates chat */}
-        <div className="flex justify-end">
+        {/* Action button - appears on hover */}
+        <div className="flex justify-end mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <button
             onClick={handleChatClick}
-            className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors"
+            className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
           >
             <ArrowUp className="h-5 w-5" />
           </button>
