@@ -5,4 +5,3 @@ export { ProblemsLoadingSkeleton } from './ProblemsLoadingSkeleton';
 export { ProblemsErrorState } from './ProblemsErrorState';
 export { ProblemsEmptyState } from './ProblemsEmptyState';
 export { ProblemCard } from './ProblemCard';
-export { ProblemsBentoGrid } from './ProblemsBentoGrid';
