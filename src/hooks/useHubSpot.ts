@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 declare global {
   interface Window {
     _hsq: any[];
+    gtag: (...args: any[]) => void;
   }
 }
 
@@ -102,5 +103,10 @@ export function useHubSpot() {
     window._hsq = window._hsq || [];
     window._hsq.push(['setPath', tracked]);
     window._hsq.push(['trackPageView']);
+
+    // Google Analytics SPA page view
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'page_view', { page_path: tracked, page_title: title });
+    }
   }, [location.pathname, isAdmin]);
 }
