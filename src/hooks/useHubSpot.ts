@@ -9,6 +9,22 @@ declare global {
 }
 
 /**
+ * Build a short page title from the pathname for HubSpot display.
+ * e.g. "/bills" → "bills", "/bills/S240" → "S240", "/c/abc" → "chats"
+ */
+function pageTitle(tracked: string): string {
+  if (tracked === '/') return 'home';
+  if (tracked === '/chats') return 'chats';
+  if (tracked === '/notes') return 'notes';
+  if (tracked === '/excerpts') return 'excerpts';
+
+  const segments = tracked.split('/').filter(Boolean);
+  // Detail page: show the last segment (slug/id)
+  // Browse page: show the section name
+  return segments[segments.length - 1];
+}
+
+/**
  * Normalize paths so HubSpot sees clean categories for chats, notes, and excerpts
  * instead of individual IDs. Detail pages for bills, members, committees, etc.
  * keep their full path so we can see which specific records are visited.
@@ -79,6 +95,9 @@ export function useHubSpot() {
 
     const tracked = normalizePath(location.pathname);
     if (!tracked) return;
+
+    const title = pageTitle(tracked);
+    document.title = title;
 
     window._hsq = window._hsq || [];
     window._hsq.push(['setPath', tracked]);
