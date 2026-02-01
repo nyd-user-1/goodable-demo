@@ -135,7 +135,7 @@ export const Auth = () => {
               </div>
             </div>
 
-            <Button variant="outline" className="w-full py-3" type="button" onClick={signInWithGoogle}>
+            <Button variant="outline" className="w-full py-3" type="button" onClick={() => signInWithGoogle()}>
               <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
