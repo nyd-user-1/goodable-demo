@@ -91,31 +91,23 @@ export default function UseCases() {
       <ChatHeader />
     <main className="flex-1 pt-16">
       <div className="mx-auto max-w-[1300px] px-4 py-12 sm:px-6 lg:px-8">
-        {/* Badge-style tab toggle */}
-        <div className="flex justify-center mb-8">
-          <div className="inline-flex items-center rounded-full border border-border bg-muted/50 p-0.5">
-            <button
-              onClick={() => setActiveTab('research')}
-              className={cn(
-                'rounded-full px-4 py-1 text-xs font-medium transition-all',
-                activeTab === 'research'
-                  ? 'bg-foreground text-background shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              Research
-            </button>
-            <button
-              onClick={() => setActiveTab('advocacy')}
-              className={cn(
-                'rounded-full px-4 py-1 text-xs font-medium transition-all',
-                activeTab === 'advocacy'
-                  ? 'bg-foreground text-background shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              Advocacy
-            </button>
+        {/* Pill tab toggle */}
+        <div className="flex justify-center mb-12">
+          <div className="inline-flex items-center bg-muted/50 rounded-full p-1">
+            {(['research', 'advocacy'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  'px-5 py-2 rounded-full text-sm font-medium transition-all duration-200',
+                  activeTab === tab
+                    ? 'bg-white text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {tab === 'research' ? 'Research' : 'Advocacy'}
+              </button>
+            ))}
           </div>
         </div>
 
