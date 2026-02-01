@@ -73,25 +73,7 @@ export const useMembersData = () => {
       // Then fetch the actual data with increased limit
       const { data, error } = await supabase
         .from("People")
-        .select(`
-          people_id,
-          name,
-          first_name,
-          last_name,
-          photo_url,
-          party,
-          chamber,
-          district,
-          role,
-          email,
-          phone_capitol,
-          phone_district,
-          address,
-          bio_short,
-          bio_long,
-          ballotpedia,
-          committee_ids
-        `)
+        .select("*")
         .not("chamber", "is", null)
         .not("name", "is", null)
         .order("last_name", { ascending: true })
