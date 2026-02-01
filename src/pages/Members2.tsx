@@ -298,7 +298,7 @@ function MemberCard({ member, onClick, onChatClick }: MemberCardProps) {
   return (
     <div
       onClick={onClick}
-      className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
+      className="group bg-muted/30 rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg"
     >
       <h3 className="font-semibold text-base mb-3">
         {fullName}
@@ -307,32 +307,27 @@ function MemberCard({ member, onClick, onChatClick }: MemberCardProps) {
         {previewText}
       </p>
 
-      {/* Details and button - render on hover */}
-      <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
-        {/* Member details grid - balanced 2x2 layout */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
-          {/* Column 1 */}
+      {/* Member details grid - always visible */}
+      <div className="mt-4">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
           {chamber && (
             <div>
               <span className="text-muted-foreground">Chamber</span>
               <p className="font-medium">{chamber}</p>
             </div>
           )}
-          {/* Column 2 */}
           {partyDisplay && (
             <div>
               <span className="text-muted-foreground">Party</span>
               <p className="font-medium">{partyDisplay}</p>
             </div>
           )}
-          {/* Column 1 */}
           {member.district && (
             <div>
               <span className="text-muted-foreground">District</span>
               <p className="font-medium">{member.district}</p>
             </div>
           )}
-          {/* Column 2 */}
           {member.role && (
             <div>
               <span className="text-muted-foreground">Role</span>
@@ -341,8 +336,8 @@ function MemberCard({ member, onClick, onChatClick }: MemberCardProps) {
           )}
         </div>
 
-        {/* Action button */}
-        <div className="flex justify-end">
+        {/* Action button - appears on hover */}
+        <div className="flex justify-end mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

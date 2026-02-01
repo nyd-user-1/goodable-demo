@@ -270,7 +270,7 @@ function CommitteeCard({ committee, onClick, onChatClick }: CommitteeCardProps) 
   return (
     <div
       onClick={onClick}
-      className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
+      className="group bg-muted/30 rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg"
     >
       <h3 className="font-semibold text-base mb-3">
         {fullCommitteeName}
@@ -279,32 +279,27 @@ function CommitteeCard({ committee, onClick, onChatClick }: CommitteeCardProps) 
         {promptText}
       </p>
 
-      {/* Details and buttons - render on hover */}
-      <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
-        {/* Committee details grid - balanced 2x2 layout */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
-          {/* Column 1 */}
+      {/* Committee details grid - always visible */}
+      <div className="mt-4">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
           {committee.chamber && (
             <div>
               <span className="text-muted-foreground">Chamber</span>
               <p className="font-medium">{committee.chamber}</p>
             </div>
           )}
-          {/* Column 2 */}
           {committee.chair_name && (
             <div>
               <span className="text-muted-foreground">Chair</span>
               <p className="font-medium truncate">{committee.chair_name}</p>
             </div>
           )}
-          {/* Column 1 */}
           {committee.member_count && (
             <div>
               <span className="text-muted-foreground">Members</span>
               <p className="font-medium">{committee.member_count}</p>
             </div>
           )}
-          {/* Column 2 */}
           {committee.meeting_schedule && (
             <div>
               <span className="text-muted-foreground">Meeting Schedule</span>
@@ -313,8 +308,8 @@ function CommitteeCard({ committee, onClick, onChatClick }: CommitteeCardProps) 
           )}
         </div>
 
-        {/* Action button */}
-        <div className="flex justify-end">
+        {/* Action button - appears on hover */}
+        <div className="flex justify-end mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
