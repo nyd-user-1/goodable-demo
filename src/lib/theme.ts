@@ -5,8 +5,8 @@ export function initializeTheme() {
   // Check system preference
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
   
-  // Apply theme based on stored preference or system preference
-  const theme = storedTheme || (prefersDark ? 'dark' : 'light')
+  // Apply theme based on stored preference, defaulting to light
+  const theme = storedTheme || 'light'
   
   if (theme === 'dark') {
     document.documentElement.classList.add('dark')
