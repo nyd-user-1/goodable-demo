@@ -25,7 +25,6 @@ const Index = React.lazy(() => import("./pages/Index"));
 const Auth = React.lazy(() => import("./pages/Auth"));
 const Auth2 = React.lazy(() => import("./pages/Auth2"));
 const Auth4 = React.lazy(() => import("./pages/Auth4"));
-const ShadcnShowcase = React.lazy(() => import("./pages/ShadcnShowcase"));
 const Profile = React.lazy(() => import("./pages/Profile"));
 const Bills = React.lazy(() => import("./pages/Bills"));
 const Members = React.lazy(() => import("./pages/Members"));
@@ -140,7 +139,6 @@ const AppLayout = () => {
               <Route path="/admin" element={<Admin />} />
               <Route path="/dashboard" element={<Index />} />
               <Route path="/feed" element={<FeedPage />} />
-              <Route path="/shadcn-showcase" element={<ShadcnShowcase />} />
               <Route path="/image-upload-test" element={<ImageUploadTest />} />
               <Route path="/customerstory" element={<Customerstory />} />
               <Route path="/data-populator" element={<DataPopulator />} />
