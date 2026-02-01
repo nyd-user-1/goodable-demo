@@ -10,7 +10,7 @@ interface AuthContextType {
   isAdmin: boolean;
   signUp: (email: string, password: string, username?: string, displayName?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: (redirectTo?: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -88,7 +88,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return { error };
   };
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (redirectTo?: string) => {
     const origin = window.location.hostname === 'localhost'
       ? window.location.origin
       : 'https://nysgpt.com';
@@ -96,7 +96,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${origin}/new-chat`
+        redirectTo: redirectTo || `${origin}/new-chat`
       }
     });
   };

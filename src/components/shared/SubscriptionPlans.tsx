@@ -1,5 +1,4 @@
-import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { SubscriptionTierCard } from '../SubscriptionTierCard';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useToast } from '@/hooks/use-toast';
@@ -8,6 +7,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
+import { AuthCheckoutModal } from './AuthCheckoutModal';
 
 export const subscriptionTiers = [
   {
@@ -101,17 +101,57 @@ export const subscriptionTiers = [
   }
 ];
 
-interface SubscriptionPlansProps {
-  includeAuth?: boolean;
-}
-
-export const SubscriptionPlans = ({ includeAuth = false }: SubscriptionPlansProps) => {
+export const SubscriptionPlans = () => {
   const { subscription, loading, checkSubscription, createCheckout } = useSubscription();
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const auth = includeAuth ? useAuth() : null;
+  const { user } = useAuth();
   const [processingTier, setProcessingTier] = useState<string | null>(null);
   const [isAnnual, setIsAnnual] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [pendingTier, setPendingTier] = useState<string | null>(null);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const scrollAmount = direction === 'left' ? -container.clientWidth : container.clientWidth;
+      container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
+  const performCheckout = useCallback(async (tier: string, billingCycle: 'monthly' | 'annually') => {
+    try {
+      setProcessingTier(tier);
+      await createCheckout(tier, billingCycle);
+      toast({
+        title: "Redirecting to Checkout",
+        description: "Please complete your subscription in the new tab.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create checkout session",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingTier(null);
+    }
+  }, [createCheckout, toast]);
+
+  // Resume checkout after Google OAuth redirect
+  useEffect(() => {
+    const pending = sessionStorage.getItem('pendingCheckout');
+    if (pending && user) {
+      sessionStorage.removeItem('pendingCheckout');
+      try {
+        const { tier, billingCycle } = JSON.parse(pending);
+        performCheckout(tier, billingCycle);
+      } catch {
+        // Invalid sessionStorage data, ignore
+      }
+    }
+  }, [user, performCheckout]);
 
   const handleTierSelect = async (tier: string) => {
     if (tier === 'free') {
@@ -122,30 +162,20 @@ export const SubscriptionPlans = ({ includeAuth = false }: SubscriptionPlansProp
       return;
     }
 
-    try {
-      setProcessingTier(tier);
-      await createCheckout(tier, isAnnual ? 'annually' : 'monthly');
-      toast({
-        title: "Redirecting to Checkout",
-        description: "Please complete your subscription in the new tab.",
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "";
-      if (message.toLowerCase().includes("authenticated") || message.toLowerCase().includes("auth")) {
-        toast({
-          title: "Sign In",
-          description: "Please sign up to complete your upgrade.",
-        });
-        navigate('/auth-4');
-      } else {
-        toast({
-          title: "Error",
-          description: message || "Failed to create checkout session",
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setProcessingTier(null);
+    if (!user) {
+      setPendingTier(tier);
+      setShowAuthModal(true);
+      return;
+    }
+
+    await performCheckout(tier, isAnnual ? 'annually' : 'monthly');
+  };
+
+  const handleAuthenticated = () => {
+    setShowAuthModal(false);
+    if (pendingTier) {
+      performCheckout(pendingTier, isAnnual ? 'annually' : 'monthly');
+      setPendingTier(null);
     }
   };
 
@@ -157,15 +187,9 @@ export const SubscriptionPlans = ({ includeAuth = false }: SubscriptionPlansProp
     });
   };
 
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollContainerRef.current) {
-      const container = scrollContainerRef.current;
-      const scrollAmount = direction === 'left' ? -container.clientWidth : container.clientWidth;
-      container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-  };
+  const pendingTierData = pendingTier
+    ? subscriptionTiers.find((t) => t.tier === pendingTier)
+    : null;
 
   if (loading) {
     return (
@@ -211,7 +235,7 @@ export const SubscriptionPlans = ({ includeAuth = false }: SubscriptionPlansProp
       <div className="flex justify-center">
         <div
           ref={scrollContainerRef}
-          className="scrollbar-none flex snap-x snap-mandatory gap-8 overflow-x-auto px-1 py-6 max-w-full"
+          className="scrollbar-none flex snap-x snap-mandatory gap-8 overflow-x-auto px-4 py-6 max-w-full"
         >
           {subscriptionTiers.map((tierData) => (
             <div
@@ -230,6 +254,18 @@ export const SubscriptionPlans = ({ includeAuth = false }: SubscriptionPlansProp
           ))}
         </div>
       </div>
+
+      <AuthCheckoutModal
+        open={showAuthModal}
+        onOpenChange={setShowAuthModal}
+        onAuthenticated={handleAuthenticated}
+        tierName={pendingTierData?.name || ''}
+        pendingCheckoutData={
+          pendingTier
+            ? { tier: pendingTier, billingCycle: isAnnual ? 'annually' : 'monthly' }
+            : null
+        }
+      />
     </div>
   );
 };
