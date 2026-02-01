@@ -724,7 +724,8 @@ async function upsertBill(supabase: any, bill: any, sessionYear: number): Promis
     url: `https://legislation.nysenate.gov/api/3/bills/${sessionYear}/${normalizedBillNumber}`,
     state_link: `https://www.nysenate.gov/legislation/bills/${sessionYear}/${normalizedBillNumber}`,
     last_action_date: status.actionDate || bill.publishedDateTime || new Date().toISOString().split('T')[0],
-    last_action: status.statusDesc || status.statusType || "Introduced"
+    last_action: status.statusDesc || status.statusType || "Introduced",
+    status_date: status.actionDate || null
   };
 
   // Check if bill exists
@@ -743,12 +744,247 @@ async function upsertBill(supabase: any, bill: any, sessionYear: number): Promis
     throw new Error(`Failed to upsert bill: ${error.message}`);
   }
 
+  // Sync sponsors, history, and votes from the API response
+  await syncSponsors(supabase, bill, generatedBillId);
+  await syncHistory(supabase, bill, generatedBillId);
+  await syncVotes(supabase, bill, generatedBillId);
+
   console.log(`✓ Synced bill ${bill.basePrintNo}: ${bill.title?.substring(0, 50)}...`);
 
   return {
     inserted: !existing,
     updated: !!existing
   };
+}
+
+// Upsert a person from the NYS API member object into the People table
+async function upsertPerson(supabase: any, member: any): Promise<number | null> {
+  if (!member || !member.memberId) return null;
+
+  const personRecord: any = {
+    people_id: member.memberId,
+    name: member.fullName || member.shortName || null,
+    first_name: member.firstName || null,
+    last_name: member.lastName || null,
+    chamber: member.chamber === 'SENATE' ? 'Senate' : member.chamber === 'ASSEMBLY' ? 'Assembly' : member.chamber || null,
+    district: member.districtCode?.toString() || null,
+    party: member.party || null,
+  };
+
+  // Only set photo_url if available from API
+  if (member.imgName) {
+    personRecord.photo_url = `https://www.nysenate.gov/sites/default/files/${member.imgName}`;
+  }
+
+  const { error } = await supabase
+    .from("People")
+    .upsert(personRecord, { onConflict: "people_id", ignoreDuplicates: false });
+
+  if (error) {
+    console.warn(`Warning upserting person ${member.memberId}: ${error.message}`);
+  }
+
+  return member.memberId;
+}
+
+// Sync sponsor data from the NYS API bill response
+async function syncSponsors(supabase: any, bill: any, billId: number) {
+  try {
+    // Delete existing sponsors for this bill
+    await supabase.from("Sponsors").delete().eq("bill_id", billId);
+
+    const sponsors: { bill_id: number; people_id: number; position: number }[] = [];
+
+    // Primary sponsor (position 1)
+    const primaryMember = bill.sponsor?.member;
+    if (primaryMember) {
+      const peopleId = await upsertPerson(supabase, primaryMember);
+      if (peopleId) {
+        sponsors.push({ bill_id: billId, people_id: peopleId, position: 1 });
+      }
+    }
+
+    // Co-sponsors (position 2+)
+    const coSponsors = bill.coSponsors?.items || [];
+    for (let i = 0; i < coSponsors.length; i++) {
+      const coSponsor = coSponsors[i];
+      const member = coSponsor.member || coSponsor;
+      if (member?.memberId) {
+        const peopleId = await upsertPerson(supabase, member);
+        if (peopleId) {
+          sponsors.push({ bill_id: billId, people_id: peopleId, position: i + 2 });
+        }
+      }
+    }
+
+    // Multi-sponsors (some bills have this instead of coSponsors)
+    const multiSponsors = bill.multiSponsors?.items || [];
+    const startPos = sponsors.length + 1;
+    for (let i = 0; i < multiSponsors.length; i++) {
+      const member = multiSponsors[i].member || multiSponsors[i];
+      if (member?.memberId) {
+        const peopleId = await upsertPerson(supabase, member);
+        if (peopleId) {
+          sponsors.push({ bill_id: billId, people_id: peopleId, position: startPos + i });
+        }
+      }
+    }
+
+    if (sponsors.length > 0) {
+      const { error } = await supabase.from("Sponsors").insert(sponsors);
+      if (error) {
+        console.warn(`Warning inserting sponsors for bill ${billId}: ${error.message}`);
+      }
+    }
+  } catch (error) {
+    console.warn(`Warning syncing sponsors for bill ${billId}: ${error.message}`);
+  }
+}
+
+// Sync legislative actions/history from the NYS API bill response
+async function syncHistory(supabase: any, bill: any, billId: number) {
+  try {
+    // Get actions from the latest amendment
+    const amendments = bill.amendments?.items || {};
+    const amendmentKeys = Object.keys(amendments).sort();
+    const latestAmendment = amendmentKeys.length > 0 ? amendments[amendmentKeys[amendmentKeys.length - 1]] : null;
+
+    // Actions can be on the bill directly or in the latest amendment
+    const actions = bill.actions?.items || latestAmendment?.actions?.items || [];
+
+    if (actions.length === 0) return;
+
+    // Delete existing history for this bill
+    await supabase.from("History Table").delete().eq("bill_id", billId);
+
+    const historyRecords = actions.map((action: any) => ({
+      bill_id: billId,
+      date: action.date || new Date().toISOString().split('T')[0],
+      sequence: action.sequenceNo || 0,
+      action: action.text || action.description || null,
+      chamber: action.chamber === 'SENATE' ? 'Senate' : action.chamber === 'ASSEMBLY' ? 'Assembly' : action.chamber || null
+    }));
+
+    // Insert in batches of 100
+    for (let i = 0; i < historyRecords.length; i += BATCH_SIZE) {
+      const batch = historyRecords.slice(i, i + BATCH_SIZE);
+      const { error } = await supabase.from("History Table").insert(batch);
+      if (error) {
+        console.warn(`Warning inserting history for bill ${billId}: ${error.message}`);
+      }
+    }
+  } catch (error) {
+    console.warn(`Warning syncing history for bill ${billId}: ${error.message}`);
+  }
+}
+
+// Sync voting records from the NYS API bill response
+async function syncVotes(supabase: any, bill: any, billId: number) {
+  try {
+    const votesData = bill.votes?.items || [];
+    if (votesData.length === 0) return;
+
+    // Delete existing roll calls and votes for this bill
+    const { data: existingRollCalls } = await supabase
+      .from("Roll Call")
+      .select("roll_call_id")
+      .eq("bill_id", billId);
+
+    if (existingRollCalls && existingRollCalls.length > 0) {
+      const rollCallIds = existingRollCalls.map((rc: any) => rc.roll_call_id);
+      await supabase.from("Votes").delete().in("roll_call_id", rollCallIds);
+      await supabase.from("Roll Call").delete().eq("bill_id", billId);
+    }
+
+    for (const voteEvent of votesData) {
+      // Generate a roll_call_id: billId * 100 + index
+      const voteDate = voteEvent.voteDate || '';
+      const rollCallId = billId * 100 + (votesData.indexOf(voteEvent) + 1);
+
+      // Count votes by type
+      const memberVotes = voteEvent.memberVotes?.items || {};
+      let yeaCount = 0;
+      let nayCount = 0;
+      let absentCount = 0;
+      let nvCount = 0;
+
+      const allIndividualVotes: { people_id: number; roll_call_id: number; vote: number; vote_desc: string }[] = [];
+
+      for (const [voteType, voteGroup] of Object.entries(memberVotes)) {
+        const members = (voteGroup as any)?.items || [];
+        const normalizedType = voteType.toUpperCase();
+
+        let voteCode = 0;
+        let voteDesc = voteType;
+
+        if (normalizedType === 'AYE' || normalizedType === 'AYEWR') {
+          voteCode = 1;
+          voteDesc = 'Yea';
+          yeaCount += members.length;
+        } else if (normalizedType === 'NAY') {
+          voteCode = 2;
+          voteDesc = 'Nay';
+          nayCount += members.length;
+        } else if (normalizedType === 'ABSENT' || normalizedType === 'ABD') {
+          voteCode = 3;
+          voteDesc = 'Absent';
+          absentCount += members.length;
+        } else if (normalizedType === 'EXC' || normalizedType === 'NV') {
+          voteCode = 4;
+          voteDesc = 'NV';
+          nvCount += members.length;
+        }
+
+        for (const member of members) {
+          if (member?.memberId) {
+            await upsertPerson(supabase, member);
+            allIndividualVotes.push({
+              people_id: member.memberId,
+              roll_call_id: rollCallId,
+              vote: voteCode,
+              vote_desc: voteDesc
+            });
+          }
+        }
+      }
+
+      // Insert roll call record
+      const rollCallRecord = {
+        roll_call_id: rollCallId,
+        bill_id: billId,
+        date: voteDate,
+        chamber: voteEvent.committee?.chamber === 'SENATE' ? 'Senate' : voteEvent.committee?.chamber === 'ASSEMBLY' ? 'Assembly' : null,
+        description: voteEvent.description || voteEvent.voteType || null,
+        yea: yeaCount,
+        nay: nayCount.toString(),
+        absent: absentCount.toString(),
+        nv: nvCount.toString(),
+        total: yeaCount + nayCount + absentCount + nvCount
+      };
+
+      const { error: rcError } = await supabase
+        .from("Roll Call")
+        .upsert(rollCallRecord, { onConflict: "roll_call_id" });
+
+      if (rcError) {
+        console.warn(`Warning inserting roll call ${rollCallId}: ${rcError.message}`);
+        continue;
+      }
+
+      // Insert individual votes in batches
+      if (allIndividualVotes.length > 0) {
+        for (let i = 0; i < allIndividualVotes.length; i += BATCH_SIZE) {
+          const batch = allIndividualVotes.slice(i, i + BATCH_SIZE);
+          const { error: vError } = await supabase.from("Votes").upsert(batch, { onConflict: "people_id,roll_call_id" });
+          if (vError) {
+            console.warn(`Warning inserting votes for roll call ${rollCallId}: ${vError.message}`);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.warn(`Warning syncing votes for bill ${billId}: ${error.message}`);
+  }
 }
 
 function mapStatusToCode(statusType: string | undefined): number {
