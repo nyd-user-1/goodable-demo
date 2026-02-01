@@ -757,11 +757,82 @@ async function upsertBill(supabase: any, bill: any, sessionYear: number): Promis
   };
 }
 
-// DISABLED: Upsert was overwriting existing People data with sparse API data.
-// Now only returns the memberId for sponsor/vote linking without touching the People table.
-async function upsertPerson(_supabase: any, member: any): Promise<number | null> {
+// Cache of People records for name-based matching (loaded once per invocation)
+let _peopleCache: { people_id: number; name: string; first_name: string; last_name: string }[] | null = null;
+
+async function loadPeopleCache(supabase: any) {
+  if (_peopleCache) return _peopleCache;
+  const { data } = await supabase
+    .from("People")
+    .select("people_id, name, first_name, last_name");
+  _peopleCache = data || [];
+  return _peopleCache;
+}
+
+// Normalize a name for flexible matching: lowercase, strip periods, suffixes, middle initials
+function normalizeName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/\./g, '')
+    .replace(/,/g, '')
+    .replace(/\s+(jr|sr|iii|ii|iv)$/i, '')
+    .replace(/\s+[a-z]\s+/g, ' ')  // single-letter middle initials
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Match an NYS API member to a People record by name. Never creates rows.
+async function upsertPerson(supabase: any, member: any): Promise<number | null> {
   if (!member || !member.memberId) return null;
-  return member.memberId;
+
+  const cache = await loadPeopleCache(supabase);
+  if (cache.length === 0) return null;
+
+  const fullName = member.fullName || member.shortName || null;
+  const firstName = (member.firstName || '').toLowerCase().trim();
+  const lastName = (member.lastName || '').toLowerCase().trim();
+
+  // Strategy 1: Exact match on full name
+  if (fullName) {
+    const target = fullName.toLowerCase().trim();
+    const match = cache.find(p => p.name?.toLowerCase().trim() === target);
+    if (match) return match.people_id;
+  }
+
+  // Strategy 2: Match by first_name + last_name fields
+  if (firstName && lastName) {
+    const match = cache.find(p =>
+      p.first_name?.toLowerCase().trim() === firstName &&
+      p.last_name?.toLowerCase().trim() === lastName
+    );
+    if (match) return match.people_id;
+  }
+
+  // Strategy 3: Normalized matching (handles middle initials, Jr/Sr, periods)
+  if (fullName) {
+    const normalizedTarget = normalizeName(fullName);
+    const match = cache.find(p => p.name && normalizeName(p.name) === normalizedTarget);
+    if (match) return match.people_id;
+  }
+
+  // Strategy 4: Last name exact + first name starts with same letter
+  if (firstName && lastName) {
+    const firstChar = firstName.charAt(0);
+    const matches = cache.filter(p =>
+      p.last_name?.toLowerCase().trim() === lastName
+    );
+    if (matches.length === 1) return matches[0].people_id;
+    if (matches.length > 1) {
+      const refined = matches.find(p =>
+        p.first_name?.toLowerCase().trim().startsWith(firstChar)
+      );
+      if (refined) return refined.people_id;
+    }
+  }
+
+  // No match — don't create a row, just log
+  console.warn(`No People match for: ${fullName || `${firstName} ${lastName}`} (API memberId: ${member.memberId})`);
+  return null;
 }
 
 // Sync sponsor data from the NYS API bill response
@@ -914,13 +985,15 @@ async function syncVotes(supabase: any, bill: any, billId: number) {
 
         for (const member of members) {
           if (member?.memberId) {
-            await upsertPerson(supabase, member);
-            allIndividualVotes.push({
-              people_id: member.memberId,
-              roll_call_id: rollCallId,
-              vote: voteCode,
-              vote_desc: voteDesc
-            });
+            const matchedPeopleId = await upsertPerson(supabase, member);
+            if (matchedPeopleId) {
+              allIndividualVotes.push({
+                people_id: matchedPeopleId,
+                roll_call_id: rollCallId,
+                vote: voteCode,
+                vote_desc: voteDesc
+              });
+            }
           }
         }
       }

@@ -15,7 +15,8 @@ export function useMembersSearch() {
       let query = supabase
         .from('People')
         .select('*', { count: 'exact' })
-        .eq('archived', false);
+        .not('chamber', 'is', null)
+        .not('name', 'is', null);
 
       // Server-side search across name, district
       if (searchTerm && searchTerm.length >= 2) {
@@ -60,14 +61,12 @@ export function useMembersSearch() {
       const { data: chamberData } = await supabase
         .from('People')
         .select('chamber')
-        .eq('archived', false)
         .not('chamber', 'is', null);
 
       // Get unique parties
       const { data: partyData } = await supabase
         .from('People')
         .select('party')
-        .eq('archived', false)
         .not('party', 'is', null);
 
       const chambers = [...new Set(chamberData?.map(c => c.chamber))].filter(Boolean).sort() as string[];

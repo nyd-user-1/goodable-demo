@@ -220,7 +220,12 @@ const Members2 = () => {
           <div className="flex-1 overflow-y-auto px-4 py-6">
             {error ? (
               <div className="text-center py-12">
-                <p className="text-destructive">Error loading members: {String(error)}</p>
+                <p className="text-destructive mb-4">
+                  Error loading members: {(error as any)?.message || String(error)}
+                </p>
+                <Button variant="outline" onClick={() => window.location.reload()}>
+                  Try again
+                </Button>
               </div>
             ) : isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
