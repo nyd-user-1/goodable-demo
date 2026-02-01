@@ -197,25 +197,27 @@ export const SubscriptionPlans = ({ includeAuth = false }: SubscriptionPlansProp
       </div>
 
       {/* Scrolling Cards */}
-      <div
-        ref={scrollContainerRef}
-        className="scrollbar-none flex snap-x snap-mandatory gap-6 overflow-x-auto pt-4 pb-4"
-      >
-        {subscriptionTiers.map((tierData) => (
-          <div
-            key={tierData.tier}
-            className="w-[calc(100%-2rem)] flex-none snap-start sm:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1rem)]"
-          >
-            <SubscriptionTierCard
-              {...tierData}
-              price={isAnnual ? tierData.annualPrice : tierData.monthlyPrice}
-              billingCycle={isAnnual ? 'annually' : 'monthly'}
-              isCurrentTier={subscription.subscription_tier === tierData.tier}
-              onSelect={() => handleTierSelect(tierData.tier)}
-              disabled={processingTier === tierData.tier}
-            />
-          </div>
-        ))}
+      <div className="flex justify-center">
+        <div
+          ref={scrollContainerRef}
+          className="scrollbar-none flex snap-x snap-mandatory gap-8 overflow-x-auto px-4 py-6 max-w-full"
+        >
+          {subscriptionTiers.map((tierData) => (
+            <div
+              key={tierData.tier}
+              className="w-[calc(100%-2rem)] flex-none snap-start sm:w-[calc(50%-1.5rem)] lg:w-[calc(33.333%-1.5rem)]"
+            >
+              <SubscriptionTierCard
+                {...tierData}
+                price={isAnnual ? tierData.annualPrice : tierData.monthlyPrice}
+                billingCycle={isAnnual ? 'annually' : 'monthly'}
+                isCurrentTier={subscription.subscription_tier === tierData.tier}
+                onSelect={() => handleTierSelect(tierData.tier)}
+                disabled={processingTier === tierData.tier}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
