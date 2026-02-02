@@ -149,7 +149,7 @@ export default function PromptHub() {
         .from('Bills')
         .select('bill_id, bill_number, title, status_desc')
         .order('bill_id', { ascending: false })
-        .limit(10);
+        .limit(8);
       return data || [];
     },
     staleTime: 10 * 60 * 1000,
@@ -177,7 +177,7 @@ export default function PromptHub() {
       // Top 10 by count
       const topIds = Object.entries(counts)
         .sort(([, a], [, b]) => b - a)
-        .slice(0, 10)
+        .slice(0, 8)
         .map(([id]) => parseInt(id));
 
       const { data: members } = await supabase
@@ -485,7 +485,7 @@ export default function PromptHub() {
                   <Users className="h-4 w-4" />
                   Top Sponsors
                 </h3>
-                <div className="divide-y-2 divide-dotted divide-border/80 max-h-[700px] overflow-hidden">
+                <div className="divide-y-2 divide-dotted divide-border/80">
                   {(topMembers || []).map((m: any) => (
                     <div key={m.people_id} className="py-3 first:pt-0">
                       <Link
@@ -524,7 +524,7 @@ export default function PromptHub() {
                   <FileText className="h-4 w-4" />
                   Recent Bills
                 </h3>
-                <div className="divide-y-2 divide-dotted divide-border/80 max-h-[700px] overflow-hidden">
+                <div className="divide-y-2 divide-dotted divide-border/80">
                   {(recentBills || []).map((bill: any) => (
                     <div key={bill.bill_id} className="py-3 first:pt-0">
                       <div
@@ -565,7 +565,7 @@ export default function PromptHub() {
                   <DollarSign className="h-4 w-4" />
                   Budget Explorer
                 </h3>
-                <div className="divide-y-2 divide-dotted divide-border/80 max-h-[700px] overflow-hidden">
+                <div className="divide-y-2 divide-dotted divide-border/80">
                   {budgetItems.map((item, idx) => (
                     <div key={idx} className="py-3 first:pt-0">
                       <Link
