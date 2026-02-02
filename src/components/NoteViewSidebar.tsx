@@ -133,7 +133,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const [recentNotes, setRecentNotes] = useState<Note[]>([]);
   const [pinnedNoteIds, setPinnedNoteIds] = useState<Set<string>>(getPinnedNoteIds());
   const [newChatHover, setNewChatHover] = useState(false);
-  const [planUsageOpen, setPlanUsageOpen] = useState(false);
+  const [planUsageOpen, setPlanUsageOpen] = useState(!user);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [itemToRename, setItemToRename] = useState<{ id: string; title: string; type: 'chat' | 'note' } | null>(null);

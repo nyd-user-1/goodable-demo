@@ -9,20 +9,28 @@ declare global {
   }
 }
 
+/** Title-case a slug: "use-cases" → "Use Cases", "school-funding" → "School Funding" */
+function formatSlug(slug: string): string {
+  return slug.replace(/(^|-)(\w)/g, (_, sep, ch) => (sep ? ' ' : '') + ch.toUpperCase());
+}
+
 /**
- * Build a short page title from the pathname for HubSpot display.
- * e.g. "/bills" → "bills", "/bills/S240" → "S240", "/c/abc" → "chats"
+ * Build a page title from the tracked path.
+ * Returns { short, tab } where short is for HubSpot/GA and tab is for browser tab.
+ * e.g. "/use-cases" → { short: "Use Cases", tab: "Use Cases | NYSgpt" }
+ * e.g. "/bills/S240" → { short: "S240", tab: "S240 | NYSgpt" }
  */
-function pageTitle(tracked: string): string {
-  if (tracked === '/') return 'home';
-  if (tracked === '/chats') return 'chats';
-  if (tracked === '/notes') return 'notes';
-  if (tracked === '/excerpts') return 'excerpts';
+function pageTitle(tracked: string): { short: string; tab: string } {
+  const fmt = (s: string) => ({ short: s, tab: `${s} | NYSgpt` });
+
+  if (tracked === '/') return { short: 'Home', tab: 'NYSgpt' };
+  if (tracked === '/chats') return fmt('Chats');
+  if (tracked === '/notes') return fmt('Notes');
+  if (tracked === '/excerpts') return fmt('Excerpts');
 
   const segments = tracked.split('/').filter(Boolean);
-  // Detail page: show the last segment (slug/id)
-  // Browse page: show the section name
-  return segments[segments.length - 1];
+  const label = formatSlug(segments[segments.length - 1]);
+  return fmt(label);
 }
 
 /**
@@ -97,8 +105,8 @@ export function useHubSpot() {
     const tracked = normalizePath(location.pathname);
     if (!tracked) return;
 
-    const title = pageTitle(tracked);
-    document.title = title;
+    const { short, tab } = pageTitle(tracked);
+    document.title = tab;
 
     window._hsq = window._hsq || [];
     window._hsq.push(['setPath', tracked]);
@@ -106,7 +114,7 @@ export function useHubSpot() {
 
     // Google Analytics SPA page view
     if (typeof window.gtag === 'function') {
-      window.gtag('event', 'page_view', { page_path: tracked, page_title: title });
+      window.gtag('event', 'page_view', { page_path: tracked, page_title: short });
     }
   }, [location.pathname, isAdmin]);
 }
