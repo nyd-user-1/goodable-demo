@@ -119,6 +119,14 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
               Features
             </Link>
 
+            {/* PromptHub - simple link */}
+            <Link
+              to="/prompt-hub"
+              className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
+            >
+              PromptHub
+            </Link>
+
             {/* Use Cases - simple link */}
             <Link
               to="/use-cases"

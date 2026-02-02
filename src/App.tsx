@@ -91,6 +91,7 @@ const Constitution = React.lazy(() => import("./pages/Constitution"));
 const DigitalBillOfRights = React.lazy(() => import("./pages/DigitalBillOfRights"));
 const LiveFeed = React.lazy(() => import("./pages/LiveFeed"));
 const Prompts = React.lazy(() => import("./pages/Prompts"));
+const PromptHub = React.lazy(() => import("./pages/PromptHub"));
 const DepartmentDetail = React.lazy(() => import("./pages/DepartmentDetail"));
 
 const queryClient = new QueryClient();
@@ -183,6 +184,7 @@ const App = () => {
                   <Route path="/constitution" element={<Constitution />} />
                   <Route path="/digital-bill-of-rights" element={<DigitalBillOfRights />} />
                   <Route path="/ai-fluency" element={<AIFluency />} />
+                  <Route path="/prompt-hub" element={<PromptHub />} />
                   <Route path="/use-cases" element={<UseCases />} />
                   <Route path="/use-cases/bills" element={<UseCasesBills />} />
                   <Route path="/use-cases/committees" element={<UseCasesCommittees />} />
