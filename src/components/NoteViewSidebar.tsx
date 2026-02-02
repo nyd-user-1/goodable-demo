@@ -37,6 +37,7 @@ import {
   BookCheck,
   BarChart3,
   CirclePlus,
+  Home,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -425,11 +426,9 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
 
         {/* Action buttons */}
         <div className="flex items-center gap-1">
-          {!user && (
-            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => navigate('/auth')}>
-              <LogIn className="h-5 w-5" />
-            </Button>
-          )}
+          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => navigate(user ? '/new-chat' : '/')}>
+            <Home className="h-5 w-5" />
+          </Button>
 
           {/* Log close icon - all screen sizes */}
           <Button
@@ -733,6 +732,24 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                 </Tooltip>
               </CollapsibleContent>
             </Collapsible>
+
+            {/* User Login - only for unauthenticated users */}
+            {!user && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => navigate('/auth')}
+                    className="flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors hover:bg-muted w-full text-left"
+                  >
+                    <LogIn className="h-4 w-4" />
+                    <span>User Login</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Log in to your account</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
 
         </div>
 
