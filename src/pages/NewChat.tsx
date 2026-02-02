@@ -2,11 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChatPersistence } from "@/hooks/useChatPersistence";
-import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, PanelLeft, HandCoins, Lightbulb } from "lucide-react";
+import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, PanelLeft, HandCoins, Lightbulb, Check } from "lucide-react";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { Contract } from "@/types/contracts";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { trackEvent } from "@/utils/analytics";
 // Safe sidebar hook that doesn't throw on public pages without SidebarProvider
@@ -28,13 +27,6 @@ import { useModel } from "@/contexts/ModelContext";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatHeader } from "@/components/ChatHeader";
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { CitationText } from "@/components/CitationText";
 import { ChatResponseFooter } from "@/components/ChatResponseFooter";
 import { PerplexityCitation, extractCitationNumbers, stripCitations } from "@/utils/citationParser";
@@ -374,6 +366,16 @@ const NewChat = () => {
 
   // Sample prompts state (for lightbulb dropdown)
   const [promptsDropdownOpen, setPromptsDropdownOpen] = useState(false);
+
+  // Mutual exclusion: only one popover open at a time
+  const openPopover = (setter: React.Dispatch<React.SetStateAction<boolean>>) => {
+    setPromptsDropdownOpen(false);
+    setMembersDialogOpen(false);
+    setCommitteesDialogOpen(false);
+    setBillsDialogOpen(false);
+    setContractsDialogOpen(false);
+    setter(true);
+  };
 
   // Policy sample prompts - hardcoded
   const samplePrompts = [
@@ -2100,7 +2102,7 @@ const NewChat = () => {
                         <TooltipTrigger asChild>
                           <button
                             type="button"
-                            onClick={() => setPromptsDropdownOpen(!promptsDropdownOpen)}
+                            onClick={() => promptsDropdownOpen ? setPromptsDropdownOpen(false) : openPopover(setPromptsDropdownOpen)}
                             className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
                           >
                             <Lightbulb className="h-5 w-5" />
@@ -2157,453 +2159,269 @@ const NewChat = () => {
                     {/* Filter Buttons (only shown when chat has started) */}
                     {chatStarted && (
                     <>
-                    <Dialog open={membersDialogOpen} onOpenChange={setMembersDialogOpen}>
+                    {/* Members popover */}
+                    <div className="relative">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <DialogTrigger asChild>
-                            <button
-                              type="button"
-                              className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent transition-colors"
-                            >
-                              <Users className="h-4 w-4" />
-                            </button>
-                          </DialogTrigger>
+                          <button
+                            type="button"
+                            onClick={() => membersDialogOpen ? setMembersDialogOpen(false) : openPopover(setMembersDialogOpen)}
+                            className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent transition-colors"
+                          >
+                            <Users className="h-4 w-4" />
+                          </button>
                         </TooltipTrigger>
                         <TooltipContent side="top">
                           <p>Select Members</p>
                         </TooltipContent>
                       </Tooltip>
-                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col" onOpenAutoFocus={(e) => { if (window.innerWidth < 768) e.preventDefault(); }}>
-                        <DialogHeader>
-                          <DialogTitle>Select Members</DialogTitle>
-                        </DialogHeader>
 
-                        {/* Search Input */}
-                        <div className="px-6 pb-4">
-                          <Input
-                            placeholder="Search members by name..."
-                            value={membersSearch}
-                            onChange={(e) => setMembersSearch(e.target.value)}
-                            className="w-full"
-                          />
-                        </div>
-
-                        {/* Members Table */}
-                        <div className="flex-1 overflow-y-auto px-6 pb-6">
-                          {membersLoading ? (
-                            <div className="flex items-center justify-center py-8 text-muted-foreground">
-                              Loading members...
+                      {membersDialogOpen && (
+                        <div className="absolute bottom-full left-0 mb-2 w-80 max-h-[400px] rounded-2xl border border-border/60 bg-background shadow-lg overflow-hidden z-50">
+                          <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
+                            <div className="flex items-center gap-2">
+                              <Users className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm font-medium">Members</span>
                             </div>
-                          ) : (
-                            <div className="border rounded-lg overflow-hidden">
-                              <table className="w-full text-sm">
-                                <thead className="bg-muted/50">
-                                  <tr>
-                                    <th className="text-left p-3 font-medium">Name</th>
-                                    <th className="text-left p-3 font-medium">Party</th>
-                                    <th className="text-left p-3 font-medium">Chamber</th>
-                                    <th className="text-left p-3 font-medium">District</th>
-                                    <th className="text-center p-3 font-medium w-20">Select</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {availableMembers
-                                    .filter(member =>
-                                      membersSearch === "" ||
-                                      member.name.toLowerCase().includes(membersSearch.toLowerCase())
-                                    )
-                                    .map((member) => {
-                                      const isSelected = selectedMembers.some(m => m.people_id === member.people_id);
-                                      return (
-                                        <tr
-                                          key={member.people_id}
-                                          onClick={() => {
-                                            if (isSelected) {
-                                              setSelectedMembers(prev => prev.filter(m => m.people_id !== member.people_id));
-                                            } else {
-                                              setSelectedMembers(prev => [...prev, member]);
-                                            }
-                                          }}
-                                          className={cn(
-                                            "border-t hover:bg-muted/30 transition-colors cursor-pointer",
-                                            isSelected && "bg-green-500/5"
-                                          )}
-                                        >
-                                          <td className="p-3 font-medium">{member.name}</td>
-                                          <td className="p-3 text-muted-foreground">{member.party || 'N/A'}</td>
-                                          <td className="p-3 text-muted-foreground">{member.chamber || 'N/A'}</td>
-                                          <td className="p-3 text-muted-foreground">{member.district || 'N/A'}</td>
-                                          <td className="p-3 text-center">
-                                            <input
-                                              type="checkbox"
-                                              checked={isSelected}
-                                              onChange={(e) => {
-                                                e.stopPropagation();
-                                                if (isSelected) {
-                                                  setSelectedMembers(prev => prev.filter(m => m.people_id !== member.people_id));
-                                                } else {
-                                                  setSelectedMembers(prev => [...prev, member]);
-                                                }
-                                              }}
-                                              className="w-4 h-4 rounded pointer-events-none"
-                                            />
-                                          </td>
-                                        </tr>
-                                      );
-                                    })}
-                                </tbody>
-                              </table>
-                            </div>
-                          )}
+                            <button type="button" onClick={() => setMembersDialogOpen(false)} className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                          <div className="max-h-[320px] overflow-y-auto">
+                            {membersLoading ? (
+                              <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">Loading members...</div>
+                            ) : (
+                              availableMembers.slice(0, 50).map((member, idx) => {
+                                const isSelected = selectedMembers.some(m => m.people_id === member.people_id);
+                                return (
+                                  <button
+                                    key={member.people_id}
+                                    type="button"
+                                    onClick={() => {
+                                      if (isSelected) {
+                                        setSelectedMembers(prev => prev.filter(m => m.people_id !== member.people_id));
+                                      } else {
+                                        setSelectedMembers(prev => [...prev, member]);
+                                      }
+                                    }}
+                                    className={cn(
+                                      "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted/50 flex items-center justify-between gap-2",
+                                      idx > 0 && "border-t border-border/40",
+                                      isSelected && "bg-green-500/5"
+                                    )}
+                                  >
+                                    <div className="min-w-0">
+                                      <span className="font-medium text-foreground">{member.name}</span>
+                                      <p className="text-muted-foreground text-xs mt-0.5">{member.party || 'N/A'} &middot; {member.chamber || 'N/A'}</p>
+                                    </div>
+                                    {isSelected && <Check className="h-4 w-4 text-green-600 shrink-0" />}
+                                  </button>
+                                );
+                              })
+                            )}
+                          </div>
                         </div>
+                      )}
+                    </div>
 
-                        {/* Footer with selected count */}
-                        <div className="px-6 py-3 border-t flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">
-                            {selectedMembers.length} member{selectedMembers.length !== 1 ? 's' : ''} selected
-                          </span>
-                          <Button onClick={() => setMembersDialogOpen(false)} size="sm">
-                            Done
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-
-                    <Dialog open={committeesDialogOpen} onOpenChange={setCommitteesDialogOpen}>
+                    {/* Committees popover */}
+                    <div className="relative">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <DialogTrigger asChild>
-                            <button
-                              type="button"
-                              className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent transition-colors"
-                            >
-                              <Building2 className="h-4 w-4" />
-                            </button>
-                          </DialogTrigger>
+                          <button
+                            type="button"
+                            onClick={() => committeesDialogOpen ? setCommitteesDialogOpen(false) : openPopover(setCommitteesDialogOpen)}
+                            className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent transition-colors"
+                          >
+                            <Building2 className="h-4 w-4" />
+                          </button>
                         </TooltipTrigger>
                         <TooltipContent side="top">
                           <p>Select Committees</p>
                         </TooltipContent>
                       </Tooltip>
-                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col" onOpenAutoFocus={(e) => { if (window.innerWidth < 768) e.preventDefault(); }}>
-                        <DialogHeader>
-                          <DialogTitle>Select Committees</DialogTitle>
-                        </DialogHeader>
 
-                        {/* Search Input */}
-                        <div className="px-6 pb-4">
-                          <Input
-                            placeholder="Search committees by name..."
-                            value={committeesSearch}
-                            onChange={(e) => setCommitteesSearch(e.target.value)}
-                            className="w-full"
-                          />
-                        </div>
-
-                        {/* Committees Table */}
-                        <div className="flex-1 overflow-y-auto px-6 pb-6">
-                          {committeesLoading ? (
-                            <div className="flex items-center justify-center py-8 text-muted-foreground">
-                              Loading committees...
+                      {committeesDialogOpen && (
+                        <div className="absolute bottom-full left-0 mb-2 w-80 max-h-[400px] rounded-2xl border border-border/60 bg-background shadow-lg overflow-hidden z-50">
+                          <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
+                            <div className="flex items-center gap-2">
+                              <Building2 className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm font-medium">Committees</span>
                             </div>
-                          ) : (
-                            <div className="border rounded-lg overflow-hidden">
-                              <table className="w-full text-sm">
-                                <thead className="bg-muted/50">
-                                  <tr>
-                                    <th className="text-left p-3 font-medium">Committee Name</th>
-                                    <th className="text-left p-3 font-medium">Chamber</th>
-                                    <th className="text-left p-3 font-medium">Chair</th>
-                                    <th className="text-center p-3 font-medium w-20">Select</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {availableCommittees
-                                    .filter(committee =>
-                                      committeesSearch === "" ||
-                                      committee.committee_name.toLowerCase().includes(committeesSearch.toLowerCase())
-                                    )
-                                    .map((committee) => {
-                                      const isSelected = selectedCommittees.some(c => c.committee_id === committee.committee_id);
-                                      return (
-                                        <tr
-                                          key={committee.committee_id}
-                                          onClick={() => {
-                                            if (isSelected) {
-                                              setSelectedCommittees(prev => prev.filter(c => c.committee_id !== committee.committee_id));
-                                            } else {
-                                              setSelectedCommittees(prev => [...prev, committee]);
-                                            }
-                                          }}
-                                          className={cn(
-                                            "border-t hover:bg-muted/30 transition-colors cursor-pointer",
-                                            isSelected && "bg-orange-500/5"
-                                          )}
-                                        >
-                                          <td className="p-3 font-medium">{committee.committee_name}</td>
-                                          <td className="p-3 text-muted-foreground">{committee.chamber || 'N/A'}</td>
-                                          <td className="p-3 text-muted-foreground">{committee.chair_name || 'N/A'}</td>
-                                          <td className="p-3 text-center">
-                                            <input
-                                              type="checkbox"
-                                              checked={isSelected}
-                                              onChange={(e) => {
-                                                e.stopPropagation();
-                                                if (isSelected) {
-                                                  setSelectedCommittees(prev => prev.filter(c => c.committee_id !== committee.committee_id));
-                                                } else {
-                                                  setSelectedCommittees(prev => [...prev, committee]);
-                                                }
-                                              }}
-                                              className="w-4 h-4 rounded pointer-events-none"
-                                            />
-                                          </td>
-                                        </tr>
-                                      );
-                                    })}
-                                </tbody>
-                              </table>
-                            </div>
-                          )}
+                            <button type="button" onClick={() => setCommitteesDialogOpen(false)} className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                          <div className="max-h-[320px] overflow-y-auto">
+                            {committeesLoading ? (
+                              <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">Loading committees...</div>
+                            ) : (
+                              availableCommittees.slice(0, 50).map((committee, idx) => {
+                                const isSelected = selectedCommittees.some(c => c.committee_id === committee.committee_id);
+                                return (
+                                  <button
+                                    key={committee.committee_id}
+                                    type="button"
+                                    onClick={() => {
+                                      if (isSelected) {
+                                        setSelectedCommittees(prev => prev.filter(c => c.committee_id !== committee.committee_id));
+                                      } else {
+                                        setSelectedCommittees(prev => [...prev, committee]);
+                                      }
+                                    }}
+                                    className={cn(
+                                      "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted/50 flex items-center justify-between gap-2",
+                                      idx > 0 && "border-t border-border/40",
+                                      isSelected && "bg-orange-500/5"
+                                    )}
+                                  >
+                                    <div className="min-w-0">
+                                      <span className="font-medium text-foreground">{committee.committee_name}</span>
+                                      <p className="text-muted-foreground text-xs mt-0.5">{committee.chamber || 'N/A'}</p>
+                                    </div>
+                                    {isSelected && <Check className="h-4 w-4 text-orange-600 shrink-0" />}
+                                  </button>
+                                );
+                              })
+                            )}
+                          </div>
                         </div>
+                      )}
+                    </div>
 
-                        {/* Footer with selected count */}
-                        <div className="px-6 py-3 border-t flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">
-                            {selectedCommittees.length} committee{selectedCommittees.length !== 1 ? 's' : ''} selected
-                          </span>
-                          <Button onClick={() => setCommitteesDialogOpen(false)} size="sm">
-                            Done
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-
-                    <Dialog open={billsDialogOpen} onOpenChange={setBillsDialogOpen}>
+                    {/* Bills popover */}
+                    <div className="relative">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <DialogTrigger asChild>
-                            <button
-                              type="button"
-                              className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent transition-colors"
-                            >
-                              <FileText className="h-4 w-4" />
-                            </button>
-                          </DialogTrigger>
+                          <button
+                            type="button"
+                            onClick={() => billsDialogOpen ? setBillsDialogOpen(false) : openPopover(setBillsDialogOpen)}
+                            className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent transition-colors"
+                          >
+                            <FileText className="h-4 w-4" />
+                          </button>
                         </TooltipTrigger>
                         <TooltipContent side="top">
                           <p>Select Bills</p>
                         </TooltipContent>
                       </Tooltip>
-                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col" onOpenAutoFocus={(e) => { if (window.innerWidth < 768) e.preventDefault(); }}>
-                        <DialogHeader>
-                          <DialogTitle>Select Bills</DialogTitle>
-                        </DialogHeader>
 
-                        {/* Search Input */}
-                        <div className="px-6 pb-4">
-                          <Input
-                            placeholder="Search bills by number or title..."
-                            value={billsSearch}
-                            onChange={(e) => setBillsSearch(e.target.value)}
-                            className="w-full"
-                          />
-                        </div>
-
-                        {/* Bills Table */}
-                        <div className="flex-1 overflow-y-auto px-6 pb-6">
-                          {billsLoading ? (
-                            <div className="flex items-center justify-center py-8 text-muted-foreground">
-                              Loading bills...
+                      {billsDialogOpen && (
+                        <div className="absolute bottom-full left-0 mb-2 w-80 max-h-[400px] rounded-2xl border border-border/60 bg-background shadow-lg overflow-hidden z-50">
+                          <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm font-medium">Bills</span>
                             </div>
-                          ) : (
-                            <div className="border rounded-lg overflow-hidden">
-                              <table className="w-full text-sm">
-                                <thead className="bg-muted/50">
-                                  <tr>
-                                    <th className="text-left p-3 font-medium">Bill Number</th>
-                                    <th className="text-left p-3 font-medium">Title</th>
-                                    <th className="text-left p-3 font-medium">Status</th>
-                                    <th className="text-center p-3 font-medium w-20">Select</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {availableBills
-                                    .filter(bill =>
-                                      billsSearch === "" ||
-                                      bill.bill_number.toLowerCase().includes(billsSearch.toLowerCase()) ||
-                                      bill.title.toLowerCase().includes(billsSearch.toLowerCase())
-                                    )
-                                    .map((bill) => {
-                                      const isSelected = selectedBills.some(b => b.bill_number === bill.bill_number);
-                                      return (
-                                        <tr
-                                          key={bill.bill_number}
-                                          onClick={() => {
-                                            if (isSelected) {
-                                              setSelectedBills(prev => prev.filter(b => b.bill_number !== bill.bill_number));
-                                            } else {
-                                              setSelectedBills(prev => [...prev, bill]);
-                                            }
-                                          }}
-                                          className={cn(
-                                            "border-t hover:bg-muted/30 transition-colors cursor-pointer",
-                                            isSelected && "bg-primary/5"
-                                          )}
-                                        >
-                                          <td className="p-3 font-medium">{bill.bill_number}</td>
-                                          <td className="p-3 max-w-md truncate">{bill.title}</td>
-                                          <td className="p-3 text-muted-foreground">{bill.status_desc || 'N/A'}</td>
-                                          <td className="p-3 text-center">
-                                            <input
-                                              type="checkbox"
-                                              checked={isSelected}
-                                              onChange={(e) => {
-                                                e.stopPropagation();
-                                                if (isSelected) {
-                                                  setSelectedBills(prev => prev.filter(b => b.bill_number !== bill.bill_number));
-                                                } else {
-                                                  setSelectedBills(prev => [...prev, bill]);
-                                                }
-                                              }}
-                                              className="w-4 h-4 rounded pointer-events-none"
-                                            />
-                                          </td>
-                                        </tr>
-                                      );
-                                    })}
-                                </tbody>
-                              </table>
-                            </div>
-                          )}
+                            <button type="button" onClick={() => setBillsDialogOpen(false)} className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                          <div className="max-h-[320px] overflow-y-auto">
+                            {billsLoading ? (
+                              <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">Loading bills...</div>
+                            ) : (
+                              availableBills.slice(0, 50).map((bill, idx) => {
+                                const isSelected = selectedBills.some(b => b.bill_number === bill.bill_number);
+                                return (
+                                  <button
+                                    key={bill.bill_number}
+                                    type="button"
+                                    onClick={() => {
+                                      if (isSelected) {
+                                        setSelectedBills(prev => prev.filter(b => b.bill_number !== bill.bill_number));
+                                      } else {
+                                        setSelectedBills(prev => [...prev, bill]);
+                                      }
+                                    }}
+                                    className={cn(
+                                      "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted/50 flex items-center justify-between gap-2",
+                                      idx > 0 && "border-t border-border/40",
+                                      isSelected && "bg-primary/5"
+                                    )}
+                                  >
+                                    <div className="min-w-0">
+                                      <span className="font-medium text-foreground">{bill.bill_number}</span>
+                                      <p className="text-muted-foreground text-xs mt-0.5 line-clamp-1">{bill.title}</p>
+                                    </div>
+                                    {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
+                                  </button>
+                                );
+                              })
+                            )}
+                          </div>
                         </div>
+                      )}
+                    </div>
 
-                        {/* Footer with selected count */}
-                        <div className="px-6 py-3 border-t flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">
-                            {selectedBills.length} bill{selectedBills.length !== 1 ? 's' : ''} selected
-                          </span>
-                          <Button onClick={() => setBillsDialogOpen(false)} size="sm">
-                            Done
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-
-                    <Dialog open={contractsDialogOpen} onOpenChange={setContractsDialogOpen}>
+                    {/* Contracts popover */}
+                    <div className="relative">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <DialogTrigger asChild>
-                            <button
-                              type="button"
-                              className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent transition-colors"
-                            >
-                              <Wallet className="h-4 w-4" />
-                            </button>
-                          </DialogTrigger>
+                          <button
+                            type="button"
+                            onClick={() => contractsDialogOpen ? setContractsDialogOpen(false) : openPopover(setContractsDialogOpen)}
+                            className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent transition-colors"
+                          >
+                            <Wallet className="h-4 w-4" />
+                          </button>
                         </TooltipTrigger>
                         <TooltipContent side="top">
                           <p>Select Contracts</p>
                         </TooltipContent>
                       </Tooltip>
-                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col" onOpenAutoFocus={(e) => { if (window.innerWidth < 768) e.preventDefault(); }}>
-                        <DialogHeader>
-                          <DialogTitle>Select Contracts</DialogTitle>
-                        </DialogHeader>
 
-                        {/* Search Input */}
-                        <div className="px-6 pb-4">
-                          <Input
-                            placeholder="Search contracts by vendor or description..."
-                            value={contractsSearch}
-                            onChange={(e) => setContractsSearch(e.target.value)}
-                            className="w-full"
-                          />
-                        </div>
-
-                        {/* Contracts Table */}
-                        <div className="flex-1 overflow-y-auto px-6 pb-6">
-                          {contractsLoading ? (
-                            <div className="flex items-center justify-center py-8 text-muted-foreground">
-                              Loading contracts...
+                      {contractsDialogOpen && (
+                        <div className="absolute bottom-full left-0 mb-2 w-80 max-h-[400px] rounded-2xl border border-border/60 bg-background shadow-lg overflow-hidden z-50">
+                          <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
+                            <div className="flex items-center gap-2">
+                              <Wallet className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm font-medium">Contracts</span>
                             </div>
-                          ) : (
-                            <div className="border rounded-lg overflow-hidden">
-                              <table className="w-full text-sm">
-                                <thead className="bg-muted/50">
-                                  <tr>
-                                    <th className="text-left p-3 font-medium">Vendor</th>
-                                    <th className="text-left p-3 font-medium">Department</th>
-                                    <th className="text-left p-3 font-medium">Amount</th>
-                                    <th className="text-center p-3 font-medium w-20">Select</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {availableContracts
-                                    .filter(contract =>
-                                      contractsSearch === "" ||
-                                      (contract.vendor_name?.toLowerCase().includes(contractsSearch.toLowerCase())) ||
-                                      (contract.contract_description?.toLowerCase().includes(contractsSearch.toLowerCase()))
-                                    )
-                                    .map((contract) => {
-                                      const isSelected = selectedContracts.some(c => c.contract_number === contract.contract_number);
-                                      return (
-                                        <tr
-                                          key={contract.contract_number}
-                                          onClick={() => {
-                                            if (isSelected) {
-                                              setSelectedContracts(prev => prev.filter(c => c.contract_number !== contract.contract_number));
-                                            } else {
-                                              setSelectedContracts(prev => [...prev, contract]);
-                                            }
-                                          }}
-                                          className={cn(
-                                            "border-t hover:bg-muted/30 transition-colors cursor-pointer",
-                                            isSelected && "bg-purple-500/5"
-                                          )}
-                                        >
-                                          <td className="p-3 font-medium">{contract.vendor_name || 'N/A'}</td>
-                                          <td className="p-3 text-muted-foreground max-w-xs truncate">{contract.department_facility || 'N/A'}</td>
-                                          <td className="p-3 text-muted-foreground">
-                                            {contract.current_contract_amount
-                                              ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(contract.current_contract_amount)
-                                              : 'N/A'}
-                                          </td>
-                                          <td className="p-3 text-center">
-                                            <input
-                                              type="checkbox"
-                                              checked={isSelected}
-                                              onChange={(e) => {
-                                                e.stopPropagation();
-                                                if (isSelected) {
-                                                  setSelectedContracts(prev => prev.filter(c => c.contract_number !== contract.contract_number));
-                                                } else {
-                                                  setSelectedContracts(prev => [...prev, contract]);
-                                                }
-                                              }}
-                                              className="w-4 h-4 rounded pointer-events-none"
-                                            />
-                                          </td>
-                                        </tr>
-                                      );
-                                    })}
-                                </tbody>
-                              </table>
-                            </div>
-                          )}
+                            <button type="button" onClick={() => setContractsDialogOpen(false)} className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                          <div className="max-h-[320px] overflow-y-auto">
+                            {contractsLoading ? (
+                              <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">Loading contracts...</div>
+                            ) : (
+                              availableContracts.slice(0, 50).map((contract, idx) => {
+                                const isSelected = selectedContracts.some(c => c.contract_number === contract.contract_number);
+                                return (
+                                  <button
+                                    key={contract.contract_number}
+                                    type="button"
+                                    onClick={() => {
+                                      if (isSelected) {
+                                        setSelectedContracts(prev => prev.filter(c => c.contract_number !== contract.contract_number));
+                                      } else {
+                                        setSelectedContracts(prev => [...prev, contract]);
+                                      }
+                                    }}
+                                    className={cn(
+                                      "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted/50 flex items-center justify-between gap-2",
+                                      idx > 0 && "border-t border-border/40",
+                                      isSelected && "bg-purple-500/5"
+                                    )}
+                                  >
+                                    <div className="min-w-0">
+                                      <span className="font-medium text-foreground">{contract.vendor_name || 'N/A'}</span>
+                                      <p className="text-muted-foreground text-xs mt-0.5">
+                                        {contract.department_facility || 'N/A'} &middot; {contract.current_contract_amount
+                                          ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(contract.current_contract_amount)
+                                          : 'N/A'}
+                                      </p>
+                                    </div>
+                                    {isSelected && <Check className="h-4 w-4 text-purple-600 shrink-0" />}
+                                  </button>
+                                );
+                              })
+                            )}
+                          </div>
                         </div>
-
-                        {/* Footer with selected count */}
-                        <div className="px-6 py-3 border-t flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">
-                            {selectedContracts.length} contract{selectedContracts.length !== 1 ? 's' : ''} selected
-                          </span>
-                          <Button onClick={() => setContractsDialogOpen(false)} size="sm">
-                            Done
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                      )}
+                    </div>
                     </>
                     )}
                   </div>
