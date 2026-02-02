@@ -206,14 +206,14 @@ export default function PromptHub() {
             {/* ----------------------------------------------------------- */}
             {/* LEFT SIDEBAR (lg+)                                           */}
             {/* ----------------------------------------------------------- */}
-            <aside className="hidden lg:block w-56 flex-shrink-0 border-r border-dotted border-border/40 pr-8">
+            <aside className="hidden lg:block w-56 flex-shrink-0 border-r border-dotted border-border/60 pr-8">
               <div className="sticky top-24">
                 {/* Categories */}
-                <div className="mb-6 pb-6 border-b border-dotted border-border/40">
+                <div className="mb-6 pb-6 border-b border-dotted border-border/60">
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                     Categories
                   </h3>
-                  <div className="divide-y divide-dotted divide-border/40">
+                  <div className="divide-y divide-dotted divide-border/60">
                     {CATEGORIES.map((cat) => (
                       <button
                         key={cat}
@@ -237,7 +237,7 @@ export default function PromptHub() {
                     <Flame className="h-3.5 w-3.5" />
                     Trending
                   </h3>
-                  <div className="divide-y divide-dotted divide-border/40">
+                  <div className="divide-y divide-dotted divide-border/60">
                     {trendingPrompts.map((p) => (
                       <button
                         key={p.id}
@@ -335,7 +335,7 @@ export default function PromptHub() {
               </div>
 
               {/* Prompt Feed */}
-              <div className="divide-y divide-dotted divide-border/40">
+              <div className="divide-y divide-dotted divide-border/60">
                 {filteredPrompts.map((p) => (
                   <div
                     key={p.id}
@@ -394,15 +394,15 @@ export default function PromptHub() {
             {/* ----------------------------------------------------------- */}
             {/* RIGHT SIDEBAR (xl+)                                          */}
             {/* ----------------------------------------------------------- */}
-            <aside className="hidden xl:block w-64 flex-shrink-0 border-l border-dotted border-border/40 pl-8">
+            <aside className="hidden xl:block w-64 flex-shrink-0 border-l border-dotted border-border/60 pl-8">
               <div className="sticky top-24">
                 {/* Newest */}
-                <div className="mb-6 pb-6 border-b border-dotted border-border/40">
+                <div className="mb-6 pb-6 border-b border-dotted border-border/60">
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
                     <Sparkles className="h-3.5 w-3.5" />
                     Newest
                   </h3>
-                  <div className="divide-y divide-dotted divide-border/40">
+                  <div className="divide-y divide-dotted divide-border/60">
                     {newestPrompts.map((p) => (
                       <div key={p.id} className="flex items-center gap-2 group py-0.5">
                         <button
@@ -428,7 +428,7 @@ export default function PromptHub() {
                     <Award className="h-3.5 w-3.5" />
                     Top Prompts
                   </h3>
-                  <div className="divide-y divide-dotted divide-border/40">
+                  <div className="divide-y divide-dotted divide-border/60">
                     {leaderboard.map((p, idx) => (
                       <div
                         key={p.id}
@@ -465,15 +465,15 @@ export default function PromptHub() {
           {/* ============================================================= */}
           {/* BOTTOM 3-COLUMN SECTION                                        */}
           {/* ============================================================= */}
-          <div className="border-t border-dotted border-border/40 mt-16 pt-8 pb-8">
+          <div className="border-t border-dotted border-border/60 mt-16 pt-8 pb-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
               {/* ------ Top Sponsors (members by bills sponsored) ------ */}
-              <div className="md:border-r md:border-dotted md:border-border/40 md:pr-6 pb-8 md:pb-0">
+              <div className="md:border-r md:border-dotted md:border-border/60 md:pr-6 pb-8 md:pb-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4 flex items-center gap-1.5">
                   <Users className="h-4 w-4" />
                   Top Sponsors
                 </h3>
-                <div className="divide-y divide-dotted divide-border/40">
+                <div className="divide-y divide-dotted divide-border/60">
                   {(topMembers || []).map((m: any) => (
                     <Link
                       key={m.people_id}
@@ -506,12 +506,12 @@ export default function PromptHub() {
               </div>
 
               {/* ------ Recent Bills ------ */}
-              <div className="md:border-r md:border-dotted md:border-border/40 md:px-6 border-t border-dotted border-border/40 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
+              <div className="md:border-r md:border-dotted md:border-border/60 md:px-6 border-t border-dotted border-border/60 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4 flex items-center gap-1.5">
                   <FileText className="h-4 w-4" />
                   Recent Bills
                 </h3>
-                <div className="divide-y divide-dotted divide-border/40">
+                <div className="divide-y divide-dotted divide-border/60">
                   {(recentBills || []).map((bill: any) => (
                     <div
                       key={bill.bill_id}
@@ -546,12 +546,12 @@ export default function PromptHub() {
               </div>
 
               {/* ------ Budget Explorer ------ */}
-              <div className="md:pl-6 border-t border-dotted border-border/40 md:border-t-0 pt-8 md:pt-0">
+              <div className="md:pl-6 border-t border-dotted border-border/60 md:border-t-0 pt-8 md:pt-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4 flex items-center gap-1.5">
                   <DollarSign className="h-4 w-4" />
                   Budget Explorer
                 </h3>
-                <div className="divide-y divide-dotted divide-border/40">
+                <div className="divide-y divide-dotted divide-border/60">
                   {budgetItems.map((item, idx) => (
                     <Link
                       key={idx}
