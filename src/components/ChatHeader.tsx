@@ -78,7 +78,7 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
         </>
       )}
 
-      <nav className="fixed top-0 left-0 right-0 z-50 px-5 py-2 bg-background/80 backdrop-blur-sm">
+      <nav className="fixed top-0 left-0 right-0 z-50 px-5 py-2 bg-gradient-to-b from-background via-background/90 to-background/0 backdrop-blur-sm">
         <div className="flex items-center justify-between">
           {/* Left side - Logs menu icon */}
           <div className="flex items-center space-x-1">

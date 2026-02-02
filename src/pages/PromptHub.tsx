@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
 import { cn } from '@/lib/utils';
@@ -105,10 +105,18 @@ const CATEGORIES = ['All', 'Bills', 'Policy', 'Advocacy', 'Departments', 'Use Ca
 
 export default function PromptHub() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeCategory, setActiveCategory] = useState('All');
   const [upvoted, setUpvoted] = useState<Set<string>>(new Set());
   const [liked, setLiked] = useState<Set<string>>(new Set());
   const [disliked, setDisliked] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (location.hash) {
+      const el = document.getElementById(location.hash.slice(1));
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [location.hash]);
 
   const toggleSet = (setter: React.Dispatch<React.SetStateAction<Set<string>>>, id: string) => {
     setter(prev => {
@@ -124,7 +132,7 @@ export default function PromptHub() {
       activeCategory === 'All'
         ? hubPrompts
         : hubPrompts.filter((p) => p.category === activeCategory);
-    return [...items].sort((a, b) => b.upvotes - a.upvotes).slice(0, 20);
+    return [...items].sort((a, b) => b.upvotes - a.upvotes).slice(0, 10);
   }, [activeCategory]);
 
   const trendingPrompts = useMemo(
@@ -477,7 +485,7 @@ export default function PromptHub() {
           {/* ============================================================= */}
           {/* BOTTOM 3-COLUMN SECTION                                        */}
           {/* ============================================================= */}
-          <div className="border-y-2 border-dotted border-border/80 mt-16 pt-8 pb-12">
+          <div id="lists" className="border-y-2 border-dotted border-border/80 mt-16 pt-8 pb-12">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
               {/* ------ Top Sponsors (members by bills sponsored) ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
