@@ -1249,8 +1249,10 @@ ${chatInput}`;
                                   <span className="hidden sm:inline">
                                     {selectedModel === "gpt-4o" ? "GPT-4o" :
                                      selectedModel === "gpt-4o-mini" ? "GPT-4o Mini" :
+                                     selectedModel === "gpt-4-turbo" ? "GPT-4 Turbo" :
                                      selectedModel === "claude-sonnet-4-5-20250929" ? "Claude Sonnet" :
                                      selectedModel === "claude-haiku-4-5-20251001" ? "Claude Haiku" :
+                                     selectedModel === "claude-opus-4-5-20251101" ? "Claude Opus" :
                                      "Model"}
                                   </span>
                                   <ChevronDown className="h-3 w-3 opacity-50" />
@@ -1273,6 +1275,13 @@ ${chatInput}`;
                                   </div>
                                   {selectedModel === "gpt-4o-mini" && <Check className="h-4 w-4" />}
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSelectedModel("gpt-4-turbo")} className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <OpenAIIcon className="h-4 w-4" />
+                                    <span>GPT-4 Turbo</span>
+                                  </div>
+                                  {selectedModel === "gpt-4-turbo" && <Check className="h-4 w-4" />}
+                                </DropdownMenuItem>
 
                                 <DropdownMenuSeparator />
 
@@ -1291,6 +1300,13 @@ ${chatInput}`;
                                     <span>Claude Haiku</span>
                                   </div>
                                   {selectedModel === "claude-haiku-4-5-20251001" && <Check className="h-4 w-4" />}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSelectedModel("claude-opus-4-5-20251101")} className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <ClaudeIcon className="h-4 w-4" />
+                                    <span>Claude Opus</span>
+                                  </div>
+                                  {selectedModel === "claude-opus-4-5-20251101" && <Check className="h-4 w-4" />}
                                 </DropdownMenuItem>
 
                               </DropdownMenuContent>

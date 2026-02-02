@@ -24,6 +24,12 @@ const models = [
     logo: "/chatgpt-icon.svg",
   },
   {
+    value: "gpt-4-turbo" as ModelType,
+    label: "GPT-4 Turbo",
+    description: "High capability, large context",
+    logo: "/chatgpt-icon.svg",
+  },
+  {
     value: "claude-sonnet-4-5-20250929" as ModelType,
     label: "Claude Sonnet 4.5",
     description: "Smart & balanced",
@@ -33,6 +39,12 @@ const models = [
     value: "claude-haiku-4-5-20251001" as ModelType,
     label: "Claude Haiku 4.5",
     description: "Fast & efficient",
+    logo: "/claude-ai-icon.svg",
+  },
+  {
+    value: "claude-opus-4-5-20251101" as ModelType,
+    label: "Claude Opus 4.5",
+    description: "Maximum intelligence",
     logo: "/claude-ai-icon.svg",
   },
 ]
