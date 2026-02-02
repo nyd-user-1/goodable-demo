@@ -5,7 +5,7 @@ import FooterSimple from '@/components/marketing/FooterSimple';
 import { cn } from '@/lib/utils';
 import {
   ArrowUp, ThumbsUp, ThumbsDown, ChevronUp, Flame,
-  Award, ExternalLink, BarChart3, Sparkles, Users, FileText, DollarSign,
+  Award, ExternalLink, Sparkles, Users, FileText, DollarSign,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -63,7 +63,7 @@ const categoryColors: Record<string, string> = {
 
 // Featured category cards (gradient image placeholders)
 const featuredCards = [
-  { title: 'Bill Research', subtitle: 'Explore active legislation', gradient: 'from-blue-400 to-cyan-300', link: '/use-cases/bills' },
+  { title: 'Bill Research', subtitle: 'Explore legislation', gradient: 'from-blue-400 to-cyan-300', link: '/use-cases/bills' },
   { title: 'Policy Development', subtitle: 'Frameworks & analysis', gradient: 'from-emerald-400 to-teal-300', link: '/use-cases/policy' },
   { title: 'Advocacy', subtitle: 'Nonprofit', gradient: 'from-purple-400 to-pink-300', link: '/nonprofits' },
   { title: 'Departments', subtitle: '100+ state entities', gradient: 'from-yellow-300 via-amber-400 to-amber-600', link: '/departments' },
@@ -239,16 +239,22 @@ export default function PromptHub() {
                   </h3>
                   <div className="divide-y-2 divide-dotted divide-border/80">
                     {trendingPrompts.map((p) => (
-                      <div key={p.id} className="py-1.5 first:pt-0">
-                        <button
-                          onClick={() => handlePromptClick(p.prompt)}
-                          className="w-full text-left px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors group flex items-center justify-between"
-                        >
-                          <span className="truncate flex-1">{p.title}</span>
-                          <span className="text-xs opacity-50 group-hover:opacity-100 transition-opacity">
-                            {p.upvotes}
-                          </span>
-                        </button>
+                      <div key={p.id} className="py-3 first:pt-0">
+                        <div className="flex items-center gap-2 group">
+                          <button
+                            onClick={() => handlePromptClick(p.prompt)}
+                            className="flex-1 text-left px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
+                          >
+                            <span className="block truncate">{p.title}</span>
+                            <span className="text-xs opacity-60">{p.upvotes} chats</span>
+                          </button>
+                          <button
+                            onClick={() => handlePromptClick(p.prompt)}
+                            className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                          >
+                            <ArrowUp className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -266,25 +272,23 @@ export default function PromptHub() {
                 className="block rounded-2xl bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 text-white p-8 mb-8 relative overflow-hidden group hover:shadow-xl transition-shadow"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10" />
-                <div className="relative z-10">
-                  <div className="flex items-center gap-2 mb-3">
-                    <BarChart3 className="h-5 w-5 text-blue-400" />
-                    <span className="text-xs font-medium text-blue-400 uppercase tracking-wide">
-                      Budget Explorer
+                <div className="relative z-10 flex flex-col justify-between min-h-[220px]">
+                  <div>
+                    <h2 className="text-2xl md:text-3xl font-bold mb-3">
+                      NYS FY2027 Budget Dashboard
+                    </h2>
+                    <p className="text-white/70 text-sm md:text-base max-w-xl leading-relaxed">
+                      Explore New York State's $252B+ budget with interactive breakdowns by
+                      agency, fund type, and fiscal year. Track spending trends and capital
+                      appropriations.
+                    </p>
+                  </div>
+                  <div className="mt-6">
+                    <span className="inline-flex items-center gap-2 bg-white text-slate-900 px-5 py-2.5 rounded-lg text-sm font-medium group-hover:bg-white/90 transition-colors">
+                      Explorer
+                      <ExternalLink className="h-4 w-4" />
                     </span>
                   </div>
-                  <h2 className="text-2xl md:text-3xl font-bold mb-3">
-                    NYS FY2027 Budget Dashboard
-                  </h2>
-                  <p className="text-white/70 text-sm md:text-base max-w-xl mb-6 leading-relaxed">
-                    Explore New York State's $252B+ budget with interactive breakdowns by
-                    agency, fund type, and fiscal year. Track spending trends and capital
-                    appropriations.
-                  </p>
-                  <span className="inline-flex items-center gap-2 bg-white text-slate-900 px-5 py-2.5 rounded-lg text-sm font-medium group-hover:bg-white/90 transition-colors">
-                    Explore Budget
-                    <ExternalLink className="h-4 w-4" />
-                  </span>
                 </div>
                 {/* Decorative chart bars */}
                 <div className="absolute right-8 bottom-0 hidden md:flex items-end gap-2 h-32 opacity-20">
@@ -304,7 +308,7 @@ export default function PromptHub() {
                   <Link
                     key={idx}
                     to={card.link}
-                    className="group rounded-xl overflow-hidden relative h-28 block"
+                    className="group rounded-xl overflow-hidden relative h-28 block hover:shadow-lg transition-shadow duration-200"
                   >
                     <div
                       className={`absolute inset-0 bg-gradient-to-br ${card.gradient} group-hover:scale-105 transition-transform duration-300`}
@@ -401,11 +405,11 @@ export default function PromptHub() {
                 <div className="mb-6 pb-6 border-b-2 border-dotted border-border/80">
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
                     <Sparkles className="h-3.5 w-3.5" />
-                    Newest
+                    New
                   </h3>
                   <div className="divide-y-2 divide-dotted divide-border/80">
                     {newestPrompts.map((p) => (
-                      <div key={p.id} className="py-1.5 first:pt-0">
+                      <div key={p.id} className="py-3 first:pt-0">
                         <div className="flex items-center gap-2 group">
                           <button
                             onClick={() => handlePromptClick(p.prompt)}
@@ -447,7 +451,7 @@ export default function PromptHub() {
                               {p.title}
                             </h4>
                             <span className="text-xs text-muted-foreground">
-                              {p.upvotes} upvotes
+                              {p.upvotes} chats
                             </span>
                           </div>
                         </div>
@@ -478,7 +482,7 @@ export default function PromptHub() {
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80 max-h-[700px] overflow-hidden">
                   {(topMembers || []).map((m: any) => (
-                    <div key={m.people_id} className="py-2 first:pt-0">
+                    <div key={m.people_id} className="py-3 first:pt-0">
                       <Link
                         to={`/members/${makeMemberSlug(m)}`}
                         className="flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-3 rounded-lg transition-all duration-200"
@@ -517,7 +521,7 @@ export default function PromptHub() {
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80 max-h-[700px] overflow-hidden">
                   {(recentBills || []).map((bill: any) => (
-                    <div key={bill.bill_id} className="py-2 first:pt-0">
+                    <div key={bill.bill_id} className="py-3 first:pt-0">
                       <div
                         className="group py-2 hover:bg-muted/30 hover:shadow-md px-3 rounded-lg transition-all duration-200"
                       >
@@ -558,7 +562,7 @@ export default function PromptHub() {
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80 max-h-[700px] overflow-hidden">
                   {budgetItems.map((item, idx) => (
-                    <div key={idx} className="py-2 first:pt-0">
+                    <div key={idx} className="py-3 first:pt-0">
                       <Link
                         to="/budget-dashboard"
                         className="flex items-center justify-between py-2 hover:bg-muted/30 hover:shadow-md px-3 rounded-lg transition-all duration-200"
