@@ -364,17 +364,41 @@ const NewChat = () => {
   const [contractsLoading, setContractsLoading] = useState(false);
   const [selectedContracts, setSelectedContracts] = useState<Contract[]>([]);
 
+  // Lazy-load: track whether more data is available per category
+  const [membersHasMore, setMembersHasMore] = useState(true);
+  const [committeesHasMore, setCommitteesHasMore] = useState(true);
+  const [billsHasMore, setBillsHasMore] = useState(true);
+  const [contractsHasMore, setContractsHasMore] = useState(true);
+
   // Sample prompts state (for lightbulb dropdown)
   const [promptsDropdownOpen, setPromptsDropdownOpen] = useState(false);
 
-  // Mutual exclusion: only one popover open at a time
-  const openPopover = (setter: React.Dispatch<React.SetStateAction<boolean>>) => {
+  // Close all popovers
+  const closeAllPopovers = () => {
     setPromptsDropdownOpen(false);
     setMembersDialogOpen(false);
     setCommitteesDialogOpen(false);
     setBillsDialogOpen(false);
     setContractsDialogOpen(false);
+  };
+
+  // Mutual exclusion: only one popover open at a time
+  const openPopover = (setter: React.Dispatch<React.SetStateAction<boolean>>) => {
+    closeAllPopovers();
     setter(true);
+  };
+
+  // Lazy-load scroll handler: fires loadMore when near the bottom
+  const handlePopoverScroll = (
+    e: React.UIEvent<HTMLDivElement>,
+    loadMore: () => void,
+    hasMore: boolean,
+    isLoading: boolean,
+  ) => {
+    const el = e.currentTarget;
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < 60 && hasMore && !isLoading) {
+      loadMore();
+    }
   };
 
   // Policy sample prompts - hardcoded
@@ -630,18 +654,24 @@ const NewChat = () => {
     setIsTyping(false);
   };
 
-  // Fetch bills for dialog
-  const fetchBillsForSelection = async () => {
+  // Fetch bills for dialog (supports lazy-load via offset)
+  const fetchBillsForSelection = async (offset = 0) => {
     setBillsLoading(true);
     try {
       const { data, error } = await supabase
         .from("Bills")
         .select("bill_number, title, status_desc, description, committee, session_id")
         .order("bill_number", { ascending: true })
-        .limit(100);
+        .range(offset, offset + 99);
 
       if (error) throw error;
-      setAvailableBills(data || []);
+      const rows = data || [];
+      if (offset === 0) {
+        setAvailableBills(rows);
+      } else {
+        setAvailableBills(prev => [...prev, ...rows]);
+      }
+      setBillsHasMore(rows.length === 100);
     } catch (error) {
       console.error("Error fetching bills:", error);
     } finally {
@@ -656,18 +686,24 @@ const NewChat = () => {
     }
   }, [billsDialogOpen]);
 
-  // Fetch members for dialog
-  const fetchMembersForSelection = async () => {
+  // Fetch members for dialog (supports lazy-load via offset)
+  const fetchMembersForSelection = async (offset = 0) => {
     setMembersLoading(true);
     try {
       const { data, error } = await supabase
         .from("People")
         .select("people_id, name, party, chamber, district")
         .order("name", { ascending: true })
-        .limit(100);
+        .range(offset, offset + 99);
 
       if (error) throw error;
-      setAvailableMembers(data || []);
+      const rows = data || [];
+      if (offset === 0) {
+        setAvailableMembers(rows);
+      } else {
+        setAvailableMembers(prev => [...prev, ...rows]);
+      }
+      setMembersHasMore(rows.length === 100);
     } catch (error) {
       console.error("Error fetching members:", error);
     } finally {
@@ -682,18 +718,24 @@ const NewChat = () => {
     }
   }, [membersDialogOpen]);
 
-  // Fetch committees for dialog
-  const fetchCommitteesForSelection = async () => {
+  // Fetch committees for dialog (supports lazy-load via offset)
+  const fetchCommitteesForSelection = async (offset = 0) => {
     setCommitteesLoading(true);
     try {
       const { data, error } = await supabase
         .from("Committees")
         .select("committee_id, committee_name, chamber, chair_name")
         .order("committee_name", { ascending: true })
-        .limit(100);
+        .range(offset, offset + 99);
 
       if (error) throw error;
-      setAvailableCommittees(data || []);
+      const rows = data || [];
+      if (offset === 0) {
+        setAvailableCommittees(rows);
+      } else {
+        setAvailableCommittees(prev => [...prev, ...rows]);
+      }
+      setCommitteesHasMore(rows.length === 100);
     } catch (error) {
       console.error("Error fetching committees:", error);
     } finally {
@@ -708,22 +750,27 @@ const NewChat = () => {
     }
   }, [committeesDialogOpen]);
 
-  // Fetch contracts for dialog
-  const fetchContractsForSelection = async () => {
+  // Fetch contracts for dialog (supports lazy-load via offset)
+  const fetchContractsForSelection = async (offset = 0) => {
     setContractsLoading(true);
     try {
       const { data, error } = await supabase
         .from("Contracts")
         .select("*")
         .order("current_contract_amount", { ascending: false, nullsFirst: false })
-        .limit(100);
+        .range(offset, offset + 99);
 
       if (error) {
         console.error("Error fetching contracts:", error);
         throw error;
       }
-      console.log("Contracts fetched:", data?.length || 0);
-      setAvailableContracts((data as Contract[]) || []);
+      const rows = (data as Contract[]) || [];
+      if (offset === 0) {
+        setAvailableContracts(rows);
+      } else {
+        setAvailableContracts(prev => [...prev, ...rows]);
+      }
+      setContractsHasMore(rows.length === 100);
     } catch (error) {
       console.error("Error fetching contracts:", error);
     } finally {
@@ -2113,15 +2160,17 @@ const NewChat = () => {
                         </TooltipContent>
                       </Tooltip>
 
+                      {/* Click-outside backdrop for sample prompts */}
+                      {promptsDropdownOpen && (
+                        <div className="fixed inset-0 z-40" onClick={() => setPromptsDropdownOpen(false)} />
+                      )}
+
                       {/* Sample prompts dropdown - extends upward */}
                       {promptsDropdownOpen && (
                         <div className="absolute bottom-full left-0 mb-2 w-80 max-h-[400px] rounded-2xl border border-border/60 bg-background shadow-lg overflow-hidden z-50">
                           {/* Header */}
                           <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
-                            <div className="flex items-center gap-2">
-                              <Lightbulb className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm font-medium">Sample Prompts</span>
-                            </div>
+                            <span className="text-sm font-medium">Sample Prompts</span>
                             <button
                               type="button"
                               onClick={() => setPromptsDropdownOpen(false)}
@@ -2159,6 +2208,11 @@ const NewChat = () => {
                     {/* Filter Buttons (only shown when chat has started) */}
                     {chatStarted && (
                     <>
+                    {/* Click-outside backdrop for any open popover */}
+                    {(membersDialogOpen || committeesDialogOpen || billsDialogOpen || contractsDialogOpen) && (
+                      <div className="fixed inset-0 z-40" onClick={closeAllPopovers} />
+                    )}
+
                     {/* Members popover */}
                     <div className="relative">
                       <Tooltip>
@@ -2179,45 +2233,44 @@ const NewChat = () => {
                       {membersDialogOpen && (
                         <div className="absolute bottom-full left-0 mb-2 w-80 max-h-[400px] rounded-2xl border border-border/60 bg-background shadow-lg overflow-hidden z-50">
                           <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
-                            <div className="flex items-center gap-2">
-                              <Users className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm font-medium">Members</span>
-                            </div>
+                            <span className="text-sm font-medium">Members</span>
                             <button type="button" onClick={() => setMembersDialogOpen(false)} className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                               <X className="h-4 w-4" />
                             </button>
                           </div>
-                          <div className="max-h-[320px] overflow-y-auto">
-                            {membersLoading ? (
-                              <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">Loading members...</div>
-                            ) : (
-                              availableMembers.slice(0, 50).map((member, idx) => {
-                                const isSelected = selectedMembers.some(m => m.people_id === member.people_id);
-                                return (
-                                  <button
-                                    key={member.people_id}
-                                    type="button"
-                                    onClick={() => {
-                                      if (isSelected) {
-                                        setSelectedMembers(prev => prev.filter(m => m.people_id !== member.people_id));
-                                      } else {
-                                        setSelectedMembers(prev => [...prev, member]);
-                                      }
-                                    }}
-                                    className={cn(
-                                      "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted/50 flex items-center justify-between gap-2",
-                                      idx > 0 && "border-t border-border/40",
-                                      isSelected && "bg-green-500/5"
-                                    )}
-                                  >
-                                    <div className="min-w-0">
-                                      <span className="font-medium text-foreground">{member.name}</span>
-                                      <p className="text-muted-foreground text-xs mt-0.5">{member.party || 'N/A'} &middot; {member.chamber || 'N/A'}</p>
-                                    </div>
-                                    {isSelected && <Check className="h-4 w-4 text-green-600 shrink-0" />}
-                                  </button>
-                                );
-                              })
+                          <div
+                            className="max-h-[320px] overflow-y-auto"
+                            onScroll={(e) => handlePopoverScroll(e, () => fetchMembersForSelection(availableMembers.length), membersHasMore, membersLoading)}
+                          >
+                            {availableMembers.map((member, idx) => {
+                              const isSelected = selectedMembers.some(m => m.people_id === member.people_id);
+                              return (
+                                <button
+                                  key={member.people_id}
+                                  type="button"
+                                  onClick={() => {
+                                    if (isSelected) {
+                                      setSelectedMembers(prev => prev.filter(m => m.people_id !== member.people_id));
+                                    } else {
+                                      setSelectedMembers(prev => [...prev, member]);
+                                    }
+                                  }}
+                                  className={cn(
+                                    "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted/50 flex items-center justify-between gap-2",
+                                    idx > 0 && "border-t border-border/40",
+                                    isSelected && "bg-green-500/5"
+                                  )}
+                                >
+                                  <div className="min-w-0">
+                                    <span className="font-medium text-foreground">{member.name}</span>
+                                    <p className="text-muted-foreground text-xs mt-0.5">{member.party || 'N/A'} &middot; {member.chamber || 'N/A'}</p>
+                                  </div>
+                                  {isSelected && <Check className="h-4 w-4 text-green-600 shrink-0" />}
+                                </button>
+                              );
+                            })}
+                            {membersLoading && (
+                              <div className="flex items-center justify-center py-4 text-muted-foreground text-xs">Loading...</div>
                             )}
                           </div>
                         </div>
@@ -2244,45 +2297,44 @@ const NewChat = () => {
                       {committeesDialogOpen && (
                         <div className="absolute bottom-full left-0 mb-2 w-80 max-h-[400px] rounded-2xl border border-border/60 bg-background shadow-lg overflow-hidden z-50">
                           <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
-                            <div className="flex items-center gap-2">
-                              <Building2 className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm font-medium">Committees</span>
-                            </div>
+                            <span className="text-sm font-medium">Committees</span>
                             <button type="button" onClick={() => setCommitteesDialogOpen(false)} className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                               <X className="h-4 w-4" />
                             </button>
                           </div>
-                          <div className="max-h-[320px] overflow-y-auto">
-                            {committeesLoading ? (
-                              <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">Loading committees...</div>
-                            ) : (
-                              availableCommittees.slice(0, 50).map((committee, idx) => {
-                                const isSelected = selectedCommittees.some(c => c.committee_id === committee.committee_id);
-                                return (
-                                  <button
-                                    key={committee.committee_id}
-                                    type="button"
-                                    onClick={() => {
-                                      if (isSelected) {
-                                        setSelectedCommittees(prev => prev.filter(c => c.committee_id !== committee.committee_id));
-                                      } else {
-                                        setSelectedCommittees(prev => [...prev, committee]);
-                                      }
-                                    }}
-                                    className={cn(
-                                      "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted/50 flex items-center justify-between gap-2",
-                                      idx > 0 && "border-t border-border/40",
-                                      isSelected && "bg-orange-500/5"
-                                    )}
-                                  >
-                                    <div className="min-w-0">
-                                      <span className="font-medium text-foreground">{committee.committee_name}</span>
-                                      <p className="text-muted-foreground text-xs mt-0.5">{committee.chamber || 'N/A'}</p>
-                                    </div>
-                                    {isSelected && <Check className="h-4 w-4 text-orange-600 shrink-0" />}
-                                  </button>
-                                );
-                              })
+                          <div
+                            className="max-h-[320px] overflow-y-auto"
+                            onScroll={(e) => handlePopoverScroll(e, () => fetchCommitteesForSelection(availableCommittees.length), committeesHasMore, committeesLoading)}
+                          >
+                            {availableCommittees.map((committee, idx) => {
+                              const isSelected = selectedCommittees.some(c => c.committee_id === committee.committee_id);
+                              return (
+                                <button
+                                  key={committee.committee_id}
+                                  type="button"
+                                  onClick={() => {
+                                    if (isSelected) {
+                                      setSelectedCommittees(prev => prev.filter(c => c.committee_id !== committee.committee_id));
+                                    } else {
+                                      setSelectedCommittees(prev => [...prev, committee]);
+                                    }
+                                  }}
+                                  className={cn(
+                                    "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted/50 flex items-center justify-between gap-2",
+                                    idx > 0 && "border-t border-border/40",
+                                    isSelected && "bg-orange-500/5"
+                                  )}
+                                >
+                                  <div className="min-w-0">
+                                    <span className="font-medium text-foreground">{committee.committee_name}</span>
+                                    <p className="text-muted-foreground text-xs mt-0.5">{committee.chamber || 'N/A'}</p>
+                                  </div>
+                                  {isSelected && <Check className="h-4 w-4 text-orange-600 shrink-0" />}
+                                </button>
+                              );
+                            })}
+                            {committeesLoading && (
+                              <div className="flex items-center justify-center py-4 text-muted-foreground text-xs">Loading...</div>
                             )}
                           </div>
                         </div>
@@ -2309,45 +2361,47 @@ const NewChat = () => {
                       {billsDialogOpen && (
                         <div className="absolute bottom-full left-0 mb-2 w-80 max-h-[400px] rounded-2xl border border-border/60 bg-background shadow-lg overflow-hidden z-50">
                           <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
-                            <div className="flex items-center gap-2">
-                              <FileText className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm font-medium">Bills</span>
-                            </div>
+                            <span className="text-sm font-medium">Bills</span>
                             <button type="button" onClick={() => setBillsDialogOpen(false)} className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                               <X className="h-4 w-4" />
                             </button>
                           </div>
-                          <div className="max-h-[320px] overflow-y-auto">
-                            {billsLoading ? (
-                              <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">Loading bills...</div>
-                            ) : (
-                              availableBills.slice(0, 50).map((bill, idx) => {
-                                const isSelected = selectedBills.some(b => b.bill_number === bill.bill_number);
-                                return (
-                                  <button
-                                    key={bill.bill_number}
-                                    type="button"
-                                    onClick={() => {
-                                      if (isSelected) {
-                                        setSelectedBills(prev => prev.filter(b => b.bill_number !== bill.bill_number));
-                                      } else {
-                                        setSelectedBills(prev => [...prev, bill]);
-                                      }
-                                    }}
-                                    className={cn(
-                                      "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted/50 flex items-center justify-between gap-2",
-                                      idx > 0 && "border-t border-border/40",
-                                      isSelected && "bg-primary/5"
-                                    )}
-                                  >
-                                    <div className="min-w-0">
+                          <div
+                            className="max-h-[320px] overflow-y-auto"
+                            onScroll={(e) => handlePopoverScroll(e, () => fetchBillsForSelection(availableBills.length), billsHasMore, billsLoading)}
+                          >
+                            {availableBills.map((bill, idx) => {
+                              const isSelected = selectedBills.some(b => b.bill_number === bill.bill_number && b.session_id === bill.session_id);
+                              return (
+                                <button
+                                  key={`${bill.bill_number}-${bill.session_id}`}
+                                  type="button"
+                                  onClick={() => {
+                                    if (isSelected) {
+                                      setSelectedBills(prev => prev.filter(b => !(b.bill_number === bill.bill_number && b.session_id === bill.session_id)));
+                                    } else {
+                                      setSelectedBills(prev => [...prev, bill]);
+                                    }
+                                  }}
+                                  className={cn(
+                                    "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted/50 flex items-center justify-between gap-2",
+                                    idx > 0 && "border-t border-border/40",
+                                    isSelected && "bg-primary/5"
+                                  )}
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center justify-between gap-2">
                                       <span className="font-medium text-foreground">{bill.bill_number}</span>
-                                      <p className="text-muted-foreground text-xs mt-0.5 line-clamp-1">{bill.title}</p>
+                                      {bill.session_id && <span className="text-muted-foreground text-[11px] shrink-0">{bill.session_id}</span>}
                                     </div>
-                                    {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
-                                  </button>
-                                );
-                              })
+                                    <p className="text-muted-foreground text-xs mt-0.5 line-clamp-1">{bill.title}</p>
+                                  </div>
+                                  {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
+                                </button>
+                              );
+                            })}
+                            {billsLoading && (
+                              <div className="flex items-center justify-center py-4 text-muted-foreground text-xs">Loading...</div>
                             )}
                           </div>
                         </div>
@@ -2374,49 +2428,48 @@ const NewChat = () => {
                       {contractsDialogOpen && (
                         <div className="absolute bottom-full left-0 mb-2 w-80 max-h-[400px] rounded-2xl border border-border/60 bg-background shadow-lg overflow-hidden z-50">
                           <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
-                            <div className="flex items-center gap-2">
-                              <Wallet className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm font-medium">Contracts</span>
-                            </div>
+                            <span className="text-sm font-medium">Contracts</span>
                             <button type="button" onClick={() => setContractsDialogOpen(false)} className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                               <X className="h-4 w-4" />
                             </button>
                           </div>
-                          <div className="max-h-[320px] overflow-y-auto">
-                            {contractsLoading ? (
-                              <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">Loading contracts...</div>
-                            ) : (
-                              availableContracts.slice(0, 50).map((contract, idx) => {
-                                const isSelected = selectedContracts.some(c => c.contract_number === contract.contract_number);
-                                return (
-                                  <button
-                                    key={contract.contract_number}
-                                    type="button"
-                                    onClick={() => {
-                                      if (isSelected) {
-                                        setSelectedContracts(prev => prev.filter(c => c.contract_number !== contract.contract_number));
-                                      } else {
-                                        setSelectedContracts(prev => [...prev, contract]);
-                                      }
-                                    }}
-                                    className={cn(
-                                      "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted/50 flex items-center justify-between gap-2",
-                                      idx > 0 && "border-t border-border/40",
-                                      isSelected && "bg-purple-500/5"
-                                    )}
-                                  >
-                                    <div className="min-w-0">
-                                      <span className="font-medium text-foreground">{contract.vendor_name || 'N/A'}</span>
-                                      <p className="text-muted-foreground text-xs mt-0.5">
-                                        {contract.department_facility || 'N/A'} &middot; {contract.current_contract_amount
-                                          ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(contract.current_contract_amount)
-                                          : 'N/A'}
-                                      </p>
-                                    </div>
-                                    {isSelected && <Check className="h-4 w-4 text-purple-600 shrink-0" />}
-                                  </button>
-                                );
-                              })
+                          <div
+                            className="max-h-[320px] overflow-y-auto"
+                            onScroll={(e) => handlePopoverScroll(e, () => fetchContractsForSelection(availableContracts.length), contractsHasMore, contractsLoading)}
+                          >
+                            {availableContracts.map((contract, idx) => {
+                              const isSelected = selectedContracts.some(c => c.contract_number === contract.contract_number);
+                              return (
+                                <button
+                                  key={contract.contract_number}
+                                  type="button"
+                                  onClick={() => {
+                                    if (isSelected) {
+                                      setSelectedContracts(prev => prev.filter(c => c.contract_number !== contract.contract_number));
+                                    } else {
+                                      setSelectedContracts(prev => [...prev, contract]);
+                                    }
+                                  }}
+                                  className={cn(
+                                    "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted/50 flex items-center justify-between gap-2",
+                                    idx > 0 && "border-t border-border/40",
+                                    isSelected && "bg-purple-500/5"
+                                  )}
+                                >
+                                  <div className="min-w-0">
+                                    <span className="font-medium text-foreground">{contract.vendor_name || 'N/A'}</span>
+                                    <p className="text-muted-foreground text-xs mt-0.5">
+                                      {contract.department_facility || 'N/A'} &middot; {contract.current_contract_amount
+                                        ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(contract.current_contract_amount)
+                                        : 'N/A'}
+                                    </p>
+                                  </div>
+                                  {isSelected && <Check className="h-4 w-4 text-purple-600 shrink-0" />}
+                                </button>
+                              );
+                            })}
+                            {contractsLoading && (
+                              <div className="flex items-center justify-center py-4 text-muted-foreground text-xs">Loading...</div>
                             )}
                           </div>
                         </div>
