@@ -16,10 +16,14 @@ const subscriptionTiers = [
     annualPrice: '$0',
     description: 'Perfect for getting started',
     features: [
-      'Bills — browse and search legislation',
-      'Members — view elected officials',
-      '2,000 AI words per day',
-      'Basic search functionality'
+      'Browse & search ~20,000 bills',
+      'Bill details — sponsors, history & votes',
+      'Quick Review — support, oppose, neutral',
+      'Personal notes & excerpt saving',
+      'AI chat with 6 models (GPT-4o, Claude & more)',
+      'Member profiles with AI analysis',
+      'Chat history & sample prompts',
+      '2,000 AI words per day'
     ]
   },
   {
