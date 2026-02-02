@@ -1249,8 +1249,8 @@ ${chatInput}`;
                                   <span className="hidden sm:inline">
                                     {selectedModel === "gpt-4o" ? "GPT-4o" :
                                      selectedModel === "gpt-4o-mini" ? "GPT-4o Mini" :
-                                     selectedModel === "claude-3-5-sonnet-20241022" ? "Claude Sonnet" :
-                                     selectedModel === "claude-3-5-haiku-20241022" ? "Claude Haiku" :
+                                     selectedModel === "claude-sonnet-4-5-20250929" ? "Claude Sonnet" :
+                                     selectedModel === "claude-haiku-4-5-20251001" ? "Claude Haiku" :
                                      selectedModel === "sonar" ? "Sonar" :
                                      selectedModel === "sonar-pro" ? "Sonar Pro" : "Model"}
                                   </span>
@@ -1279,19 +1279,19 @@ ${chatInput}`;
 
                                 {/* Anthropic Models */}
                                 <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">Anthropic</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => setSelectedModel("claude-3-5-sonnet-20241022")} className="flex items-center justify-between">
+                                <DropdownMenuItem onClick={() => setSelectedModel("claude-sonnet-4-5-20250929")} className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
                                     <ClaudeIcon className="h-4 w-4" />
                                     <span>Claude Sonnet</span>
                                   </div>
-                                  {selectedModel === "claude-3-5-sonnet-20241022" && <Check className="h-4 w-4" />}
+                                  {selectedModel === "claude-sonnet-4-5-20250929" && <Check className="h-4 w-4" />}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setSelectedModel("claude-3-5-haiku-20241022")} className="flex items-center justify-between">
+                                <DropdownMenuItem onClick={() => setSelectedModel("claude-haiku-4-5-20251001")} className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
                                     <ClaudeIcon className="h-4 w-4" />
                                     <span>Claude Haiku</span>
                                   </div>
-                                  {selectedModel === "claude-3-5-haiku-20241022" && <Check className="h-4 w-4" />}
+                                  {selectedModel === "claude-haiku-4-5-20251001" && <Check className="h-4 w-4" />}
                                 </DropdownMenuItem>
 
                                 <DropdownMenuSeparator />

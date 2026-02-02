@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
 
 export type ModelProvider = "openai" | "anthropic" | "perplexity";
-export type ModelType = "gpt-4o-mini" | "gpt-4o" | "claude-3-5-sonnet-20241022" | "claude-3-5-haiku-20241022" | "sonar" | "sonar-pro";
+export type ModelType = "gpt-4o-mini" | "gpt-4o" | "claude-sonnet-4-5-20250929" | "claude-haiku-4-5-20251001" | "sonar" | "sonar-pro";
 
 interface ModelContextType {
   selectedModel: ModelType;

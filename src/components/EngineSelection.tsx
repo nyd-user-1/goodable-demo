@@ -24,15 +24,15 @@ const models = [
     logo: "/chatgpt-icon.svg",
   },
   {
-    value: "claude-3-5-sonnet-20241022" as ModelType,
-    label: "Claude 3.5 Sonnet",
-    description: "Balanced performance",
+    value: "claude-sonnet-4-5-20250929" as ModelType,
+    label: "Claude Sonnet 4.5",
+    description: "Smart & balanced",
     logo: "/claude-ai-icon.svg",
   },
   {
-    value: "claude-3-5-haiku-20241022" as ModelType,
-    label: "Claude 3.5 Haiku",
-    description: "Quick responses",
+    value: "claude-haiku-4-5-20251001" as ModelType,
+    label: "Claude Haiku 4.5",
+    description: "Fast & efficient",
     logo: "/claude-ai-icon.svg",
   },
   {
