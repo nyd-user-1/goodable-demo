@@ -2546,19 +2546,17 @@ const NewChat = () => {
                   ))}
                 </div>
 
+                {/* Click-outside backdrop for drawer */}
+                {mobileDrawerCategory && (
+                  <div className="fixed inset-0 z-40" onClick={() => setMobileDrawerCategory(null)} />
+                )}
+
                 {/* Drawer card - drops down below pills */}
                 {mobileDrawerCategory && (
                   <div className="absolute top-full left-0 right-0 mt-3 mx-1 rounded-2xl border border-border/60 bg-background shadow-lg overflow-hidden z-50">
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        {mobileDrawerCategory === 'bills' && <FileText className="h-4 w-4" />}
-                        {mobileDrawerCategory === 'members' && <Users className="h-4 w-4" />}
-                        {mobileDrawerCategory === 'committees' && <Building2 className="h-4 w-4" />}
-                        {mobileDrawerCategory === 'contracts' && <Wallet className="h-4 w-4" />}
-                        {mobileDrawerCategory === 'lobbying' && <HandCoins className="h-4 w-4" />}
-                        <span className="text-sm font-medium text-foreground capitalize">{mobileDrawerCategory}</span>
-                      </div>
+                      <span className="text-sm font-medium text-foreground capitalize">{mobileDrawerCategory}</span>
                       <button
                         type="button"
                         onClick={() => setMobileDrawerCategory(null)}
@@ -2569,15 +2567,24 @@ const NewChat = () => {
                     </div>
 
                     {/* Items list */}
-                    <div className="max-h-[280px] overflow-y-auto">
+                    <div
+                      className="max-h-[280px] overflow-y-auto"
+                      onScroll={(e) => {
+                        if (mobileDrawerCategory === 'bills') handlePopoverScroll(e, () => fetchBillsForSelection(availableBills.length), billsHasMore, billsLoading);
+                        if (mobileDrawerCategory === 'members') handlePopoverScroll(e, () => fetchMembersForSelection(availableMembers.length), membersHasMore, membersLoading);
+                        if (mobileDrawerCategory === 'committees') handlePopoverScroll(e, () => fetchCommitteesForSelection(availableCommittees.length), committeesHasMore, committeesLoading);
+                        if (mobileDrawerCategory === 'contracts') handlePopoverScroll(e, () => fetchContractsForSelection(availableContracts.length), contractsHasMore, contractsLoading);
+                      }}
+                    >
                       {/* Bills */}
                       {mobileDrawerCategory === 'bills' && (
-                        billsLoading ? (
+                        billsLoading && availableBills.length === 0 ? (
                           <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading bills...</div>
                         ) : (
-                          availableBills.slice(0, 50).map((bill, idx) => (
+                          <>
+                          {availableBills.map((bill, idx) => (
                             <button
-                              key={bill.bill_number}
+                              key={`${bill.bill_number}-${bill.session_id}`}
                               type="button"
                               onClick={() => {
                                 setQuery(`Tell me about bill ${bill.bill_number}`);
@@ -2589,19 +2596,25 @@ const NewChat = () => {
                                 idx > 0 && "border-t border-border/40"
                               )}
                             >
-                              <span className="font-medium">{bill.bill_number}</span>
-                              <span className="text-muted-foreground ml-2 line-clamp-1">{bill.title}</span>
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-medium">{bill.bill_number}</span>
+                                {bill.session_id && <span className="text-muted-foreground text-[11px] shrink-0">{bill.session_id}</span>}
+                              </div>
+                              <p className="text-muted-foreground text-xs mt-0.5 line-clamp-1">{bill.title}</p>
                             </button>
-                          ))
+                          ))}
+                          {billsLoading && <div className="px-4 py-3 text-center text-xs text-muted-foreground">Loading...</div>}
+                          </>
                         )
                       )}
 
                       {/* Members */}
                       {mobileDrawerCategory === 'members' && (
-                        membersLoading ? (
+                        membersLoading && availableMembers.length === 0 ? (
                           <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading members...</div>
                         ) : (
-                          availableMembers.slice(0, 50).map((member, idx) => (
+                          <>
+                          {availableMembers.map((member, idx) => (
                             <button
                               key={member.people_id}
                               type="button"
@@ -2618,16 +2631,19 @@ const NewChat = () => {
                               <span className="font-medium">{member.name}</span>
                               <span className="text-muted-foreground ml-2">{member.party} - {member.chamber}</span>
                             </button>
-                          ))
+                          ))}
+                          {membersLoading && <div className="px-4 py-3 text-center text-xs text-muted-foreground">Loading...</div>}
+                          </>
                         )
                       )}
 
                       {/* Committees */}
                       {mobileDrawerCategory === 'committees' && (
-                        committeesLoading ? (
+                        committeesLoading && availableCommittees.length === 0 ? (
                           <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading committees...</div>
                         ) : (
-                          availableCommittees.slice(0, 50).map((committee, idx) => (
+                          <>
+                          {availableCommittees.map((committee, idx) => (
                             <button
                               key={committee.committee_id}
                               type="button"
@@ -2644,16 +2660,19 @@ const NewChat = () => {
                               <span className="font-medium">{committee.committee_name}</span>
                               <span className="text-muted-foreground ml-2">{committee.chamber}</span>
                             </button>
-                          ))
+                          ))}
+                          {committeesLoading && <div className="px-4 py-3 text-center text-xs text-muted-foreground">Loading...</div>}
+                          </>
                         )
                       )}
 
                       {/* Contracts */}
                       {mobileDrawerCategory === 'contracts' && (
-                        contractsLoading ? (
+                        contractsLoading && availableContracts.length === 0 ? (
                           <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading contracts...</div>
                         ) : (
-                          availableContracts.slice(0, 50).map((contract, idx) => (
+                          <>
+                          {availableContracts.map((contract, idx) => (
                             <button
                               key={contract.contract_number}
                               type="button"
@@ -2674,7 +2693,9 @@ const NewChat = () => {
                                   : ''}
                               </span>
                             </button>
-                          ))
+                          ))}
+                          {contractsLoading && <div className="px-4 py-3 text-center text-xs text-muted-foreground">Loading...</div>}
+                          </>
                         )
                       )}
 
@@ -2683,7 +2704,7 @@ const NewChat = () => {
                         mobileDrawerLoading ? (
                           <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading lobbyists...</div>
                         ) : (
-                          mobileDrawerLobbyists.slice(0, 50).map((lobbyist, idx) => (
+                          mobileDrawerLobbyists.map((lobbyist, idx) => (
                             <button
                               key={lobbyist.id}
                               type="button"
