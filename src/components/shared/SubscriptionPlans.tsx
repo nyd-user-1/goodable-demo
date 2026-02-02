@@ -92,6 +92,13 @@ export const SubscriptionPlans = () => {
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  // Ensure scroll starts at the very beginning on mount
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollLeft = 0;
+    }
+  }, [loading]);
+
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
       const container = scrollContainerRef.current;
