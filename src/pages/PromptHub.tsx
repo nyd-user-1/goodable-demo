@@ -220,10 +220,6 @@ export default function PromptHub() {
 
       <main className="flex-1 pt-[120px] pb-16">
         <div className="container mx-auto px-4 max-w-7xl">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-center mb-12">
-            Prompts & Lists
-          </h1>
-
           {/* ============================================================= */}
           {/* 3-COLUMN LAYOUT                                                */}
           {/* ============================================================= */}
