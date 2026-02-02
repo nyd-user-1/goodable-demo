@@ -61,14 +61,6 @@ const categoryColors: Record<string, string> = {
   'Use Case': 'bg-amber-100 text-amber-700',
 };
 
-// Category gradient thumbnails
-const categoryGradients: Record<string, string> = {
-  Bills: 'from-blue-400 to-cyan-300',
-  Policy: 'from-emerald-400 to-teal-300',
-  Advocacy: 'from-purple-400 to-pink-300',
-  'Use Case': 'from-yellow-300 via-amber-400 to-amber-600',
-};
-
 // Featured category cards (gradient image placeholders)
 const featuredCards = [
   { title: 'Bill Research', subtitle: 'Explore active legislation', gradient: 'from-blue-400 to-cyan-300', link: '/use-cases/bills' },
@@ -347,63 +339,52 @@ export default function PromptHub() {
                 {filteredPrompts.map((p) => (
                   <div
                     key={p.id}
-                    className="group bg-background rounded-2xl p-5 transition-all duration-200 shadow-sm hover:shadow-md border border-border/30"
+                    onClick={() => handlePromptClick(p.prompt)}
+                    className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg"
                   >
-                    <div className="flex items-start gap-4">
-                      {/* Upvote column */}
-                      <div className="flex flex-col items-center gap-1 pt-0.5">
-                        <button className="text-muted-foreground hover:text-foreground transition-colors">
-                          <ChevronUp className="h-5 w-5" />
-                        </button>
-                        <span className="text-sm font-medium text-muted-foreground">
-                          {p.upvotes}
-                        </span>
-                      </div>
-
-                      {/* Gradient thumbnail */}
-                      <div
+                    {/* Top row: category tag + upvote on right */}
+                    <div className="flex items-start justify-between mb-2">
+                      <span
                         className={cn(
-                          'w-12 h-12 rounded-lg flex-shrink-0 bg-gradient-to-br',
-                          categoryGradients[p.category] || 'from-slate-300 to-slate-400',
+                          'text-xs font-medium px-2 py-0.5 rounded-full',
+                          categoryColors[p.category] || 'bg-muted text-muted-foreground',
                         )}
-                      />
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span
-                            className={cn(
-                              'text-xs font-medium px-2 py-0.5 rounded-full',
-                              categoryColors[p.category] || 'bg-muted text-muted-foreground',
-                            )}
-                          >
-                            {p.category}
-                          </span>
-                        </div>
-                        <h3 className="font-semibold text-base mb-1">{p.title}</h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
-                          {p.prompt}
-                        </p>
-
-                        {/* Thumbs up / down */}
-                        <div className="flex items-center gap-3 mt-3">
-                          <button className="text-muted-foreground hover:text-foreground transition-colors">
-                            <ThumbsUp className="h-4 w-4" />
-                          </button>
-                          <button className="text-muted-foreground hover:text-foreground transition-colors">
-                            <ThumbsDown className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Send button (arrow-up) */}
-                      <button
-                        onClick={() => handlePromptClick(p.prompt)}
-                        className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 hover:opacity-80"
-                        title="Send prompt"
                       >
-                        <ArrowUp className="h-5 w-5" />
+                        {p.category}
+                      </span>
+                      <button
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                        <span className="text-xs font-medium">{p.upvotes}</span>
                       </button>
+                    </div>
+
+                    <h3 className="font-semibold text-base mb-1">{p.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {p.prompt}
+                    </p>
+
+                    {/* Bottom row: thumbs + send button */}
+                    <div className="flex items-center justify-between mt-4">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <ThumbsUp className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <ThumbsDown className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <div className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <ArrowUp className="h-5 w-5" />
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -447,26 +428,33 @@ export default function PromptHub() {
                     <Award className="h-3.5 w-3.5" />
                     Top Prompts
                   </h3>
-                  <div className="space-y-1">
+                  <div className="space-y-3">
                     {leaderboard.map((p, idx) => (
-                      <button
+                      <div
                         key={p.id}
                         onClick={() => handlePromptClick(p.prompt)}
-                        className="w-full text-left px-3 py-2.5 rounded-lg text-sm hover:bg-muted/50 transition-colors flex items-center gap-3 group"
+                        className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
                       >
-                        <span className="text-lg font-bold text-muted-foreground/40 w-6 text-center">
-                          {idx + 1}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <span className="truncate block font-medium text-sm">
-                            {p.title}
+                        <div className="flex items-start gap-3">
+                          <span className="text-2xl font-bold text-muted-foreground/30 leading-none mt-0.5">
+                            {idx + 1}
                           </span>
-                          <span className="text-xs text-muted-foreground">
-                            {p.upvotes} upvotes
-                          </span>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-sm truncate">
+                              {p.title}
+                            </h4>
+                            <span className="text-xs text-muted-foreground">
+                              {p.upvotes} upvotes
+                            </span>
+                          </div>
                         </div>
-                        <ChevronUp className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                      </button>
+                        {/* Arrow button - fixed height, opacity toggles on hover */}
+                        <div className="flex justify-end mt-3">
+                          <div className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <ArrowUp className="h-4 w-4" />
+                          </div>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
