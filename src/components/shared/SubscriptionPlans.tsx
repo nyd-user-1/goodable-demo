@@ -222,7 +222,7 @@ export const SubscriptionPlans = () => {
       <div className="flex justify-center">
         <div
           ref={scrollContainerRef}
-          className="scrollbar-none flex snap-x snap-mandatory gap-8 overflow-x-auto px-4 py-6 max-w-full"
+          className="scrollbar-none flex snap-x snap-mandatory gap-8 overflow-x-auto px-4 py-6 max-w-full scroll-pl-4"
         >
           {subscriptionTiers.map((tierData) => (
             <div
