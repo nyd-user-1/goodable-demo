@@ -485,7 +485,7 @@ export default function PromptHub() {
           {/* ============================================================= */}
           {/* BOTTOM 3-COLUMN SECTION                                        */}
           {/* ============================================================= */}
-          <div id="lists" className="border-y-2 border-dotted border-border/80 mt-16 pt-8 pb-12">
+          <div id="lists" className="border-y-2 border-dotted border-border/80 mt-16 pt-8 pb-12 scroll-mt-32">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
               {/* ------ Top Sponsors (members by bills sponsored) ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
