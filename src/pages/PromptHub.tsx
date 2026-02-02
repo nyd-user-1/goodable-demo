@@ -213,16 +213,16 @@ export default function PromptHub() {
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                     Categories
                   </h3>
-                  <div className="divide-y-2 divide-dotted divide-border/80">
+                  <div className="space-y-0.5">
                     {CATEGORIES.map((cat) => (
                       <button
                         key={cat}
                         onClick={() => setActiveCategory(cat)}
                         className={cn(
-                          'w-full text-left px-3 py-2.5 text-sm transition-colors',
+                          'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors',
                           activeCategory === cat
-                            ? 'font-medium text-foreground'
-                            : 'text-muted-foreground hover:text-foreground',
+                            ? 'bg-muted font-medium text-foreground'
+                            : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
                         )}
                       >
                         {cat}
@@ -237,12 +237,12 @@ export default function PromptHub() {
                     <Flame className="h-3.5 w-3.5" />
                     Trending
                   </h3>
-                  <div className="divide-y-2 divide-dotted divide-border/80">
+                  <div className="space-y-0.5">
                     {trendingPrompts.map((p) => (
                       <button
                         key={p.id}
                         onClick={() => handlePromptClick(p.prompt)}
-                        className="w-full text-left px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors group flex items-center justify-between"
+                        className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors group flex items-center justify-between"
                       >
                         <span className="truncate flex-1">{p.title}</span>
                         <span className="text-xs opacity-50 group-hover:opacity-100 transition-opacity">
@@ -335,12 +335,12 @@ export default function PromptHub() {
               </div>
 
               {/* Prompt Feed */}
-              <div className="divide-y-2 divide-dotted divide-border/80">
+              <div className="space-y-3">
                 {filteredPrompts.map((p) => (
                   <div
                     key={p.id}
                     onClick={() => handlePromptClick(p.prompt)}
-                    className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 my-2 first:mt-0 last:mb-0 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                    className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg"
                   >
                     {/* Top row: category tag + upvote on right */}
                     <div className="flex items-start justify-between mb-2">
@@ -402,12 +402,12 @@ export default function PromptHub() {
                     <Sparkles className="h-3.5 w-3.5" />
                     Newest
                   </h3>
-                  <div className="divide-y-2 divide-dotted divide-border/80">
+                  <div className="space-y-0.5">
                     {newestPrompts.map((p) => (
-                      <div key={p.id} className="flex items-center gap-2 group py-0.5">
+                      <div key={p.id} className="flex items-center gap-2 group">
                         <button
                           onClick={() => handlePromptClick(p.prompt)}
-                          className="flex-1 text-left px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors truncate"
+                          className="flex-1 text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors truncate"
                         >
                           {p.title}
                         </button>
@@ -428,12 +428,12 @@ export default function PromptHub() {
                     <Award className="h-3.5 w-3.5" />
                     Top Prompts
                   </h3>
-                  <div className="divide-y-2 divide-dotted divide-border/80">
+                  <div className="space-y-2">
                     {leaderboard.map((p, idx) => (
                       <div
                         key={p.id}
                         onClick={() => handlePromptClick(p.prompt)}
-                        className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 my-2 first:mt-0 last:mb-0 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                        className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
                       >
                         <div className="flex items-start gap-3">
                           <span className="text-2xl font-bold text-muted-foreground/30 leading-none mt-0.5">
@@ -473,12 +473,12 @@ export default function PromptHub() {
                   <Users className="h-4 w-4" />
                   Top Sponsors
                 </h3>
-                <div className="divide-y-2 divide-dotted divide-border/80 max-h-[700px] overflow-hidden">
+                <div className="space-y-1 max-h-[700px] overflow-hidden">
                   {(topMembers || []).map((m: any) => (
                     <Link
                       key={m.people_id}
                       to={`/members/${makeMemberSlug(m)}`}
-                      className="flex items-center gap-3 py-4 first:pt-0 hover:bg-muted/30 hover:shadow-md px-2 -mx-2 rounded-lg transition-all duration-200"
+                      className="flex items-center gap-3 py-3 hover:bg-muted/30 hover:shadow-md px-3 rounded-lg transition-all duration-200"
                     >
                       {m.photo_url ? (
                         <img
@@ -511,11 +511,11 @@ export default function PromptHub() {
                   <FileText className="h-4 w-4" />
                   Recent Bills
                 </h3>
-                <div className="divide-y-2 divide-dotted divide-border/80 max-h-[700px] overflow-hidden">
+                <div className="space-y-1 max-h-[700px] overflow-hidden">
                   {(recentBills || []).map((bill: any) => (
                     <div
                       key={bill.bill_id}
-                      className="group py-4 first:pt-0 hover:bg-muted/30 hover:shadow-md px-2 -mx-2 rounded-lg transition-all duration-200"
+                      className="group py-3 hover:bg-muted/30 hover:shadow-md px-3 rounded-lg transition-all duration-200"
                     >
                       <Link to={`/bills/${bill.bill_number}`} className="block">
                         <p className="font-semibold text-sm">{bill.bill_number}</p>
@@ -551,12 +551,12 @@ export default function PromptHub() {
                   <DollarSign className="h-4 w-4" />
                   Budget Explorer
                 </h3>
-                <div className="divide-y-2 divide-dotted divide-border/80 max-h-[700px] overflow-hidden">
+                <div className="space-y-1 max-h-[700px] overflow-hidden">
                   {budgetItems.map((item, idx) => (
                     <Link
                       key={idx}
                       to="/budget-dashboard"
-                      className="flex items-center justify-between py-4 first:pt-0 hover:bg-muted/30 hover:shadow-md px-2 -mx-2 rounded-lg transition-all duration-200"
+                      className="flex items-center justify-between py-3 hover:bg-muted/30 hover:shadow-md px-3 rounded-lg transition-all duration-200"
                     >
                       <div>
                         <p className="font-medium text-sm">{item.name}</p>
