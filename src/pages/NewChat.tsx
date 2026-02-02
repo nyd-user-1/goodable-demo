@@ -661,7 +661,7 @@ const NewChat = () => {
       const { data, error } = await supabase
         .from("People")
         .select("people_id, name, party, chamber, district")
-        .eq("archived", false)
+        .or("archived.eq.false,archived.is.null")
         .order("name", { ascending: true })
         .limit(100);
 
