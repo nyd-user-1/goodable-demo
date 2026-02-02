@@ -231,21 +231,23 @@ const Contracts = () => {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {contracts.map((contract) => (
-                  <ContractCard
-                    key={contract.id}
-                    contract={contract}
-                    onClick={() => handleContractClick(contract)}
-                    onChatClick={() => handleChatClick(contract)}
-                  />
-                ))}
-              </div>
-              {loadingMore && (
-                <div className="flex justify-center py-4">
-                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {contracts.map((contract) => (
+                    <ContractCard
+                      key={contract.id}
+                      contract={contract}
+                      onClick={() => handleContractClick(contract)}
+                      onChatClick={() => handleChatClick(contract)}
+                    />
+                  ))}
                 </div>
-              )}
+                {loadingMore && (
+                  <div className="flex justify-center py-4">
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
