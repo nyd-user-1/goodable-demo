@@ -35,18 +35,6 @@ const models = [
     description: "Fast & efficient",
     logo: "/claude-ai-icon.svg",
   },
-  {
-    value: "sonar-pro" as ModelType,
-    label: "Sonar Large",
-    description: "Web-connected AI",
-    logo: "/perplexity-ai-icon.svg",
-  },
-  {
-    value: "sonar" as ModelType,
-    label: "Sonar Small",
-    description: "Fast web search",
-    logo: "/perplexity-ai-icon.svg",
-  },
 ]
 
 export const EngineSelection = () => {

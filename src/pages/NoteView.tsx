@@ -1251,8 +1251,7 @@ ${chatInput}`;
                                      selectedModel === "gpt-4o-mini" ? "GPT-4o Mini" :
                                      selectedModel === "claude-sonnet-4-5-20250929" ? "Claude Sonnet" :
                                      selectedModel === "claude-haiku-4-5-20251001" ? "Claude Haiku" :
-                                     selectedModel === "sonar" ? "Sonar" :
-                                     selectedModel === "sonar-pro" ? "Sonar Pro" : "Model"}
+                                     "Model"}
                                   </span>
                                   <ChevronDown className="h-3 w-3 opacity-50" />
                                 </Button>
@@ -1294,24 +1293,6 @@ ${chatInput}`;
                                   {selectedModel === "claude-haiku-4-5-20251001" && <Check className="h-4 w-4" />}
                                 </DropdownMenuItem>
 
-                                <DropdownMenuSeparator />
-
-                                {/* Perplexity Models */}
-                                <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">Perplexity</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => setSelectedModel("sonar")} className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <PerplexityIcon className="h-4 w-4" />
-                                    <span>Sonar</span>
-                                  </div>
-                                  {selectedModel === "sonar" && <Check className="h-4 w-4" />}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setSelectedModel("sonar-pro")} className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <PerplexityIcon className="h-4 w-4" />
-                                    <span>Sonar Pro</span>
-                                  </div>
-                                  {selectedModel === "sonar-pro" && <Check className="h-4 w-4" />}
-                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
 
