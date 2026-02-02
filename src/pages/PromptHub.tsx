@@ -106,6 +106,17 @@ const CATEGORIES = ['All', 'Bills', 'Policy', 'Advocacy', 'Departments', 'Use Ca
 export default function PromptHub() {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState('All');
+  const [upvoted, setUpvoted] = useState<Set<string>>(new Set());
+  const [liked, setLiked] = useState<Set<string>>(new Set());
+  const [disliked, setDisliked] = useState<Set<string>>(new Set());
+
+  const toggleSet = (setter: React.Dispatch<React.SetStateAction<Set<string>>>, id: string) => {
+    setter(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   // Derived prompt lists
   const filteredPrompts = useMemo(() => {
@@ -138,7 +149,7 @@ export default function PromptHub() {
         .from('Bills')
         .select('bill_id, bill_number, title, status_desc')
         .order('bill_id', { ascending: false })
-        .limit(14);
+        .limit(10);
       return data || [];
     },
     staleTime: 10 * 60 * 1000,
@@ -163,10 +174,10 @@ export default function PromptHub() {
         counts[s.people_id] = (counts[s.people_id] || 0) + 1;
       });
 
-      // Top 14 by count
+      // Top 10 by count
       const topIds = Object.entries(counts)
         .sort(([, a], [, b]) => b - a)
-        .slice(0, 14)
+        .slice(0, 10)
         .map(([id]) => parseInt(id));
 
       const { data: members } = await supabase
@@ -345,11 +356,14 @@ export default function PromptHub() {
                         {p.category}
                       </span>
                       <button
-                        onClick={(e) => e.stopPropagation()}
-                        className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-foreground transition-colors"
+                        onClick={(e) => { e.stopPropagation(); toggleSet(setUpvoted, p.id); }}
+                        className={cn(
+                          "flex flex-col items-center gap-0.5 transition-colors",
+                          upvoted.has(p.id) ? "text-blue-500" : "text-muted-foreground hover:text-foreground"
+                        )}
                       >
                         <ChevronUp className="h-4 w-4" />
-                        <span className="text-xs font-medium">{p.upvotes}</span>
+                        <span className="text-xs font-medium">{p.upvotes + (upvoted.has(p.id) ? 1 : 0)}</span>
                       </button>
                     </div>
 
@@ -362,14 +376,20 @@ export default function PromptHub() {
                     <div className="flex items-center justify-between mt-4">
                       <div className="flex items-center gap-3">
                         <button
-                          onClick={(e) => e.stopPropagation()}
-                          className="text-muted-foreground hover:text-foreground transition-colors"
+                          onClick={(e) => { e.stopPropagation(); toggleSet(setLiked, p.id); }}
+                          className={cn(
+                            "transition-colors",
+                            liked.has(p.id) ? "text-green-500" : "text-muted-foreground hover:text-foreground"
+                          )}
                         >
                           <ThumbsUp className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={(e) => e.stopPropagation()}
-                          className="text-muted-foreground hover:text-foreground transition-colors"
+                          onClick={(e) => { e.stopPropagation(); toggleSet(setDisliked, p.id); }}
+                          className={cn(
+                            "transition-colors",
+                            disliked.has(p.id) ? "text-red-500" : "text-muted-foreground hover:text-foreground"
+                          )}
                         >
                           <ThumbsDown className="h-4 w-4" />
                         </button>
@@ -402,6 +422,7 @@ export default function PromptHub() {
                           className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors group"
                         >
                           <span className="block">{p.title}</span>
+                          <span className="block text-xs opacity-60 mt-0.5">Asked 2.2.2026</span>
                           <div className="flex justify-end mt-2">
                             <div className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                               <ArrowUp className="h-3.5 w-3.5" />
@@ -456,7 +477,7 @@ export default function PromptHub() {
           {/* ============================================================= */}
           {/* BOTTOM 3-COLUMN SECTION                                        */}
           {/* ============================================================= */}
-          <div className="border-t-2 border-dotted border-border/80 mt-16 pt-8 pb-8">
+          <div className="border-y-2 border-dotted border-border/80 mt-16 pt-8 pb-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
               {/* ------ Top Sponsors (members by bills sponsored) ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
