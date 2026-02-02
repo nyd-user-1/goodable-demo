@@ -2738,6 +2738,21 @@ const NewChat = () => {
         </div>
       </div>
 
+      {/* Product Hunt Badge */}
+      <a
+        href="https://www.producthunt.com/products/nysgpt-govtech?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-nysgpt-govtech"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-4 right-4 z-50"
+      >
+        <img
+          src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1071469&theme=dark&t=1770014639842"
+          alt="NYSgpt | GovTech - Ai for public policy | Product Hunt"
+          width="250"
+          height="54"
+        />
+      </a>
+
       {/* "Ask Goodable" Text Selection Popup - rendered via portal */}
       <AskGoodableSelectionPopup onAsk={handleAskGoodable} />
 
