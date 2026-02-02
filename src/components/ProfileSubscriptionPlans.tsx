@@ -11,30 +11,15 @@ import { Switch } from '@/components/ui/switch';
 const subscriptionTiers = [
   {
     tier: 'free',
-    name: 'Free',
+    name: 'Citizen',
     monthlyPrice: '$0',
     annualPrice: '$0',
     description: 'Perfect for getting started',
     features: [
-      'View public bills and legislation',
-      'Basic search functionality',
-      'Read-only access to committee information',
-      'Limited chat sessions (5 per month)'
-    ]
-  },
-  {
-    tier: 'student',
-    name: 'Student',
-    monthlyPrice: '$19',
-    annualPrice: '$15.83',
-    description: 'Designed for students and academics',
-    features: [
-      'All Free features',
-      'Unlimited chat sessions',
-      'Legislative draft creation (up to 5)',
-      'Basic analysis tools',
-      'Email support',
-      'Student verification required'
+      'Bills — browse and search legislation',
+      'Members — view elected officials',
+      '2,000 AI words per day',
+      'Basic search functionality'
     ]
   },
   {
@@ -44,12 +29,11 @@ const subscriptionTiers = [
     annualPrice: '$82.50',
     description: 'Built for legislative staff',
     features: [
-      'All Student features',
-      'Unlimited legislative drafts',
-      'Co-authoring capabilities',
-      'Advanced bill tracking',
-      'Committee agenda access',
-      'Priority email support'
+      'Everything in Citizen, plus:',
+      'Committees — track agendas & hearings',
+      'Departments — explore NYS agencies',
+      'School Funding — district-level data',
+      '5,000 AI words per day'
     ],
     isPopular: true
   },
@@ -60,12 +44,10 @@ const subscriptionTiers = [
     annualPrice: '$124.17',
     description: 'Advanced tools for researchers',
     features: [
-      'All Staffer features',
-      'Advanced analytics dashboard',
-      'Historical data access',
+      'Everything in Staffer, plus:',
+      'Explorer — interactive budget dashboard',
       'Export capabilities (PDF, CSV)',
-      'API access (limited)',
-      'Research templates'
+      '5,000 AI words per day'
     ]
   },
   {
@@ -73,14 +55,13 @@ const subscriptionTiers = [
     name: 'Professional',
     monthlyPrice: '$299',
     annualPrice: '$249.17',
-    description: 'For professional advocates and consultants',
+    description: 'For advocates and consultants',
     features: [
-      'All Researcher features',
-      'Full API access',
-      'Custom integrations',
-      'White-label options',
-      'Priority support',
-      'Advanced collaboration tools'
+      'Everything in Researcher, plus:',
+      'Budget — full NYS budget data',
+      'Contracts — government vendor search',
+      'Lobbying — lobbyist & client data',
+      'Unlimited AI words'
     ]
   },
   {
@@ -90,20 +71,18 @@ const subscriptionTiers = [
     annualPrice: '$415.83',
     description: 'Comprehensive solution for organizations',
     features: [
-      'All Professional features',
+      'Everything in Professional, plus:',
       'Multi-user management',
-      'Custom workflows',
+      'Custom workflows & integrations',
       'Dedicated account manager',
-      'SLA guarantee',
-      'Custom training sessions'
+      'Unlimited AI words'
     ]
   }
 ];
 
 const getTierDisplayName = (tier: string) => {
   const tierNames: Record<string, string> = {
-    free: 'Free',
-    student: 'Student',
+    free: 'Citizen',
     staffer: 'Staffer',
     researcher: 'Researcher',
     professional: 'Professional',
