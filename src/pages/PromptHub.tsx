@@ -237,18 +237,19 @@ export default function PromptHub() {
                     <Flame className="h-3.5 w-3.5" />
                     Trending
                   </h3>
-                  <div className="space-y-0.5">
+                  <div className="divide-y-2 divide-dotted divide-border/80">
                     {trendingPrompts.map((p) => (
-                      <button
-                        key={p.id}
-                        onClick={() => handlePromptClick(p.prompt)}
-                        className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors group flex items-center justify-between"
-                      >
-                        <span className="truncate flex-1">{p.title}</span>
-                        <span className="text-xs opacity-50 group-hover:opacity-100 transition-opacity">
-                          {p.upvotes}
-                        </span>
-                      </button>
+                      <div key={p.id} className="py-1.5 first:pt-0">
+                        <button
+                          onClick={() => handlePromptClick(p.prompt)}
+                          className="w-full text-left px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors group flex items-center justify-between"
+                        >
+                          <span className="truncate flex-1">{p.title}</span>
+                          <span className="text-xs opacity-50 group-hover:opacity-100 transition-opacity">
+                            {p.upvotes}
+                          </span>
+                        </button>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -402,21 +403,23 @@ export default function PromptHub() {
                     <Sparkles className="h-3.5 w-3.5" />
                     Newest
                   </h3>
-                  <div className="space-y-0.5">
+                  <div className="divide-y-2 divide-dotted divide-border/80">
                     {newestPrompts.map((p) => (
-                      <div key={p.id} className="flex items-center gap-2 group">
-                        <button
-                          onClick={() => handlePromptClick(p.prompt)}
-                          className="flex-1 text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors truncate"
-                        >
-                          {p.title}
-                        </button>
-                        <button
-                          onClick={() => handlePromptClick(p.prompt)}
-                          className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                        >
-                          <ArrowUp className="h-3.5 w-3.5" />
-                        </button>
+                      <div key={p.id} className="py-1.5 first:pt-0">
+                        <div className="flex items-center gap-2 group">
+                          <button
+                            onClick={() => handlePromptClick(p.prompt)}
+                            className="flex-1 text-left px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors truncate"
+                          >
+                            {p.title}
+                          </button>
+                          <button
+                            onClick={() => handlePromptClick(p.prompt)}
+                            className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                          >
+                            <ArrowUp className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -473,34 +476,35 @@ export default function PromptHub() {
                   <Users className="h-4 w-4" />
                   Top Sponsors
                 </h3>
-                <div className="space-y-1 max-h-[700px] overflow-hidden">
+                <div className="divide-y-2 divide-dotted divide-border/80 max-h-[700px] overflow-hidden">
                   {(topMembers || []).map((m: any) => (
-                    <Link
-                      key={m.people_id}
-                      to={`/members/${makeMemberSlug(m)}`}
-                      className="flex items-center gap-3 py-3 hover:bg-muted/30 hover:shadow-md px-3 rounded-lg transition-all duration-200"
-                    >
-                      {m.photo_url ? (
-                        <img
-                          src={m.photo_url}
-                          alt=""
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                          <Users className="h-4 w-4 text-muted-foreground" />
+                    <div key={m.people_id} className="py-2 first:pt-0">
+                      <Link
+                        to={`/members/${makeMemberSlug(m)}`}
+                        className="flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-3 rounded-lg transition-all duration-200"
+                      >
+                        {m.photo_url ? (
+                          <img
+                            src={m.photo_url}
+                            alt=""
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{m.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {m.party} · {m.chamber}
+                          </p>
                         </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{m.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {m.party} · {m.chamber}
-                        </p>
-                      </div>
-                      <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                        {m.billCount} bills
-                      </span>
-                    </Link>
+                        <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                          {m.billCount} bills
+                        </span>
+                      </Link>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -511,34 +515,35 @@ export default function PromptHub() {
                   <FileText className="h-4 w-4" />
                   Recent Bills
                 </h3>
-                <div className="space-y-1 max-h-[700px] overflow-hidden">
+                <div className="divide-y-2 divide-dotted divide-border/80 max-h-[700px] overflow-hidden">
                   {(recentBills || []).map((bill: any) => (
-                    <div
-                      key={bill.bill_id}
-                      className="group py-3 hover:bg-muted/30 hover:shadow-md px-3 rounded-lg transition-all duration-200"
-                    >
-                      <Link to={`/bills/${bill.bill_number}`} className="block">
-                        <p className="font-semibold text-sm">{bill.bill_number}</p>
-                        <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                          {bill.title}
-                        </p>
-                        {bill.status_desc && (
-                          <p className="text-xs text-muted-foreground/70 mt-1.5">
-                            {bill.status_desc}
+                    <div key={bill.bill_id} className="py-2 first:pt-0">
+                      <div
+                        className="group py-2 hover:bg-muted/30 hover:shadow-md px-3 rounded-lg transition-all duration-200"
+                      >
+                        <Link to={`/bills/${bill.bill_number}`} className="block">
+                          <p className="font-semibold text-sm">{bill.bill_number}</p>
+                          <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                            {bill.title}
                           </p>
-                        )}
-                      </Link>
-                      <div className="flex justify-end mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <button
-                          onClick={() => {
-                            const prompt = `Tell me about bill ${bill.bill_number}: ${bill.title || ''}`;
-                            navigate(`/?prompt=${encodeURIComponent(prompt)}`);
-                          }}
-                          className="w-9 h-9 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
-                          title="Ask about this bill"
-                        >
-                          <ArrowUp className="h-4 w-4" />
-                        </button>
+                          {bill.status_desc && (
+                            <p className="text-xs text-muted-foreground/70 mt-1.5">
+                              {bill.status_desc}
+                            </p>
+                          )}
+                        </Link>
+                        <div className="flex justify-end mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <button
+                            onClick={() => {
+                              const prompt = `Tell me about bill ${bill.bill_number}: ${bill.title || ''}`;
+                              navigate(`/?prompt=${encodeURIComponent(prompt)}`);
+                            }}
+                            className="w-9 h-9 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
+                            title="Ask about this bill"
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -551,24 +556,25 @@ export default function PromptHub() {
                   <DollarSign className="h-4 w-4" />
                   Budget Explorer
                 </h3>
-                <div className="space-y-1 max-h-[700px] overflow-hidden">
+                <div className="divide-y-2 divide-dotted divide-border/80 max-h-[700px] overflow-hidden">
                   {budgetItems.map((item, idx) => (
-                    <Link
-                      key={idx}
-                      to="/budget-dashboard"
-                      className="flex items-center justify-between py-3 hover:bg-muted/30 hover:shadow-md px-3 rounded-lg transition-all duration-200"
-                    >
-                      <div>
-                        <p className="font-medium text-sm">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {item.share} of total
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium text-sm">{item.amount}</p>
-                        <p className="text-xs text-emerald-600">{item.change}</p>
-                      </div>
-                    </Link>
+                    <div key={idx} className="py-2 first:pt-0">
+                      <Link
+                        to="/budget-dashboard"
+                        className="flex items-center justify-between py-2 hover:bg-muted/30 hover:shadow-md px-3 rounded-lg transition-all duration-200"
+                      >
+                        <div>
+                          <p className="font-medium text-sm">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {item.share} of total
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium text-sm">{item.amount}</p>
+                          <p className="text-xs text-emerald-600">{item.change}</p>
+                        </div>
+                      </Link>
+                    </div>
                   ))}
                 </div>
               </div>
