@@ -51,6 +51,15 @@ const hubPrompts: HubPrompt[] = [
   { id: 'u2', title: 'Data-Driven Advocacy', prompt: 'How can I use data effectively to support my policy arguments and recommendations?', category: 'Use Case', upvotes: 54 },
   { id: 'u3', title: 'Equity Impact Assessment', prompt: 'How do I assess whether a policy will have equitable outcomes across different communities?', category: 'Use Case', upvotes: 46 },
   { id: 'u4', title: 'Public Comment Strategy', prompt: "What's the most effective way to participate in a public comment period for proposed regulations?", category: 'Use Case', upvotes: 32 },
+  // Departments
+  { id: 'd1', title: 'DOH Public Health', prompt: 'What public health initiatives is the NYS Department of Health currently prioritizing, and what legislation supports them?', category: 'Departments', upvotes: 45 },
+  { id: 'd2', title: 'NYSERDA Clean Energy', prompt: 'What clean energy programs is NYSERDA currently funding, and what are the latest results?', category: 'Departments', upvotes: 43 },
+  { id: 'd3', title: 'DOT Infrastructure', prompt: 'What infrastructure projects is the NYS Department of Transportation currently managing, and what is the funding status?', category: 'Departments', upvotes: 40 },
+  { id: 'd4', title: 'DEC Environmental Oversight', prompt: 'What environmental enforcement actions has the NYS Department of Environmental Conservation taken recently?', category: 'Departments', upvotes: 38 },
+  { id: 'd5', title: 'SED Education Standards', prompt: 'What changes is the NYS State Education Department making to curriculum standards and teacher certification?', category: 'Departments', upvotes: 36 },
+  { id: 'd6', title: 'DMV Services Modernization', prompt: 'What services does the NYS Department of Motor Vehicles provide, and what modernization efforts are underway?', category: 'Departments', upvotes: 34 },
+  { id: 'd7', title: 'DOL Workforce Programs', prompt: 'What workforce development programs does the NYS Department of Labor offer, and how effective have they been?', category: 'Departments', upvotes: 31 },
+  { id: 'd8', title: 'DOCCS Reform Efforts', prompt: 'What reforms are being proposed for the NYS Department of Corrections and Community Supervision?', category: 'Departments', upvotes: 28 },
 ];
 
 // Category tag colors
@@ -58,15 +67,16 @@ const categoryColors: Record<string, string> = {
   Bills: 'bg-blue-100 text-blue-700',
   Policy: 'bg-emerald-100 text-emerald-700',
   Advocacy: 'bg-purple-100 text-purple-700',
+  Departments: 'bg-yellow-100 text-yellow-700',
   'Use Case': 'bg-amber-100 text-amber-700',
 };
 
 // Featured category cards (gradient image placeholders)
 const featuredCards = [
-  { title: 'Bill Research', subtitle: 'Explore legislation', gradient: 'from-blue-400 to-cyan-300', link: '/use-cases/bills' },
-  { title: 'Policy Development', subtitle: 'Frameworks & analysis', gradient: 'from-emerald-400 to-teal-300', link: '/use-cases/policy' },
-  { title: 'Advocacy', subtitle: 'Nonprofit', gradient: 'from-purple-400 to-pink-300', link: '/nonprofits' },
-  { title: 'Departments', subtitle: '100+ state entities', gradient: 'from-yellow-300 via-amber-400 to-amber-600', link: '/departments' },
+  { title: 'Bill Research', subtitle: 'Explore legislation', gradient: 'from-blue-400 to-cyan-300', category: 'Bills' },
+  { title: 'Policy Development', subtitle: 'Frameworks & analysis', gradient: 'from-emerald-400 to-teal-300', category: 'Policy' },
+  { title: 'Advocacy', subtitle: 'Nonprofit', gradient: 'from-purple-400 to-pink-300', category: 'Advocacy' },
+  { title: 'Departments', subtitle: '100+ state entities', gradient: 'from-yellow-300 via-amber-400 to-amber-600', category: 'Departments' },
 ];
 
 // Budget explorer items for bottom section (14 functional categories)
@@ -87,7 +97,7 @@ const budgetItems = [
   { name: 'All Other', amount: '$3.9B', change: '+1.2%', share: '1.5%' },
 ];
 
-const CATEGORIES = ['All', 'Bills', 'Policy', 'Advocacy', 'Use Case'];
+const CATEGORIES = ['All', 'Bills', 'Policy', 'Advocacy', 'Departments', 'Use Case'];
 
 // ---------------------------------------------------------------------------
 // Component
@@ -107,7 +117,7 @@ export default function PromptHub() {
   }, [activeCategory]);
 
   const trendingPrompts = useMemo(
-    () => [...hubPrompts].sort((a, b) => b.upvotes - a.upvotes).slice(0, 8),
+    () => [...hubPrompts].sort((a, b) => b.upvotes - a.upvotes).slice(0, 12),
     [],
   );
 
@@ -208,29 +218,6 @@ export default function PromptHub() {
             {/* ----------------------------------------------------------- */}
             <aside className="hidden lg:block w-56 flex-shrink-0 border-r-2 border-dotted border-border/80 pr-8">
               <div className="sticky top-24">
-                {/* Categories */}
-                <div className="mb-6 pb-6 border-b-2 border-dotted border-border/80">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                    Categories
-                  </h3>
-                  <div className="space-y-0.5">
-                    {CATEGORIES.map((cat) => (
-                      <button
-                        key={cat}
-                        onClick={() => setActiveCategory(cat)}
-                        className={cn(
-                          'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors',
-                          activeCategory === cat
-                            ? 'bg-muted font-medium text-foreground'
-                            : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
-                        )}
-                      >
-                        {cat}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Trending */}
                 <div>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
@@ -240,21 +227,18 @@ export default function PromptHub() {
                   <div className="divide-y-2 divide-dotted divide-border/80">
                     {trendingPrompts.map((p) => (
                       <div key={p.id} className="py-3 first:pt-0">
-                        <div className="flex items-center gap-2 group">
-                          <button
-                            onClick={() => handlePromptClick(p.prompt)}
-                            className="flex-1 text-left px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
-                          >
-                            <span className="block truncate">{p.title}</span>
-                            <span className="text-xs opacity-60">{p.upvotes} chats</span>
-                          </button>
-                          <button
-                            onClick={() => handlePromptClick(p.prompt)}
-                            className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                          >
-                            <ArrowUp className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => handlePromptClick(p.prompt)}
+                          className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors group"
+                        >
+                          <span className="block">{p.title}</span>
+                          <span className="block text-xs opacity-60 mt-0.5">{p.upvotes} chats</span>
+                          <div className="flex justify-end mt-2">
+                            <div className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <ArrowUp className="h-3.5 w-3.5" />
+                            </div>
+                          </div>
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -305,10 +289,13 @@ export default function PromptHub() {
               {/* Featured Category Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
                 {featuredCards.map((card, idx) => (
-                  <Link
+                  <button
                     key={idx}
-                    to={card.link}
-                    className="group rounded-xl overflow-hidden relative h-28 block hover:shadow-lg transition-shadow duration-200"
+                    onClick={() => setActiveCategory(activeCategory === card.category ? 'All' : card.category)}
+                    className={cn(
+                      "group rounded-xl overflow-hidden relative h-28 text-left hover:shadow-lg transition-all duration-200",
+                      activeCategory === card.category && "ring-2 ring-white/60 shadow-lg"
+                    )}
                   >
                     <div
                       className={`absolute inset-0 bg-gradient-to-br ${card.gradient} group-hover:scale-105 transition-transform duration-300`}
@@ -317,7 +304,7 @@ export default function PromptHub() {
                       <h3 className="text-white font-semibold text-sm">{card.title}</h3>
                       <p className="text-white/70 text-xs mt-0.5">{card.subtitle}</p>
                     </div>
-                  </Link>
+                  </button>
                 ))}
               </div>
 
