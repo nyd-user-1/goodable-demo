@@ -631,7 +631,13 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   <span>Pro Plan</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[9px] font-medium uppercase tracking-wider px-1.5 py-px rounded-full bg-muted-foreground/10 text-muted-foreground">Upgrade</span>
+                  <span
+                    role="button"
+                    onClick={(e) => { e.stopPropagation(); navigate('/plans'); onClose?.(); }}
+                    className="text-xs font-medium px-1.5 py-0.5 rounded bg-green-500/10 text-green-600 transition-shadow hover:shadow-sm cursor-pointer"
+                  >
+                    Upgrade
+                  </span>
                   <ChevronRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-data-[state=open]/pro:rotate-90" />
                 </div>
               </CollapsibleTrigger>
