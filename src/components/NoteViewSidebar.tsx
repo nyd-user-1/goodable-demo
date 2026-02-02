@@ -38,6 +38,7 @@ import {
   BarChart3,
   CirclePlus,
   Home,
+  Flag,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -447,8 +448,27 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
         </div>
       </div>
 
-      {/* Fixed New Chat and Chat History */}
+      {/* Fixed Top Actions */}
       <div className="flex-shrink-0 px-2 py-2 space-y-1">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <NavLink
+              to="/new-prompts"
+              onClick={onClose}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
+                isActive("/new-prompts") ? "bg-muted" : "hover:bg-muted"
+              )}
+            >
+              <Flag className="h-4 w-4" />
+              <span>New Prompts</span>
+            </NavLink>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <p>Browse prompts & lists</p>
+          </TooltipContent>
+        </Tooltip>
+
         <Tooltip>
           <TooltipTrigger asChild>
             <NavLink
@@ -516,25 +536,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           </TooltipTrigger>
           <TooltipContent side="right">
             <p>Search across all content</p>
-          </TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <NavLink
-              to="/chats"
-              onClick={onClose}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                isActive("/chats") ? "bg-muted" : "hover:bg-muted"
-              )}
-            >
-              <Clock className="h-4 w-4" />
-              <span>Chat History</span>
-            </NavLink>
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            <p>View your chat history</p>
           </TooltipContent>
         </Tooltip>
 

@@ -184,7 +184,7 @@ const App = () => {
                   <Route path="/constitution" element={<Constitution />} />
                   <Route path="/digital-bill-of-rights" element={<DigitalBillOfRights />} />
                   <Route path="/ai-fluency" element={<AIFluency />} />
-                  <Route path="/prompt-hub" element={<PromptHub />} />
+                  <Route path="/new-prompts" element={<PromptHub />} />
                   <Route path="/use-cases" element={<UseCases />} />
                   <Route path="/use-cases/bills" element={<UseCasesBills />} />
                   <Route path="/use-cases/committees" element={<UseCasesCommittees />} />

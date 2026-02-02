@@ -124,7 +124,7 @@ export default function PromptHub() {
       activeCategory === 'All'
         ? hubPrompts
         : hubPrompts.filter((p) => p.category === activeCategory);
-    return [...items].sort((a, b) => b.upvotes - a.upvotes);
+    return [...items].sort((a, b) => b.upvotes - a.upvotes).slice(0, 20);
   }, [activeCategory]);
 
   const trendingPrompts = useMemo(
@@ -149,7 +149,7 @@ export default function PromptHub() {
         .from('Bills')
         .select('bill_id, bill_number, title, status_desc')
         .order('bill_id', { ascending: false })
-        .limit(10);
+        .limit(7);
       return data || [];
     },
     staleTime: 10 * 60 * 1000,
@@ -218,8 +218,12 @@ export default function PromptHub() {
     <div className="min-h-screen bg-background flex flex-col">
       <ChatHeader />
 
-      <main className="flex-1 pt-20 pb-16">
+      <main className="flex-1 pt-[120px] pb-16">
         <div className="container mx-auto px-4 max-w-7xl">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-center mb-12">
+            Prompts & Lists
+          </h1>
+
           {/* ============================================================= */}
           {/* 3-COLUMN LAYOUT                                                */}
           {/* ============================================================= */}
@@ -477,7 +481,7 @@ export default function PromptHub() {
           {/* ============================================================= */}
           {/* BOTTOM 3-COLUMN SECTION                                        */}
           {/* ============================================================= */}
-          <div className="border-y-2 border-dotted border-border/80 mt-16 pt-8 pb-8">
+          <div className="border-y-2 border-dotted border-border/80 mt-16 pt-8 pb-12">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
               {/* ------ Top Sponsors (members by bills sponsored) ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
