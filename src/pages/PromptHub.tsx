@@ -77,14 +77,22 @@ const featuredCards = [
   { title: 'Departments', subtitle: '100+ state entities', gradient: 'from-yellow-300 via-amber-400 to-amber-600', link: '/departments' },
 ];
 
-// Budget explorer items for bottom section
+// Budget explorer items for bottom section (14 functional categories)
 const budgetItems = [
-  { name: 'Education', amount: '$37.8B', change: '+3.2%', share: '15.0%' },
   { name: 'Health', amount: '$96.7B', change: '+4.1%', share: '38.3%' },
-  { name: 'Transportation', amount: '$14.2B', change: '+2.8%', share: '5.6%' },
-  { name: 'Public Safety', amount: '$8.1B', change: '+1.9%', share: '3.2%' },
   { name: 'Social Welfare', amount: '$42.3B', change: '+5.3%', share: '16.8%' },
+  { name: 'Education', amount: '$37.8B', change: '+3.2%', share: '15.0%' },
+  { name: 'Capital Projects', amount: '$15.7B', change: '+6.2%', share: '6.2%' },
+  { name: 'Transportation', amount: '$14.2B', change: '+2.8%', share: '5.6%' },
+  { name: 'Mental Hygiene', amount: '$12.9B', change: '+3.7%', share: '5.1%' },
   { name: 'General Government', amount: '$11.4B', change: '+2.1%', share: '4.5%' },
+  { name: 'Higher Education', amount: '$9.4B', change: '+1.8%', share: '3.7%' },
+  { name: 'Debt Service', amount: '$8.6B', change: '+0.9%', share: '3.4%' },
+  { name: 'Public Safety', amount: '$8.1B', change: '+1.9%', share: '3.2%' },
+  { name: 'Local Gov Assistance', amount: '$7.3B', change: '+2.4%', share: '2.9%' },
+  { name: 'Economic Development', amount: '$6.8B', change: '+3.5%', share: '2.7%' },
+  { name: 'Environment & Parks', amount: '$5.2B', change: '+4.6%', share: '2.1%' },
+  { name: 'All Other', amount: '$3.9B', change: '+1.2%', share: '1.5%' },
 ];
 
 const CATEGORIES = ['All', 'Bills', 'Policy', 'Advocacy', 'Use Case'];
@@ -128,7 +136,7 @@ export default function PromptHub() {
         .from('Bills')
         .select('bill_id, bill_number, title, status_desc')
         .order('bill_id', { ascending: false })
-        .limit(6);
+        .limit(14);
       return data || [];
     },
     staleTime: 10 * 60 * 1000,
@@ -153,10 +161,10 @@ export default function PromptHub() {
         counts[s.people_id] = (counts[s.people_id] || 0) + 1;
       });
 
-      // Top 6 by count
+      // Top 14 by count
       const topIds = Object.entries(counts)
         .sort(([, a], [, b]) => b - a)
-        .slice(0, 6)
+        .slice(0, 14)
         .map(([id]) => parseInt(id));
 
       const { data: members } = await supabase
@@ -339,7 +347,7 @@ export default function PromptHub() {
                 {filteredPrompts.map((p) => (
                   <div
                     key={p.id}
-                    className="group bg-muted/20 hover:bg-muted/40 rounded-xl p-5 transition-all duration-200 border border-transparent hover:border-border/40"
+                    className="group bg-background rounded-2xl p-5 transition-all duration-200 shadow-sm hover:shadow-md border border-border/30"
                   >
                     <div className="flex items-start gap-4">
                       {/* Upvote column */}
@@ -476,12 +484,12 @@ export default function PromptHub() {
                 <Users className="h-4 w-4" />
                 Top Sponsors
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {(topMembers || []).map((m: any) => (
                   <Link
                     key={m.people_id}
                     to={`/members/${makeMemberSlug(m)}`}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-muted/20 hover:bg-muted/40 transition-colors"
+                    className="flex items-center gap-3 p-4 rounded-2xl bg-background shadow-sm hover:shadow-md border border-border/30 transition-all duration-200"
                   >
                     {m.photo_url ? (
                       <img
@@ -514,23 +522,36 @@ export default function PromptHub() {
                 <FileText className="h-4 w-4" />
                 Recent Bills
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {(recentBills || []).map((bill: any) => (
-                  <Link
+                  <div
                     key={bill.bill_id}
-                    to={`/bills/${bill.bill_number}`}
-                    className="block p-3 rounded-xl bg-muted/20 hover:bg-muted/40 transition-colors"
+                    className="group p-4 rounded-2xl bg-background shadow-sm hover:shadow-md border border-border/30 transition-all duration-200"
                   >
-                    <p className="font-medium text-sm">{bill.bill_number}</p>
-                    <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                      {bill.title}
-                    </p>
-                    {bill.status_desc && (
-                      <span className="text-xs text-muted-foreground/70 mt-1 inline-block">
-                        {bill.status_desc}
-                      </span>
-                    )}
-                  </Link>
+                    <Link to={`/bills/${bill.bill_number}`} className="block">
+                      <p className="font-semibold text-sm">{bill.bill_number}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                        {bill.title}
+                      </p>
+                      {bill.status_desc && (
+                        <p className="text-xs text-muted-foreground/70 mt-1.5">
+                          {bill.status_desc}
+                        </p>
+                      )}
+                    </Link>
+                    <div className="flex justify-end mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <button
+                        onClick={() => {
+                          const prompt = `Tell me about bill ${bill.bill_number}: ${bill.title || ''}`;
+                          navigate(`/?prompt=${encodeURIComponent(prompt)}`);
+                        }}
+                        className="w-9 h-9 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
+                        title="Ask about this bill"
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -541,12 +562,12 @@ export default function PromptHub() {
                 <DollarSign className="h-4 w-4" />
                 Budget Explorer
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {budgetItems.map((item, idx) => (
                   <Link
                     key={idx}
                     to="/budget-dashboard"
-                    className="flex items-center justify-between p-3 rounded-xl bg-muted/20 hover:bg-muted/40 transition-colors"
+                    className="flex items-center justify-between p-4 rounded-2xl bg-background shadow-sm hover:shadow-md border border-border/30 transition-all duration-200"
                   >
                     <div>
                       <p className="font-medium text-sm">{item.name}</p>
