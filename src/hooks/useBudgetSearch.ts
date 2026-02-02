@@ -208,7 +208,7 @@ export function useBudgetSearch(activeTab: BudgetTab) {
         (v) => typeof v === 'string' && v.toLowerCase().includes(term)
       );
     });
-  }, [data, searchTerm]);
+  }, [allData, searchTerm]);
 
   // Fetch unique agencies for the filter dropdown
   const { data: agencyOptions } = useQuery({
