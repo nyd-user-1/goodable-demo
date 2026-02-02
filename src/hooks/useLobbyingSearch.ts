@@ -1,13 +1,22 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { LobbyingSpend, LobbyistCompensation, LobbyistClient } from '@/types/lobbying';
 
 export type LobbyingTab = 'spend' | 'compensation';
 
+const LOBBYING_PAGE_SIZE = 100;
+
 export function useLobbyingSearch() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<LobbyingTab>('compensation');
+  const [allSpendRecords, setAllSpendRecords] = useState<LobbyingSpend[]>([]);
+  const [spendOffset, setSpendOffset] = useState(0);
+  const [spendHasMore, setSpendHasMore] = useState(true);
+  const [allCompRecords, setAllCompRecords] = useState<LobbyistCompensation[]>([]);
+  const [compOffset, setCompOffset] = useState(0);
+  const [compHasMore, setCompHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Fetch Lobbying Spend data
   const { data: spendData, isLoading: spendLoading, error: spendError } = useQuery({
@@ -22,14 +31,12 @@ export function useLobbyingSearch() {
         query = query.ilike('contractual_client', `%${searchTerm}%`);
       }
 
-      // Order by compensation (parse as number for sorting)
-      query = query.limit(1000);
+      query = query.limit(LOBBYING_PAGE_SIZE);
 
       const { data, error, count } = await query;
 
       if (error) throw error;
 
-      // Sort by compensation_and_expenses descending (parse currency strings)
       const sorted = (data as LobbyingSpend[]).sort((a, b) => {
         const aVal = parseCurrencyToNumber(a.compensation_and_expenses);
         const bVal = parseCurrencyToNumber(b.compensation_and_expenses);
@@ -42,6 +49,15 @@ export function useLobbyingSearch() {
     gcTime: 10 * 60 * 1000,
   });
 
+  // Sync spend data to accumulated state
+  useEffect(() => {
+    if (spendData) {
+      setAllSpendRecords(spendData.records);
+      setSpendOffset(LOBBYING_PAGE_SIZE);
+      setSpendHasMore(spendData.records.length === LOBBYING_PAGE_SIZE);
+    }
+  }, [spendData]);
+
   // Fetch Lobbyist Compensation data
   const { data: compensationData, isLoading: compensationLoading, error: compensationError } = useQuery({
     queryKey: ['lobbyist-compensation', searchTerm],
@@ -50,18 +66,16 @@ export function useLobbyingSearch() {
         .from('lobbyist_compensation')
         .select('*', { count: 'exact' });
 
-      // Server-side search
       if (searchTerm && searchTerm.length >= 2) {
         query = query.ilike('principal_lobbyist', `%${searchTerm}%`);
       }
 
-      query = query.limit(1000);
+      query = query.limit(LOBBYING_PAGE_SIZE);
 
       const { data, error, count } = await query;
 
       if (error) throw error;
 
-      // Sort by grand_total_compensation_expenses descending (parse currency strings)
       const sorted = (data as LobbyistCompensation[]).sort((a, b) => {
         const aVal = parseCurrencyToNumber(a.grand_total_compensation_expenses);
         const bVal = parseCurrencyToNumber(b.grand_total_compensation_expenses);
@@ -73,6 +87,15 @@ export function useLobbyingSearch() {
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
+
+  // Sync compensation data to accumulated state
+  useEffect(() => {
+    if (compensationData) {
+      setAllCompRecords(compensationData.records);
+      setCompOffset(LOBBYING_PAGE_SIZE);
+      setCompHasMore(compensationData.records.length === LOBBYING_PAGE_SIZE);
+    }
+  }, [compensationData]);
 
   // Fetch all lobbyist clients (for the Earnings cards)
   // Note: Supabase default limit is 1000, so we need to fetch in batches or set a higher limit
@@ -111,8 +134,46 @@ export function useLobbyingSearch() {
     gcTime: 15 * 60 * 1000,
   });
 
-  const spendRecords = spendData?.records || [];
-  const compensationRecords = compensationData?.records || [];
+  const loadMore = async () => {
+    if (loadingMore) return;
+    setLoadingMore(true);
+    try {
+      if (activeTab === 'spend' && spendHasMore) {
+        let query = supabase.from('lobbying_spend').select('*');
+        if (searchTerm && searchTerm.length >= 2) {
+          query = query.ilike('contractual_client', `%${searchTerm}%`);
+        }
+        query = query.range(spendOffset, spendOffset + LOBBYING_PAGE_SIZE - 1);
+        const { data, error } = await query;
+        if (error) throw error;
+        const rows = (data as LobbyingSpend[]) || [];
+        const sorted = rows.sort((a, b) => parseCurrencyToNumber(b.compensation_and_expenses) - parseCurrencyToNumber(a.compensation_and_expenses));
+        setAllSpendRecords(prev => [...prev, ...sorted]);
+        setSpendOffset(prev => prev + LOBBYING_PAGE_SIZE);
+        setSpendHasMore(rows.length === LOBBYING_PAGE_SIZE);
+      } else if (activeTab === 'compensation' && compHasMore) {
+        let query = supabase.from('lobbyist_compensation').select('*');
+        if (searchTerm && searchTerm.length >= 2) {
+          query = query.ilike('principal_lobbyist', `%${searchTerm}%`);
+        }
+        query = query.range(compOffset, compOffset + LOBBYING_PAGE_SIZE - 1);
+        const { data, error } = await query;
+        if (error) throw error;
+        const rows = (data as LobbyistCompensation[]) || [];
+        const sorted = rows.sort((a, b) => parseCurrencyToNumber(b.grand_total_compensation_expenses) - parseCurrencyToNumber(a.grand_total_compensation_expenses));
+        setAllCompRecords(prev => [...prev, ...sorted]);
+        setCompOffset(prev => prev + LOBBYING_PAGE_SIZE);
+        setCompHasMore(rows.length === LOBBYING_PAGE_SIZE);
+      }
+    } catch (err) {
+      console.error("Load more lobbying data error:", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const spendRecords = allSpendRecords;
+  const compensationRecords = allCompRecords;
   const allClients = clientsData || [];
 
   // Group clients by lobbyist_id for easy lookup (uses FK relationship)
@@ -165,6 +226,9 @@ export function useLobbyingSearch() {
 
     // Loading states
     isLoading: activeTab === 'spend' ? spendLoading : compensationLoading,
+    loadingMore,
+    hasMore: activeTab === 'spend' ? spendHasMore : compHasMore,
+    loadMore,
     error: activeTab === 'spend' ? spendError : compensationError,
 
     // Tab state

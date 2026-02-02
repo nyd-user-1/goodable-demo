@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { BudgetAppropriation, BudgetCapital, BudgetSpending } from '@/types/budget';
@@ -89,6 +89,8 @@ export function titleToBudgetNames(title: string): string[] {
   return candidates;
 }
 
+const BUDGET_PAGE_SIZE = 100;
+
 export function useBudgetSearch(activeTab: BudgetTab) {
   const [searchTerm, setSearchTerm] = useState('');
   const [agencyFilter, setAgencyFilter] = useState('');
@@ -96,6 +98,10 @@ export function useBudgetSearch(activeTab: BudgetTab) {
   const [fundTypeFilter, setFundTypeFilter] = useState('');
   const [extraFilter, setExtraFilter] = useState('');
   const [yearFilter, setYearFilter] = useState('');
+  const [allData, setAllData] = useState<any[]>([]);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Reset filters when tab changes
   const resetFilters = () => {
@@ -107,46 +113,45 @@ export function useBudgetSearch(activeTab: BudgetTab) {
     setYearFilter('');
   };
 
-  // Fetch data
-  const { data, isLoading, error } = useQuery({
+  // Build filtered query helper
+  const applyBudgetFilters = (query: any) => {
+    const agencyCol = AGENCY_COL[activeTab];
+    const fundTypeCol = FUND_TYPE_COL[activeTab];
+
+    if (agencyFilter) {
+      query = query.eq(agencyCol, agencyFilter);
+    }
+    if (secondaryFilter) {
+      if (activeTab === 'appropriations') {
+        query = query.eq('Appropriation Category', secondaryFilter);
+      } else if (activeTab === 'capital') {
+        query = query.eq('Financing Source', secondaryFilter);
+      } else {
+        query = query.eq('Function', secondaryFilter);
+      }
+    }
+    if (fundTypeFilter) {
+      query = query.eq(fundTypeCol, fundTypeFilter);
+    }
+    if (extraFilter) {
+      query = query.eq(EXTRA_COL[activeTab], extraFilter);
+    }
+    return query;
+  };
+
+  // Fetch initial page of data
+  const { data: queryData, isLoading, error } = useQuery({
     queryKey: ['budget', activeTab, agencyFilter, secondaryFilter, fundTypeFilter, extraFilter],
     queryFn: async () => {
       const table = TABLE_MAP[activeTab];
       const agencyCol = AGENCY_COL[activeTab];
-      const fundTypeCol = FUND_TYPE_COL[activeTab];
 
-      // Use .from() with any to handle non-typed tables
       let query = (supabase as any).from(table).select('*');
-
-      // Server-side agency filter
-      if (agencyFilter) {
-        query = query.eq(agencyCol, agencyFilter);
-      }
-
-      // Server-side secondary filter
-      if (secondaryFilter) {
-        if (activeTab === 'appropriations') {
-          query = query.eq('Appropriation Category', secondaryFilter);
-        } else if (activeTab === 'capital') {
-          query = query.eq('Financing Source', secondaryFilter);
-        } else {
-          query = query.eq('Function', secondaryFilter);
-        }
-      }
-
-      // Server-side fund type filter
-      if (fundTypeFilter) {
-        query = query.eq(fundTypeCol, fundTypeFilter);
-      }
-
-      // Server-side extra filter (Fund Name / Program Name / FP Category)
-      if (extraFilter) {
-        query = query.eq(EXTRA_COL[activeTab], extraFilter);
-      }
+      query = applyBudgetFilters(query);
 
       query = query
         .order(agencyCol, { ascending: true })
-        .limit(1000);
+        .limit(BUDGET_PAGE_SIZE);
 
       const { data, error } = await query;
       if (error) throw error;
@@ -156,9 +161,44 @@ export function useBudgetSearch(activeTab: BudgetTab) {
     gcTime: 10 * 60 * 1000,
   });
 
+  // Reset accumulated data when initial query changes
+  useEffect(() => {
+    if (queryData) {
+      setAllData(queryData);
+      setOffset(BUDGET_PAGE_SIZE);
+      setHasMore(queryData.length === BUDGET_PAGE_SIZE);
+    }
+  }, [queryData]);
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const table = TABLE_MAP[activeTab];
+      const agencyCol = AGENCY_COL[activeTab];
+
+      let query = (supabase as any).from(table).select('*');
+      query = applyBudgetFilters(query);
+      query = query
+        .order(agencyCol, { ascending: true })
+        .range(offset, offset + BUDGET_PAGE_SIZE - 1);
+
+      const { data: moreData, error: err } = await query;
+      if (err) throw err;
+      const rows = moreData || [];
+      setAllData(prev => [...prev, ...rows]);
+      setOffset(prev => prev + BUDGET_PAGE_SIZE);
+      setHasMore(rows.length === BUDGET_PAGE_SIZE);
+    } catch (err) {
+      console.error("Load more budget data error:", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
   // Client-side text search
   const filtered = useMemo(() => {
-    const items = (data as any[]) || [];
+    const items = allData;
     if (!searchTerm || searchTerm.length < 2) return items;
 
     const term = searchTerm.toLowerCase();
@@ -275,6 +315,9 @@ export function useBudgetSearch(activeTab: BudgetTab) {
   return {
     data: filtered,
     isLoading,
+    loadingMore,
+    hasMore,
+    loadMore,
     error,
     agencies: agencyOptions || [],
     secondaryOptions: secondaryOptions || [],

@@ -23,7 +23,11 @@ export const useBillsData = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isDeepSearch, setIsDeepSearch] = useState(false); // NEW: Track if deep search is active
   const [totalBillsInDb, setTotalBillsInDb] = useState(0); // NEW: Total count in database
+  const [serverOffset, setServerOffset] = useState(0);
+  const [hasMoreServerData, setHasMoreServerData] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const BILLS_PER_PAGE = 50;
+  const SERVER_PAGE_SIZE = 100;
 
   useEffect(() => {
     fetchAllBillsOptimized();
@@ -96,7 +100,7 @@ export const useBillsData = () => {
 
       setTotalBillsInDb(count || 0);
 
-      // Step 1: Fetch 1000 most recent bills (increased from 200)
+      // Step 1: Fetch initial batch of recent bills
       const { data: billsData, error: billsError } = await supabase
         .from("Bills")
         .select("*")
@@ -104,7 +108,7 @@ export const useBillsData = () => {
           ascending: false,
           nullsFirst: false
         })
-        .limit(1000); // INCREASED from 200 to 1000
+        .limit(SERVER_PAGE_SIZE);
 
       if (billsError) throw billsError;
 
@@ -148,11 +152,75 @@ export const useBillsData = () => {
       }));
 
       setBills(billsWithSponsors);
+      setServerOffset(SERVER_PAGE_SIZE);
+      setHasMoreServerData((billsData?.length || 0) === SERVER_PAGE_SIZE);
     } catch (err) {
       setError("Failed to load bills. Please try again.");
       console.error("Bills fetch error:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Load next batch of bills from server (for lazy loading)
+  const loadMoreBillsFromServer = async () => {
+    if (loadingMore || !hasMoreServerData || isDeepSearch) return;
+    setLoadingMore(true);
+    try {
+      const { data: billsData, error: billsError } = await supabase
+        .from("Bills")
+        .select("*")
+        .order("last_action_date", { ascending: false, nullsFirst: false })
+        .range(serverOffset, serverOffset + SERVER_PAGE_SIZE - 1);
+
+      if (billsError) throw billsError;
+      if (!billsData || billsData.length === 0) {
+        setHasMoreServerData(false);
+        return;
+      }
+
+      const billIds = billsData.map(b => b.bill_id);
+      const { data: sponsorsData } = await supabase
+        .from("Sponsors")
+        .select("bill_id, people_id, position")
+        .in("bill_id", billIds)
+        .order("position", { ascending: true });
+
+      const peopleIds = [...new Set(sponsorsData?.map(s => s.people_id).filter(Boolean) || [])];
+      const { data: peopleData } = await supabase
+        .from("People")
+        .select("people_id, name, party, chamber")
+        .in("people_id", peopleIds);
+
+      const peopleMap = new Map(peopleData?.map(p => [p.people_id, p]) || []);
+      const sponsorsByBill = new Map<number, Array<{ name: string | null; party: string | null; chamber: string | null }>>();
+
+      sponsorsData?.forEach(sponsor => {
+        if (!sponsorsByBill.has(sponsor.bill_id)) {
+          sponsorsByBill.set(sponsor.bill_id, []);
+        }
+        const person = peopleMap.get(sponsor.people_id);
+        if (person) {
+          sponsorsByBill.get(sponsor.bill_id)!.push({
+            name: person.name,
+            party: person.party,
+            chamber: person.chamber
+          });
+        }
+      });
+
+      const newBills = billsData.map(bill => ({
+        ...bill,
+        sponsors: sponsorsByBill.get(bill.bill_id) || []
+      }));
+
+      setBills(prev => [...prev, ...newBills]);
+      setServerOffset(prev => prev + SERVER_PAGE_SIZE);
+      setHasMoreServerData(billsData.length === SERVER_PAGE_SIZE);
+    } catch (err) {
+      console.error("Load more bills error:", err);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -500,14 +568,20 @@ export const useBillsData = () => {
   }, [filteredBills, currentPage]);
 
   const loadMoreBills = () => {
-    setCurrentPage(prev => prev + 1);
+    const nextPage = currentPage + 1;
+    const nextEndIndex = nextPage * BILLS_PER_PAGE;
+    // Auto-fetch from server when approaching the end of loaded data
+    if (nextEndIndex >= bills.length - BILLS_PER_PAGE && hasMoreServerData && !loadingMore && !isDeepSearch) {
+      loadMoreBillsFromServer();
+    }
+    setCurrentPage(nextPage);
   };
 
   const fetchBills = () => {
     fetchAllBillsOptimized();
   };
 
-  const hasMorePages = currentPage * BILLS_PER_PAGE < filteredBills.length;
+  const hasMorePages = currentPage * BILLS_PER_PAGE < filteredBills.length || (hasMoreServerData && !isDeepSearch);
 
   return {
     bills: paginatedBills,
@@ -533,5 +607,8 @@ export const useBillsData = () => {
     currentPage,
     isDeepSearch, // NEW: Expose deep search state
     totalBillsInDb, // NEW: Expose total count
+    loadingMore,
+    loadMoreBillsFromServer,
+    hasMoreServerData,
   };
 };

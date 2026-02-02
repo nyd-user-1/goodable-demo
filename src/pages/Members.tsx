@@ -48,6 +48,9 @@ const Members = () => {
     setCurrentPage,
     totalPages,
     fetchMembers,
+    loadMoreMembersFromServer,
+    hasMoreServerData,
+    loadingMore,
   } = useMembersData();
 
   // Handle URL parameter for selected member (legacy support for ?selected=id)
@@ -353,12 +356,23 @@ const Members = () => {
                   
                   <Button
                     variant="outline"
-                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    disabled={currentPage === totalPages}
+                    onClick={() => {
+                      if (currentPage >= totalPages - 1 && hasMoreServerData && !loadingMore) {
+                        loadMoreMembersFromServer();
+                      }
+                      setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                    }}
+                    disabled={currentPage === totalPages && !hasMoreServerData}
                     className="flex items-center gap-2"
                   >
-                    Next
-                    <ChevronRight className="h-4 w-4" />
+                    {loadingMore ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                    ) : (
+                      <>
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </>
+                    )}
                   </Button>
                 </div>
               )}

@@ -1,14 +1,36 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Contract } from '@/types/contracts';
+
+const PAGE_SIZE = 100;
 
 export function useContractsSearch() {
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('');
   const [contractTypeFilter, setContractTypeFilter] = useState('');
+  const [allContracts, setAllContracts] = useState<Contract[]>([]);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  // Fetch contracts - server-side search when there's a search term
+  // Build filter query helper
+  const applyFilters = (query: any) => {
+    if (searchTerm && searchTerm.length >= 2) {
+      query = query.or(
+        `vendor_name.ilike.%${searchTerm}%,contract_description.ilike.%${searchTerm}%,contract_number.ilike.%${searchTerm}%,department_facility.ilike.%${searchTerm}%`
+      );
+    }
+    if (departmentFilter) {
+      query = query.eq('department_facility', departmentFilter);
+    }
+    if (contractTypeFilter) {
+      query = query.eq('contract_type', contractTypeFilter);
+    }
+    return query;
+  };
+
+  // Fetch initial page of contracts
   const { data, isLoading, error } = useQuery({
     queryKey: ['contracts', searchTerm, departmentFilter, contractTypeFilter],
     queryFn: async () => {
@@ -16,27 +38,11 @@ export function useContractsSearch() {
         .from('Contracts')
         .select('*', { count: 'exact' });
 
-      // Server-side search across vendor name, description, contract number, department
-      if (searchTerm && searchTerm.length >= 2) {
-        query = query.or(
-          `vendor_name.ilike.%${searchTerm}%,contract_description.ilike.%${searchTerm}%,contract_number.ilike.%${searchTerm}%,department_facility.ilike.%${searchTerm}%`
-        );
-      }
+      query = applyFilters(query);
 
-      // Server-side department filter
-      if (departmentFilter) {
-        query = query.eq('department_facility', departmentFilter);
-      }
-
-      // Server-side contract type filter
-      if (contractTypeFilter) {
-        query = query.eq('contract_type', contractTypeFilter);
-      }
-
-      // Order by amount and limit results
       query = query
         .order('current_contract_amount', { ascending: false, nullsFirst: false })
-        .limit(1000);
+        .limit(PAGE_SIZE);
 
       const { data, error, count } = await query;
 
@@ -44,11 +50,43 @@ export function useContractsSearch() {
 
       return { contracts: data as Contract[], totalCount: count || 0 };
     },
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
 
-  const contracts = data?.contracts || [];
+  // Reset accumulated data when initial query changes (filters changed)
+  useEffect(() => {
+    if (data) {
+      setAllContracts(data.contracts);
+      setOffset(PAGE_SIZE);
+      setHasMore(data.contracts.length === PAGE_SIZE);
+    }
+  }, [data]);
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      let query = supabase.from('Contracts').select('*');
+      query = applyFilters(query);
+      query = query
+        .order('current_contract_amount', { ascending: false, nullsFirst: false })
+        .range(offset, offset + PAGE_SIZE - 1);
+
+      const { data: moreData, error: err } = await query;
+      if (err) throw err;
+      const rows = (moreData as Contract[]) || [];
+      setAllContracts(prev => [...prev, ...rows]);
+      setOffset(prev => prev + PAGE_SIZE);
+      setHasMore(rows.length === PAGE_SIZE);
+    } catch (err) {
+      console.error("Load more contracts error:", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const contracts = allContracts;
   const totalCount = data?.totalCount || 0;
 
   // Get filter options (departments and types) from a separate query
@@ -79,6 +117,9 @@ export function useContractsSearch() {
     contracts,
     totalCount,
     isLoading,
+    loadingMore,
+    hasMore,
+    loadMore,
     error,
     departments: filterOptions?.departments || [],
     contractTypes: filterOptions?.contractTypes || [],

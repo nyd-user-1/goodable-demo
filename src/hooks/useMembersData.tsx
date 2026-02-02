@@ -37,7 +37,11 @@ export const useMembersData = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalMembers, setTotalMembers] = useState(0);
   const [fullFilteredCount, setFullFilteredCount] = useState(0);
+  const [serverOffset, setServerOffset] = useState(0);
+  const [hasMoreServerData, setHasMoreServerData] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const ITEMS_PER_PAGE = 50;
+  const SERVER_PAGE_SIZE = 100;
   const { toast } = useToast();
 
   useEffect(() => {
@@ -70,18 +74,20 @@ export const useMembersData = () => {
 
       setTotalMembers(count || 0);
 
-      // Then fetch the actual data with increased limit
+      // Then fetch the initial batch
       const { data, error } = await supabase
         .from("People")
         .select("*")
         .not("chamber", "is", null)
         .not("name", "is", null)
         .order("last_name", { ascending: true })
-        .limit(300);
+        .limit(SERVER_PAGE_SIZE);
 
       if (error) throw error;
 
       setMembers(data || []);
+      setServerOffset(SERVER_PAGE_SIZE);
+      setHasMoreServerData((data?.length || 0) === SERVER_PAGE_SIZE);
     } catch (err) {
       setError("Failed to load members. Please try again.");
       toast({
@@ -148,6 +154,34 @@ export const useMembersData = () => {
       }
     } catch (error) {
       // Error fetching districts - handled silently
+    }
+  };
+
+  const loadMoreMembersFromServer = async () => {
+    if (loadingMore || !hasMoreServerData) return;
+    setLoadingMore(true);
+    try {
+      const { data, error } = await supabase
+        .from("People")
+        .select("*")
+        .not("chamber", "is", null)
+        .not("name", "is", null)
+        .order("last_name", { ascending: true })
+        .range(serverOffset, serverOffset + SERVER_PAGE_SIZE - 1);
+
+      if (error) throw error;
+      if (!data || data.length === 0) {
+        setHasMoreServerData(false);
+        return;
+      }
+
+      setMembers(prev => [...prev, ...data]);
+      setServerOffset(prev => prev + SERVER_PAGE_SIZE);
+      setHasMoreServerData(data.length === SERVER_PAGE_SIZE);
+    } catch (err) {
+      console.error("Load more members error:", err);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -223,5 +257,8 @@ export const useMembersData = () => {
     totalMembers,
     totalPages: Math.ceil((fullFilteredCount || totalMembers) / ITEMS_PER_PAGE),
     fetchMembers,
+    loadMoreMembersFromServer,
+    hasMoreServerData,
+    loadingMore,
   };
 };

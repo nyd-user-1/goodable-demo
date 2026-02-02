@@ -662,7 +662,7 @@ const NewChat = () => {
         .from("Bills")
         .select("bill_number, title, status_desc, description, committee, session_id")
         .order("bill_number", { ascending: true })
-        .range(offset, offset + 99);
+        .range(offset, offset + 29);
 
       if (error) throw error;
       const rows = data || [];
@@ -671,7 +671,7 @@ const NewChat = () => {
       } else {
         setAvailableBills(prev => [...prev, ...rows]);
       }
-      setBillsHasMore(rows.length === 100);
+      setBillsHasMore(rows.length === 30);
     } catch (error) {
       console.error("Error fetching bills:", error);
     } finally {
@@ -694,7 +694,7 @@ const NewChat = () => {
         .from("People")
         .select("people_id, name, party, chamber, district")
         .order("name", { ascending: true })
-        .range(offset, offset + 99);
+        .range(offset, offset + 29);
 
       if (error) throw error;
       const rows = data || [];
@@ -703,7 +703,7 @@ const NewChat = () => {
       } else {
         setAvailableMembers(prev => [...prev, ...rows]);
       }
-      setMembersHasMore(rows.length === 100);
+      setMembersHasMore(rows.length === 30);
     } catch (error) {
       console.error("Error fetching members:", error);
     } finally {
@@ -726,7 +726,7 @@ const NewChat = () => {
         .from("Committees")
         .select("committee_id, committee_name, chamber, chair_name")
         .order("committee_name", { ascending: true })
-        .range(offset, offset + 99);
+        .range(offset, offset + 29);
 
       if (error) throw error;
       const rows = data || [];
@@ -735,7 +735,7 @@ const NewChat = () => {
       } else {
         setAvailableCommittees(prev => [...prev, ...rows]);
       }
-      setCommitteesHasMore(rows.length === 100);
+      setCommitteesHasMore(rows.length === 30);
     } catch (error) {
       console.error("Error fetching committees:", error);
     } finally {
@@ -758,7 +758,7 @@ const NewChat = () => {
         .from("Contracts")
         .select("*")
         .order("current_contract_amount", { ascending: false, nullsFirst: false })
-        .range(offset, offset + 99);
+        .range(offset, offset + 29);
 
       if (error) {
         console.error("Error fetching contracts:", error);
@@ -770,7 +770,7 @@ const NewChat = () => {
       } else {
         setAvailableContracts(prev => [...prev, ...rows]);
       }
-      setContractsHasMore(rows.length === 100);
+      setContractsHasMore(rows.length === 30);
     } catch (error) {
       console.error("Error fetching contracts:", error);
     } finally {

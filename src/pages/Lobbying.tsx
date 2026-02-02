@@ -40,6 +40,9 @@ const Lobbying = () => {
     setActiveTab,
     searchTerm,
     setSearchTerm,
+    loadMore,
+    hasMore,
+    loadingMore,
   } = useLobbyingSearch();
 
   // Keyboard shortcut to focus search
@@ -237,7 +240,12 @@ List ALL the client names provided above as bullet points between these markers.
           </div>
 
           {/* Results - Masonry Grid (Scrollable) */}
-          <div className="flex-1 overflow-y-auto px-4 py-6">
+          <div className="flex-1 overflow-y-auto px-4 py-6" onScroll={(e) => {
+            const el = e.currentTarget;
+            if (el.scrollHeight - el.scrollTop - el.clientHeight < 200 && hasMore && !loadingMore) {
+              loadMore();
+            }
+          }}>
             {error ? (
               <div className="text-center py-12">
                 <p className="text-destructive">Error loading lobbying data: {String(error)}</p>
@@ -270,6 +278,11 @@ List ALL the client names provided above as bullet points between these markers.
                     />
                   ))}
                 </div>
+                {isAuthenticated && loadingMore && (
+                  <div className="flex justify-center py-4">
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                  </div>
+                )}
                 {!isAuthenticated && (
                   <div className="text-center py-12">
                     <p className="text-muted-foreground">
@@ -298,6 +311,11 @@ List ALL the client names provided above as bullet points between these markers.
                     );
                   })}
                 </div>
+                {isAuthenticated && loadingMore && (
+                  <div className="flex justify-center py-4">
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                  </div>
+                )}
                 {!isAuthenticated && (
                   <div className="text-center py-12">
                     <p className="text-muted-foreground">
