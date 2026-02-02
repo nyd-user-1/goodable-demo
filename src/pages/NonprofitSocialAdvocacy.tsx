@@ -130,7 +130,7 @@ const NonprofitSocialAdvocacy = () => {
               <div
                 key={idx}
                 onClick={() => handlePromptClick(item.prompt)}
-                className="group break-inside-avoid bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200"
+                className="group break-inside-avoid bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg"
               >
                 <h3 className="font-semibold text-base mb-3">
                   {item.title}
@@ -139,12 +139,10 @@ const NonprofitSocialAdvocacy = () => {
                   {item.prompt}
                 </p>
 
-                {/* Chat arrow button - renders on hover, expands card height */}
-                <div className="h-0 overflow-hidden group-hover:h-auto group-hover:mt-4 transition-all duration-200">
-                  <div className="flex justify-end">
-                    <div className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center">
-                      <ArrowUp className="h-5 w-5" />
-                    </div>
+                {/* Chat arrow button - fixed height, opacity toggles on hover */}
+                <div className="flex justify-end mt-4">
+                  <div className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <ArrowUp className="h-5 w-5" />
                   </div>
                 </div>
               </div>
