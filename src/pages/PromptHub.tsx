@@ -240,7 +240,7 @@ export default function PromptHub() {
                       <div key={p.id} className="py-3 first:pt-0">
                         <button
                           onClick={() => handlePromptClick(p.prompt)}
-                          className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors group"
+                          className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:shadow-md hover:text-foreground transition-all duration-200 group"
                         >
                           <span className="block">{p.title}</span>
                           <span className="block text-xs opacity-60 mt-0.5">{p.upvotes} chats</span>
@@ -419,7 +419,7 @@ export default function PromptHub() {
                       <div key={p.id} className="py-3 first:pt-0">
                         <button
                           onClick={() => handlePromptClick(p.prompt)}
-                          className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors group"
+                          className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:shadow-md hover:text-foreground transition-all duration-200 group"
                         >
                           <span className="block">{p.title}</span>
                           <span className="block text-xs opacity-60 mt-0.5">Asked 2.2.2026</span>
@@ -490,7 +490,7 @@ export default function PromptHub() {
                     <div key={m.people_id} className="py-3 first:pt-0">
                       <Link
                         to={`/members/${makeMemberSlug(m)}`}
-                        className="flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-3 rounded-lg transition-all duration-200"
+                        className="flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200"
                       >
                         {m.photo_url ? (
                           <img
@@ -528,7 +528,7 @@ export default function PromptHub() {
                   {(recentBills || []).map((bill: any) => (
                     <div key={bill.bill_id} className="py-3 first:pt-0">
                       <div
-                        className="group py-2 hover:bg-muted/30 hover:shadow-md px-3 rounded-lg transition-all duration-200"
+                        className="group py-3 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200"
                       >
                         <Link to={`/bills/${bill.bill_number}`} className="block">
                           <p className="font-semibold text-sm">{bill.bill_number}</p>
@@ -570,7 +570,7 @@ export default function PromptHub() {
                     <div key={idx} className="py-3 first:pt-0">
                       <Link
                         to="/budget-dashboard"
-                        className="flex items-center justify-between py-2 hover:bg-muted/30 hover:shadow-md px-3 rounded-lg transition-all duration-200"
+                        className="flex items-center justify-between py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200"
                       >
                         <div>
                           <p className="font-medium text-sm">{item.name}</p>
