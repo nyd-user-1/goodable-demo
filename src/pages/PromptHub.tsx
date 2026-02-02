@@ -397,20 +397,17 @@ export default function PromptHub() {
                   <div className="divide-y-2 divide-dotted divide-border/80">
                     {newestPrompts.map((p) => (
                       <div key={p.id} className="py-3 first:pt-0">
-                        <div className="flex items-center gap-2 group">
-                          <button
-                            onClick={() => handlePromptClick(p.prompt)}
-                            className="flex-1 text-left px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors truncate"
-                          >
-                            {p.title}
-                          </button>
-                          <button
-                            onClick={() => handlePromptClick(p.prompt)}
-                            className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                          >
-                            <ArrowUp className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => handlePromptClick(p.prompt)}
+                          className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors group"
+                        >
+                          <span className="block">{p.title}</span>
+                          <div className="flex justify-end mt-2">
+                            <div className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <ArrowUp className="h-3.5 w-3.5" />
+                            </div>
+                          </div>
+                        </button>
                       </div>
                     ))}
                   </div>
