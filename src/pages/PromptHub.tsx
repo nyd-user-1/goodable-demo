@@ -149,7 +149,7 @@ export default function PromptHub() {
         .from('Bills')
         .select('bill_id, bill_number, title, status_desc')
         .order('bill_id', { ascending: false })
-        .limit(8);
+        .limit(10);
       return data || [];
     },
     staleTime: 10 * 60 * 1000,
@@ -177,7 +177,7 @@ export default function PromptHub() {
       // Top 10 by count
       const topIds = Object.entries(counts)
         .sort(([, a], [, b]) => b - a)
-        .slice(0, 8)
+        .slice(0, 14)
         .map(([id]) => parseInt(id));
 
       const { data: members } = await supabase
