@@ -260,7 +260,7 @@ export default function PromptHub() {
             {/* ----------------------------------------------------------- */}
             {/* LEFT SIDEBAR (lg+)                                           */}
             {/* ----------------------------------------------------------- */}
-            <aside className="hidden lg:block w-56 flex-shrink-0 border-r-2 border-dotted border-border/80 pr-8">
+            <aside className="hidden lg:block w-[300px] flex-shrink-0 border-r-2 border-dotted border-border/80 pr-8">
               <div className="sticky top-24">
                 {/* Trending */}
                 <div>
@@ -447,7 +447,7 @@ export default function PromptHub() {
             {/* ----------------------------------------------------------- */}
             {/* RIGHT SIDEBAR (xl+)                                          */}
             {/* ----------------------------------------------------------- */}
-            <aside className="hidden xl:block w-64 flex-shrink-0 border-l-2 border-dotted border-border/80 pl-8">
+            <aside className="hidden xl:block w-[300px] flex-shrink-0 border-l-2 border-dotted border-border/80 pl-8">
               <div className="sticky top-24">
                 {/* Newest */}
                 <div className="mb-6 pb-6 border-b-2 border-dotted border-border/80">
