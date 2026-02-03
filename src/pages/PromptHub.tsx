@@ -30,7 +30,33 @@ const hubPrompts: HubPrompt[] = [
     id: 'featured-1',
     title: 'Snow Much to Scoop',
     prompt: "Summarize 'Snow Much to Scoop: Powder and Politics' by In The Room Media",
-    context: `Read and summarize the following article. Include the source link at the end of your response.\n\nArticle URL: https://intheroommedia.com/2026/01/26/snow-much-to-scoop-powder-and-politics/`,
+    context: `Summarize the following article and include the source link at the end of your response: https://intheroommedia.com/2026/01/26/snow-much-to-scoop-powder-and-politics/
+
+The article "Snow Much to Scoop: Powder and Politics" by In The Room Media covers:
+
+NYC COUNCIL LEADERSHIP: The Mamdani era begins with Julie Menin as Speaker, Dr. Nantasha Williams as Deputy Speaker, Shaun Abreu as Majority Leader, and David Carr as Minority Leader. Full committee chair assignments listed across 40+ committees.
+
+POLITICAL STRATEGY: At a Crain's Breakfast, powerhouses Suri Kasirer, Bradley Tusk, Evan Thies (Pythia Public Affairs), and Emma Wolfe advised 200 business leaders: don't lecture City Hall—build trust, build coalitions, and frame asks around helping government deliver.
+
+AFFORDABILITY & HOUSING: Rebecca Seawright pushing SCRIE/DRIE rent-freeze expansion tied to Governor Hochul's $75,000 eligibility proposal. REBNY's Jim Whelan signaling cooperation. Senator John Liu backing classroom staffing, childcare, NY4All. Republican Assemblyman Scott Bendett pushing tax cuts and spending controls.
+
+AUTO INSURANCE: Former TLC Commissioner Matt Daus and Citizens for Affordable Rates coalition backing Hochul's push to lower premiums through fraud crackdowns and safe-driver tech discounts.
+
+UPSTATE: Assemblymember John McDonald III highlighting Schenectady's showdown with the Office of Court Administration over $10M+ in state funds.
+
+NEW JERSEY: Governor Mikie Sherrill's inaugural event at American Dream Mall, performing "O.P.P." with Naughty By Nature.
+
+QUEENS POLITICS: Pesach Osina launched Democratic campaign for retiring Assemblymember Stacey Pheffer Amato's seat. 36th Annual UNCF MLK Breakfast.
+
+ANTI-SEMITISM: Speaker Julie Menin announced five-point legislative package at Museum of Jewish Heritage—$1.25M for Holocaust education, security measures, anti-Semitism reporting hotline. Jewish Community Council of Greater Coney Island partnered with L'Oréal for Holocaust survivor event.
+
+MAJOR EVENTS: ABNY honored retiring Port Authority ED Rick Cotton (Kathryn Garcia nominated as replacement). REBNY gala at Waldorf Astoria. Nassau GOP preparing for Bruce Blakeman gubernatorial bid.
+
+NY-10: Dan Goldman building endorsement firewall with Building & Construction Trades Council, Governor Hochul, and Hakeem Jeffries.
+
+LONG ISLAND: Tour of East West Industries in Ronkonkoma—woman-owned military manufacturer. Mariah Dignan promoted at National Grid.
+
+Source: https://intheroommedia.com/2026/01/26/snow-much-to-scoop-powder-and-politics/`,
     category: 'Featured',
     upvotes: 85,
     image: '/intr-profile.png',
