@@ -453,15 +453,15 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
         <Tooltip>
           <TooltipTrigger asChild>
             <NavLink
-              to="/new-prompts"
+              to="/prompts"
               onClick={onClose}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                isActive("/new-prompts") ? "bg-muted" : "hover:bg-muted"
+                isActive("/prompts") ? "bg-muted" : "hover:bg-muted"
               )}
             >
               <Flag className="h-4 w-4" />
-              <span>New Prompts</span>
+              <span>Prompts</span>
             </NavLink>
           </TooltipTrigger>
           <TooltipContent side="right">
@@ -495,7 +495,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   )}
                 />
               </div>
-              <span>New chat</span>
+              <span>Chats</span>
             </NavLink>
           </TooltipTrigger>
           <TooltipContent side="right">
@@ -514,7 +514,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               )}
             >
               <NotebookPen className="h-4 w-4" />
-              <span>New note</span>
+              <span>Notes</span>
             </NavLink>
           </TooltipTrigger>
           <TooltipContent side="right">

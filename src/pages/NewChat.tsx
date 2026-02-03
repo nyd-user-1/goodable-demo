@@ -2576,9 +2576,9 @@ const NewChat = () => {
 
                 {/* Prompts and Lists link */}
                 <div className="flex items-center justify-center gap-1 mt-[70px] text-sm">
-                  <a href="/new-prompts" className="text-foreground">Prompts</a>
+                  <a href="/prompts" className="text-foreground">Prompts</a>
                   <span className="text-muted-foreground">and</span>
-                  <a href="/new-prompts#lists" className="text-foreground">Lists</a>
+                  <a href="/prompts#lists" className="text-foreground">Lists</a>
                 </div>
 
                 {/* Click-outside backdrop for drawer */}
