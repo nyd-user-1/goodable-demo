@@ -303,7 +303,7 @@ export default function PromptHub() {
                                   <img
                                     src={p.image}
                                     alt={p.title}
-                                    className="w-7 h-7 rounded-full object-cover hover:shadow-md transition-all"
+                                    className="h-7 rounded object-contain hover:shadow-md transition-all"
                                   />
                                 </a>
                               ) : <div />}
