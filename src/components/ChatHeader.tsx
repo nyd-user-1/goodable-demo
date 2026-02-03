@@ -78,8 +78,10 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
         </>
       )}
 
-      <div className="fixed top-0 left-0 right-0 z-50 h-20 bg-gradient-to-b from-background via-background/70 to-transparent pointer-events-none" />
-      <nav className="fixed top-0 left-0 right-0 z-50 px-5 py-2">
+      {/* Gradient fade below the nav — smooth content scroll transition */}
+      <div className="fixed top-[44px] left-0 right-0 z-40 h-12 bg-gradient-to-b from-background/60 to-transparent pointer-events-none" />
+      {/* Glass morphism nav bar */}
+      <nav className="fixed top-0 left-0 right-0 z-50 px-5 py-2 bg-background/80 backdrop-blur-md">
         <div className="flex items-center justify-between">
           {/* Left side - Logs menu icon */}
           <div className="flex items-center space-x-1">
