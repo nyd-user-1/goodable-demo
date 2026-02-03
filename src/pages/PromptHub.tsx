@@ -44,6 +44,15 @@ const hubPrompts: HubPrompt[] = [
     upvotes: 82,
     image: '/city-and-state.png',
   },
+  {
+    id: 'featured-3',
+    title: "Queens voters head to the polls for Assembly District 36 special election to fill Mamdani's old seat",
+    prompt: "Summarize 'Queens voters head to the polls for Assembly District 36 special election' by QNS",
+    context: 'fetchUrl:https://qns.com/2026/02/voters-polls-district-36-special-election/',
+    category: 'Featured',
+    upvotes: 78,
+    image: '/qns-logo.png',
+  },
   // Bills
   { id: 'b1', title: 'AI Consumer Protection', prompt: 'What can you tell me about efforts to protect consumers from algorithmic discrimination in New York?', category: 'Bills', upvotes: 47 },
   { id: 'b2', title: 'Childcare Affordability', prompt: 'What legislative approaches have been proposed to make childcare more affordable for working families in New York?', category: 'Bills', upvotes: 38 },
@@ -154,7 +163,7 @@ export default function PromptHub() {
       activeCategory === 'All'
         ? hubPrompts
         : hubPrompts.filter((p) => p.category === activeCategory);
-    return [...items].sort((a, b) => b.upvotes - a.upvotes).slice(0, 10);
+    return [...items].sort((a, b) => b.upvotes - a.upvotes).slice(0, 5);
   }, [activeCategory]);
 
   const trendingPrompts = useMemo(
