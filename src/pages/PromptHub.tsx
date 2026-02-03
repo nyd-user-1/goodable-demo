@@ -35,6 +35,15 @@ const hubPrompts: HubPrompt[] = [
     upvotes: 85,
     image: '/intr-profile.png',
   },
+  {
+    id: 'featured-2',
+    title: 'Cabán & Nurse Lead Progressive Caucus',
+    prompt: "Summarize 'Cabán and Nurse will lead NYC Council Progressive Caucus' by City & State NY",
+    context: 'fetchUrl:https://www.cityandstateny.com/politics/2026/02/caban-and-nurse-will-lead-nyc-council-progressive-caucus/411130/',
+    category: 'Featured',
+    upvotes: 82,
+    image: '/city-and-state.png',
+  },
   // Bills
   { id: 'b1', title: 'AI Consumer Protection', prompt: 'What can you tell me about efforts to protect consumers from algorithmic discrimination in New York?', category: 'Bills', upvotes: 47 },
   { id: 'b2', title: 'Childcare Affordability', prompt: 'What legislative approaches have been proposed to make childcare more affordable for working families in New York?', category: 'Bills', upvotes: 38 },

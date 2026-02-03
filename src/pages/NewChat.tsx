@@ -615,7 +615,7 @@ const NewChat = () => {
             });
             const data = await res.json();
             if (data.content) {
-              finalContext = `Summarize the following article and include the source link at the end of your response: ${url}\n\n${data.content}`;
+              finalContext = `You are summarizing a news article. Provide a detailed, structured summary organized by topic sections (e.g. "NYC COUNCIL LEADERSHIP:", "POLITICAL STRATEGY:", "AFFORDABILITY & HOUSING:", etc.). For each section, include specific names, dollar amounts, and key details from the article. Bold all proper names of people (e.g. **Julie Menin**, **Governor Hochul**, **Rick Cotton**). End with the source link: ${url}\n\nArticle content:\n${data.content}`;
             }
           } catch (err) {
             console.error('[NewChat] Failed to fetch URL content:', err);
