@@ -53,6 +53,15 @@ const hubPrompts: HubPrompt[] = [
     upvotes: 78,
     image: '/qns-logo.png',
   },
+  {
+    id: 'featured-4',
+    title: "Turnout low ahead of special election to fill Mamdani's old seat",
+    prompt: "Summarize 'Turnout low ahead of special election to fill Mamdani's old seat' by Queens Daily Eagle",
+    context: 'fetchUrl:https://queenseagle.com/all/2026/2/2/turnout-low-ahead-of-special-election-to-fill-mamdanis-old-seat',
+    category: 'Featured',
+    upvotes: 74,
+    image: '/queens-eagle-logo.png',
+  },
   // Bills
   { id: 'b1', title: 'AI Consumer Protection', prompt: 'What can you tell me about efforts to protect consumers from algorithmic discrimination in New York?', category: 'Bills', upvotes: 47 },
   { id: 'b2', title: 'Childcare Affordability', prompt: 'What legislative approaches have been proposed to make childcare more affordable for working families in New York?', category: 'Bills', upvotes: 38 },
