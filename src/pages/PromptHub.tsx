@@ -397,7 +397,7 @@ export default function PromptHub() {
                   <div
                     key={p.id}
                     onClick={() => handlePromptClick(p.prompt, p.context)}
-                    className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                    className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg border border-transparent hover:border-border"
                   >
                     {/* Top row: category tag + upvote on right */}
                     <div className="flex items-start justify-between mb-2">
@@ -473,7 +473,7 @@ export default function PromptHub() {
                       <div key={p.id} className="py-3 first:pt-0">
                         <button
                           onClick={() => handlePromptClick(p.prompt, p.context)}
-                          className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:shadow-md hover:text-foreground transition-all duration-200 group"
+                          className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:shadow-md hover:text-foreground transition-all duration-200 group border border-transparent hover:border-border"
                         >
                           <span className="block">{p.title}</span>
                           <span className="block text-xs opacity-60 mt-0.5">Asked 2.2.2026</span>
@@ -499,7 +499,7 @@ export default function PromptHub() {
                       <div
                         key={p.id}
                         onClick={() => handlePromptClick(p.prompt, p.context)}
-                        className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
+                        className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg border border-transparent hover:border-border"
                       >
                         <div className="flex items-start gap-3">
                           <span className="text-2xl font-bold text-muted-foreground/30 leading-none mt-0.5">
