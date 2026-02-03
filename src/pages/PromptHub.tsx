@@ -20,9 +20,47 @@ interface HubPrompt {
   prompt: string;
   category: string;
   upvotes: number;
+  context?: string;
+  image?: string;
 }
 
 const hubPrompts: HubPrompt[] = [
+  // Featured
+  {
+    id: 'featured-1',
+    title: 'Snow Much to Scoop',
+    prompt: "Summarize 'Snow Much to Scoop: Powder and Politics' by In The Room Media",
+    context: `Summarize the following article and include the source link at the end of your response: https://intheroommedia.com/2026/01/26/snow-much-to-scoop-powder-and-politics/
+
+The article "Snow Much to Scoop: Powder and Politics" by In The Room Media covers:
+
+NYC COUNCIL LEADERSHIP: The Mamdani era begins with Julie Menin as Speaker, Dr. Nantasha Williams as Deputy Speaker, Shaun Abreu as Majority Leader, and David Carr as Minority Leader. Full committee chair assignments listed across 40+ committees.
+
+POLITICAL STRATEGY: At a Crain's Breakfast, powerhouses Suri Kasirer, Bradley Tusk, Evan Thies (Pythia Public Affairs), and Emma Wolfe advised 200 business leaders: don't lecture City Hall—build trust, build coalitions, and frame asks around helping government deliver.
+
+AFFORDABILITY & HOUSING: Rebecca Seawright pushing SCRIE/DRIE rent-freeze expansion tied to Governor Hochul's $75,000 eligibility proposal. REBNY's Jim Whelan signaling cooperation. Senator John Liu backing classroom staffing, childcare, NY4All. Republican Assemblyman Scott Bendett pushing tax cuts and spending controls.
+
+AUTO INSURANCE: Former TLC Commissioner Matt Daus and Citizens for Affordable Rates coalition backing Hochul's push to lower premiums through fraud crackdowns and safe-driver tech discounts.
+
+UPSTATE: Assemblymember John McDonald III highlighting Schenectady's showdown with the Office of Court Administration over $10M+ in state funds.
+
+NEW JERSEY: Governor Mikie Sherrill's inaugural event at American Dream Mall, performing "O.P.P." with Naughty By Nature.
+
+QUEENS POLITICS: Pesach Osina launched Democratic campaign for retiring Assemblymember Stacey Pheffer Amato's seat. 36th Annual UNCF MLK Breakfast.
+
+ANTI-SEMITISM: Speaker Julie Menin announced five-point legislative package at Museum of Jewish Heritage—$1.25M for Holocaust education, security measures, anti-Semitism reporting hotline. Jewish Community Council of Greater Coney Island partnered with L'Oréal for Holocaust survivor event.
+
+MAJOR EVENTS: ABNY honored retiring Port Authority ED Rick Cotton (Kathryn Garcia nominated as replacement). REBNY gala at Waldorf Astoria. Nassau GOP preparing for Bruce Blakeman gubernatorial bid.
+
+NY-10: Dan Goldman building endorsement firewall with Building & Construction Trades Council, Governor Hochul, and Hakeem Jeffries.
+
+LONG ISLAND: Tour of East West Industries in Ronkonkoma—woman-owned military manufacturer. Mariah Dignan promoted at National Grid.
+
+Source: https://intheroommedia.com/2026/01/26/snow-much-to-scoop-powder-and-politics/`,
+    category: 'Featured',
+    upvotes: 85,
+    image: '/intr-profile.png',
+  },
   // Bills
   { id: 'b1', title: 'AI Consumer Protection', prompt: 'What can you tell me about efforts to protect consumers from algorithmic discrimination in New York?', category: 'Bills', upvotes: 47 },
   { id: 'b2', title: 'Childcare Affordability', prompt: 'What legislative approaches have been proposed to make childcare more affordable for working families in New York?', category: 'Bills', upvotes: 38 },
@@ -64,6 +102,7 @@ const hubPrompts: HubPrompt[] = [
 
 // Category tag colors
 const categoryColors: Record<string, string> = {
+  Featured: 'bg-rose-100 text-rose-700',
   Bills: 'bg-blue-100 text-blue-700',
   Policy: 'bg-emerald-100 text-emerald-700',
   Advocacy: 'bg-purple-100 text-purple-700',
@@ -205,8 +244,11 @@ export default function PromptHub() {
   // -----------------------------------------------------------------------
   // Helpers
   // -----------------------------------------------------------------------
-  const handlePromptClick = (prompt: string) => {
-    navigate(`/?prompt=${encodeURIComponent(prompt)}`);
+  const handlePromptClick = (prompt: string, context?: string) => {
+    const url = context
+      ? `/?prompt=${encodeURIComponent(prompt)}&context=${encodeURIComponent(context)}`
+      : `/?prompt=${encodeURIComponent(prompt)}`;
+    navigate(url);
   };
 
   const makeMemberSlug = (m: any): string => {
@@ -247,15 +289,23 @@ export default function PromptHub() {
                     {trendingPrompts.map((p) => (
                       <div key={p.id} className="py-3 first:pt-0">
                         <button
-                          onClick={() => handlePromptClick(p.prompt)}
+                          onClick={() => handlePromptClick(p.prompt, p.context)}
                           className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:shadow-md hover:text-foreground transition-all duration-200 group"
                         >
                           <span className="block">{p.title}</span>
                           <span className="block text-xs opacity-60 mt-0.5">{p.upvotes} chats</span>
                           <div className="flex justify-end mt-2">
-                            <div className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <ArrowUp className="h-3.5 w-3.5" />
-                            </div>
+                            {p.image ? (
+                              <img
+                                src={p.image}
+                                alt={p.title}
+                                className="w-7 h-7 rounded-full object-cover opacity-0 group-hover:opacity-100 transition-opacity"
+                              />
+                            ) : (
+                              <div className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <ArrowUp className="h-3.5 w-3.5" />
+                              </div>
+                            )}
                           </div>
                         </button>
                       </div>
@@ -350,7 +400,7 @@ export default function PromptHub() {
                 {filteredPrompts.map((p) => (
                   <div
                     key={p.id}
-                    onClick={() => handlePromptClick(p.prompt)}
+                    onClick={() => handlePromptClick(p.prompt, p.context)}
                     className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg"
                   >
                     {/* Top row: category tag + upvote on right */}
@@ -426,7 +476,7 @@ export default function PromptHub() {
                     {newestPrompts.map((p) => (
                       <div key={p.id} className="py-3 first:pt-0">
                         <button
-                          onClick={() => handlePromptClick(p.prompt)}
+                          onClick={() => handlePromptClick(p.prompt, p.context)}
                           className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:shadow-md hover:text-foreground transition-all duration-200 group"
                         >
                           <span className="block">{p.title}</span>
@@ -452,7 +502,7 @@ export default function PromptHub() {
                     {leaderboard.map((p, idx) => (
                       <div
                         key={p.id}
-                        onClick={() => handlePromptClick(p.prompt)}
+                        onClick={() => handlePromptClick(p.prompt, p.context)}
                         className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg"
                       >
                         <div className="flex items-start gap-3">
