@@ -269,30 +269,45 @@ export default function PromptHub() {
                     Trending
                   </h3>
                   <div className="divide-y-2 divide-dotted divide-border/80">
-                    {trendingPrompts.map((p) => (
-                      <div key={p.id} className="py-3 first:pt-0 min-h-[190px] flex flex-col">
-                        <button
-                          onClick={() => handlePromptClick(p.prompt, p.context)}
-                          className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:shadow-md hover:text-foreground transition-all duration-200 group flex-1 flex flex-col"
-                        >
-                          <span className="block">{p.title}</span>
-                          <span className="block text-xs opacity-60 mt-0.5">{p.upvotes} chats</span>
-                          <div className="flex justify-end mt-auto pt-2">
-                            {p.image ? (
-                              <img
-                                src={p.image}
-                                alt={p.title}
-                                className="w-7 h-7 rounded-full object-cover opacity-0 group-hover:opacity-100 transition-opacity"
-                              />
-                            ) : (
-                              <div className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <ArrowUp className="h-3.5 w-3.5" />
-                              </div>
+                    {trendingPrompts.map((p) => {
+                      const articleUrl = p.context?.startsWith('fetchUrl:')
+                        ? p.context.slice('fetchUrl:'.length).trim()
+                        : null;
+                      return (
+                        <div key={p.id} className="py-3 first:pt-0 min-h-[190px] flex flex-col">
+                          <div className="w-full text-left px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted/50 hover:shadow-md hover:text-foreground transition-all duration-200 group flex-1 flex flex-col relative">
+                            {/* Logo — top-right, links to article */}
+                            {p.image && articleUrl && (
+                              <a
+                                href={articleUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="absolute top-2 right-2 z-10"
+                                title="Read article"
+                              >
+                                <img
+                                  src={p.image}
+                                  alt={p.title}
+                                  className="w-10 h-10 rounded-full object-cover hover:ring-2 hover:ring-foreground/20 transition-all"
+                                />
+                              </a>
                             )}
+                            <span className={cn("block font-medium", p.image ? "pr-14" : "", "text-base")}>{p.title}</span>
+                            <span className="block text-xs opacity-60 mt-1">{p.upvotes} chats</span>
+                            {/* Arrow — bottom-right, sends to chat */}
+                            <div className="flex justify-end mt-auto pt-2">
+                              <button
+                                onClick={() => handlePromptClick(p.prompt, p.context)}
+                                className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                title="Send to chat"
+                              >
+                                <ArrowUp className="h-4 w-4" />
+                              </button>
+                            </div>
                           </div>
-                        </button>
-                      </div>
-                    ))}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
