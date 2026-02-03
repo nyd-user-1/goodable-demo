@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AIChatSheet } from "@/components/AIChatSheet";
 import { Search } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { VotesTable } from "./votes/VotesTable";
@@ -21,8 +20,6 @@ const VOTES_PER_PAGE = 25;
 
 export const MemberVotesTable = ({ member }: MemberVotesTableProps) => {
   const navigate = useNavigate();
-  const [chatOpen, setChatOpen] = useState(false);
-  const [selectedBillForChat, setSelectedBillForChat] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -32,12 +29,6 @@ export const MemberVotesTable = ({ member }: MemberVotesTableProps) => {
 
   const handleAIAnalysis = (vote: any, e: React.MouseEvent) => {
     e.stopPropagation();
-    setSelectedBillForChat({
-      bill_id: vote.bill_id,
-      bill_number: vote.bill_number,
-      title: vote.description,
-    });
-    setChatOpen(true);
   };
 
   const handleFavorite = async (vote: any, e: React.MouseEvent) => {
@@ -87,7 +78,6 @@ export const MemberVotesTable = ({ member }: MemberVotesTableProps) => {
   };
 
   return (
-    <>
       <Card>
         <CardHeader className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -126,12 +116,5 @@ export const MemberVotesTable = ({ member }: MemberVotesTableProps) => {
           )}
         </CardContent>
       </Card>
-
-      <AIChatSheet
-        open={chatOpen}
-        onOpenChange={setChatOpen}
-        bill={selectedBillForChat}
-      />
-    </>
   );
 };

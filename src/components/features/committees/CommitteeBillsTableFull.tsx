@@ -7,10 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CardActionButtons } from "@/components/ui/CardActionButtons";
-import { AIChatSheet } from "@/components/AIChatSheet";
 import { ArrowUpDown, ArrowUp, ArrowDown, Search, HelpCircle } from "lucide-react";
 import { useFavorites } from "@/hooks/useFavorites";
-import { useBillChatSessions } from "@/hooks/useBillChatSessions";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { formatDate } from "@/utils/dateUtils";
@@ -50,14 +48,11 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
   const [bills, setBills] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [chatOpen, setChatOpen] = useState(false);
-  const [selectedBill, setSelectedBill] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
   const { favoriteBillIds, toggleFavorite } = useFavorites();
-  const { createOrGetChatSession, loading: chatLoading } = useBillChatSessions();
 
   // Fetch bills for this committee
   useEffect(() => {
@@ -97,12 +92,6 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
 
   const handleAIAnalysis = async (bill: any, e: React.MouseEvent) => {
     e.stopPropagation();
-
-    const session = await createOrGetChatSession(bill);
-    if (session) {
-      setSelectedBill(bill);
-      setChatOpen(true);
-    }
   };
 
   const handleFavorite = async (bill: any, e: React.MouseEvent) => {
@@ -181,7 +170,6 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
   }, [bills, searchQuery, sortField, sortDirection]);
 
   return (
-    <>
       <TooltipProvider>
         <div className="space-y-4">
           {/* Search Section */}
@@ -323,12 +311,5 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
           </div>
         </div>
       </TooltipProvider>
-
-      <AIChatSheet
-        open={chatOpen}
-        onOpenChange={setChatOpen}
-        bill={selectedBill}
-      />
-    </>
   );
 };

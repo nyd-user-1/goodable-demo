@@ -1,15 +1,12 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AIChatSheet } from "@/components/AIChatSheet";
 import { useFavorites } from "@/hooks/useFavorites";
 import { BillsTableMobile } from "./BillsTableMobile";
 import { BillsTableDesktop } from "./BillsTableDesktop";
 import { Bill, BillsTableProps } from "./types";
 
 export const BillsTable = ({ bills, onBillSelect }: BillsTableProps) => {
-  const [chatOpen, setChatOpen] = useState(false);
-  const [selectedBillForChat, setSelectedBillForChat] = useState<Bill | null>(null);
   const [billsWithAIChat, setBillsWithAIChat] = useState<Set<number>>(new Set());
   const { favoriteBillIds, toggleFavorite } = useFavorites();
 
@@ -37,11 +34,6 @@ export const BillsTable = ({ bills, onBillSelect }: BillsTableProps) => {
 
   const handleAIAnalysis = (bill: Bill, e: React.MouseEvent) => {
     e.stopPropagation();
-    setSelectedBillForChat(bill);
-    setChatOpen(true);
-    
-    // Add this bill to the set of bills with AI chat
-    setBillsWithAIChat(prev => new Set([...prev, bill.bill_id]));
   };
 
   const handleFavorite = async (bill: Bill, e: React.MouseEvent) => {
@@ -70,11 +62,6 @@ export const BillsTable = ({ bills, onBillSelect }: BillsTableProps) => {
         billsWithAIChat={billsWithAIChat}
       />
 
-      <AIChatSheet
-        open={chatOpen}
-        onOpenChange={setChatOpen}
-        bill={selectedBillForChat}
-      />
     </div>
   );
 };
