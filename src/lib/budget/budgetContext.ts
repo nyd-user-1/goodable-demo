@@ -321,7 +321,112 @@ export function getBudgetContextForFunction(functionName: string): string {
   const functionContextMap: Record<string, string> = {
     'Health': `Health spending in FY2027: $112.3B (42% of budget, -3.1% YoY). Main driver is Medicaid at $38.2B State share (+11.4%). 6.8M enrolled (34% of NYS population). Per capita spending $4,755 (44% above national average). Key pressures: MLTC growth, NHTD Waiver, high-cost drugs (GLP-1s), enrollment 700K above pre-pandemic. H.R. 1 impacts Essential Plan significantly.`,
 
-    'Education': `Education spending in FY2027: $48.5B (19% of budget, +3.3% YoY). School Aid totals $39.3B (+$1.6B/4.3%). Foundation Aid: $27.1B (+$779M/3%). Per-pupil spending $30,012 (#1 nationally, 80% above average). Universal Pre-K expansion: all 4-year-olds by SY2029, +$561M (+52.5%). NYC 3-K: +$205M.`,
+    'Education': `Education spending in FY2027: $48.5B (19% of All Funds budget, +3.3% YoY). Three agencies comprise this function:
+
+**State Education Department (SED): $47.1B (+3.6% YoY, 97% of Education)**
+SED administers K-12 education, teacher certification, professional licensing, and cultural education. Key allocations:
+- School Aid: $39.3B total (+$1.6B/4.3% YoY) — largest single State spending category
+- Foundation Aid: $27.1B (+$779M/3%), with minimum 1% increase guaranteed per district
+- Per-pupil spending: $30,012 — #1 nationally for 19 consecutive years, 80% above national average of $16,526
+- Students served: 2.4 million K-12 + 192,000 charter school students
+- Universal Pre-K expansion: +$561M (+52.5%) toward goal of all 4-year-olds statewide by SY 2029
+- Per-pupil Pre-K funding: Greater of $10,000 or district's Foundation Aid per pupil
+- NYC 3-K: +$205M increase
+- Childcare investment connected to education: $4.5B total across government (+$1.7B increase)
+
+**STAR (School Tax Relief): $1.3B (-4.2% YoY, 3% of Education)**
+STAR provides property tax relief to homeowners through two programs:
+- Basic STAR: Exemption for owner-occupied primary residences (income limit ~$250K for exemption, $500K for credit)
+- Enhanced STAR: Additional benefit for seniors 65+ with income ≤$98,700
+- Program has been shifting from exemptions (administered by assessors) to credits (administered by Tax Department) since 2016 for new applicants
+- STAR savings checks are mailed directly; average benefit ~$800/year for Basic, ~$1,400/year for Enhanced
+- The -4.2% decrease reflects continued transition from exemption to credit program and property value growth reducing relative benefit
+
+**Council on the Arts (NYSCA): $70.3M (-29.7% YoY, <1% of Education)**
+NYSCA supports nonprofit arts and cultural organizations statewide:
+- Grants to arts organizations across all 62 counties for programming, operations, and capital
+- Supports visual arts, performing arts, literary arts, media, museum programs, and arts education
+- The -29.7% decrease reflects reduction from one-time enhanced funding in prior year
+- Typical grant categories: General Operating Support, Project Support, Capital Projects, Arts Education
+- Works in partnership with Regional Arts Councils that serve as local intermediaries`,
+
+    'State Education Department': `State Education Department (SED) FY2027 spending: $47.1B (+3.6% YoY, 97% of the Education function).
+
+SED is the largest agency in the Education function and administers K-12 public education, teacher certification, professional licensing, and cultural education across New York State.
+
+**School Aid: $39.3B (+$1.6B/4.3% YoY)**
+- Foundation Aid: $27.1B (+$779M/3%) — the primary formula-based operating aid
+- Minimum 1% Foundation Aid increase guaranteed per district
+- Expense-Based Aids: Transportation, building, BOCES, special education
+- Per-pupil spending: $30,012 — #1 nationally for 19 consecutive years
+- National average comparison: 80% above the $16,526 national average
+- Students: 2.4 million K-12 + 192,000 charter school students
+
+**Universal Pre-K Expansion**
+- Goal: All 4-year-olds statewide by School Year 2029
+- Universal Pre-K Aid increase: +$561M (+52.5%)
+- Per-pupil funding: Greater of $10,000 or district's Foundation Aid per pupil
+- NYC 3-K program: +$205M increase
+
+**Childcare Connection**
+- Total childcare investment across government: $4.5B (+$1.7B)
+- Child Care Assistance Program (CCAP): Exceeds $3B (+40%)
+- Eligibility: 85% of state median income (~$114K for family of 4)
+- Children receiving subsidy: +167% in 4 years (to ~170,000)
+
+**Context**
+- NYS spends more per pupil than any other state and has for 19 years
+- School aid is the single largest category of State spending
+- Foundation Aid formula was fully funded starting FY2024 after years of phase-in`,
+
+    'STAR': `STAR (School Tax Relief) FY2027 spending: $1.3B (-4.2% YoY, 3% of the Education function).
+
+STAR provides property tax relief to New York homeowners for their school taxes. It operates through two tiers:
+
+**Basic STAR**
+- Available to owner-occupied primary residences
+- Income limit: ~$250,000 for exemption program, $500,000 for credit program
+- Average benefit: ~$800/year
+- Since 2016, new applicants receive a credit (check) rather than an exemption
+
+**Enhanced STAR**
+- For seniors age 65+ with income ≤$98,700
+- Average benefit: ~$1,400/year
+- Also transitioning from exemption to credit for new applicants
+
+**Program Trends**
+- The -4.2% YoY decrease reflects the ongoing transition from exemptions to credits and property value growth
+- Exemption-to-credit shift: Since 2016, all new STAR recipients get a check from the Tax Department rather than a property tax exemption administered by local assessors
+- Existing exemption recipients can voluntarily switch to the credit for a modest increase
+- Property Tax Cap (separate program): Has saved taxpayers $158B cumulatively over 14 years, with average annual levy increases of 1.98%
+
+**Administration**
+- Basic STAR exemptions: Administered by local assessors
+- STAR credits: Administered by NYS Department of Taxation and Finance
+- Enhanced STAR: Requires annual income verification`,
+
+    'Council on the Arts': `Council on the Arts (NYSCA) FY2027 spending: $70.3M (-29.7% YoY, <1% of the Education function).
+
+The New York State Council on the Arts (NYSCA) supports nonprofit arts and cultural organizations across all 62 counties.
+
+**Mission & Scope**
+- Preserves and expands the cultural resources of New York State
+- Funds programming, operations, and capital projects for arts organizations
+- Supports: visual arts, performing arts, literary arts, media arts, museum programs, arts education, folk arts
+- Works through Regional Arts Councils that serve as local intermediaries
+
+**Grant Programs**
+- General Operating Support (GOS): Multi-year unrestricted funding for established organizations
+- Project Support: Funding for specific artistic programs and events
+- Capital Projects: Facility improvements for cultural venues
+- Arts Education: Programs connecting arts to K-12 and community learning
+- Support for Artists: Individual artist fellowships and commissions
+
+**FY2027 Budget Context**
+- The -29.7% decrease reflects a return to baseline after one-time enhanced funding in the prior year
+- NYSCA is a small but significant agency — arts and culture generate substantial economic activity statewide
+- Cultural tourism is a major economic driver, particularly in NYC but increasingly across all regions
+- Arts organizations are significant employers in many communities`,
 
     'Higher Education': `Higher Education spending in FY2027: $16.3B (6% of budget, +5.8% YoY). SUNY/CUNY operating support +$244M. Capital investments: $1.1B new. 58% of full-time undergrads attend tuition-free. Opportunity Promise Scholarship expanded.`,
 
