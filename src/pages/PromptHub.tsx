@@ -288,20 +288,20 @@ export default function PromptHub() {
                                 <img
                                   src={p.image}
                                   alt={p.title}
-                                  className="w-10 h-10 rounded-full object-cover hover:ring-2 hover:ring-foreground/20 transition-all"
+                                  className="w-7 h-7 rounded-full object-cover hover:ring-2 hover:ring-foreground/20 transition-all"
                                 />
                               </a>
                             )}
-                            <span className={cn("block font-medium", p.image ? "pr-14" : "", "text-base")}>{p.title}</span>
-                            <span className="block text-xs opacity-60 mt-1">{p.upvotes} chats</span>
-                            {/* Arrow — bottom-right, sends to chat */}
-                            <div className="flex justify-end mt-auto pt-2">
+                            <span className={cn("block font-semibold text-lg leading-snug", p.image ? "pr-10" : "")}>{p.title}</span>
+                            {/* Bottom row: chats left, arrow right */}
+                            <div className="flex items-end justify-between mt-auto pt-2">
+                              <span className="text-xs opacity-60">{p.upvotes} chats</span>
                               <button
                                 onClick={() => handlePromptClick(p.prompt, p.context)}
-                                className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                                 title="Send to chat"
                               >
-                                <ArrowUp className="h-4 w-4" />
+                                <ArrowUp className="h-3.5 w-3.5" />
                               </button>
                             </div>
                           </div>
