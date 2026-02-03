@@ -270,14 +270,14 @@ export default function PromptHub() {
                   </h3>
                   <div className="divide-y-2 divide-dotted divide-border/80">
                     {trendingPrompts.map((p) => (
-                      <div key={p.id} className="py-3 first:pt-0">
+                      <div key={p.id} className="py-3 first:pt-0 min-h-[190px] flex flex-col">
                         <button
                           onClick={() => handlePromptClick(p.prompt, p.context)}
-                          className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:shadow-md hover:text-foreground transition-all duration-200 group"
+                          className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:shadow-md hover:text-foreground transition-all duration-200 group flex-1 flex flex-col"
                         >
                           <span className="block">{p.title}</span>
                           <span className="block text-xs opacity-60 mt-0.5">{p.upvotes} chats</span>
-                          <div className="flex justify-end mt-2">
+                          <div className="flex justify-end mt-auto pt-2">
                             {p.image ? (
                               <img
                                 src={p.image}
