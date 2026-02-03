@@ -593,8 +593,36 @@ const NewChat = () => {
       }
 
       // Small delay to ensure everything is ready
-      setTimeout(() => {
-        handleSubmit(null, promptParam, contextParam || undefined);
+      setTimeout(async () => {
+        let finalContext = contextParam || undefined;
+
+        // If context contains a fetchUrl: prefix, fetch the URL content server-side
+        if (finalContext?.startsWith('fetchUrl:')) {
+          const url = finalContext.slice('fetchUrl:'.length).trim();
+          console.log('[NewChat] Fetching URL content for context:', url);
+          try {
+            const supabaseUrl = (supabase as any).supabaseUrl;
+            const supabaseKey = (supabase as any).supabaseKey;
+            const { data: { session: authSession } } = await supabase.auth.getSession();
+            const res = await fetch(`${supabaseUrl}/functions/v1/fetch-url-content`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${authSession?.access_token || supabaseKey}`,
+                apikey: supabaseKey,
+              },
+              body: JSON.stringify({ url }),
+            });
+            const data = await res.json();
+            if (data.content) {
+              finalContext = `Summarize the following article and include the source link at the end of your response: ${url}\n\n${data.content}`;
+            }
+          } catch (err) {
+            console.error('[NewChat] Failed to fetch URL content:', err);
+          }
+        }
+
+        handleSubmit(null, promptParam, finalContext);
         // Clear the prompt from URL to prevent re-submission on refresh
         navigate(location.pathname, { replace: true });
       }, 200);
