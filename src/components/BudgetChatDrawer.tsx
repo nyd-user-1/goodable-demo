@@ -31,6 +31,95 @@ interface ChatMessage {
   streamedContent?: string;
 }
 
+// Map parent function names to DB agency names for appropriation queries
+const FUNCTION_TO_AGENCIES: Record<string, string[]> = {
+  Education: [
+    'Education Department, State',
+    'Tax, Department of (STAR)',
+    'Arts, Council on the',
+  ],
+  Health: [
+    'Health, Department of',
+    'Aging, Office for the',
+    'Medicaid Inspector General, Office of the',
+  ],
+  'Higher Education': [
+    'State University of New York',
+    'City University of New York',
+    'Higher Education Services Corporation',
+  ],
+  Transportation: [
+    'Transportation, Department of',
+    'Motor Vehicles, Department of',
+    'Metropolitan Transportation Authority',
+  ],
+  'Social Welfare': [
+    'Children and Family Services, Office of',
+    'Temporary and Disability Assistance, Office of',
+    'Housing and Community Renewal, Division of',
+    'Homes and Community Renewal, Office of',
+  ],
+  'Mental Hygiene': [
+    'Mental Health, Office of',
+    'People With Developmental Disabilities, Office for',
+    'Addiction Services and Supports, Office of',
+  ],
+  'Public Protection/Criminal Justice': [
+    'Corrections and Community Supervision, Department of',
+    'Criminal Justice Services, Division of',
+    'State Police, Division of',
+    'Homeland Security and Emergency Services, Division of',
+  ],
+};
+
+// Map display agency names back to DB comma-inverted format
+function reverseAgencyName(displayName: string): string {
+  const map: Record<string, string> = {
+    'State Education Department': 'Education Department, State',
+    'Council on the Arts': 'Arts, Council on the',
+    STAR: 'Tax, Department of (STAR)',
+    'Department of Health': 'Health, Department of',
+    'Office for the Aging': 'Aging, Office for the',
+    'Office of the Medicaid Inspector General': 'Medicaid Inspector General, Office of the',
+    'State University of New York': 'State University of New York',
+    'City University of New York': 'City University of New York',
+    'Higher Education Services Corporation': 'Higher Education Services Corporation',
+    'Department of Transportation': 'Transportation, Department of',
+    'Department of Motor Vehicles': 'Motor Vehicles, Department of',
+    'Metropolitan Transportation Authority': 'Metropolitan Transportation Authority',
+    'Office of Children and Family Services': 'Children and Family Services, Office of',
+    'Office of Temporary and Disability Assistance': 'Temporary and Disability Assistance, Office of',
+    'Division of Housing and Community Renewal': 'Housing and Community Renewal, Division of',
+    'Office of Mental Health': 'Mental Health, Office of',
+    'Office for People With Developmental Disabilities': 'People With Developmental Disabilities, Office for',
+    'Office of Addiction Services and Supports': 'Addiction Services and Supports, Office of',
+    'Department of Corrections and Community Supervision': 'Corrections and Community Supervision, Department of',
+    'Division of Criminal Justice Services': 'Criminal Justice Services, Division of',
+    'Division of State Police': 'State Police, Division of',
+    'Division of Homeland Security and Emergency Services': 'Homeland Security and Emergency Services, Division of',
+  };
+  return map[displayName] || displayName;
+}
+
+function formatLineItems(data: Record<string, string | null>[]): string {
+  return data
+    .filter((row) => {
+      const amount = parseInt(row['Appropriations Recommended 2026-27'] || '0');
+      return amount > 0;
+    })
+    .map((row, i) => {
+      const amount = parseInt(row['Appropriations Recommended 2026-27'] || '0');
+      const formatted =
+        amount >= 1_000_000_000
+          ? `$${(amount / 1_000_000_000).toFixed(1)}B`
+          : amount >= 1_000_000
+            ? `$${(amount / 1_000_000).toFixed(1)}M`
+            : `$${(amount / 1_000).toFixed(0)}K`;
+      return `${i + 1}. **${row['Program Name']}** — ${formatted} (${row['Subfund Name']}, ${row['Appropriation Category']})`;
+    })
+    .join('\n');
+}
+
 const SUGGESTED_QUESTIONS = [
   'What is the total FY 2027 budget?',
   'How much is Medicaid spending?',
@@ -49,7 +138,22 @@ const FUNCTION_QUESTIONS: Record<string, string[]> = {
   Education: [
     'How much is Foundation Aid increasing?',
     'What is the Universal Pre-K expansion plan?',
-    'How does per-pupil spending compare nationally?',
+    'Break down the three agencies under Education',
+  ],
+  'State Education Department': [
+    'How does NYS per-pupil spending compare nationally?',
+    'What is the Universal Pre-K timeline and funding?',
+    'How has Foundation Aid changed over recent years?',
+  ],
+  STAR: [
+    'What is the difference between Basic and Enhanced STAR?',
+    'Why is STAR spending decreasing?',
+    'How does the exemption-to-credit transition work?',
+  ],
+  'Council on the Arts': [
+    'What types of grants does NYSCA offer?',
+    'Why did Council on the Arts funding drop 29.7%?',
+    'What art forms and programs does NYSCA support?',
   ],
   'Higher Education': [
     'What capital investments go to SUNY/CUNY?',
@@ -87,14 +191,54 @@ export function BudgetChatDrawer({
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [lineItemContext, setLineItemContext] = useState<string>('');
   const abortControllerRef = useRef<AbortController | null>(null);
   const readerRef = useRef<ReadableStreamDefaultReader | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Fetch live appropriation line items when drawer opens with a functionName
+  useEffect(() => {
+    if (!open || !functionName) {
+      setLineItemContext('');
+      return;
+    }
+
+    const fetchLineItems = async () => {
+      const agencies = FUNCTION_TO_AGENCIES[functionName];
+
+      let query = (supabase as any)
+        .from('budget_2027-aprops')
+        .select('"Agency Name", "Program Name", "Subfund Name", "Appropriation Category", "Appropriations Recommended 2026-27"')
+        .limit(100);
+
+      if (agencies) {
+        query = query.in('"Agency Name"', agencies);
+      } else {
+        const dbName = reverseAgencyName(functionName);
+        query = query.eq('"Agency Name"', dbName);
+      }
+
+      const { data } = await query;
+      if (data && data.length > 0) {
+        // Sort numerically client-side (column is text in DB)
+        const sorted = [...data].sort((a: any, b: any) => {
+          const aVal = parseInt(a['Appropriations Recommended 2026-27'] || '0');
+          const bVal = parseInt(b['Appropriations Recommended 2026-27'] || '0');
+          return bVal - aVal;
+        });
+        const top30 = sorted.slice(0, 30);
+        const formatted = formatLineItems(top30);
+        setLineItemContext(formatted);
+      }
+    };
+
+    fetchLineItems();
+  }, [open, functionName]);
+
   // Build the system prompt
   const systemPrompt = functionName
-    ? `${BUDGET_CHAT_SYSTEM_PROMPT}\n\nThe user is currently viewing the "${functionName}" budget category. Here is additional context:\n${getBudgetContextForFunction(functionName)}`
+    ? `${BUDGET_CHAT_SYSTEM_PROMPT}\n\nThe user is currently viewing the "${functionName}" budget category. Here is additional context:\n${getBudgetContextForFunction(functionName)}${lineItemContext ? `\n\n## Detailed Appropriation Line Items\nThe following are the top appropriation line items from the official budget. Use these to answer specific questions about programs, funds, and dollar amounts:\n\n${lineItemContext}` : ''}`
     : BUDGET_CHAT_SYSTEM_PROMPT;
 
   const suggestions = functionName && FUNCTION_QUESTIONS[functionName]

@@ -125,9 +125,9 @@ const BudgetDashboard = () => {
     openChat(activeTab === 'function' ? row.name : null);
   };
 
-  // Chat click for drill-down agency row — also scoped to function
+  // Chat click for drill-down agency row — scoped to that agency
   const handleAgencyChatClick = (agency: DrillDownRow, parentName: string) => {
-    openChat(activeTab === 'function' ? parentName : null);
+    openChat(activeTab === 'function' ? reformatAgencyName(agency.name) : null);
   };
 
   return (
