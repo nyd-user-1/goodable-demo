@@ -276,26 +276,26 @@ export default function PromptHub() {
                       return (
                         <div key={p.id} className="py-3 first:pt-0 min-h-[190px] flex flex-col">
                           <div className="w-full text-left px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted/50 hover:shadow-md hover:text-foreground transition-all duration-200 group flex-1 flex flex-col relative">
-                            {/* Logo — top-right, links to article */}
-                            {p.image && articleUrl && (
-                              <a
-                                href={articleUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="absolute top-2 right-2 z-10"
-                                title="Read article"
-                              >
-                                <img
-                                  src={p.image}
-                                  alt={p.title}
-                                  className="w-7 h-7 rounded-full object-cover hover:ring-2 hover:ring-foreground/20 transition-all"
-                                />
-                              </a>
-                            )}
-                            <span className={cn("block font-semibold text-lg leading-snug", p.image ? "pr-10" : "")}>{p.title}</span>
-                            {/* Bottom row: chats left, arrow right */}
+                            <span className="block font-semibold text-2xl leading-snug">{p.title}</span>
+                            {/* Bottom row: logo+chats left, arrow right */}
                             <div className="flex items-end justify-between mt-auto pt-2">
-                              <span className="text-xs opacity-60">{p.upvotes} chats</span>
+                              <div className="flex flex-col gap-1">
+                                {p.image && articleUrl && (
+                                  <a
+                                    href={articleUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="Read article"
+                                  >
+                                    <img
+                                      src={p.image}
+                                      alt={p.title}
+                                      className="w-7 h-7 rounded-full object-cover hover:ring-2 hover:ring-foreground/20 transition-all"
+                                    />
+                                  </a>
+                                )}
+                                <span className="text-xs opacity-60">{p.upvotes} chats</span>
+                              </div>
                               <button
                                 onClick={() => handlePromptClick(p.prompt, p.context)}
                                 className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
