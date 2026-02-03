@@ -105,7 +105,7 @@ const categoryColors: Record<string, string> = {
 // Featured category cards (gradient image placeholders)
 const featuredCards = [
   { title: 'Bill Research', subtitle: 'Explore legislation', gradient: 'from-blue-400 to-cyan-300', category: 'Bills' },
-  { title: 'Policy Development', subtitle: 'Frameworks & analysis', gradient: 'from-emerald-400 to-teal-300', category: 'Policy' },
+  { title: 'Policy', subtitle: 'Frameworks & analysis', gradient: 'from-emerald-400 to-teal-300', category: 'Policy' },
   { title: 'Advocacy', subtitle: 'Nonprofit', gradient: 'from-purple-400 to-pink-300', category: 'Advocacy' },
   { title: 'Departments', subtitle: '100+ state entities', gradient: 'from-yellow-300 via-amber-400 to-amber-600', category: 'Departments' },
 ];
@@ -163,7 +163,7 @@ export default function PromptHub() {
       activeCategory === 'All'
         ? hubPrompts
         : hubPrompts.filter((p) => p.category === activeCategory);
-    return [...items].sort((a, b) => b.upvotes - a.upvotes).slice(0, 5);
+    return [...items].sort((a, b) => b.upvotes - a.upvotes).slice(0, 10);
   }, [activeCategory]);
 
   const trendingPrompts = useMemo(
@@ -376,7 +376,6 @@ export default function PromptHub() {
                     />
                     <div className="relative z-10 p-4 flex flex-col justify-end h-full">
                       <h3 className="text-white font-semibold text-sm">{card.title}</h3>
-                      <p className="text-white/70 text-xs mt-0.5">{card.subtitle}</p>
                     </div>
                   </button>
                 ))}
