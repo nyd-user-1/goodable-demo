@@ -4,7 +4,7 @@ import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
 import { cn } from '@/lib/utils';
 import {
-  ArrowUp, Flame,
+  ArrowUp, Flame, PenLine, Megaphone, Briefcase, Heart,
   Award, ExternalLink, Sparkles, Users, FileText, DollarSign,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -611,6 +611,62 @@ export default function PromptHub() {
             {/* ----------------------------------------------------------- */}
             <aside className="hidden xl:block w-[300px] flex-shrink-0 border-l-2 border-dotted border-border/80 pl-8">
               <div className="sticky top-24">
+                {/* Newsletter / CTA */}
+                <div className="mb-6 pb-6 border-b-2 border-dotted border-border/80">
+                  <h3 className="text-sm font-semibold text-blue-500 mb-3">Newsletter</h3>
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="flex-1">
+                      <p className="text-sm text-foreground leading-snug">
+                        NYS policy is changing fast.
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Link
+                          to="/auth"
+                          className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded hover:bg-blue-600 transition-colors uppercase tracking-wide"
+                        >
+                          Subscribe
+                        </Link>
+                        <span className="text-sm text-muted-foreground">to keep up.</span>
+                      </div>
+                    </div>
+                    <img
+                      src="/nysgpt-rectangle.avif"
+                      alt="NYSgpt"
+                      className="w-20 h-20 rounded-lg object-cover border border-border/50"
+                    />
+                  </div>
+                  <div className="divide-y-2 divide-dotted divide-border/80">
+                    <Link
+                      to="/"
+                      className="flex items-center gap-3 py-3 hover:bg-muted/30 rounded-lg px-2 transition-all"
+                    >
+                      <PenLine className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-sm font-medium">Submit a Prompt</span>
+                    </Link>
+                    <Link
+                      to="/about"
+                      className="flex items-center gap-3 py-3 hover:bg-muted/30 rounded-lg px-2 transition-all"
+                    >
+                      <Megaphone className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-sm font-medium">Advertise on NYSgpt</span>
+                    </Link>
+                    <Link
+                      to="/use-cases"
+                      className="flex items-center gap-3 py-3 hover:bg-muted/30 rounded-lg px-2 transition-all"
+                    >
+                      <Briefcase className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-sm font-medium">Use Cases</span>
+                    </Link>
+                    <Link
+                      to="/nonprofits"
+                      className="flex items-center gap-3 py-3 hover:bg-muted/30 rounded-lg px-2 transition-all"
+                    >
+                      <Heart className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-sm font-medium">Advocacy</span>
+                    </Link>
+                  </div>
+                </div>
+
                 {/* Top Prompts */}
                 <div className="mb-6 pb-6 border-b-2 border-dotted border-border/80">
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
