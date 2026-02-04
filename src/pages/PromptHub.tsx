@@ -28,6 +28,15 @@ const hubPrompts: HubPrompt[] = [
   // Featured
   {
     id: 'featured-1',
+    title: 'Special NYC elections 2026',
+    prompt: "Summarize 'Special NYC elections 2026' by Spectrum News NY1",
+    context: 'fetchUrl:https://ny1.com/nyc/queens/politics/2026/02/04/special-nyc-elections-2026--manhattan--queens-districts',
+    category: 'Featured',
+    upvotes: 88,
+    image: '/spectrum-news-1.avif',
+  },
+  {
+    id: 'featured-2',
     title: "Queens voters head to the polls for Assembly District 36 special election to fill Mamdani's old seat",
     prompt: "Summarize 'Queens voters head to the polls for Assembly District 36 special election' by QNS",
     context: 'fetchUrl:https://qns.com/2026/02/voters-polls-district-36-special-election/',
@@ -36,7 +45,7 @@ const hubPrompts: HubPrompt[] = [
     image: '/qns-logo.png',
   },
   {
-    id: 'featured-2',
+    id: 'featured-3',
     title: "Kathy Hochul's Chances of Being Defeated by Trump Ally Bruce Blakeman",
     prompt: "Summarize 'Kathy Hochul's Chances of Being Defeated by Trump Ally Bruce Blakeman' by Newsweek",
     context: 'fetchUrl:https://www.newsweek.com/kathy-hochul-chances-defeated-bruce-blakeman-poll-11459862',
@@ -45,7 +54,7 @@ const hubPrompts: HubPrompt[] = [
     image: '/newsweek-logo.png',
   },
   {
-    id: 'featured-3',
+    id: 'featured-4',
     title: 'Hochul – With Her Best Ever Favorability Rating, 49-40% – Continues to Hold Commanding Leads Over Blakeman (54-28%) & Among Dems, Delgado (64-11%)',
     prompt: "Summarize 'Hochul continues to hold commanding leads over Blakeman and Delgado' by Siena Research Institute",
     context: 'fetchUrl:https://sri.siena.edu/2026/02/03/hochul-with-her-best-ever-favorability-rating-49-40-continues-to-hold-commanding-leads-over-blakeman-54-28-among-dems-delgado-64-11/',
@@ -54,7 +63,7 @@ const hubPrompts: HubPrompt[] = [
     image: '/sri-logo.png',
   },
   {
-    id: 'featured-4',
+    id: 'featured-5',
     title: 'Cabán & Nurse Lead Progressive Caucus',
     prompt: "Summarize 'Cabán and Nurse will lead NYC Council Progressive Caucus' by City & State NY",
     context: 'fetchUrl:https://www.cityandstateny.com/politics/2026/02/caban-and-nurse-will-lead-nyc-council-progressive-caucus/411130/',
@@ -63,7 +72,7 @@ const hubPrompts: HubPrompt[] = [
     image: '/city-and-state.png',
   },
   {
-    id: 'featured-5',
+    id: 'featured-6',
     title: "Turnout low ahead of special election to fill Mamdani's old seat",
     prompt: "Summarize 'Turnout low ahead of special election to fill Mamdani's old seat' by Queens Daily Eagle",
     context: 'fetchUrl:https://queenseagle.com/all/2026/2/2/turnout-low-ahead-of-special-election-to-fill-mamdanis-old-seat',
@@ -72,7 +81,7 @@ const hubPrompts: HubPrompt[] = [
     image: '/queens-eagle-logo.png',
   },
   {
-    id: 'featured-6',
+    id: 'featured-7',
     title: 'Nassau County Executive Blakeman defies state plan to end ICE cooperation',
     prompt: "Summarize 'Nassau County Executive Blakeman defies state plan to end ICE cooperation' by News10",
     context: 'fetchUrl:https://www.news10.com/news/nassau-executive-fights-state-plan-to-end-ice-cooperation/',
@@ -81,7 +90,7 @@ const hubPrompts: HubPrompt[] = [
     image: '/news10-logo.png',
   },
   {
-    id: 'featured-7',
+    id: 'featured-8',
     title: 'Snow Much to Scoop',
     prompt: "Summarize 'Snow Much to Scoop: Powder and Politics' by In The Room Media",
     context: 'fetchUrl:https://intheroommedia.com/2026/01/26/snow-much-to-scoop-powder-and-politics/',
