@@ -11,7 +11,7 @@ interface ModelContextType {
 const ModelContext = createContext<ModelContextType | undefined>(undefined);
 
 export const ModelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [selectedModel, setSelectedModel] = useState<ModelType>("gpt-4o");
+  const [selectedModel, setSelectedModel] = useState<ModelType>("claude-sonnet-4-5-20250929");
 
   return (
     <ModelContext.Provider value={{ selectedModel, setSelectedModel }}>
