@@ -659,7 +659,7 @@ export default function PromptHub() {
                 <div>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
                     <Sparkles className="h-3.5 w-3.5" />
-                    Docs
+                    Press Releases
                   </h3>
                   <div className="divide-y-2 divide-dotted divide-border/80">
                     {newestPrompts.map((p) => (
