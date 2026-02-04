@@ -96,7 +96,7 @@ const hubPrompts: HubPrompt[] = [
     context: 'fetchUrl:https://intheroommedia.com/2026/01/26/snow-much-to-scoop-powder-and-politics/',
     category: 'Featured',
     upvotes: 65,
-    image: '/itr-logo-2.avif',
+    image: '/itr-rectangle.avif',
   },
   // Bills
   { id: 'b1', title: 'AI Consumer Protection', prompt: 'What can you tell me about efforts to protect consumers from algorithmic discrimination in New York?', category: 'Bills', upvotes: 47 },
