@@ -614,7 +614,7 @@ export default function PromptHub() {
                 {/* Newsletter / CTA */}
                 <div className="mb-6 pb-6 border-b-2 border-dotted border-border/80">
                   <h3 className="text-sm font-semibold text-foreground mb-3">Newsletter</h3>
-                  <div className="flex items-center gap-4 mb-3">
+                  <div className="flex items-center gap-4 mb-3 bg-muted/30 rounded-2xl p-4">
                     <div className="flex-1">
                       <p className="text-sm text-foreground leading-snug mb-2">
                         Prompting, policy, and politics.
