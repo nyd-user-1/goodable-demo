@@ -7,7 +7,7 @@ import {
   Table2, ChevronDown, MessageSquare, GripVertical, PanelLeft,
   PanelRight, ChevronRight, ExternalLink, Clock, Copy, Clipboard,
   Download, FileCode, FileType, ArrowUp, ArrowDown, Check, Square,
-  Volume2, ListTree
+  Volume2, ListTree, X
 } from "lucide-react";
 
 // Model provider icons
@@ -122,9 +122,15 @@ const NoteView = () => {
   const [chatMessages, setChatMessages] = useState<Array<{ id: string; role: 'user' | 'assistant'; content: string }>>([]);
   const [isChatLoading, setIsChatLoading] = useState(false);
   const { selectedModel, setSelectedModel } = useModel();
+  const [fileDetailsOpen, setFileDetailsOpen] = useState(true);
+  const [snippetOpen, setSnippetOpen] = useState(true);
+  const [showTagInput, setShowTagInput] = useState(false);
+  const [tagInput, setTagInput] = useState("");
+  const [snippetText, setSnippetText] = useState("");
   const abortControllerRef = useRef<AbortController | null>(null);
   const documentContentRef = useRef<HTMLDivElement>(null);
   const chatContentRef = useRef<HTMLDivElement>(null);
+  const snippetSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Scroll to bottom of document
   const scrollToBottom = useCallback(() => {
@@ -188,6 +194,7 @@ const NoteView = () => {
         const html = ensureHtml(data.content);
         setHtmlContent(html);
         setEditableTitle(data.title);
+        setSnippetText(data.snippet || "");
 
         // Fetch parent chat if exists
         if (data.parent_session_id) {
@@ -274,6 +281,9 @@ const NoteView = () => {
       if (titleSaveTimeoutRef.current) {
         clearTimeout(titleSaveTimeoutRef.current);
       }
+      if (snippetSaveTimeoutRef.current) {
+        clearTimeout(snippetSaveTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -325,6 +335,38 @@ const NoteView = () => {
       })();
     }
   }, [editableTitle, note?.title, noteId, updateNote]);
+
+  const handleAddTag = useCallback(async (tag: string) => {
+    if (!noteId || !note) return;
+    const currentTags = note.tags || [];
+    if (currentTags.includes(tag)) return;
+    const newTags = [...currentTags, tag];
+    const success = await updateNote(noteId, { tags: newTags });
+    if (success) {
+      setNote(prev => prev ? { ...prev, tags: newTags } : null);
+    }
+  }, [noteId, note, updateNote]);
+
+  const handleRemoveTag = useCallback(async (tag: string) => {
+    if (!noteId || !note) return;
+    const newTags = (note.tags || []).filter(t => t !== tag);
+    const success = await updateNote(noteId, { tags: newTags });
+    if (success) {
+      setNote(prev => prev ? { ...prev, tags: newTags } : null);
+    }
+  }, [noteId, note, updateNote]);
+
+  const handleSnippetChange = useCallback((value: string) => {
+    setSnippetText(value);
+    if (snippetSaveTimeoutRef.current) {
+      clearTimeout(snippetSaveTimeoutRef.current);
+    }
+    snippetSaveTimeoutRef.current = setTimeout(async () => {
+      if (!noteId) return;
+      await updateNote(noteId, { snippet: value });
+      setNote(prev => prev ? { ...prev, snippet: value } : null);
+    }, 1500);
+  }, [noteId, updateNote]);
 
   useEffect(() => {
     if (!editor) return;
@@ -659,6 +701,24 @@ ${chatInput}`;
 
     const handleMouseUp = () => {
       setIsDragging(false);
+
+      // Snap behavior: always re-center horizontally
+      const toolbarWidth = toolbarRef.current?.offsetWidth || 560;
+      const toolbarHeight = toolbarRef.current?.offsetHeight || 48;
+      const centerX = (window.innerWidth - toolbarWidth) / 2;
+
+      // Vertical snap: if above viewport midpoint, snap above the title area; otherwise snap to bottom
+      const container = containerRef.current;
+      const headerHeight = 50; // approximate header height after reduction
+      const titleOffset = 48 + 20; // py-12 (48px) + some margin above H1
+      const snapTopY = (container?.getBoundingClientRect().top || 0) + headerHeight + titleOffset - toolbarHeight - 8;
+      const defaultBottomY = window.innerHeight - toolbarHeight - 30;
+
+      setToolbarPosition(prev => {
+        const viewportMid = window.innerHeight / 2;
+        const newY = prev.y < viewportMid ? snapTopY : defaultBottomY;
+        return { x: centerX, y: newY };
+      });
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -774,7 +834,7 @@ ${chatInput}`;
           className="w-full h-full md:rounded-2xl md:border bg-background overflow-hidden flex flex-col"
         >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b bg-background flex-shrink-0">
+        <div className="flex items-center justify-between px-4 py-1.5 bg-background flex-shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             {/* Mobile Menu Icon */}
             <MobileMenuIcon onOpenSidebar={() => setLeftSidebarOpen(!leftSidebarOpen)} />
@@ -980,7 +1040,7 @@ ${chatInput}`;
               <>
                 {/* Tabs Header */}
                 <Tabs defaultValue="chat" className="flex flex-col h-full">
-                  <TabsList className="w-full justify-start rounded-none border-b bg-transparent h-auto p-0">
+                  <TabsList className="w-full justify-start rounded-none bg-transparent h-auto p-0">
                     <TabsTrigger
                       value="chat"
                       className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
@@ -1074,10 +1134,17 @@ ${chatInput}`;
                     {/* Chat Content */}
                     <div ref={chatContentRef} className="flex-1 overflow-y-auto p-4 relative">
                       {/* Note Reference Card */}
-                      <div className="mb-4 p-3 bg-muted/50 rounded-lg border">
+                      <div
+                        className={cn(
+                          "mb-4 p-3 bg-muted/50 rounded-lg border",
+                          parentChat && "cursor-pointer hover:bg-muted/70 transition-colors"
+                        )}
+                        onClick={() => parentChat && navigate(`/c/${parentChat.id}`)}
+                      >
                         <div className="flex items-center gap-2">
                           <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                           <span className="text-sm font-medium truncate">{editableTitle || note.title}</span>
+                          {parentChat && <ExternalLink className="h-3 w-3 text-muted-foreground flex-shrink-0 ml-auto" />}
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">Source</p>
                       </div>
@@ -1359,34 +1426,121 @@ ${chatInput}`;
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="details" className="flex-1 m-0 p-4 overflow-y-auto">
-                    <div className="space-y-4">
+                  <TabsContent value="details" className="flex-1 m-0 overflow-y-auto">
+                    <div className="divide-y">
+                      {/* File details section - collapsible */}
                       <div>
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Created</p>
-                        <p className="text-sm">{new Date(note.created_at).toLocaleDateString()}</p>
+                        <button
+                          onClick={() => setFileDetailsOpen(!fileDetailsOpen)}
+                          className="flex items-center gap-2 w-full px-4 py-3 text-sm font-medium hover:bg-muted/50 transition-colors"
+                        >
+                          <ChevronRight className={cn("h-4 w-4 transition-transform", fileDetailsOpen && "rotate-90")} />
+                          File details
+                        </button>
+                        {fileDetailsOpen && (
+                          <div className="px-4 pb-4 space-y-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-muted-foreground">File type</span>
+                              <span className="text-sm">Note</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-muted-foreground">Title</span>
+                              <span className="text-sm truncate ml-4 max-w-[200px]">{editableTitle || note.title}</span>
+                            </div>
+                            <div>
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="text-xs text-muted-foreground">Tags</span>
+                                <button
+                                  onClick={() => setShowTagInput(true)}
+                                  className="text-xs text-primary hover:underline"
+                                >
+                                  + Add
+                                </button>
+                              </div>
+                              {showTagInput && (
+                                <div className="flex gap-1 mb-2">
+                                  <input
+                                    type="text"
+                                    value={tagInput}
+                                    onChange={(e) => setTagInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' && tagInput.trim()) {
+                                        handleAddTag(tagInput.trim());
+                                        setTagInput('');
+                                      }
+                                      if (e.key === 'Escape') {
+                                        setShowTagInput(false);
+                                        setTagInput('');
+                                      }
+                                    }}
+                                    placeholder="Type a tag..."
+                                    className="flex-1 text-sm px-2 py-1 border rounded bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                                    autoFocus
+                                  />
+                                </div>
+                              )}
+                              <div className="flex flex-wrap gap-1">
+                                {(note.tags || []).map((tag, i) => (
+                                  <span key={i} className="inline-flex items-center gap-1 text-xs bg-muted px-2 py-0.5 rounded-full">
+                                    {tag}
+                                    <button onClick={() => handleRemoveTag(tag)} className="hover:text-destructive">
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-muted-foreground">Added</span>
+                              <span className="text-sm">{new Date(note.created_at).toLocaleDateString()}</span>
+                            </div>
+                            {parentChat && (
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs text-muted-foreground">Source</span>
+                                <button
+                                  onClick={() => navigate(`/c/${parentChat.id}`)}
+                                  className="text-sm text-primary hover:underline flex items-center gap-1"
+                                >
+                                  {parentChat.title || "Chat"}
+                                  <ExternalLink className="h-3 w-3" />
+                                </button>
+                              </div>
+                            )}
+                            {bill && (
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs text-muted-foreground">Related bill</span>
+                                <button
+                                  onClick={() => navigate(`/bills/${bill.bill_number}`)}
+                                  className="text-sm text-primary hover:underline"
+                                >
+                                  {bill.bill_number}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
+
+                      {/* Snippet section - collapsible */}
                       <div>
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Last Updated</p>
-                        <p className="text-sm">{new Date(note.updated_at).toLocaleDateString()}</p>
+                        <button
+                          onClick={() => setSnippetOpen(!snippetOpen)}
+                          className="flex items-center gap-2 w-full px-4 py-3 text-sm font-medium hover:bg-muted/50 transition-colors"
+                        >
+                          <ChevronRight className={cn("h-4 w-4 transition-transform", snippetOpen && "rotate-90")} />
+                          Snippet
+                        </button>
+                        {snippetOpen && (
+                          <div className="px-4 pb-4">
+                            <textarea
+                              value={snippetText}
+                              onChange={(e) => handleSnippetChange(e.target.value)}
+                              placeholder="Add a snippet or summary..."
+                              className="w-full text-sm p-2 border rounded bg-background resize-none min-h-[80px] focus:outline-none focus:ring-1 focus:ring-primary"
+                            />
+                          </div>
+                        )}
                       </div>
-                      {parentChat && (
-                        <div>
-                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Source Chat</p>
-                          <NavLink
-                            to={`/chats/${parentChat.id}`}
-                            className="text-sm text-primary hover:underline flex items-center gap-1"
-                          >
-                            {parentChat.title || "Original Chat"}
-                            <ExternalLink className="h-3 w-3" />
-                          </NavLink>
-                        </div>
-                      )}
-                      {bill && (
-                        <div>
-                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Related Bill</p>
-                          <p className="text-sm text-primary">{bill.bill_number}</p>
-                        </div>
-                      )}
                     </div>
                   </TabsContent>
 

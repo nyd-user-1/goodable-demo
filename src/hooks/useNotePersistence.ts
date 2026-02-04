@@ -12,6 +12,8 @@ export interface ChatNote {
   bill_id: number | null;
   member_id: number | null;
   committee_id: number | null;
+  tags: string[];
+  snippet: string;
   created_at: string;
   updated_at: string;
 }
@@ -108,7 +110,7 @@ export const useNotePersistence = () => {
   }, [user]);
 
   // UPDATE - Update note content
-  const updateNote = useCallback(async (id: string, updates: Partial<Pick<ChatNote, 'title' | 'content'>>): Promise<boolean> => {
+  const updateNote = useCallback(async (id: string, updates: Partial<Pick<ChatNote, 'title' | 'content' | 'tags' | 'snippet'>>): Promise<boolean> => {
     if (!user) return false;
 
     try {
