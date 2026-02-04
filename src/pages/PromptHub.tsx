@@ -33,7 +33,7 @@ const hubPrompts: HubPrompt[] = [
     context: 'fetchUrl:https://ny1.com/nyc/queens/politics/2026/02/04/special-nyc-elections-2026--manhattan--queens-districts',
     category: 'Featured',
     upvotes: 88,
-    image: '/spectrum-news-1.avif',
+    image: '/spectrumnewsny1-2.avif',
   },
   {
     id: 'featured-2',
@@ -51,7 +51,7 @@ const hubPrompts: HubPrompt[] = [
     context: 'fetchUrl:https://www.newsweek.com/kathy-hochul-chances-defeated-bruce-blakeman-poll-11459862',
     category: 'Featured',
     upvotes: 82,
-    image: '/newsweek-logo.png',
+    image: '/newsweek-logo-2.avif',
   },
   {
     id: 'featured-4',
