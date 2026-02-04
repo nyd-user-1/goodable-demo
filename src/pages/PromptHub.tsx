@@ -617,7 +617,7 @@ export default function PromptHub() {
                   <div className="flex items-center gap-4 mb-3">
                     <div className="flex-1">
                       <p className="text-sm text-foreground leading-snug mb-2">
-                        The power of prompting is exploding.
+                        Prompting, policy, and politics.
                       </p>
                       <Link
                         to="/auth"
@@ -627,9 +627,9 @@ export default function PromptHub() {
                       </Link>
                     </div>
                     <img
-                      src="/nysgpt-rectangle.avif"
+                      src="/nysgpt-square-160x160.avif"
                       alt="NYSgpt"
-                      className="w-24 rounded-xl object-cover"
+                      className="w-20 h-20 rounded-xl object-cover"
                     />
                   </div>
                   <div className="divide-y-2 divide-dotted divide-border/80">
