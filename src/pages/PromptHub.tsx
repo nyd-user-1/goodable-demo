@@ -599,7 +599,7 @@ export default function PromptHub() {
                   </h3>
                   <div className="flex items-center gap-4 mb-3 bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 hover:shadow-lg border border-transparent hover:border-border transition-all duration-200">
                     <div className="flex-1">
-                      <p className="text-sm text-foreground leading-snug mb-2">
+                      <p className="text-sm font-semibold text-foreground leading-snug mb-2">
                         Prompting, policy, and politics.
                       </p>
                       <Link
