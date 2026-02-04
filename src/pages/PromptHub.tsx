@@ -477,7 +477,7 @@ export default function PromptHub() {
                                   <img
                                     src={p.image}
                                     alt={p.title}
-                                    className="h-7 rounded-lg object-cover hover:shadow-md transition-all"
+                                    className="h-7 rounded-lg object-cover border border-border/50 hover:shadow-md transition-all"
                                   />
                                 </a>
                               ) : <div />}
@@ -685,7 +685,7 @@ export default function PromptHub() {
                                     <img
                                       src={logo.image}
                                       alt={logo.title}
-                                      className={`h-7 ${('rounded' in logo && logo.rounded) ? 'rounded-full' : 'rounded-lg'} object-cover hover:shadow-md transition-all`}
+                                      className={`h-7 ${('rounded' in logo && logo.rounded) ? 'rounded-full' : 'rounded-lg'} object-cover border border-border/50 hover:shadow-md transition-all`}
                                     />
                                   </a>
                                 ))
@@ -700,7 +700,7 @@ export default function PromptHub() {
                                   <img
                                     src={p.image}
                                     alt={p.title}
-                                    className="h-7 rounded-lg object-cover hover:shadow-md transition-all"
+                                    className="h-7 rounded-lg object-cover border border-border/50 hover:shadow-md transition-all"
                                   />
                                 </a>
                               ) : <div />}
@@ -749,7 +749,7 @@ export default function PromptHub() {
                                   <img
                                     src={p.image}
                                     alt="Source"
-                                    className="h-6 rounded object-contain hover:shadow-md transition-all"
+                                    className="h-7 rounded-lg object-cover border border-border/50 hover:shadow-md transition-all"
                                   />
                                 </a>
                               ) : <div />}

@@ -497,6 +497,7 @@ const NewChat = () => {
 
   // Track if we've already auto-submitted the prompt
   const hasAutoSubmittedRef = useRef(false);
+  const [autoSubmitPending, setAutoSubmitPending] = useState(false);
 
   // Track if the current message is a "What is Goodable.dev?" prompt (for disclaimer)
   const isGoodablePromptRef = useRef(false);
@@ -592,6 +593,7 @@ const NewChat = () => {
     if (promptParam && !hasAutoSubmittedRef.current && !chatStarted && !isTyping) {
       console.log('[NewChat] Auto-submitting prompt:', promptParam, 'with context:', contextParam ? 'yes' : 'no');
       hasAutoSubmittedRef.current = true;
+      setAutoSubmitPending(true);
 
       // Collapse the sidebar when auto-submitting from AI Chat button
       setSidebarOpen(false);
@@ -632,6 +634,7 @@ const NewChat = () => {
           }
         }
 
+        setAutoSubmitPending(false);
         handleSubmit(null, promptParam, finalContext);
         // Clear the prompt from URL to prevent re-submission on refresh
         navigate(location.pathname, { replace: true });
@@ -1546,8 +1549,14 @@ const NewChat = () => {
           >
 
         {!chatStarted ? (
-          /* Initial State - empty (input is centered via fixed positioning) */
-          <div className="flex-1" />
+          /* Initial State - show thinking shimmer during auto-submit, otherwise empty */
+          autoSubmitPending ? (
+            <div className="flex-1 flex items-center justify-center">
+              <p className="text-sm text-muted-foreground animate-pulse">NYSgpt is thinking.</p>
+            </div>
+          ) : (
+            <div className="flex-1" />
+          )
         ) : (
           /* Chat State - Messages */
           <div className="pt-8 pb-16 px-4">
