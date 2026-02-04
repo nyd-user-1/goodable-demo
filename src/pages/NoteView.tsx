@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate, useParams, NavLink } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft, Trash2, FileText, MoreHorizontal, Bold, Italic,
   Underline as UnderlineIcon, Strikethrough, Link2, AlignLeft,
   AlignCenter, AlignRight, Code, List, ListOrdered, Indent, Outdent,
-  Table2, ChevronDown, MessageSquare, GripVertical, PanelLeft,
+  Table2, ChevronDown, MessageSquare, ChevronLeft, Logs,
   PanelRight, ChevronRight, ExternalLink, Clock, Copy, Clipboard,
   Download, FileCode, FileType, ArrowUp, ArrowDown, Check, Square,
   Volume2, ListTree, X
@@ -113,10 +113,8 @@ const NoteView = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [, forceUpdate] = useState(0);
-  const [toolbarPosition, setToolbarPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
+  const [toolbarExpanded, setToolbarExpanded] = useState(true);
   const [parentChat, setParentChat] = useState<ChatSession | null>(null);
-  const [toolbarInitialized, setToolbarInitialized] = useState(false);
   const [wordCountLimit, setWordCountLimit] = useState<number>(250);
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState<Array<{ id: string; role: 'user' | 'assistant'; content: string }>>([]);
@@ -170,7 +168,6 @@ const NoteView = () => {
   const titleSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const editorRef = useRef<TipTapEditorRef>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
-  const dragOffsetRef = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
   const editor = editorRef.current?.editor;
@@ -422,18 +419,6 @@ const NoteView = () => {
     return isFormatActive.textColor(editor);
   }, [editor]);
 
-  const handleDragStart = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!toolbarRef.current) return;
-    e.preventDefault();
-
-    const rect = toolbarRef.current.getBoundingClientRect();
-    dragOffsetRef.current = {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    };
-    setIsDragging(true);
-  }, []);
-
   // Get plain text from HTML for word/character count
   const getPlainText = useCallback((html: string): string => {
     const div = document.createElement('div');
@@ -679,97 +664,6 @@ ${chatInput}`;
     }
   }, [chatInput, chatMessages, note, editableTitle, htmlContent, getPlainText, wordCountLimit, selectedModel, toast]);
 
-  useEffect(() => {
-    if (!isDragging) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const container = containerRef.current;
-      if (!container) return;
-
-      const containerRect = container.getBoundingClientRect();
-      const newX = e.clientX - dragOffsetRef.current.x;
-      const newY = e.clientY - dragOffsetRef.current.y;
-
-      const maxX = containerRect.right - (toolbarRef.current?.offsetWidth || 0);
-      const maxY = containerRect.bottom - (toolbarRef.current?.offsetHeight || 0);
-
-      setToolbarPosition({
-        x: Math.max(containerRect.left, Math.min(newX, maxX)),
-        y: Math.max(containerRect.top, Math.min(newY, maxY)),
-      });
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-
-      // Snap behavior: always re-center horizontally
-      const toolbarWidth = toolbarRef.current?.offsetWidth || 560;
-      const toolbarHeight = toolbarRef.current?.offsetHeight || 48;
-      const centerX = (window.innerWidth - toolbarWidth) / 2;
-
-      // Vertical snap: if above viewport midpoint, snap above the title area; otherwise snap to bottom
-      const container = containerRef.current;
-      const headerHeight = 50; // approximate header height after reduction
-      const titleOffset = 48 + 20; // py-12 (48px) + some margin above H1
-      const snapTopY = (container?.getBoundingClientRect().top || 0) + headerHeight + titleOffset - toolbarHeight - 8;
-      const defaultBottomY = window.innerHeight - toolbarHeight - 30;
-
-      setToolbarPosition(prev => {
-        const viewportMid = window.innerHeight / 2;
-        const newY = prev.y < viewportMid ? snapTopY : defaultBottomY;
-        return { x: centerX, y: newY };
-      });
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging]);
-
-  // Initialize toolbar position: centered horizontally, bottom-aligned with 30px margin
-  useEffect(() => {
-    const initializePosition = () => {
-      if (toolbarInitialized) return;
-
-      const toolbarWidth = toolbarRef.current?.offsetWidth || 560;
-      const toolbarHeight = toolbarRef.current?.offsetHeight || 48;
-
-      // Center horizontally on viewport
-      const x = (window.innerWidth - toolbarWidth) / 2;
-      // Position at bottom of viewport with 30px margin
-      const y = window.innerHeight - toolbarHeight - 30;
-
-      setToolbarPosition({ x, y });
-      setToolbarInitialized(true);
-    };
-
-    // Wait for toolbar to render
-    const timer = setTimeout(initializePosition, 100);
-
-    return () => clearTimeout(timer);
-  }, [toolbarInitialized]);
-
-  // Handle window resize - keep toolbar within bounds
-  useEffect(() => {
-    const handleResize = () => {
-      if (!toolbarInitialized) return;
-
-      const toolbarWidth = toolbarRef.current?.offsetWidth || 560;
-      const toolbarHeight = toolbarRef.current?.offsetHeight || 48;
-
-      setToolbarPosition(prev => ({
-        x: Math.min(prev.x, window.innerWidth - toolbarWidth),
-        y: Math.min(prev.y, window.innerHeight - toolbarHeight - 10),
-      }));
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [toolbarInitialized]);
 
   if (!user) {
     return (
@@ -845,7 +739,7 @@ ${chatInput}`;
               onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
               className={cn("hidden md:inline-flex flex-shrink-0", leftSidebarOpen && "bg-muted")}
             >
-              <PanelLeft className="h-4 w-4" />
+              <Logs className="h-4 w-4" />
             </Button>
 
             {/* Title - clickable link back to parent chat */}
@@ -1040,28 +934,28 @@ ${chatInput}`;
               <>
                 {/* Tabs Header */}
                 <Tabs defaultValue="chat" className="flex flex-col h-full">
-                  <TabsList className="w-full justify-start rounded-none bg-transparent h-auto p-0">
+                  <TabsList className="w-full justify-start bg-transparent h-auto p-2 gap-1">
                     <TabsTrigger
                       value="chat"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+                      className="rounded-md px-3 py-1.5 text-sm font-medium data-[state=active]:bg-muted data-[state=active]:shadow-none"
                     >
                       Chat
                     </TabsTrigger>
                     <TabsTrigger
                       value="details"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+                      className="rounded-md px-3 py-1.5 text-sm font-medium data-[state=active]:bg-muted data-[state=active]:shadow-none"
                     >
                       Details
                     </TabsTrigger>
                     <TabsTrigger
                       value="related"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+                      className="rounded-md px-3 py-1.5 text-sm font-medium data-[state=active]:bg-muted data-[state=active]:shadow-none"
                     >
                       Related
                     </TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="chat" className="flex-1 flex flex-col m-0 overflow-hidden">
+                  <TabsContent value="chat" className="flex-1 flex flex-col mt-0 overflow-hidden">
                     {/* Chat Header with Selector and Three-dot Menu */}
                     <div className="px-3 py-2 border-b flex items-center justify-between">
                       {/* Chat Selector Dropdown */}
@@ -1426,7 +1320,7 @@ ${chatInput}`;
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="details" className="flex-1 m-0 overflow-y-auto">
+                  <TabsContent value="details" className="flex-1 mt-0 overflow-y-auto">
                     <div className="divide-y">
                       {/* File details section - collapsible */}
                       <div>
@@ -1544,7 +1438,7 @@ ${chatInput}`;
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="related" className="flex-1 m-0 p-4 overflow-y-auto">
+                  <TabsContent value="related" className="flex-1 mt-0 p-4 overflow-y-auto">
                     <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
                       <FileText className="h-12 w-12 mb-4 opacity-20" />
                       <p className="text-sm">Related notes will appear here</p>
@@ -1559,25 +1453,31 @@ ${chatInput}`;
       </div>
       </div>
 
-      {/* Draggable Rich Text Toolbar */}
+      {/* Collapsible Rich Text Toolbar - FAB */}
       <div
         ref={toolbarRef}
-        className="fixed z-50"
-        style={{
-          left: toolbarPosition.x,
-          top: toolbarPosition.y,
-          cursor: isDragging ? 'grabbing' : 'auto',
-        }}
+        className="fixed bottom-6 left-6 z-50"
       >
-        <div className="flex items-center gap-0.5 bg-background border rounded-lg shadow-lg px-2 py-2 w-fit">
-          {/* Grip Handle - Draggable */}
-          <div
-            className="flex items-center px-1 cursor-grab text-muted-foreground/50 hover:text-muted-foreground"
-            onMouseDown={handleDragStart}
+        <div className={cn(
+          "flex items-center bg-background border shadow-lg transition-all duration-300 ease-in-out overflow-hidden",
+          toolbarExpanded ? "rounded-lg gap-0.5 px-2 py-2" : "rounded-full"
+        )}>
+          {/* Collapse/Expand Toggle */}
+          <button
+            onClick={() => setToolbarExpanded(prev => !prev)}
+            className={cn(
+              "flex items-center justify-center flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors",
+              toolbarExpanded ? "px-1" : "w-10 h-10"
+            )}
           >
-            <GripVertical className="h-4 w-4" />
-          </div>
+            {toolbarExpanded ? (
+              <ChevronLeft className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </button>
 
+          {toolbarExpanded && (<>
           {/* Text Style Dropdown */}
           <Select value={getCurrentHeadingValue()} onValueChange={handleHeadingChange}>
             <SelectTrigger className="w-[140px] h-8 text-sm border-0 shadow-none hover:bg-muted focus:ring-0">
@@ -1750,6 +1650,7 @@ ${chatInput}`;
           >
             <Table2 className="h-4 w-4" />
           </Button>
+          </>)}
         </div>
       </div>
     </div>
