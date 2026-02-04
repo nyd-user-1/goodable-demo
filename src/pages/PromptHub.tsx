@@ -37,57 +37,57 @@ const hubPrompts: HubPrompt[] = [
   },
   {
     id: 'featured-2',
-    title: 'Cabán & Nurse Lead Progressive Caucus',
-    prompt: "Summarize 'Cabán and Nurse will lead NYC Council Progressive Caucus' by City & State NY",
-    context: 'fetchUrl:https://www.cityandstateny.com/politics/2026/02/caban-and-nurse-will-lead-nyc-council-progressive-caucus/411130/',
-    category: 'Featured',
-    upvotes: 82,
-    image: '/city-and-state.png',
-  },
-  {
-    id: 'featured-3',
-    title: 'Snow Much to Scoop',
-    prompt: "Summarize 'Snow Much to Scoop: Powder and Politics' by In The Room Media",
-    context: 'fetchUrl:https://intheroommedia.com/2026/01/26/snow-much-to-scoop-powder-and-politics/',
-    category: 'Featured',
-    upvotes: 78,
-    image: '/intr-profile.png',
-  },
-  {
-    id: 'featured-4',
-    title: "Turnout low ahead of special election to fill Mamdani's old seat",
-    prompt: "Summarize 'Turnout low ahead of special election to fill Mamdani's old seat' by Queens Daily Eagle",
-    context: 'fetchUrl:https://queenseagle.com/all/2026/2/2/turnout-low-ahead-of-special-election-to-fill-mamdanis-old-seat',
-    category: 'Featured',
-    upvotes: 74,
-    image: '/queens-eagle-logo.png',
-  },
-  {
-    id: 'featured-5',
     title: "Kathy Hochul's Chances of Being Defeated by Trump Ally Bruce Blakeman",
     prompt: "Summarize 'Kathy Hochul's Chances of Being Defeated by Trump Ally Bruce Blakeman' by Newsweek",
     context: 'fetchUrl:https://www.newsweek.com/kathy-hochul-chances-defeated-bruce-blakeman-poll-11459862',
     category: 'Featured',
-    upvotes: 71,
+    upvotes: 82,
     image: '/newsweek-logo.png',
   },
   {
-    id: 'featured-6',
+    id: 'featured-3',
     title: 'Hochul – With Her Best Ever Favorability Rating, 49-40% – Continues to Hold Commanding Leads Over Blakeman (54-28%) & Among Dems, Delgado (64-11%)',
     prompt: "Summarize 'Hochul continues to hold commanding leads over Blakeman and Delgado' by Siena Research Institute",
     context: 'fetchUrl:https://sri.siena.edu/2026/02/03/hochul-with-her-best-ever-favorability-rating-49-40-continues-to-hold-commanding-leads-over-blakeman-54-28-among-dems-delgado-64-11/',
     category: 'Featured',
-    upvotes: 68,
+    upvotes: 78,
     image: '/sri-logo.png',
   },
   {
-    id: 'featured-7',
+    id: 'featured-4',
+    title: 'Cabán & Nurse Lead Progressive Caucus',
+    prompt: "Summarize 'Cabán and Nurse will lead NYC Council Progressive Caucus' by City & State NY",
+    context: 'fetchUrl:https://www.cityandstateny.com/politics/2026/02/caban-and-nurse-will-lead-nyc-council-progressive-caucus/411130/',
+    category: 'Featured',
+    upvotes: 74,
+    image: '/city-and-state.png',
+  },
+  {
+    id: 'featured-5',
+    title: "Turnout low ahead of special election to fill Mamdani's old seat",
+    prompt: "Summarize 'Turnout low ahead of special election to fill Mamdani's old seat' by Queens Daily Eagle",
+    context: 'fetchUrl:https://queenseagle.com/all/2026/2/2/turnout-low-ahead-of-special-election-to-fill-mamdanis-old-seat',
+    category: 'Featured',
+    upvotes: 71,
+    image: '/queens-eagle-logo.png',
+  },
+  {
+    id: 'featured-6',
     title: 'Nassau County Executive Blakeman defies state plan to end ICE cooperation',
     prompt: "Summarize 'Nassau County Executive Blakeman defies state plan to end ICE cooperation' by News10",
     context: 'fetchUrl:https://www.news10.com/news/nassau-executive-fights-state-plan-to-end-ice-cooperation/',
     category: 'Featured',
-    upvotes: 65,
+    upvotes: 68,
     image: '/news10-logo.png',
+  },
+  {
+    id: 'featured-7',
+    title: 'Snow Much to Scoop',
+    prompt: "Summarize 'Snow Much to Scoop: Powder and Politics' by In The Room Media",
+    context: 'fetchUrl:https://intheroommedia.com/2026/01/26/snow-much-to-scoop-powder-and-politics/',
+    category: 'Featured',
+    upvotes: 65,
+    image: '/intr-profile.png',
   },
   // Bills
   { id: 'b1', title: 'AI Consumer Protection', prompt: 'What can you tell me about efforts to protect consumers from algorithmic discrimination in New York?', category: 'Bills', upvotes: 47 },
@@ -614,7 +614,7 @@ export default function PromptHub() {
                     <div key={m.people_id} className="py-3 first:pt-0">
                       <Link
                         to={`/members/${makeMemberSlug(m)}`}
-                        className="flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200"
+                        className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200"
                       >
                         {m.photo_url ? (
                           <img
@@ -640,7 +640,7 @@ export default function PromptHub() {
                             const prompt = `Tell me about ${m.name} and their legislative record`;
                             navigate(`/?prompt=${encodeURIComponent(prompt)}`);
                           }}
-                          className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center flex-shrink-0 hover:opacity-80 transition-opacity"
+                          className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                           title={`Ask about ${m.name}`}
                         >
                           <ArrowUp className="h-4 w-4" />
@@ -706,7 +706,7 @@ export default function PromptHub() {
                     <div key={idx} className="py-3 first:pt-0">
                       <Link
                         to="/budget-dashboard"
-                        className="flex items-center justify-between py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200"
+                        className="group flex items-center justify-between py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200"
                       >
                         <div>
                           <p className="font-medium text-sm">{item.name}</p>
@@ -714,21 +714,23 @@ export default function PromptHub() {
                             {item.share} of total
                           </p>
                         </div>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const prompt = `Tell me about New York State's ${item.name} budget category and its ${item.amount} allocation`;
-                            navigate(`/?prompt=${encodeURIComponent(prompt)}`);
-                          }}
-                          className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center flex-shrink-0 hover:opacity-80 transition-opacity"
-                          title={`Ask about ${item.name} budget`}
-                        >
-                          <ArrowUp className="h-4 w-4" />
-                        </button>
-                        <div className="text-right">
-                          <p className="font-medium text-sm">{item.amount}</p>
-                          <p className="text-xs text-emerald-600">{item.change}</p>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const prompt = `Tell me about New York State's ${item.name} budget category and its ${item.amount} allocation`;
+                              navigate(`/?prompt=${encodeURIComponent(prompt)}`);
+                            }}
+                            className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            title={`Ask about ${item.name} budget`}
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </button>
+                          <div className="text-right">
+                            <p className="font-medium text-sm">{item.amount}</p>
+                            <p className="text-xs text-emerald-600">{item.change}</p>
+                          </div>
                         </div>
                       </Link>
                     </div>
