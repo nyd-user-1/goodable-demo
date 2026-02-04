@@ -4,7 +4,7 @@ import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
 import { cn } from '@/lib/utils';
 import {
-  ArrowUp, ThumbsUp, ThumbsDown, ChevronUp, Flame,
+  ArrowUp, Flame,
   Award, ExternalLink, Sparkles, Users, FileText, DollarSign,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -291,9 +291,6 @@ export default function PromptHub() {
   const location = useLocation();
   const [pageTab, setPageTab] = useState<'prompts' | 'lists'>('prompts');
   const [activeCategory, setActiveCategory] = useState('All');
-  const [upvoted, setUpvoted] = useState<Set<string>>(new Set());
-  const [liked, setLiked] = useState<Set<string>>(new Set());
-  const [disliked, setDisliked] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (location.hash === '#lists') {
@@ -302,14 +299,6 @@ export default function PromptHub() {
       setPageTab('prompts');
     }
   }, [location.hash]);
-
-  const toggleSet = (setter: React.Dispatch<React.SetStateAction<Set<string>>>, id: string) => {
-    setter(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
 
   // Derived prompt lists
   const filteredPrompts = useMemo(() => {
@@ -581,7 +570,7 @@ export default function PromptHub() {
                     onClick={() => handlePromptClick(p.prompt, p.context)}
                     className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg border border-transparent hover:border-border"
                   >
-                    {/* Top row: category tag + upvote on right */}
+                    {/* Top row: category tag + chats count */}
                     <div className="flex items-start justify-between mb-2">
                       <span
                         className={cn(
@@ -591,16 +580,9 @@ export default function PromptHub() {
                       >
                         {p.category}
                       </span>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); toggleSet(setUpvoted, p.id); }}
-                        className={cn(
-                          "flex flex-col items-center gap-0.5 transition-colors",
-                          upvoted.has(p.id) ? "text-blue-500" : "text-muted-foreground hover:text-foreground"
-                        )}
-                      >
-                        <ChevronUp className="h-4 w-4" />
-                        <span className="text-xs font-medium">{p.upvotes + (upvoted.has(p.id) ? 1 : 0)}</span>
-                      </button>
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {p.upvotes} chats
+                      </span>
                     </div>
 
                     <h3 className="font-semibold text-base mb-1">{p.title}</h3>
@@ -608,28 +590,13 @@ export default function PromptHub() {
                       {p.prompt}
                     </p>
 
-                    {/* Bottom row: thumbs + send button */}
+                    {/* Bottom row: logo + send button */}
                     <div className="flex items-center justify-between mt-4">
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); toggleSet(setLiked, p.id); }}
-                          className={cn(
-                            "transition-colors",
-                            liked.has(p.id) ? "text-green-500" : "text-muted-foreground hover:text-foreground"
-                          )}
-                        >
-                          <ThumbsUp className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); toggleSet(setDisliked, p.id); }}
-                          className={cn(
-                            "transition-colors",
-                            disliked.has(p.id) ? "text-red-500" : "text-muted-foreground hover:text-foreground"
-                          )}
-                        >
-                          <ThumbsDown className="h-4 w-4" />
-                        </button>
-                      </div>
+                      <img
+                        src="/nysgpt-rectangle.avif"
+                        alt="NYSgpt"
+                        className="h-7 rounded-lg object-cover border border-border/50"
+                      />
                       <div className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         <ArrowUp className="h-5 w-5" />
                       </div>
