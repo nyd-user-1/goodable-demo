@@ -613,8 +613,11 @@ export default function PromptHub() {
               <div className="sticky top-24">
                 {/* Newsletter / CTA */}
                 <div className="mb-6 pb-6 border-b-2 border-dotted border-border/80">
-                  <h3 className="text-sm font-semibold text-foreground mb-3">Newsletter</h3>
-                  <div className="flex items-center gap-4 mb-3 bg-muted/30 rounded-2xl p-4">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                    <Megaphone className="h-3.5 w-3.5" />
+                    Newsletter
+                  </h3>
+                  <div className="flex items-center gap-4 mb-3 bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 hover:shadow-lg border border-transparent hover:border-border transition-all duration-200">
                     <div className="flex-1">
                       <p className="text-sm text-foreground leading-snug mb-2">
                         Prompting, policy, and politics.
