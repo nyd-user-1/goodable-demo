@@ -7,7 +7,7 @@ import {
   ArrowUp, Flame, PenLine, Megaphone, Briefcase, Heart,
   ExternalLink, Sparkles, Users, FileText, DollarSign,
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 // ---------------------------------------------------------------------------
@@ -285,6 +285,7 @@ const CATEGORIES = ['All', 'Bills', 'Policy', 'Advocacy', 'Departments'];
 export default function PromptHub() {
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
   const [pageTab, setPageTab] = useState<'prompts' | 'lists'>('prompts');
   const [activeCategory, setActiveCategory] = useState('All');
   const [visibleCount, setVisibleCount] = useState(10);
@@ -377,9 +378,39 @@ export default function PromptHub() {
   });
 
   // -----------------------------------------------------------------------
+  // Supabase: prompt chat counts
+  // -----------------------------------------------------------------------
+  const { data: chatCounts } = useQuery({
+    queryKey: ['prompt-chat-counts'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('prompt_chat_counts')
+        .select('prompt_id, chat_count');
+      if (!data) return {};
+      const map: Record<string, number> = {};
+      data.forEach((row: any) => {
+        map[row.prompt_id] = row.chat_count;
+      });
+      return map;
+    },
+    staleTime: 30 * 1000,
+  });
+
+  const getChatCount = (id: string, fallback: number) =>
+    chatCounts?.[id] ?? fallback;
+
+  // -----------------------------------------------------------------------
   // Helpers
   // -----------------------------------------------------------------------
-  const handlePromptClick = (prompt: string, context?: string) => {
+  const handlePromptClick = (promptId: string, seedCount: number, prompt: string, context?: string) => {
+    // Fire-and-forget increment
+    supabase.rpc('increment_prompt_chat_count', {
+      p_prompt_id: promptId,
+      p_seed_count: seedCount,
+    }).then(() => {
+      queryClient.invalidateQueries({ queryKey: ['prompt-chat-counts'] });
+    });
+
     const url = context
       ? `/?prompt=${encodeURIComponent(prompt)}&context=${encodeURIComponent(context)}`
       : `/?prompt=${encodeURIComponent(prompt)}`;
@@ -450,12 +481,12 @@ export default function PromptHub() {
                       return (
                         <div
                           key={p.id}
-                          onClick={() => handlePromptClick(p.prompt, p.context)}
+                          onClick={() => handlePromptClick(p.id, p.upvotes, p.prompt, p.context)}
                           className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg border border-transparent hover:border-border"
                         >
                           <div>
                             <h4 className="font-semibold text-sm line-clamp-2">{p.title}</h4>
-                            <span className="text-xs text-blue-500">{p.upvotes} chats</span>
+                            <span className="text-xs text-blue-500">{getChatCount(p.id, p.upvotes)} chats</span>
                           </div>
                           {/* Bottom row: logo left, arrow right */}
                           <div className="flex items-end justify-between mt-3">
@@ -572,7 +603,7 @@ export default function PromptHub() {
                 {filteredPrompts.map((p) => (
                   <div
                     key={p.id}
-                    onClick={() => handlePromptClick(p.prompt, p.context)}
+                    onClick={() => handlePromptClick(p.id, p.upvotes, p.prompt, p.context)}
                     className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg border border-transparent hover:border-border"
                   >
                     {/* Top row: category tag + chats count */}
@@ -586,7 +617,7 @@ export default function PromptHub() {
                         {p.category}
                       </span>
                       <span className="text-xs font-medium text-blue-500">
-                        {p.upvotes} chats
+                        {getChatCount(p.id, p.upvotes)} chats
                       </span>
                     </div>
 
@@ -700,12 +731,12 @@ export default function PromptHub() {
                       return (
                         <div
                           key={p.id}
-                          onClick={() => handlePromptClick(p.prompt, p.context)}
+                          onClick={() => handlePromptClick(p.id, p.chats, p.prompt, p.context)}
                           className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg border border-transparent hover:border-border"
                         >
                           <div>
                             <h4 className="font-semibold text-sm line-clamp-2">{p.title}</h4>
-                            <span className="text-xs text-blue-500">{p.chats} chats</span>
+                            <span className="text-xs text-blue-500">{getChatCount(p.id, p.chats)} chats</span>
                           </div>
                           <div className="flex items-end justify-between mt-3">
                             <div className="flex items-center gap-2">
