@@ -22,6 +22,7 @@ interface HubPrompt {
   upvotes: number;
   context?: string;
   image?: string;
+  link?: string;
 }
 
 const hubPrompts: HubPrompt[] = [
@@ -142,26 +143,26 @@ const hubPrompts: HubPrompt[] = [
   { id: 'p5', title: 'Building Coalition Support', prompt: 'How do I build a coalition of support for a policy initiative across different interest groups?', category: 'Policy', upvotes: 33 },
   { id: 'p6', title: 'Legislative Strategy', prompt: 'What strategies work best for moving a policy idea from concept to introduced legislation?', category: 'Policy', upvotes: 48 },
   // Advocacy
-  { id: 'a1', title: 'Climate Leadership Act', prompt: "What are the key provisions of New York's Climate Leadership and Community Protection Act, and how is implementation progressing?", category: 'Advocacy', upvotes: 58 },
-  { id: 'a2', title: 'Environmental Justice', prompt: 'What environmental justice legislation is being considered in New York to protect overburdened communities?', category: 'Advocacy', upvotes: 42 },
-  { id: 'a3', title: 'Workforce Development', prompt: 'What funding opportunities and legislation exist to support workforce development and job training programs in New York?', category: 'Advocacy', upvotes: 36 },
-  { id: 'a4', title: 'Gig Worker Protections', prompt: 'What legislation is being considered to provide protections and benefits for gig economy workers in New York?', category: 'Advocacy', upvotes: 39 },
-  { id: 'a5', title: 'Renewable Energy Mandates', prompt: 'What renewable energy mandates exist in New York, and what legislation could accelerate the transition to clean energy?', category: 'Advocacy', upvotes: 45 },
-  { id: 'a6', title: 'Anti-Poverty Programs', prompt: 'What state-level anti-poverty programs exist in New York, and what legislation could strengthen them?', category: 'Advocacy', upvotes: 30 },
-  // Use Case
-  { id: 'u1', title: 'Policy Memo Writing', prompt: "What's the best structure for writing a policy memo that will be read by busy decision-makers?", category: 'Use Case', upvotes: 71 },
-  { id: 'u2', title: 'Data-Driven Advocacy', prompt: 'How can I use data effectively to support my policy arguments and recommendations?', category: 'Use Case', upvotes: 54 },
-  { id: 'u3', title: 'Equity Impact Assessment', prompt: 'How do I assess whether a policy will have equitable outcomes across different communities?', category: 'Use Case', upvotes: 46 },
-  { id: 'u4', title: 'Public Comment Strategy', prompt: "What's the most effective way to participate in a public comment period for proposed regulations?", category: 'Use Case', upvotes: 32 },
+  { id: 'a1', title: 'Climate Leadership Act', prompt: "What are the key provisions of New York's Climate Leadership and Community Protection Act, and how is implementation progressing?", category: 'Advocacy', upvotes: 58, link: '/nonprofits/environmental-advocacy' },
+  { id: 'a2', title: 'Environmental Justice', prompt: 'What environmental justice legislation is being considered in New York to protect overburdened communities?', category: 'Advocacy', upvotes: 42, link: '/nonprofits/environmental-advocacy' },
+  { id: 'a3', title: 'Workforce Development', prompt: 'What funding opportunities and legislation exist to support workforce development and job training programs in New York?', category: 'Advocacy', upvotes: 36, link: '/nonprofits/economic-advocacy' },
+  { id: 'a4', title: 'Gig Worker Protections', prompt: 'What legislation is being considered to provide protections and benefits for gig economy workers in New York?', category: 'Advocacy', upvotes: 39, link: '/nonprofits/social-advocacy' },
+  { id: 'a5', title: 'Renewable Energy Mandates', prompt: 'What renewable energy mandates exist in New York, and what legislation could accelerate the transition to clean energy?', category: 'Advocacy', upvotes: 45, link: '/nonprofits/environmental-advocacy' },
+  { id: 'a6', title: 'Anti-Poverty Programs', prompt: 'What state-level anti-poverty programs exist in New York, and what legislation could strengthen them?', category: 'Advocacy', upvotes: 30, link: '/nonprofits/economic-advocacy' },
+  // Policy (Use Cases)
+  { id: 'u1', title: 'Policy Memo Writing', prompt: "What's the best structure for writing a policy memo that will be read by busy decision-makers?", category: 'Policy', upvotes: 71, link: '/use-cases/policy' },
+  { id: 'u2', title: 'Data-Driven Advocacy', prompt: 'How can I use data effectively to support my policy arguments and recommendations?', category: 'Policy', upvotes: 54, link: '/use-cases/policy' },
+  { id: 'u3', title: 'Equity Impact Assessment', prompt: 'How do I assess whether a policy will have equitable outcomes across different communities?', category: 'Policy', upvotes: 46, link: '/use-cases/policy' },
+  { id: 'u4', title: 'Public Comment Strategy', prompt: "What's the most effective way to participate in a public comment period for proposed regulations?", category: 'Policy', upvotes: 32, link: '/use-cases/policy' },
   // Departments
-  { id: 'd1', title: 'DOH Public Health', prompt: 'What public health initiatives is the NYS Department of Health currently prioritizing, and what legislation supports them?', category: 'Departments', upvotes: 45 },
-  { id: 'd2', title: 'NYSERDA Clean Energy', prompt: 'What clean energy programs is NYSERDA currently funding, and what are the latest results?', category: 'Departments', upvotes: 43 },
-  { id: 'd3', title: 'DOT Infrastructure', prompt: 'What infrastructure projects is the NYS Department of Transportation currently managing, and what is the funding status?', category: 'Departments', upvotes: 40 },
-  { id: 'd4', title: 'DEC Environmental Oversight', prompt: 'What environmental enforcement actions has the NYS Department of Environmental Conservation taken recently?', category: 'Departments', upvotes: 38 },
-  { id: 'd5', title: 'SED Education Standards', prompt: 'What changes is the NYS State Education Department making to curriculum standards and teacher certification?', category: 'Departments', upvotes: 36 },
-  { id: 'd6', title: 'DMV Services Modernization', prompt: 'What services does the NYS Department of Motor Vehicles provide, and what modernization efforts are underway?', category: 'Departments', upvotes: 34 },
-  { id: 'd7', title: 'DOL Workforce Programs', prompt: 'What workforce development programs does the NYS Department of Labor offer, and how effective have they been?', category: 'Departments', upvotes: 31 },
-  { id: 'd8', title: 'DOCCS Reform Efforts', prompt: 'What reforms are being proposed for the NYS Department of Corrections and Community Supervision?', category: 'Departments', upvotes: 28 },
+  { id: 'd1', title: 'DOH Public Health', prompt: 'What public health initiatives is the NYS Department of Health currently prioritizing, and what legislation supports them?', category: 'Departments', upvotes: 45, link: '/departments/department-of-health' },
+  { id: 'd2', title: 'NYSERDA Clean Energy', prompt: 'What clean energy programs is NYSERDA currently funding, and what are the latest results?', category: 'Departments', upvotes: 43, link: '/departments/nyserda' },
+  { id: 'd3', title: 'DOT Infrastructure', prompt: 'What infrastructure projects is the NYS Department of Transportation currently managing, and what is the funding status?', category: 'Departments', upvotes: 40, link: '/departments/department-of-transportation' },
+  { id: 'd4', title: 'DEC Environmental Oversight', prompt: 'What environmental enforcement actions has the NYS Department of Environmental Conservation taken recently?', category: 'Departments', upvotes: 38, link: '/departments/department-of-environmental-conservation' },
+  { id: 'd5', title: 'SED Education Standards', prompt: 'What changes is the NYS State Education Department making to curriculum standards and teacher certification?', category: 'Departments', upvotes: 36, link: '/departments/education-department' },
+  { id: 'd6', title: 'DMV Services Modernization', prompt: 'What services does the NYS Department of Motor Vehicles provide, and what modernization efforts are underway?', category: 'Departments', upvotes: 34, link: '/departments/department-of-motor-vehicles' },
+  { id: 'd7', title: 'DOL Workforce Programs', prompt: 'What workforce development programs does the NYS Department of Labor offer, and how effective have they been?', category: 'Departments', upvotes: 31, link: '/departments/department-of-labor' },
+  { id: 'd8', title: 'DOCCS Reform Efforts', prompt: 'What reforms are being proposed for the NYS Department of Corrections and Community Supervision?', category: 'Departments', upvotes: 28, link: '/departments/department-of-corrections-and-community-supervision' },
 ];
 
 // Category tag colors
@@ -171,7 +172,6 @@ const categoryColors: Record<string, string> = {
   Policy: 'bg-emerald-100 text-emerald-700',
   Advocacy: 'bg-purple-100 text-purple-700',
   Departments: 'bg-yellow-100 text-yellow-700',
-  'Use Case': 'bg-amber-100 text-amber-700',
 };
 
 // Featured category cards (gradient image placeholders)
@@ -260,7 +260,7 @@ const pressReleaseItems = [
   },
 ];
 
-const CATEGORIES = ['All', 'Bills', 'Policy', 'Advocacy', 'Departments', 'Use Case'];
+const CATEGORIES = ['All', 'Bills', 'Policy', 'Advocacy', 'Departments'];
 
 // ---------------------------------------------------------------------------
 // Component
@@ -572,11 +572,25 @@ export default function PromptHub() {
 
                     {/* Bottom row: logo + send button */}
                     <div className="flex items-center justify-between mt-4">
-                      <img
-                        src="/nysgpt-rectangle.avif"
-                        alt="NYSgpt"
-                        className="h-7 rounded-lg object-cover border border-border/50"
-                      />
+                      {p.link ? (
+                        <Link
+                          to={p.link}
+                          onClick={(e) => e.stopPropagation()}
+                          title="Learn more"
+                        >
+                          <img
+                            src="/nysgpt-rectangle.avif"
+                            alt="NYSgpt"
+                            className="h-7 rounded-lg object-cover border border-border/50 hover:shadow-md transition-all"
+                          />
+                        </Link>
+                      ) : (
+                        <img
+                          src="/nysgpt-rectangle.avif"
+                          alt="NYSgpt"
+                          className="h-7 rounded-lg object-cover border border-border/50"
+                        />
+                      )}
                       <div className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         <ArrowUp className="h-5 w-5" />
                       </div>
