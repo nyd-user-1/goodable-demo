@@ -173,15 +173,15 @@ const CATEGORIES = ['All', 'Bills', 'Policy', 'Advocacy', 'Departments', 'Use Ca
 export default function PromptHub() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [pageTab, setPageTab] = useState<'prompts' | 'lists'>('prompts');
   const [activeCategory, setActiveCategory] = useState('All');
   const [upvoted, setUpvoted] = useState<Set<string>>(new Set());
   const [liked, setLiked] = useState<Set<string>>(new Set());
   const [disliked, setDisliked] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    if (location.hash) {
-      const el = document.getElementById(location.hash.slice(1));
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    if (location.hash === '#lists') {
+      setPageTab('lists');
     }
   }, [location.hash]);
 
@@ -298,6 +298,28 @@ export default function PromptHub() {
 
       <main className="flex-1 pt-[120px] pb-16">
         <div className="container mx-auto px-4 max-w-7xl">
+          {/* Pill tab toggle */}
+          <div className="flex justify-center mb-12">
+            <div className="inline-flex items-center bg-muted/50 rounded-full p-1">
+              {(['prompts', 'lists'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setPageTab(tab)}
+                  className={cn(
+                    'px-5 py-2 rounded-full text-sm font-medium transition-all duration-200',
+                    pageTab === tab
+                      ? 'bg-white text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {tab === 'prompts' ? 'Prompts' : 'Lists'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {pageTab === 'prompts' && (
+          <>
           {/* ============================================================= */}
           {/* 3-COLUMN LAYOUT                                                */}
           {/* ============================================================= */}
@@ -571,11 +593,15 @@ export default function PromptHub() {
               </div>
             </aside>
           </div>
+          </>
+          )}
 
+          {pageTab === 'lists' && (
+          <>
           {/* ============================================================= */}
-          {/* BOTTOM 3-COLUMN SECTION                                        */}
+          {/* LISTS SECTION                                                  */}
           {/* ============================================================= */}
-          <div id="lists" className="border-y-2 border-dotted border-border/80 mt-16 pt-8 pb-12 scroll-mt-32">
+          <div id="lists" className="pt-0 pb-12">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
               {/* ------ Top Sponsors (members by bills sponsored) ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
@@ -687,6 +713,8 @@ export default function PromptHub() {
               </div>
             </div>
           </div>
+          </>
+          )}
         </div>
       </main>
 
