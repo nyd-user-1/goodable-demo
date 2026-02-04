@@ -203,7 +203,7 @@ export default function PromptHub() {
   }, [activeCategory]);
 
   const trendingPrompts = useMemo(
-    () => [...hubPrompts].sort((a, b) => b.upvotes - a.upvotes).slice(0, 12),
+    () => hubPrompts.filter((p) => p.category === 'Featured').sort((a, b) => b.upvotes - a.upvotes),
     [],
   );
 
