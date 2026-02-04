@@ -208,7 +208,7 @@ const policyItems = [
     prompt: "Summarize 'State Sen. Shelley Mayer proposes bill to prohibit ICE from gaining access to schools' by NY State of Politics",
     context: 'fetchUrl:https://nystateofpolitics.com/state-of-politics/new-york/politics/2026/02/02/n-y--senator-eyes-bill-to-prohibit-ice-from-accessing-schools',
     chats: 38,
-    image: '/nysop-logo.avif',
+    image: '/state-of-politics-rectangle.avif',
   },
   {
     id: 'policy-5',
