@@ -181,6 +181,7 @@ const policyItems = [
     prompt: "Summarize 'U.S. court again rules an offshore wind project can resume construction' by CNBC",
     context: 'fetchUrl:https://www.cnbc.com/2026/02/02/us-court-again-rules-an-offshore-wind-project-can-resume-construction.html',
     chats: 56,
+    image: '/cnbc-logo.avif',
   },
   {
     id: 'policy-2',
@@ -189,7 +190,7 @@ const policyItems = [
     context: 'fetchUrl:https://www.easthamptonstar.com/government/20251127/touting-economic-benefits-wind-power',
     chats: 49,
     logos: [
-      { image: '/lifed.avif', url: 'https://longislandfed.org/', title: 'Long Island Federation' },
+      { image: '/lifed.avif', url: 'https://longislandfed.org/', title: 'Long Island Federation', rounded: true },
       { image: '/cce-logo.avif', url: 'https://www.citizenscampaign.org/', title: 'Citizens Campaign for the Environment' },
     ],
   },
@@ -385,7 +386,7 @@ export default function PromptHub() {
                 <div>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
                     <Flame className="h-3.5 w-3.5" />
-                    Politics
+                    Trending
                   </h3>
                   <div className="divide-y-2 divide-dotted divide-border/80">
                     {trendingPrompts.map((p) => {
@@ -580,11 +581,11 @@ export default function PromptHub() {
             {/* ----------------------------------------------------------- */}
             <aside className="hidden xl:block w-[300px] flex-shrink-0 border-l-2 border-dotted border-border/80 pl-8">
               <div className="sticky top-24">
-                {/* Policy */}
+                {/* Top Prompts */}
                 <div className="mb-6 pb-6 border-b-2 border-dotted border-border/80">
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
                     <Award className="h-3.5 w-3.5" />
-                    Policy
+                    Top Prompts
                   </h3>
                   <div className="space-y-2">
                     {policyItems.map((p, idx) => {
@@ -626,7 +627,7 @@ export default function PromptHub() {
                                     <img
                                       src={logo.image}
                                       alt={logo.title}
-                                      className="h-6 rounded object-contain hover:shadow-md transition-all"
+                                      className={`h-6 ${('rounded' in logo && logo.rounded) ? 'rounded-full' : 'rounded'} object-contain hover:shadow-md transition-all`}
                                     />
                                   </a>
                                 ))
