@@ -346,7 +346,7 @@ export default function PromptHub() {
                             onClick={() => handlePromptClick(p.prompt, p.context)}
                             className="w-full text-left px-3 py-2 rounded-lg text-muted-foreground hover:border hover:border-border hover:shadow-md hover:text-foreground transition-all duration-200 group flex-1 flex flex-col relative cursor-pointer border border-transparent"
                           >
-                            <span className="block font-semibold text-2xl leading-snug line-clamp-3">{p.title}</span>
+                            <span className="font-semibold text-2xl leading-snug line-clamp-3">{p.title}</span>
                             <span className="block text-xs opacity-60 mt-1">{p.upvotes} chats</span>
                             {/* Bottom row: logo left, arrow right */}
                             <div className="flex items-end justify-between mt-auto pt-2">
@@ -633,6 +633,18 @@ export default function PromptHub() {
                             {m.party} · {m.chamber}
                           </p>
                         </div>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const prompt = `Tell me about ${m.name} and their legislative record`;
+                            navigate(`/?prompt=${encodeURIComponent(prompt)}`);
+                          }}
+                          className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center flex-shrink-0 hover:opacity-80 transition-opacity"
+                          title={`Ask about ${m.name}`}
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </button>
                         <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">
                           {m.billCount} bills
                         </span>
@@ -702,6 +714,18 @@ export default function PromptHub() {
                             {item.share} of total
                           </p>
                         </div>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const prompt = `Tell me about New York State's ${item.name} budget category and its ${item.amount} allocation`;
+                            navigate(`/?prompt=${encodeURIComponent(prompt)}`);
+                          }}
+                          className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center flex-shrink-0 hover:opacity-80 transition-opacity"
+                          title={`Ask about ${item.name} budget`}
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </button>
                         <div className="text-right">
                           <p className="font-medium text-sm">{item.amount}</p>
                           <p className="text-xs text-emerald-600">{item.change}</p>

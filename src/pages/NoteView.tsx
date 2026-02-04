@@ -1025,12 +1025,6 @@ ${chatInput}`;
                     >
                       Details
                     </TabsTrigger>
-                    <TabsTrigger
-                      value="related"
-                      className="rounded-md px-3 py-1.5 text-sm font-medium data-[state=active]:bg-muted data-[state=active]:shadow-none"
-                    >
-                      Related
-                    </TabsTrigger>
                   </TabsList>
 
                   <div className="flex-1 relative min-h-0">
@@ -1517,13 +1511,6 @@ ${chatInput}`;
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="related" className="absolute inset-0 mt-0 p-4 overflow-y-auto">
-                    <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-                      <FileText className="h-12 w-12 mb-4 opacity-20" />
-                      <p className="text-sm">Related notes will appear here</p>
-                      <p className="text-xs mt-1">Coming soon</p>
-                    </div>
-                  </TabsContent>
                   </div>
                 </Tabs>
               </>

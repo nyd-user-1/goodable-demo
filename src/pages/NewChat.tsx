@@ -579,6 +579,15 @@ const NewChat = () => {
     const contextParam = searchParams.get('context'); // Hidden context for AI
     const sessionId = routeSessionId || searchParams.get('session');
 
+    // Redirect authenticated users from public / to /new-chat so session persists
+    if (promptParam && user && isPublicPage) {
+      const params = new URLSearchParams();
+      params.set('prompt', promptParam);
+      if (contextParam) params.set('context', contextParam);
+      navigate(`/new-chat?${params.toString()}`, { replace: true });
+      return;
+    }
+
     // Only auto-submit once, and only if we have a prompt and haven't started a chat yet
     if (promptParam && !hasAutoSubmittedRef.current && !chatStarted && !isTyping) {
       console.log('[NewChat] Auto-submitting prompt:', promptParam, 'with context:', contextParam ? 'yes' : 'no');
@@ -627,7 +636,7 @@ const NewChat = () => {
         navigate(location.pathname, { replace: true });
       }, 200);
     }
-  }, [searchParams, chatStarted, isTyping, routeSessionId, setSidebarOpen]);
+  }, [searchParams, chatStarted, isTyping, routeSessionId, setSidebarOpen, user, isPublicPage, navigate]);
 
   // Handle new chat - reset all state
   const handleNewChat = () => {
