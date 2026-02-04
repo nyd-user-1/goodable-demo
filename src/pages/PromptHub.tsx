@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
@@ -288,7 +288,6 @@ export default function PromptHub() {
   const [pageTab, setPageTab] = useState<'prompts' | 'lists'>('prompts');
   const [activeCategory, setActiveCategory] = useState('All');
   const [visibleCount, setVisibleCount] = useState(10);
-  const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (location.hash === '#lists') {
@@ -315,22 +314,6 @@ export default function PromptHub() {
     setVisibleCount(10);
   }, [activeCategory]);
 
-  // Infinite scroll observer
-  useEffect(() => {
-    if (!hasMore) return;
-    const el = sentinelRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setVisibleCount((prev) => prev + 10);
-        }
-      },
-      { rootMargin: '200px' },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [hasMore, activeCategory]);
 
   const trendingPrompts = useMemo(
     () => hubPrompts.filter((p) => p.category === 'Featured'),
@@ -640,8 +623,13 @@ export default function PromptHub() {
                   </div>
                 ))}
                 {hasMore && (
-                  <div ref={sentinelRef} className="flex justify-center py-8">
-                    <span className="text-sm text-muted-foreground animate-pulse">Loading more...</span>
+                  <div className="flex justify-center py-8">
+                    <button
+                      onClick={() => setVisibleCount((prev) => prev + 10)}
+                      className="rounded-lg border border-border bg-muted/30 px-6 py-2.5 text-sm font-medium text-foreground hover:bg-muted/50 hover:shadow-lg transition-all"
+                    >
+                      Load More
+                    </button>
                   </div>
                 )}
               </div>
