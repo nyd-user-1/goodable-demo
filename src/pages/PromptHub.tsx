@@ -42,7 +42,7 @@ const hubPrompts: HubPrompt[] = [
     context: 'fetchUrl:https://qns.com/2026/02/voters-polls-district-36-special-election/',
     category: 'Featured',
     upvotes: 85,
-    image: '/qns-logo.png',
+    image: '/qns-logo-2.avif',
   },
   {
     id: 'featured-3',
@@ -60,7 +60,7 @@ const hubPrompts: HubPrompt[] = [
     context: 'fetchUrl:https://sri.siena.edu/2026/02/03/hochul-with-her-best-ever-favorability-rating-49-40-continues-to-hold-commanding-leads-over-blakeman-54-28-among-dems-delgado-64-11/',
     category: 'Featured',
     upvotes: 78,
-    image: '/sri-logo.png',
+    image: '/sri-logo-2.avif',
   },
   {
     id: 'featured-5',
