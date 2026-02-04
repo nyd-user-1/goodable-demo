@@ -624,7 +624,8 @@ const NewChat = () => {
             });
             const data = await res.json();
             if (data.content) {
-              finalContext = `You are summarizing a news article. Provide a detailed, structured summary organized by topic sections (e.g. "NYC COUNCIL LEADERSHIP:", "POLITICAL STRATEGY:", "AFFORDABILITY & HOUSING:", etc.). For each section, include specific names, dollar amounts, and key details from the article. Bold all proper names of people (e.g. **Julie Menin**, **Governor Hochul**, **Rick Cotton**). End with the source link: ${url}\n\nArticle content:\n${data.content}`;
+              const articleTitle = data.title || new URL(url).hostname.replace('www.', '');
+              finalContext = `You are summarizing a news article. Provide a detailed, structured summary organized by topic sections (e.g. "NYC COUNCIL LEADERSHIP:", "POLITICAL STRATEGY:", "AFFORDABILITY & HOUSING:", etc.). For each section, include specific names, dollar amounts, and key details from the article. Bold all proper names of people (e.g. **Julie Menin**, **Governor Hochul**, **Rick Cotton**). End with: Source: [${articleTitle}](${url})\n\nArticle content:\n${data.content}`;
             }
           } catch (err) {
             console.error('[NewChat] Failed to fetch URL content:', err);
@@ -1791,6 +1792,11 @@ const NewChat = () => {
                             li: ({ children }) => (
                               <li className="text-foreground text-sm">{children}</li>
                             ),
+                            a: ({ href, children }) => (
+                              <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline">
+                                {children}
+                              </a>
+                            ),
                           }}
                         >
                           {stripCitations(message.streamedContent || '')}
@@ -1841,6 +1847,11 @@ const NewChat = () => {
                                   ),
                                   li: ({ children }) => (
                                     <li className="text-foreground text-sm">{children}</li>
+                                  ),
+                                  a: ({ href, children }) => (
+                                    <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline">
+                                      {children}
+                                    </a>
                                   ),
                                 }}
                               >
@@ -1901,6 +1912,11 @@ const NewChat = () => {
                                 li: ({ children }) => (
                                   <li className="text-foreground text-sm">{children}</li>
                                 ),
+                                a: ({ href, children }) => (
+                                  <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline">
+                                    {children}
+                                  </a>
+                                ),
                               }}
                             >
                               {stripCitations(message.content)}
@@ -1949,6 +1965,11 @@ const NewChat = () => {
                                       ),
                                       li: ({ children }) => (
                                         <li className="text-foreground text-sm">{children}</li>
+                                      ),
+                                      a: ({ href, children }) => (
+                                        <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline">
+                                          {children}
+                                        </a>
                                       ),
                                     }}
                                   >
