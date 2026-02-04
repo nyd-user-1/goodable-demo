@@ -4,7 +4,7 @@ export default function FooterSimple() {
       <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-10 md:h-24 md:flex-row md:px-6 md:py-0 2xl:max-w-[1400px]">
         <p className="text-muted-foreground text-center text-sm md:text-left">
           &copy; {new Date().getFullYear()}{' '}
-          <a href="/" className="font-medium hover:text-foreground transition-colors">NYSgpt</a>{' '}
+          <a href="/" className="font-medium text-foreground hover:text-foreground transition-colors">NYSgpt</a>{' '}
           All rights reserved. In early development.
         </p>
         <nav className="flex gap-4 md:gap-6">

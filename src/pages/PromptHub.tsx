@@ -613,26 +613,25 @@ export default function PromptHub() {
               <div className="sticky top-24">
                 {/* Newsletter / CTA */}
                 <div className="mb-6 pb-6 border-b-2 border-dotted border-border/80">
-                  <h3 className="text-sm font-semibold text-blue-500 mb-3">Newsletter</h3>
+                  <h3 className="text-sm font-semibold text-foreground mb-3">Newsletter</h3>
                   <div className="flex items-start gap-3 mb-3">
                     <div className="flex-1">
                       <p className="text-sm text-foreground leading-snug">
-                        NYS policy is changing fast.
+                        The power of prompting is exploding.
                       </p>
-                      <div className="flex items-center gap-2 mt-2">
+                      <div className="mt-2">
                         <Link
                           to="/auth"
-                          className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded hover:bg-blue-600 transition-colors uppercase tracking-wide"
+                          className="bg-white text-foreground text-xs font-bold px-3 py-1 rounded border border-border/50 hover:shadow-md transition-all uppercase tracking-wide"
                         >
                           Subscribe
                         </Link>
-                        <span className="text-sm text-muted-foreground">to keep up.</span>
                       </div>
                     </div>
                     <img
                       src="/nysgpt-rectangle.avif"
                       alt="NYSgpt"
-                      className="w-20 h-20 rounded-lg object-cover border border-border/50"
+                      className="w-20 h-20 rounded-lg object-contain border border-border/50"
                     />
                   </div>
                   <div className="divide-y-2 divide-dotted divide-border/80">
