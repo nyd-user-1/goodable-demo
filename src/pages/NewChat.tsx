@@ -2782,8 +2782,8 @@ const NewChat = () => {
         </div>
       </div>
 
-      {/* Product Hunt Badge - hide when chat started or user is typing */}
-      {!chatStarted && query.length === 0 && (
+      {/* Product Hunt Badge - only show on root, hide on /c/ session pages */}
+      {!chatStarted && query.length === 0 && !routeSessionId && (
         <a
           href="https://www.producthunt.com/products/nysgpt-govtech?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-nysgpt-govtech"
           target="_blank"
