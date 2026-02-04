@@ -28,7 +28,6 @@ import {
   LogOut,
   HelpCircle,
   FileText,
-  Mail,
   HandCoins,
   MoreHorizontal,
   Pin,
@@ -39,6 +38,8 @@ import {
   CirclePlus,
   Home,
   Flag,
+  Sparkles,
+  Briefcase,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -398,13 +399,13 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
 
               <DropdownMenuSeparator />
 
-              <DropdownMenuItem>
-                <FileText className="h-4 w-4 mr-2" />
-                User guide
+              <DropdownMenuItem onClick={() => { navigate('/features'); onClose?.(); }}>
+                <Sparkles className="h-4 w-4 mr-2" />
+                Features
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Mail className="h-4 w-4 mr-2" />
-                Email support
+              <DropdownMenuItem onClick={() => { navigate('/use-cases'); onClose?.(); }}>
+                <Briefcase className="h-4 w-4 mr-2" />
+                Use Cases
               </DropdownMenuItem>
 
               <DropdownMenuSeparator />
@@ -936,6 +937,26 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             </CollapsibleContent>
           </div>
         </Collapsible>
+
+        {/* Features & Use Cases - for unauthenticated users */}
+        {!user && (
+          <div className="space-y-1 pt-1">
+            <button
+              onClick={() => { navigate('/features'); onClose?.(); }}
+              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-normal transition-colors hover:bg-muted w-full text-left text-muted-foreground"
+            >
+              <Sparkles className="h-4 w-4" />
+              <span>Features</span>
+            </button>
+            <button
+              onClick={() => { navigate('/use-cases'); onClose?.(); }}
+              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-normal transition-colors hover:bg-muted w-full text-left text-muted-foreground"
+            >
+              <Briefcase className="h-4 w-4" />
+              <span>Use Cases</span>
+            </button>
+          </div>
+        )}
 
       </div>
 

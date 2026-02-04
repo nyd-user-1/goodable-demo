@@ -182,6 +182,8 @@ export default function PromptHub() {
   useEffect(() => {
     if (location.hash === '#lists') {
       setPageTab('lists');
+    } else {
+      setPageTab('prompts');
     }
   }, [location.hash]);
 

@@ -95,7 +95,7 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
             </button>
           </div>
 
-          {/* Center - Marketing Navigation (desktop only) */}
+          {/* Center - Navigation (desktop only) */}
           <nav className="hidden md:flex items-center justify-center gap-6 absolute left-1/2 -translate-x-1/2">
             <Link
               to="/"
@@ -105,26 +105,17 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
             </Link>
 
             <Link
-              to="/about"
+              to="/prompts"
               className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
             >
-              About
+              Prompts
             </Link>
 
-            {/* Features - simple link */}
             <Link
-              to="/features"
+              to="/prompts#lists"
               className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
             >
-              Features
-            </Link>
-
-            {/* Use Cases - simple link */}
-            <Link
-              to="/use-cases"
-              className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
-            >
-              Use Cases
+              Lists
             </Link>
 
           </nav>
