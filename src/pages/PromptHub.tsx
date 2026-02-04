@@ -5,7 +5,7 @@ import FooterSimple from '@/components/marketing/FooterSimple';
 import { cn } from '@/lib/utils';
 import {
   ArrowUp, Flame, PenLine, Megaphone, Briefcase, Heart,
-  Award, ExternalLink, Sparkles, Users, FileText, DollarSign,
+  ExternalLink, Sparkles, Users, FileText, DollarSign,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,7 +25,43 @@ interface HubPrompt {
 }
 
 const hubPrompts: HubPrompt[] = [
-  // Featured
+  // Featured (former Top Prompts first, then existing Trending)
+  {
+    id: 'featured-cnbc',
+    title: 'U.S. court again rules an offshore wind project can resume construction',
+    prompt: "Summarize 'U.S. court again rules an offshore wind project can resume construction' by CNBC",
+    context: 'fetchUrl:https://www.cnbc.com/2026/02/02/us-court-again-rules-an-offshore-wind-project-can-resume-construction.html',
+    category: 'Featured',
+    upvotes: 56,
+    image: '/cnbc-logo.avif',
+  },
+  {
+    id: 'featured-cns',
+    title: 'New York lawmakers want to keep AI out of news',
+    prompt: "Summarize 'New York lawmakers want to keep AI out of news' by City & State NY",
+    context: 'fetchUrl:https://www.cityandstateny.com/policy/2026/02/new-york-lawmakers-want-keep-ai-out-news/411111/?oref=csny-homepage-river',
+    category: 'Featured',
+    upvotes: 44,
+    image: '/cns-logo.avif',
+  },
+  {
+    id: 'featured-sop',
+    title: 'State Sen. Shelley Mayer proposes bill to prohibit ICE from gaining access to schools',
+    prompt: "Summarize 'State Sen. Shelley Mayer proposes bill to prohibit ICE from gaining access to schools' by NY State of Politics",
+    context: 'fetchUrl:https://nystateofpolitics.com/state-of-politics/new-york/politics/2026/02/02/n-y--senator-eyes-bill-to-prohibit-ice-from-accessing-schools',
+    category: 'Featured',
+    upvotes: 38,
+    image: '/state-of-politics-rectangle.avif',
+  },
+  {
+    id: 'featured-politico',
+    title: 'The NYC Council says a detained employee was law abiding. The Department of Homeland Security argues otherwise',
+    prompt: "Summarize 'The NYC Council says a detained employee was law abiding. DHS argues otherwise' by Politico",
+    context: 'fetchUrl:https://www.politico.com/news/2026/01/13/new-york-city-council-detained-employee-dhs-00725904',
+    category: 'Featured',
+    upvotes: 33,
+    image: '/politico-logo.avif',
+  },
   {
     id: 'featured-1',
     title: 'Special NYC elections 2026',
@@ -70,15 +106,6 @@ const hubPrompts: HubPrompt[] = [
     category: 'Featured',
     upvotes: 74,
     image: '/city-and-state.png',
-  },
-  {
-    id: 'featured-6',
-    title: "Turnout low ahead of special election to fill Mamdani's old seat",
-    prompt: "Summarize 'Turnout low ahead of special election to fill Mamdani's old seat' by Queens Daily Eagle",
-    context: 'fetchUrl:https://queenseagle.com/all/2026/2/2/turnout-low-ahead-of-special-election-to-fill-mamdanis-old-seat',
-    category: 'Featured',
-    upvotes: 71,
-    image: '/queens-eagle-logo.png',
   },
   {
     id: 'featured-7',
@@ -173,53 +200,6 @@ const budgetItems = [
   { name: 'All Other', amount: '$3.9B', change: '+1.2%', share: '1.5%' },
 ];
 
-// Policy stories for the right sidebar
-const policyItems = [
-  {
-    id: 'policy-1',
-    title: 'U.S. court again rules an offshore wind project can resume construction',
-    prompt: "Summarize 'U.S. court again rules an offshore wind project can resume construction' by CNBC",
-    context: 'fetchUrl:https://www.cnbc.com/2026/02/02/us-court-again-rules-an-offshore-wind-project-can-resume-construction.html',
-    chats: 56,
-    image: '/cnbc-logo.avif',
-  },
-  {
-    id: 'policy-2',
-    title: 'Touting Economic Benefits of Wind Power',
-    prompt: "Summarize 'Touting Economic Benefits of Wind Power' by The East Hampton Star",
-    context: 'fetchUrl:https://www.easthamptonstar.com/government/20251127/touting-economic-benefits-wind-power',
-    chats: 49,
-    logos: [
-      { image: '/lifed.avif', url: 'https://longislandfed.org/', title: 'Long Island Federation', rounded: true },
-      { image: '/cce-logo.avif', url: 'https://www.citizenscampaign.org/', title: 'Citizens Campaign for the Environment' },
-    ],
-  },
-  {
-    id: 'policy-3',
-    title: 'New York lawmakers want to keep AI out of news',
-    prompt: "Summarize 'New York lawmakers want to keep AI out of news' by City & State NY",
-    context: 'fetchUrl:https://www.cityandstateny.com/policy/2026/02/new-york-lawmakers-want-keep-ai-out-news/411111/?oref=csny-homepage-river',
-    chats: 44,
-    image: '/cns-logo.avif',
-  },
-  {
-    id: 'policy-4',
-    title: 'State Sen. Shelley Mayer proposes bill to prohibit ICE from gaining access to schools',
-    prompt: "Summarize 'State Sen. Shelley Mayer proposes bill to prohibit ICE from gaining access to schools' by NY State of Politics",
-    context: 'fetchUrl:https://nystateofpolitics.com/state-of-politics/new-york/politics/2026/02/02/n-y--senator-eyes-bill-to-prohibit-ice-from-accessing-schools',
-    chats: 38,
-    image: '/state-of-politics-rectangle.avif',
-  },
-  {
-    id: 'policy-5',
-    title: 'The NYC Council says a detained employee was law abiding. The Department of Homeland Security argues otherwise',
-    prompt: "Summarize 'The NYC Council says a detained employee was law abiding. DHS argues otherwise' by Politico",
-    context: 'fetchUrl:https://www.politico.com/news/2026/01/13/new-york-city-council-detained-employee-dhs-00725904',
-    chats: 33,
-    image: '/politico-logo.avif',
-  },
-];
-
 // Press releases for the right sidebar
 const pressReleaseItems = [
   {
@@ -310,7 +290,7 @@ export default function PromptHub() {
   }, [activeCategory]);
 
   const trendingPrompts = useMemo(
-    () => hubPrompts.filter((p) => p.category === 'Featured').sort((a, b) => b.upvotes - a.upvotes),
+    () => hubPrompts.filter((p) => p.category === 'Featured'),
     [],
   );
 
@@ -667,78 +647,7 @@ export default function PromptHub() {
                   </div>
                 </div>
 
-                {/* Top Prompts */}
-                <div className="mb-6 pb-6 border-b-2 border-dotted border-border/80">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
-                    <Award className="h-3.5 w-3.5" />
-                    Top Prompts
-                  </h3>
-                  <div className="space-y-2">
-                    {policyItems.map((p) => {
-                      const articleUrl = p.context?.startsWith('fetchUrl:')
-                        ? p.context.slice('fetchUrl:'.length).trim()
-                        : null;
-                      return (
-                        <div
-                          key={p.id}
-                          onClick={() => handlePromptClick(p.prompt, p.context)}
-                          className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg border border-transparent hover:border-border"
-                        >
-                          <div>
-                            <h4 className="font-semibold text-sm line-clamp-2">
-                              {p.title}
-                            </h4>
-                            <span className="text-xs text-muted-foreground">
-                              {p.chats} chats
-                            </span>
-                          </div>
-                          {/* Bottom row: logo(s) left, arrow right */}
-                          <div className="flex items-end justify-between mt-3">
-                            <div className="flex items-center gap-2">
-                              {'logos' in p && p.logos ? (
-                                p.logos.map((logo, i) => (
-                                  <a
-                                    key={i}
-                                    href={logo.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    title={logo.title}
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <img
-                                      src={logo.image}
-                                      alt={logo.title}
-                                      className={`h-7 ${('rounded' in logo && logo.rounded) ? 'rounded-full' : 'rounded-lg'} object-cover border border-border/50 hover:shadow-md transition-all`}
-                                    />
-                                  </a>
-                                ))
-                              ) : 'image' in p && p.image && articleUrl ? (
-                                <a
-                                  href={articleUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  title="Read article"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <img
-                                    src={p.image}
-                                    alt={p.title}
-                                    className="h-7 rounded-lg object-cover border border-border/50 hover:shadow-md transition-all"
-                                  />
-                                </a>
-                              ) : <div />}
-                            </div>
-                            <div className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                              <ArrowUp className="h-4 w-4" />
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Docs */}
+                {/* Press Releases */}
                 <div>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
                     <Sparkles className="h-3.5 w-3.5" />
