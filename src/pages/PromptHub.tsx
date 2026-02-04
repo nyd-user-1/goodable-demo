@@ -473,11 +473,12 @@ export default function PromptHub() {
                                   rel="noopener noreferrer"
                                   title="Read article"
                                   onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center bg-muted/60 rounded-lg px-2 py-1 hover:shadow-md transition-all"
                                 >
                                   <img
                                     src={p.image}
                                     alt={p.title}
-                                    className="h-6 rounded object-contain hover:shadow-md transition-all"
+                                    className="h-5 object-contain"
                                   />
                                 </a>
                               ) : <div />}
