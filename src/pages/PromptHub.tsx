@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
@@ -287,6 +287,8 @@ export default function PromptHub() {
   const location = useLocation();
   const [pageTab, setPageTab] = useState<'prompts' | 'lists'>('prompts');
   const [activeCategory, setActiveCategory] = useState('All');
+  const [visibleCount, setVisibleCount] = useState(10);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (location.hash === '#lists') {
@@ -297,13 +299,38 @@ export default function PromptHub() {
   }, [location.hash]);
 
   // Derived prompt lists
-  const filteredPrompts = useMemo(() => {
+  const allFilteredPrompts = useMemo(() => {
     const items =
       activeCategory === 'All'
         ? hubPrompts.filter((p) => p.category !== 'Featured')
         : hubPrompts.filter((p) => p.category === activeCategory);
-    return [...items].sort((a, b) => b.upvotes - a.upvotes).slice(0, 10);
+    return [...items].sort((a, b) => b.upvotes - a.upvotes);
   }, [activeCategory]);
+
+  const filteredPrompts = allFilteredPrompts.slice(0, visibleCount);
+  const hasMore = visibleCount < allFilteredPrompts.length;
+
+  // Reset visible count when category changes
+  useEffect(() => {
+    setVisibleCount(10);
+  }, [activeCategory]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!hasMore) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => prev + 10);
+        }
+      },
+      { rootMargin: '200px' },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore, activeCategory]);
 
   const trendingPrompts = useMemo(
     () => hubPrompts.filter((p) => p.category === 'Featured'),
@@ -612,6 +639,11 @@ export default function PromptHub() {
                     </div>
                   </div>
                 ))}
+                {hasMore && (
+                  <div ref={sentinelRef} className="flex justify-center py-8">
+                    <span className="text-sm text-muted-foreground animate-pulse">Loading more...</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -620,30 +652,12 @@ export default function PromptHub() {
             {/* ----------------------------------------------------------- */}
             <aside className="hidden xl:block w-[300px] flex-shrink-0 border-l-2 border-dotted border-border/80 pl-8">
               <div className="sticky top-24">
-                {/* Newsletter / CTA */}
+                {/* Resources */}
                 <div className="mb-6 pb-6 border-b-2 border-dotted border-border/80">
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
                     <Megaphone className="h-3.5 w-3.5" />
-                    Newsletter
+                    Resources
                   </h3>
-                  <div className="flex items-center gap-4 mb-3 bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 hover:shadow-lg border border-transparent hover:border-border transition-all duration-200">
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-foreground leading-snug mb-2">
-                        Prompting, policy, and politics.
-                      </p>
-                      <Link
-                        to="/auth"
-                        className="bg-white text-foreground text-xs font-bold px-3 py-1 rounded border border-border/50 hover:shadow-md transition-all uppercase tracking-wide"
-                      >
-                        Subscribe
-                      </Link>
-                    </div>
-                    <img
-                      src="/nysgpt-square-160x160.avif"
-                      alt="NYSgpt"
-                      className="w-20 h-20 rounded-xl object-cover"
-                    />
-                  </div>
                   <div className="divide-y-2 divide-dotted divide-border/80">
                     <div className="py-3">
                       <Link
