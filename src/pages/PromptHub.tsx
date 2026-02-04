@@ -255,7 +255,7 @@ export default function PromptHub() {
   const filteredPrompts = useMemo(() => {
     const items =
       activeCategory === 'All'
-        ? hubPrompts
+        ? hubPrompts.filter((p) => p.category !== 'Featured')
         : hubPrompts.filter((p) => p.category === activeCategory);
     return [...items].sort((a, b) => b.upvotes - a.upvotes).slice(0, 10);
   }, [activeCategory]);
@@ -388,17 +388,17 @@ export default function PromptHub() {
                     <Flame className="h-3.5 w-3.5" />
                     Trending
                   </h3>
-                  <div className="divide-y-2 divide-dotted divide-border/80">
+                  <div className="space-y-2">
                     {trendingPrompts.map((p) => {
                       const articleUrl = p.context?.startsWith('fetchUrl:')
                         ? p.context.slice('fetchUrl:'.length).trim()
                         : null;
                       return (
-                        <div key={p.id} className="py-3 first:pt-0 min-h-[190px] flex flex-col">
-                          <div
-                            onClick={() => handlePromptClick(p.prompt, p.context)}
-                            className="w-full text-left px-3 py-2 rounded-lg text-muted-foreground hover:border hover:border-border hover:shadow-md hover:text-foreground transition-all duration-200 group flex-1 flex flex-col relative cursor-pointer border border-transparent"
-                          >
+                        <div
+                          key={p.id}
+                          onClick={() => handlePromptClick(p.prompt, p.context)}
+                          className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg border border-transparent hover:border-border min-h-[170px] flex flex-col"
+                        >
                             <span className="font-semibold text-2xl leading-snug line-clamp-3">{p.title}</span>
                             <span className="block text-xs opacity-60 mt-1">{p.upvotes} chats</span>
                             {/* Bottom row: logo left, arrow right */}
@@ -422,7 +422,6 @@ export default function PromptHub() {
                                 <ArrowUp className="h-5 w-5" />
                               </div>
                             </div>
-                          </div>
                         </div>
                       );
                     })}
@@ -588,7 +587,7 @@ export default function PromptHub() {
                     Top Prompts
                   </h3>
                   <div className="space-y-2">
-                    {policyItems.map((p, idx) => {
+                    {policyItems.map((p) => {
                       const articleUrl = p.context?.startsWith('fetchUrl:')
                         ? p.context.slice('fetchUrl:'.length).trim()
                         : null;
@@ -598,18 +597,13 @@ export default function PromptHub() {
                           onClick={() => handlePromptClick(p.prompt, p.context)}
                           className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg border border-transparent hover:border-border"
                         >
-                          <div className="flex items-start gap-3">
-                            <span className="text-2xl font-bold text-muted-foreground/30 leading-none mt-0.5">
-                              {idx + 1}
+                          <div>
+                            <h4 className="font-semibold text-sm line-clamp-2">
+                              {p.title}
+                            </h4>
+                            <span className="text-xs text-muted-foreground">
+                              {p.chats} chats
                             </span>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-sm line-clamp-2">
-                                {p.title}
-                              </h4>
-                              <span className="text-xs text-muted-foreground">
-                                {p.chats} chats
-                              </span>
-                            </div>
                           </div>
                           {/* Bottom row: logo(s) left, arrow right */}
                           <div className="flex items-end justify-between mt-3">
