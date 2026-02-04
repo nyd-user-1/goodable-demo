@@ -618,28 +618,28 @@ export default function PromptHub() {
                   <div className="divide-y-2 divide-dotted divide-border/80">
                     <Link
                       to="/"
-                      className="flex items-center gap-3 py-3 hover:bg-muted/30 rounded-lg px-2 transition-all"
+                      className="flex items-center gap-3 py-5 hover:bg-muted/30 rounded-lg px-2 transition-all"
                     >
                       <PenLine className="h-5 w-5 text-muted-foreground" />
                       <span className="text-sm font-medium">Submit a Prompt</span>
                     </Link>
                     <Link
                       to="/about"
-                      className="flex items-center gap-3 py-3 hover:bg-muted/30 rounded-lg px-2 transition-all"
+                      className="flex items-center gap-3 py-5 hover:bg-muted/30 rounded-lg px-2 transition-all"
                     >
                       <Megaphone className="h-5 w-5 text-muted-foreground" />
                       <span className="text-sm font-medium">Advertise on NYSgpt</span>
                     </Link>
                     <Link
                       to="/use-cases"
-                      className="flex items-center gap-3 py-3 hover:bg-muted/30 rounded-lg px-2 transition-all"
+                      className="flex items-center gap-3 py-5 hover:bg-muted/30 rounded-lg px-2 transition-all"
                     >
                       <Briefcase className="h-5 w-5 text-muted-foreground" />
                       <span className="text-sm font-medium">Use Cases</span>
                     </Link>
                     <Link
                       to="/nonprofits"
-                      className="flex items-center gap-3 py-3 hover:bg-muted/30 rounded-lg px-2 transition-all"
+                      className="flex items-center gap-3 py-5 hover:bg-muted/30 rounded-lg px-2 transition-all"
                     >
                       <Heart className="h-5 w-5 text-muted-foreground" />
                       <span className="text-sm font-medium">Advocacy</span>
