@@ -223,46 +223,12 @@ const policyItems = [
 // Press releases for the right sidebar
 const pressReleaseItems = [
   {
-    id: 'pr-1',
-    title: 'Senate Acts to Protect Access to Reproductive Healthcare, Strengthen Privacy and IVF Coverage',
-    prompt: "Summarize 'Senate Acts to Protect Access to Reproductive Healthcare, Strengthen Privacy and IVF Coverage' by NYS Senate",
-    context: 'fetchUrl:https://www.nysenate.gov/newsroom/press-releases/2026/senate-acts-protect-access-reproductive-healthcare-strengthen-privacy',
-    image: '/nys-senate-seal.avif',
-  },
-  {
-    id: 'pr-2',
-    title: 'Legislature Announces 2026 Joint Legislative Budget Hearing Schedule',
-    prompt: "Summarize 'Legislature Announces 2026 Joint Legislative Budget Hearing Schedule' by NYS Senate",
-    context: 'fetchUrl:https://www.nysenate.gov/newsroom/press-releases/2026/liz-krueger/legislature-announces-2026-joint-legislative-budget',
-    image: '/nys-senate-seal.avif',
-  },
-  {
-    id: 'pr-3',
-    title: 'Senate Advances Reforms to Protect Election Integrity and Support Election Workers',
-    prompt: "Summarize 'Senate Advances Reforms to Protect Election Integrity and Support Election Workers' by NYS Senate",
-    context: 'fetchUrl:https://www.nysenate.gov/newsroom/press-releases/2026/senate-advances-reforms-protect-election-integrity-and-support',
-    image: '/nys-senate-seal.avif',
-  },
-  {
-    id: 'pr-4',
-    title: 'The Blue Book: Senate Majority Staff Analysis of the 2026-2027 Executive Budget Proposal',
-    prompt: "Summarize 'The Blue Book: Senate Majority Staff Analysis of the 2026-2027 Executive Budget Proposal' by NYS Senate",
-    context: 'fetchUrl:https://www.nysenate.gov/newsroom/articles/2026/blue-book-senate-majority-staff-analysis-2026-2027-executive-budget-proposal',
-    image: '/nys-senate-seal.avif',
-  },
-  {
-    id: 'pr-5',
-    title: 'Assembly Passes Bill to Protect Health Care Providers that Prescribe and Dispense Abortion Medication',
-    prompt: "Summarize 'Assembly Passes Bill to Protect Health Care Providers that Prescribe and Dispense Abortion Medication' by NYS Assembly",
-    context: 'fetchUrl:https://nyassembly.gov/Press/?sec=story&story=116637',
-    image: '/nys-assembly-seal.avif',
-  },
-  {
     id: 'pr-6',
     title: 'Money in Your Pockets: Governor Hochul Highlights Proposals to Bring Down Costs of Vehicle Insurance',
     prompt: "Summarize 'Governor Hochul Highlights Proposals to Bring Down Costs of Vehicle Insurance' by NYS Governor",
     context: 'fetchUrl:https://www.governor.ny.gov/news/money-your-pockets-governor-hochul-highlights-proposals-bring-down-costs-vehicle-insurance-0',
     image: '/nys-seal.avif',
+    chats: 31,
   },
   {
     id: 'pr-7',
@@ -270,6 +236,47 @@ const pressReleaseItems = [
     prompt: "Summarize 'New York, New Jersey Sue Trump Administration for Illegally Withholding Gateway Tunnel Funding' by NYS Governor",
     context: 'fetchUrl:https://www.governor.ny.gov/news/new-york-new-jersey-sue-trump-administration-illegally-withholding-gateway-tunnel-funding',
     image: '/nys-seal.avif',
+    chats: 29,
+  },
+  {
+    id: 'pr-1',
+    title: 'Senate Acts to Protect Access to Reproductive Healthcare, Strengthen Privacy and IVF Coverage',
+    prompt: "Summarize 'Senate Acts to Protect Access to Reproductive Healthcare, Strengthen Privacy and IVF Coverage' by NYS Senate",
+    context: 'fetchUrl:https://www.nysenate.gov/newsroom/press-releases/2026/senate-acts-protect-access-reproductive-healthcare-strengthen-privacy',
+    image: '/nys-senate-seal.avif',
+    chats: 27,
+  },
+  {
+    id: 'pr-2',
+    title: 'Legislature Announces 2026 Joint Legislative Budget Hearing Schedule',
+    prompt: "Summarize 'Legislature Announces 2026 Joint Legislative Budget Hearing Schedule' by NYS Senate",
+    context: 'fetchUrl:https://www.nysenate.gov/newsroom/press-releases/2026/liz-krueger/legislature-announces-2026-joint-legislative-budget',
+    image: '/nys-senate-seal.avif',
+    chats: 25,
+  },
+  {
+    id: 'pr-3',
+    title: 'Senate Advances Reforms to Protect Election Integrity and Support Election Workers',
+    prompt: "Summarize 'Senate Advances Reforms to Protect Election Integrity and Support Election Workers' by NYS Senate",
+    context: 'fetchUrl:https://www.nysenate.gov/newsroom/press-releases/2026/senate-advances-reforms-protect-election-integrity-and-support',
+    image: '/nys-senate-seal.avif',
+    chats: 23,
+  },
+  {
+    id: 'pr-4',
+    title: 'The Blue Book: Senate Majority Staff Analysis of the 2026-2027 Executive Budget Proposal',
+    prompt: "Summarize 'The Blue Book: Senate Majority Staff Analysis of the 2026-2027 Executive Budget Proposal' by NYS Senate",
+    context: 'fetchUrl:https://www.nysenate.gov/newsroom/articles/2026/blue-book-senate-majority-staff-analysis-2026-2027-executive-budget-proposal',
+    image: '/nys-senate-seal.avif',
+    chats: 21,
+  },
+  {
+    id: 'pr-5',
+    title: 'Assembly Passes Bill to Protect Health Care Providers that Prescribe and Dispense Abortion Medication',
+    prompt: "Summarize 'Assembly Passes Bill to Protect Health Care Providers that Prescribe and Dispense Abortion Medication' by NYS Assembly",
+    context: 'fetchUrl:https://nyassembly.gov/Press/?sec=story&story=116637',
+    image: '/nys-assembly-seal.avif',
+    chats: 19,
   },
 ];
 
@@ -727,6 +734,7 @@ export default function PromptHub() {
                         >
                           <div>
                             <h4 className="font-semibold text-sm line-clamp-2">{p.title}</h4>
+                            <span className="text-xs text-muted-foreground">{p.chats} chats</span>
                           </div>
                           <div className="flex items-end justify-between mt-3">
                             <div className="flex items-center gap-2">
@@ -754,7 +762,7 @@ export default function PromptHub() {
                       );
                     })}
                     {/* Last 2 from original list */}
-                    {newestPrompts.slice(-2).map((p) => (
+                    {newestPrompts.slice(-2).map((p, idx) => (
                       <div
                         key={p.id}
                         onClick={() => handlePromptClick(p.prompt, p.context)}
@@ -762,6 +770,7 @@ export default function PromptHub() {
                       >
                         <div>
                           <h4 className="font-semibold text-sm line-clamp-2">{p.title}</h4>
+                          <span className="text-xs text-muted-foreground">{idx === 0 ? 17 : 15} chats</span>
                         </div>
                         <div className="flex justify-end mt-3">
                           <div className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
