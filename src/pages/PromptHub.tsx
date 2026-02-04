@@ -87,7 +87,7 @@ const hubPrompts: HubPrompt[] = [
     context: 'fetchUrl:https://www.news10.com/news/nassau-executive-fights-state-plan-to-end-ice-cooperation/',
     category: 'Featured',
     upvotes: 68,
-    image: '/news10-logo.png',
+    image: '/abc10-logo.avif',
   },
   {
     id: 'featured-8',
@@ -96,7 +96,7 @@ const hubPrompts: HubPrompt[] = [
     context: 'fetchUrl:https://intheroommedia.com/2026/01/26/snow-much-to-scoop-powder-and-politics/',
     category: 'Featured',
     upvotes: 65,
-    image: '/intr-profile.png',
+    image: '/itr-logo-2.avif',
   },
   // Bills
   { id: 'b1', title: 'AI Consumer Protection', prompt: 'What can you tell me about efforts to protect consumers from algorithmic discrimination in New York?', category: 'Bills', upvotes: 47 },
@@ -473,12 +473,11 @@ export default function PromptHub() {
                                   rel="noopener noreferrer"
                                   title="Read article"
                                   onClick={(e) => e.stopPropagation()}
-                                  className="inline-flex items-center bg-muted/60 rounded-lg px-2 py-1 hover:shadow-md transition-all"
                                 >
                                   <img
                                     src={p.image}
                                     alt={p.title}
-                                    className="h-5 object-contain"
+                                    className="h-7 rounded-lg object-cover hover:shadow-md transition-all"
                                   />
                                 </a>
                               ) : <div />}
@@ -686,7 +685,7 @@ export default function PromptHub() {
                                     <img
                                       src={logo.image}
                                       alt={logo.title}
-                                      className={`h-6 ${('rounded' in logo && logo.rounded) ? 'rounded-full' : 'rounded'} object-contain hover:shadow-md transition-all`}
+                                      className={`h-7 ${('rounded' in logo && logo.rounded) ? 'rounded-full' : 'rounded-lg'} object-cover hover:shadow-md transition-all`}
                                     />
                                   </a>
                                 ))
@@ -701,7 +700,7 @@ export default function PromptHub() {
                                   <img
                                     src={p.image}
                                     alt={p.title}
-                                    className="h-6 rounded object-contain hover:shadow-md transition-all"
+                                    className="h-7 rounded-lg object-cover hover:shadow-md transition-all"
                                   />
                                 </a>
                               ) : <div />}
