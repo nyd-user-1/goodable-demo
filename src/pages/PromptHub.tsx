@@ -614,24 +614,22 @@ export default function PromptHub() {
                 {/* Newsletter / CTA */}
                 <div className="mb-6 pb-6 border-b-2 border-dotted border-border/80">
                   <h3 className="text-sm font-semibold text-foreground mb-3">Newsletter</h3>
-                  <div className="flex items-start gap-3 mb-3">
+                  <div className="flex items-center gap-4 mb-3">
                     <div className="flex-1">
-                      <p className="text-sm text-foreground leading-snug">
+                      <p className="text-sm text-foreground leading-snug mb-2">
                         The power of prompting is exploding.
                       </p>
-                      <div className="mt-2">
-                        <Link
-                          to="/auth"
-                          className="bg-white text-foreground text-xs font-bold px-3 py-1 rounded border border-border/50 hover:shadow-md transition-all uppercase tracking-wide"
-                        >
-                          Subscribe
-                        </Link>
-                      </div>
+                      <Link
+                        to="/auth"
+                        className="bg-white text-foreground text-xs font-bold px-3 py-1 rounded border border-border/50 hover:shadow-md transition-all uppercase tracking-wide"
+                      >
+                        Subscribe
+                      </Link>
                     </div>
                     <img
                       src="/nysgpt-rectangle.avif"
                       alt="NYSgpt"
-                      className="w-20 h-20 rounded-lg object-contain border border-border/50"
+                      className="w-24 rounded-xl object-cover"
                     />
                   </div>
                   <div className="divide-y-2 divide-dotted divide-border/80">
