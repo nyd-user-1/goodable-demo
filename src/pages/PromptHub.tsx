@@ -397,12 +397,15 @@ export default function PromptHub() {
                         <div
                           key={p.id}
                           onClick={() => handlePromptClick(p.prompt, p.context)}
-                          className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg border border-transparent hover:border-border min-h-[170px] flex flex-col"
+                          className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg border border-transparent hover:border-border"
                         >
-                            <span className="font-semibold text-2xl leading-snug line-clamp-3">{p.title}</span>
-                            <span className="block text-xs opacity-60 mt-1">{p.upvotes} chats</span>
-                            {/* Bottom row: logo left, arrow right */}
-                            <div className="flex items-end justify-between mt-auto pt-2">
+                          <div>
+                            <h4 className="font-semibold text-sm line-clamp-2">{p.title}</h4>
+                            <span className="text-xs text-muted-foreground">{p.upvotes} chats</span>
+                          </div>
+                          {/* Bottom row: logo left, arrow right */}
+                          <div className="flex items-end justify-between mt-3">
+                            <div className="flex items-center gap-2">
                               {p.image && articleUrl ? (
                                 <a
                                   href={articleUrl}
@@ -414,14 +417,15 @@ export default function PromptHub() {
                                   <img
                                     src={p.image}
                                     alt={p.title}
-                                    className="h-7 rounded object-contain hover:shadow-md transition-all"
+                                    className="h-6 rounded object-contain hover:shadow-md transition-all"
                                   />
                                 </a>
                               ) : <div />}
-                              <div className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <ArrowUp className="h-5 w-5" />
-                              </div>
                             </div>
+                            <div className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                              <ArrowUp className="h-4 w-4" />
+                            </div>
+                          </div>
                         </div>
                       );
                     })}
