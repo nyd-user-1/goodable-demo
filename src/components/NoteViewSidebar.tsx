@@ -961,8 +961,11 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
       </div>
 
       {/* Rename Chat Dialog */}
-      <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
-        <RenameDialogContent className="sm:max-w-[425px]">
+      <Dialog open={renameDialogOpen} onOpenChange={(open) => {
+        setRenameDialogOpen(open);
+        if (!open) document.body.style.pointerEvents = '';
+      }}>
+        <RenameDialogContent className="sm:max-w-[425px]" onCloseAutoFocus={(e) => e.preventDefault()}>
           <RenameDialogHeader>
             <RenameDialogTitle>Rename Chat</RenameDialogTitle>
           </RenameDialogHeader>
