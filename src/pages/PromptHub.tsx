@@ -220,6 +220,59 @@ const policyItems = [
   },
 ];
 
+// Press releases for the right sidebar
+const pressReleaseItems = [
+  {
+    id: 'pr-1',
+    title: 'Senate Acts to Protect Access to Reproductive Healthcare, Strengthen Privacy and IVF Coverage',
+    prompt: "Summarize 'Senate Acts to Protect Access to Reproductive Healthcare, Strengthen Privacy and IVF Coverage' by NYS Senate",
+    context: 'fetchUrl:https://www.nysenate.gov/newsroom/press-releases/2026/senate-acts-protect-access-reproductive-healthcare-strengthen-privacy',
+    image: '/nys-senate-seal.avif',
+  },
+  {
+    id: 'pr-2',
+    title: 'Legislature Announces 2026 Joint Legislative Budget Hearing Schedule',
+    prompt: "Summarize 'Legislature Announces 2026 Joint Legislative Budget Hearing Schedule' by NYS Senate",
+    context: 'fetchUrl:https://www.nysenate.gov/newsroom/press-releases/2026/liz-krueger/legislature-announces-2026-joint-legislative-budget',
+    image: '/nys-senate-seal.avif',
+  },
+  {
+    id: 'pr-3',
+    title: 'Senate Advances Reforms to Protect Election Integrity and Support Election Workers',
+    prompt: "Summarize 'Senate Advances Reforms to Protect Election Integrity and Support Election Workers' by NYS Senate",
+    context: 'fetchUrl:https://www.nysenate.gov/newsroom/press-releases/2026/senate-advances-reforms-protect-election-integrity-and-support',
+    image: '/nys-senate-seal.avif',
+  },
+  {
+    id: 'pr-4',
+    title: 'The Blue Book: Senate Majority Staff Analysis of the 2026-2027 Executive Budget Proposal',
+    prompt: "Summarize 'The Blue Book: Senate Majority Staff Analysis of the 2026-2027 Executive Budget Proposal' by NYS Senate",
+    context: 'fetchUrl:https://www.nysenate.gov/newsroom/articles/2026/blue-book-senate-majority-staff-analysis-2026-2027-executive-budget-proposal',
+    image: '/nys-senate-seal.avif',
+  },
+  {
+    id: 'pr-5',
+    title: 'Assembly Passes Bill to Protect Health Care Providers that Prescribe and Dispense Abortion Medication',
+    prompt: "Summarize 'Assembly Passes Bill to Protect Health Care Providers that Prescribe and Dispense Abortion Medication' by NYS Assembly",
+    context: 'fetchUrl:https://nyassembly.gov/Press/?sec=story&story=116637',
+    image: '/nys-assembly-seal.avif',
+  },
+  {
+    id: 'pr-6',
+    title: 'Money in Your Pockets: Governor Hochul Highlights Proposals to Bring Down Costs of Vehicle Insurance',
+    prompt: "Summarize 'Governor Hochul Highlights Proposals to Bring Down Costs of Vehicle Insurance' by NYS Governor",
+    context: 'fetchUrl:https://www.governor.ny.gov/news/money-your-pockets-governor-hochul-highlights-proposals-bring-down-costs-vehicle-insurance-0',
+    image: '/nys-seal.avif',
+  },
+  {
+    id: 'pr-7',
+    title: 'New York, New Jersey Sue Trump Administration for Illegally Withholding Gateway Tunnel Funding',
+    prompt: "Summarize 'New York, New Jersey Sue Trump Administration for Illegally Withholding Gateway Tunnel Funding' by NYS Governor",
+    context: 'fetchUrl:https://www.governor.ny.gov/news/new-york-new-jersey-sue-trump-administration-illegally-withholding-gateway-tunnel-funding',
+    image: '/nys-seal.avif',
+  },
+];
+
 const CATEGORIES = ['All', 'Bills', 'Policy', 'Advocacy', 'Departments', 'Use Case'];
 
 // ---------------------------------------------------------------------------
@@ -661,21 +714,60 @@ export default function PromptHub() {
                     <Sparkles className="h-3.5 w-3.5" />
                     Press Releases
                   </h3>
-                  <div className="divide-y-2 divide-dotted divide-border/80">
-                    {newestPrompts.map((p) => (
-                      <div key={p.id} className="py-3 first:pt-0">
-                        <button
+                  <div className="space-y-2">
+                    {pressReleaseItems.map((p) => {
+                      const articleUrl = p.context?.startsWith('fetchUrl:')
+                        ? p.context.slice('fetchUrl:'.length).trim()
+                        : null;
+                      return (
+                        <div
+                          key={p.id}
                           onClick={() => handlePromptClick(p.prompt, p.context)}
-                          className="w-full text-left px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:shadow-md hover:text-foreground transition-all duration-200 group border border-transparent hover:border-border"
+                          className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg border border-transparent hover:border-border"
                         >
-                          <span className="block">{p.title}</span>
-                          <span className="block text-xs opacity-60 mt-0.5">Asked 2.2.2026</span>
-                          <div className="flex justify-end mt-2">
-                            <div className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <ArrowUp className="h-3.5 w-3.5" />
+                          <div>
+                            <h4 className="font-semibold text-sm line-clamp-2">{p.title}</h4>
+                          </div>
+                          <div className="flex items-end justify-between mt-3">
+                            <div className="flex items-center gap-2">
+                              {p.image && articleUrl ? (
+                                <a
+                                  href={articleUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title="Read press release"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <img
+                                    src={p.image}
+                                    alt="Source"
+                                    className="h-6 rounded object-contain hover:shadow-md transition-all"
+                                  />
+                                </a>
+                              ) : <div />}
+                            </div>
+                            <div className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                              <ArrowUp className="h-4 w-4" />
                             </div>
                           </div>
-                        </button>
+                        </div>
+                      );
+                    })}
+                    {/* Last 2 from original list */}
+                    {newestPrompts.slice(-2).map((p) => (
+                      <div
+                        key={p.id}
+                        onClick={() => handlePromptClick(p.prompt, p.context)}
+                        className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg border border-transparent hover:border-border"
+                      >
+                        <div>
+                          <h4 className="font-semibold text-sm line-clamp-2">{p.title}</h4>
+                        </div>
+                        <div className="flex justify-end mt-3">
+                          <div className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <ArrowUp className="h-4 w-4" />
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
