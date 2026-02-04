@@ -173,6 +173,52 @@ const budgetItems = [
   { name: 'All Other', amount: '$3.9B', change: '+1.2%', share: '1.5%' },
 ];
 
+// Policy stories for the right sidebar
+const policyItems = [
+  {
+    id: 'policy-1',
+    title: 'U.S. court again rules an offshore wind project can resume construction',
+    prompt: "Summarize 'U.S. court again rules an offshore wind project can resume construction' by CNBC",
+    context: 'fetchUrl:https://www.cnbc.com/2026/02/02/us-court-again-rules-an-offshore-wind-project-can-resume-construction.html',
+    chats: 56,
+  },
+  {
+    id: 'policy-2',
+    title: 'Touting Economic Benefits of Wind Power',
+    prompt: "Summarize 'Touting Economic Benefits of Wind Power' by The East Hampton Star",
+    context: 'fetchUrl:https://www.easthamptonstar.com/government/20251127/touting-economic-benefits-wind-power',
+    chats: 49,
+    logos: [
+      { image: '/lifed.avif', url: 'https://longislandfed.org/', title: 'Long Island Federation' },
+      { image: '/cce-logo.avif', url: 'https://www.citizenscampaign.org/', title: 'Citizens Campaign for the Environment' },
+    ],
+  },
+  {
+    id: 'policy-3',
+    title: 'New York lawmakers want to keep AI out of news',
+    prompt: "Summarize 'New York lawmakers want to keep AI out of news' by City & State NY",
+    context: 'fetchUrl:https://www.cityandstateny.com/policy/2026/02/new-york-lawmakers-want-keep-ai-out-news/411111/?oref=csny-homepage-river',
+    chats: 44,
+    image: '/cns-logo.avif',
+  },
+  {
+    id: 'policy-4',
+    title: 'State Sen. Shelley Mayer proposes bill to prohibit ICE from gaining access to schools',
+    prompt: "Summarize 'State Sen. Shelley Mayer proposes bill to prohibit ICE from gaining access to schools' by NY State of Politics",
+    context: 'fetchUrl:https://nystateofpolitics.com/state-of-politics/new-york/politics/2026/02/02/n-y--senator-eyes-bill-to-prohibit-ice-from-accessing-schools',
+    chats: 38,
+    image: '/nysop-logo.avif',
+  },
+  {
+    id: 'policy-5',
+    title: 'The NYC Council says a detained employee was law abiding. The Department of Homeland Security argues otherwise',
+    prompt: "Summarize 'The NYC Council says a detained employee was law abiding. DHS argues otherwise' by Politico",
+    context: 'fetchUrl:https://www.politico.com/news/2026/01/13/new-york-city-council-detained-employee-dhs-00725904',
+    chats: 33,
+    image: '/politico-logo.avif',
+  },
+];
+
 const CATEGORIES = ['All', 'Bills', 'Policy', 'Advocacy', 'Departments', 'Use Case'];
 
 // ---------------------------------------------------------------------------
@@ -219,11 +265,6 @@ export default function PromptHub() {
   );
 
   const newestPrompts = useMemo(() => [...hubPrompts].reverse().slice(0, 8), []);
-
-  const leaderboard = useMemo(
-    () => [...hubPrompts].sort((a, b) => b.upvotes - a.upvotes).slice(0, 5),
-    [],
-  );
 
   // -----------------------------------------------------------------------
   // Supabase: recent bills
@@ -344,7 +385,7 @@ export default function PromptHub() {
                 <div>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
                     <Flame className="h-3.5 w-3.5" />
-                    Trending
+                    Politics
                   </h3>
                   <div className="divide-y-2 divide-dotted divide-border/80">
                     {trendingPrompts.map((p) => {
@@ -539,40 +580,79 @@ export default function PromptHub() {
             {/* ----------------------------------------------------------- */}
             <aside className="hidden xl:block w-[300px] flex-shrink-0 border-l-2 border-dotted border-border/80 pl-8">
               <div className="sticky top-24">
-                {/* Top Prompts */}
+                {/* Policy */}
                 <div className="mb-6 pb-6 border-b-2 border-dotted border-border/80">
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
                     <Award className="h-3.5 w-3.5" />
-                    Top Prompts
+                    Policy
                   </h3>
                   <div className="space-y-2">
-                    {leaderboard.map((p, idx) => (
-                      <div
-                        key={p.id}
-                        onClick={() => handlePromptClick(p.prompt, p.context)}
-                        className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg border border-transparent hover:border-border"
-                      >
-                        <div className="flex items-start gap-3">
-                          <span className="text-2xl font-bold text-muted-foreground/30 leading-none mt-0.5">
-                            {idx + 1}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-sm truncate">
-                              {p.title}
-                            </h4>
-                            <span className="text-xs text-muted-foreground">
-                              {p.upvotes} chats
+                    {policyItems.map((p, idx) => {
+                      const articleUrl = p.context?.startsWith('fetchUrl:')
+                        ? p.context.slice('fetchUrl:'.length).trim()
+                        : null;
+                      return (
+                        <div
+                          key={p.id}
+                          onClick={() => handlePromptClick(p.prompt, p.context)}
+                          className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg border border-transparent hover:border-border"
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className="text-2xl font-bold text-muted-foreground/30 leading-none mt-0.5">
+                              {idx + 1}
                             </span>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-sm line-clamp-2">
+                                {p.title}
+                              </h4>
+                              <span className="text-xs text-muted-foreground">
+                                {p.chats} chats
+                              </span>
+                            </div>
+                          </div>
+                          {/* Bottom row: logo(s) left, arrow right */}
+                          <div className="flex items-end justify-between mt-3">
+                            <div className="flex items-center gap-2">
+                              {'logos' in p && p.logos ? (
+                                p.logos.map((logo, i) => (
+                                  <a
+                                    key={i}
+                                    href={logo.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title={logo.title}
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <img
+                                      src={logo.image}
+                                      alt={logo.title}
+                                      className="h-6 rounded object-contain hover:shadow-md transition-all"
+                                    />
+                                  </a>
+                                ))
+                              ) : 'image' in p && p.image && articleUrl ? (
+                                <a
+                                  href={articleUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title="Read article"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <img
+                                    src={p.image}
+                                    alt={p.title}
+                                    className="h-6 rounded object-contain hover:shadow-md transition-all"
+                                  />
+                                </a>
+                              ) : <div />}
+                            </div>
+                            <div className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                              <ArrowUp className="h-4 w-4" />
+                            </div>
                           </div>
                         </div>
-                        {/* Arrow button - fixed height, opacity toggles on hover */}
-                        <div className="flex justify-end mt-3">
-                          <div className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            <ArrowUp className="h-4 w-4" />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
