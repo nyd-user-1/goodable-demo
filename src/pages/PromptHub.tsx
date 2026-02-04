@@ -258,6 +258,22 @@ const pressReleaseItems = [
     image: '/nys-assembly-seal.avif',
     chats: 19,
   },
+  {
+    id: 'pr-8',
+    title: 'Governor Hochul Announces $4 Million for Clean Energy Workforce Development Programs',
+    prompt: "Summarize 'Governor Hochul Announces $4 Million for Clean Energy Workforce Development Programs' by NYS Governor",
+    context: 'fetchUrl:https://www.governor.ny.gov/news/governor-hochul-announces-4-million-clean-energy-workforce-development-programs',
+    image: '/nys-seal.avif',
+    chats: 17,
+  },
+  {
+    id: 'pr-9',
+    title: 'Governor Hochul Announces $9 Million Awarded Through the State and Local Cybersecurity Grant Program',
+    prompt: "Summarize 'Governor Hochul Announces $9 Million Awarded Through the State and Local Cybersecurity Grant Program' by NYS Governor",
+    context: 'fetchUrl:https://www.governor.ny.gov/news/governor-hochul-announces-9-million-awarded-through-state-and-local-cybersecurity-grant',
+    image: '/nys-seal.avif',
+    chats: 15,
+  },
 ];
 
 const CATEGORIES = ['All', 'Bills', 'Policy', 'Advocacy', 'Departments'];
@@ -294,7 +310,6 @@ export default function PromptHub() {
     [],
   );
 
-  const newestPrompts = useMemo(() => [...hubPrompts].reverse().slice(0, 8), []);
 
   // -----------------------------------------------------------------------
   // Supabase: recent bills
@@ -715,24 +730,6 @@ export default function PromptHub() {
                         </div>
                       );
                     })}
-                    {/* Last 2 from original list */}
-                    {newestPrompts.slice(-2).map((p, idx) => (
-                      <div
-                        key={p.id}
-                        onClick={() => handlePromptClick(p.prompt, p.context)}
-                        className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg border border-transparent hover:border-border"
-                      >
-                        <div>
-                          <h4 className="font-semibold text-sm line-clamp-2">{p.title}</h4>
-                          <span className="text-xs text-muted-foreground">{idx === 0 ? 17 : 15} chats</span>
-                        </div>
-                        <div className="flex justify-end mt-3">
-                          <div className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            <ArrowUp className="h-4 w-4" />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 </div>
               </div>
