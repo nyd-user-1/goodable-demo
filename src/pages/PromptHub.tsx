@@ -33,7 +33,7 @@ const hubPrompts: HubPrompt[] = [
     context: 'fetchUrl:https://ny1.com/nyc/queens/politics/2026/02/04/special-nyc-elections-2026--manhattan--queens-districts',
     category: 'Featured',
     upvotes: 88,
-    image: '/spectrumnewsny1-2.avif',
+    image: '/spectrum-1-news-rectangle.avif',
   },
   {
     id: 'featured-2',
@@ -42,7 +42,7 @@ const hubPrompts: HubPrompt[] = [
     context: 'fetchUrl:https://qns.com/2026/02/voters-polls-district-36-special-election/',
     category: 'Featured',
     upvotes: 85,
-    image: '/qns-logo-2.avif',
+    image: '/qns-rectangle.avif',
   },
   {
     id: 'featured-3',
@@ -51,7 +51,7 @@ const hubPrompts: HubPrompt[] = [
     context: 'fetchUrl:https://www.newsweek.com/kathy-hochul-chances-defeated-bruce-blakeman-poll-11459862',
     category: 'Featured',
     upvotes: 82,
-    image: '/newsweek-logo-2.avif',
+    image: '/newsweek-rectangle.avif',
   },
   {
     id: 'featured-4',
@@ -87,7 +87,7 @@ const hubPrompts: HubPrompt[] = [
     context: 'fetchUrl:https://www.news10.com/news/nassau-executive-fights-state-plan-to-end-ice-cooperation/',
     category: 'Featured',
     upvotes: 68,
-    image: '/abc10-logo.avif',
+    image: '/abc-10-rectangle.avif',
   },
   {
     id: 'featured-8',
