@@ -445,7 +445,7 @@ export default function PromptHub() {
                         >
                           <div>
                             <h4 className="font-semibold text-sm line-clamp-2">{p.title}</h4>
-                            <span className="text-xs text-muted-foreground">{p.upvotes} chats</span>
+                            <span className="text-xs text-blue-500">{p.upvotes} chats</span>
                           </div>
                           {/* Bottom row: logo left, arrow right */}
                           <div className="flex items-end justify-between mt-3">
@@ -575,7 +575,7 @@ export default function PromptHub() {
                       >
                         {p.category}
                       </span>
-                      <span className="text-xs font-medium text-muted-foreground">
+                      <span className="text-xs font-medium text-blue-500">
                         {p.upvotes} chats
                       </span>
                     </div>
@@ -703,7 +703,7 @@ export default function PromptHub() {
                         >
                           <div>
                             <h4 className="font-semibold text-sm line-clamp-2">{p.title}</h4>
-                            <span className="text-xs text-muted-foreground">{p.chats} chats</span>
+                            <span className="text-xs text-blue-500">{p.chats} chats</span>
                           </div>
                           <div className="flex items-end justify-between mt-3">
                             <div className="flex items-center gap-2">
