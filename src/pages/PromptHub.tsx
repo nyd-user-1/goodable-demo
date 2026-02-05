@@ -391,11 +391,11 @@ export default function PromptHub() {
   // -----------------------------------------------------------------------
   // Community prompt row renderer
   // -----------------------------------------------------------------------
-  const renderSubmittedRow = (p: any) => {
+  const renderSubmittedRow = (p: any, baseChatCount = 0) => {
     const domain = getDomainFromUrl(p.url || '');
     const promptText = p.prompt || `Summarize '${p.title}'`;
     const context = p.url ? `fetchUrl:${p.url}` : undefined;
-    const chats = getChatCount(p.id, 0);
+    const chats = getChatCount(p.id, 0) + baseChatCount;
     const dateStr = p.created_at
       ? new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
       : '';
@@ -469,7 +469,7 @@ export default function PromptHub() {
                       : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
-                  {tab === 'prompts' ? 'Big Board' : 'Community Board'}
+                  {tab === 'prompts' ? 'News' : 'Conversation'}
                 </button>
               ))}
             </div>
@@ -795,53 +795,58 @@ export default function PromptHub() {
           {pageTab === 'community' && (
           <>
           {/* ============================================================= */}
-          {/* COMMUNITY BOARD SECTION                                        */}
+          {/* CONVERSATION SECTION                                             */}
           {/* ============================================================= */}
-          {(submittedPrompts || []).length > 0 && (
-          <div id="community" className="pt-0 pb-12">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-              {/* ------ News (non-user-generated) ------ */}
-              <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 pb-8 md:pb-0">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  News
-                </h3>
-                <div className="divide-y-2 divide-dotted divide-border/80">
-                  {(submittedPrompts || [])
-                    .filter((p: any) => p.show_in_news)
-                    .slice(0, 10)
-                    .map(renderSubmittedRow)}
+          {(() => {
+            const newsSeed   = [74, 65, 58, 51, 43, 37, 29, 22, 16, 11];
+            const featSeed   = [69, 61, 52, 44, 38, 31, 24, 18, 12,  6];
+            const userSeed   = [78, 68, 59, 49, 42, 34, 27, 21, 14,  8];
+            return (submittedPrompts || []).length > 0 && (
+            <div id="community" className="pt-0 pb-12">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+                {/* ------ News (non-user-generated) ------ */}
+                <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 pb-8 md:pb-0">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                    News
+                  </h3>
+                  <div className="divide-y-2 divide-dotted divide-border/80">
+                    {(submittedPrompts || [])
+                      .filter((p: any) => p.show_in_news)
+                      .slice(0, 10)
+                      .map((p: any, idx: number) => renderSubmittedRow(p, newsSeed[idx] || 5))}
+                  </div>
                 </div>
-              </div>
 
-              {/* ------ Featured (by chats) ------ */}
-              <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  Featured
-                </h3>
-                <div className="divide-y-2 divide-dotted divide-border/80">
-                  {[...(submittedPrompts || [])]
-                    .filter((p: any) => p.show_in_trending)
-                    .sort((a: any, b: any) => getChatCount(b.id, 0) - getChatCount(a.id, 0))
-                    .slice(0, 10)
-                    .map(renderSubmittedRow)}
+                {/* ------ Featured (by chats) ------ */}
+                <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                    Featured
+                  </h3>
+                  <div className="divide-y-2 divide-dotted divide-border/80">
+                    {[...(submittedPrompts || [])]
+                      .filter((p: any) => p.show_in_trending)
+                      .sort((a: any, b: any) => getChatCount(b.id, 0) - getChatCount(a.id, 0))
+                      .slice(0, 10)
+                      .map((p: any, idx: number) => renderSubmittedRow(p, featSeed[idx] || 4))}
+                  </div>
                 </div>
-              </div>
 
-              {/* ------ User Generated ------ */}
-              <div className="md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  User Generated
-                </h3>
-                <div className="divide-y-2 divide-dotted divide-border/80">
-                  {(submittedPrompts || []).filter((p: any) => p.user_generated).length > 0
-                    ? (submittedPrompts || []).filter((p: any) => p.user_generated).slice(0, 10).map(renderSubmittedRow)
-                    : <p className="text-sm text-muted-foreground py-4">User generated prompts coming soon.</p>
-                  }
+                {/* ------ User Generated ------ */}
+                <div className="md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                    User Generated
+                  </h3>
+                  <div className="divide-y-2 divide-dotted divide-border/80">
+                    {(submittedPrompts || []).filter((p: any) => p.user_generated).length > 0
+                      ? (submittedPrompts || []).filter((p: any) => p.user_generated).slice(0, 10).map((p: any, idx: number) => renderSubmittedRow(p, userSeed[idx] || 3))
+                      : <p className="text-sm text-muted-foreground py-4">User generated prompts coming soon.</p>
+                    }
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          )}
+            );
+          })()}
           </>
           )}
         </div>
