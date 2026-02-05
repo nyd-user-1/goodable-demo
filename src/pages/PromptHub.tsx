@@ -700,7 +700,7 @@ export default function PromptHub() {
               </div>
 
               {/* Prompt Feed */}
-              <div className="space-y-3">
+              <div className="space-y-3.5">
                 {filteredPrompts.map((p) => (
                   <div
                     key={p.id}
