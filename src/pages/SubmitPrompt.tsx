@@ -5,14 +5,8 @@ import FooterSimple from "@/components/marketing/FooterSimple";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Shimmer } from "@/components/ai-elements/shimmer";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -22,7 +16,11 @@ import {
   ArrowUp,
 } from "lucide-react";
 
-const CATEGORIES = ["Bills", "Policy", "Advocacy", "Departments"] as const;
+function decodeHtmlEntities(str: string): string {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = str;
+  return textarea.value;
+}
 
 function getDomain(url: string): string | null {
   try {
@@ -39,7 +37,6 @@ export default function SubmitPrompt() {
 
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
-  const [category, setCategory] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [fetchingTitle, setFetchingTitle] = useState(false);
@@ -62,13 +59,13 @@ export default function SubmitPrompt() {
         html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i) ||
         html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:title["']/i);
       if (ogMatch?.[1]) {
-        setTitle(ogMatch[1].trim());
+        setTitle(decodeHtmlEntities(ogMatch[1].trim()));
         return;
       }
       // Fall back to <title>
       const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
       if (titleMatch?.[1]) {
-        setTitle(titleMatch[1].trim());
+        setTitle(decodeHtmlEntities(titleMatch[1].trim()));
       }
     } catch {
       // Silently fail — user can type title manually
@@ -122,7 +119,7 @@ export default function SubmitPrompt() {
         title: title.trim(),
         prompt: generatedPrompt,
         url: url.trim(),
-        category: category || null,
+        category: null,
       });
 
       if (error) throw error;
@@ -146,7 +143,6 @@ export default function SubmitPrompt() {
   const handleReset = () => {
     setTitle("");
     setUrl("");
-    setCategory("");
     setSubmitted(false);
   };
 
@@ -159,6 +155,11 @@ export default function SubmitPrompt() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 rounded-2xl overflow-hidden border border-border shadow-lg">
             {/* Left Panel — Live Preview */}
             <div className="bg-black p-8 sm:p-10 lg:p-12 text-white flex flex-col justify-center">
+              {fetchingTitle && (
+                <Shimmer duration={2} spread={1} className="text-neutral-400 text-xs mb-3 block">
+                  Reading article...
+                </Shimmer>
+              )}
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
                 Create a Prompt Card
               </h1>
@@ -265,36 +266,16 @@ export default function SubmitPrompt() {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="category">
-                      Category <span className="text-muted-foreground font-normal">(optional)</span>
-                    </Label>
-                    <Select value={category} onValueChange={setCategory}>
-                      <SelectTrigger id="category">
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CATEGORIES.map((cat) => (
-                          <SelectItem key={cat} value={cat}>
-                            {cat}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
                   <div className="flex items-start gap-2 rounded-lg bg-muted/50 p-3">
                     <Shield className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      All submissions are reviewed by our team for quality and civility
-                      before being published. AI-assisted moderation is used to screen
-                      submissions.
+                      AI-assisted moderation is used to screen submissions.
                     </p>
                   </div>
 
                   <Button
                     type="submit"
-                    className="w-full"
+                    className="w-full bg-black text-white hover:bg-black/90"
                     disabled={submitting}
                   >
                     {submitting ? (
