@@ -7,7 +7,7 @@ import { ArrowLeftIcon, ArrowRightIcon, CheckCircle2Icon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Advertise() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [step, setStep] = useState(1);
   const totalSteps = 4;
 
@@ -20,6 +20,9 @@ export default function Advertise() {
   const [companySize, setCompanySize] = useState('');
   const [interests, setInterests] = useState<string[]>([]);
   const [adOption, setAdOption] = useState<string | null>(null);
+
+  // Track if user is logged in (to avoid flash of password field)
+  const isLoggedIn = !!user;
 
   // Pre-fill from logged in user
   useEffect(() => {
@@ -86,6 +89,15 @@ export default function Advertise() {
     },
   ];
 
+  // Show loading state while auth is being determined
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Hero */}
@@ -93,30 +105,30 @@ export default function Advertise() {
         {/* Left Image */}
         <div className="relative hidden md:block">
           <img
-            src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=2070&auto=format&fit=crop"
+            src="/images/advertise-hero.avif"
             alt="Team collaboration"
             className="absolute inset-0 h-full w-full object-cover"
           />
-          <div className="bg-primary/20 absolute inset-0 flex items-center justify-center p-10 backdrop-blur-sm">
+          <div className="bg-black/30 absolute inset-0 flex items-center justify-center p-10 backdrop-blur-sm">
             <div className="bg-background/80 max-w-md rounded-lg p-8 shadow-lg backdrop-blur-md">
               <h2 className="mb-4 text-2xl font-bold">
                 Why advertise on NYSgpt?
               </h2>
               <ul className="space-y-3">
                 <li className="flex items-start">
-                  <CheckCircle2Icon className="text-primary mt-0.5 mr-2 h-5 w-5 flex-shrink-0" />
+                  <CheckCircle2Icon className="text-foreground mt-0.5 mr-2 h-5 w-5 flex-shrink-0" />
                   <span>Reach legislators, staffers, and policy professionals</span>
                 </li>
                 <li className="flex items-start">
-                  <CheckCircle2Icon className="text-primary mt-0.5 mr-2 h-5 w-5 flex-shrink-0" />
+                  <CheckCircle2Icon className="text-foreground mt-0.5 mr-2 h-5 w-5 flex-shrink-0" />
                   <span>Connect with nonprofits and advocacy organizations</span>
                 </li>
                 <li className="flex items-start">
-                  <CheckCircle2Icon className="text-primary mt-0.5 mr-2 h-5 w-5 flex-shrink-0" />
+                  <CheckCircle2Icon className="text-foreground mt-0.5 mr-2 h-5 w-5 flex-shrink-0" />
                   <span>Target lobbyists and government affairs professionals</span>
                 </li>
                 <li className="flex items-start">
-                  <CheckCircle2Icon className="text-primary mt-0.5 mr-2 h-5 w-5 flex-shrink-0" />
+                  <CheckCircle2Icon className="text-foreground mt-0.5 mr-2 h-5 w-5 flex-shrink-0" />
                   <span>Engage an audience actively researching policy and legislation</span>
                 </li>
               </ul>
@@ -138,7 +150,7 @@ export default function Advertise() {
             <div className="mb-8 flex items-center">
               <div className="bg-muted h-1 flex-1 overflow-hidden rounded-full">
                 <div
-                  className="bg-primary h-full transition-all duration-300"
+                  className="bg-black h-full transition-all duration-300"
                   style={{ width: `${(step / totalSteps) * 100}%` }}
                 ></div>
               </div>
@@ -176,7 +188,7 @@ export default function Advertise() {
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
-                {!user && (
+                {!isLoggedIn && (
                   <div>
                     <Label htmlFor="password" className="mb-2">
                       Create password
@@ -191,7 +203,7 @@ export default function Advertise() {
                   </div>
                 )}
                 <div className="pt-4">
-                  <Button className="w-full" onClick={nextStep}>
+                  <Button className="w-full bg-black hover:bg-black/90 text-white" onClick={nextStep}>
                     Continue <ArrowRightIcon className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -239,7 +251,7 @@ export default function Advertise() {
                   <Button variant="outline" onClick={prevStep}>
                     <ArrowLeftIcon className="mr-2 h-4 w-4" /> Back
                   </Button>
-                  <Button className="flex-1" onClick={nextStep}>
+                  <Button className="flex-1 bg-black hover:bg-black/90 text-white" onClick={nextStep}>
                     Continue <ArrowRightIcon className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -261,6 +273,7 @@ export default function Advertise() {
                         id={interest}
                         checked={interests.includes(interest)}
                         onCheckedChange={() => toggleInterest(interest)}
+                        className="data-[state=checked]:bg-black data-[state=checked]:border-black"
                       />
                       <Label htmlFor={interest} className="cursor-pointer">
                         {interest}
@@ -273,7 +286,7 @@ export default function Advertise() {
                   <Button variant="outline" onClick={prevStep}>
                     <ArrowLeftIcon className="mr-2 h-4 w-4" /> Back
                   </Button>
-                  <Button className="flex-1" onClick={nextStep}>
+                  <Button className="flex-1 bg-black hover:bg-black/90 text-white" onClick={nextStep}>
                     Continue <ArrowRightIcon className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -296,7 +309,7 @@ export default function Advertise() {
                       onClick={() => setAdOption(option.id)}
                       className={`w-full text-left p-4 rounded-lg border transition-all ${
                         adOption === option.id
-                          ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                          ? 'border-black bg-black/5 ring-1 ring-black'
                           : 'border-border hover:border-muted-foreground/50 hover:bg-muted/30'
                       }`}
                     >
@@ -309,14 +322,14 @@ export default function Advertise() {
                           option.price === 'Premium'
                             ? 'bg-amber-100 text-amber-700'
                             : option.price === 'Standard'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-gray-100 text-gray-700'
+                            ? 'bg-gray-200 text-gray-700'
+                            : 'bg-gray-100 text-gray-600'
                         }`}>
                           {option.price}
                         </span>
                       </div>
                       {adOption === option.id && (
-                        <div className="mt-2 flex items-center text-primary text-xs">
+                        <div className="mt-2 flex items-center text-black text-xs">
                           <CheckCircle2Icon className="h-3.5 w-3.5 mr-1" />
                           Selected
                         </div>
@@ -329,7 +342,7 @@ export default function Advertise() {
                   <Button variant="outline" onClick={prevStep}>
                     <ArrowLeftIcon className="mr-2 h-4 w-4" /> Back
                   </Button>
-                  <Button className="flex-1" disabled={!adOption}>
+                  <Button className="flex-1 bg-black hover:bg-black/90 text-white" disabled={!adOption}>
                     Submit Inquiry
                   </Button>
                 </div>
