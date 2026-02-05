@@ -5,7 +5,7 @@ import FooterSimple from '@/components/marketing/FooterSimple';
 import { cn } from '@/lib/utils';
 import {
   ArrowUp, PenLine, Megaphone, Briefcase, Heart,
-  ExternalLink, Users, FileText, DollarSign,
+  ExternalLink, Users, FileText, DollarSign, Sparkles, TrendingUp, Star,
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -173,6 +173,14 @@ const categoryColors: Record<string, string> = {
   Advocacy: 'bg-purple-100 text-purple-700',
   Departments: 'bg-yellow-100 text-yellow-700',
 };
+
+function getDomainFromUrl(url: string): string | null {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
+  }
+}
 
 // Featured category cards (gradient image placeholders)
 const featuredCards = [
@@ -396,6 +404,20 @@ export default function PromptHub() {
     staleTime: 30 * 1000,
   });
 
+  // -----------------------------------------------------------------------
+  // Supabase: submitted community prompts
+  // -----------------------------------------------------------------------
+  const { data: submittedPrompts } = useQuery({
+    queryKey: ['submitted-prompts-hub'],
+    queryFn: async () => {
+      const { data } = await (supabase.from as any)('submitted_prompts')
+        .select('id, title, prompt, url, category, featured, created_at')
+        .order('created_at', { ascending: false });
+      return data || [];
+    },
+    staleTime: 60 * 1000,
+  });
+
   const getChatCount = (id: string, fallback: number) =>
     chatCounts?.[id] ?? fallback;
 
@@ -425,6 +447,42 @@ export default function PromptHub() {
       .split(/\s+/)
       .filter((p: string) => p.length > 1)
       .join('-');
+  };
+
+  // -----------------------------------------------------------------------
+  // Community prompt row renderer
+  // -----------------------------------------------------------------------
+  const renderSubmittedRow = (p: any) => {
+    const domain = getDomainFromUrl(p.url || '');
+    const promptText = p.prompt || `Summarize '${p.title}'`;
+    const context = p.url ? `fetchUrl:${p.url}` : undefined;
+    return (
+      <div key={p.id} className="py-3 first:pt-0">
+        <div
+          onClick={() => handlePromptClick(p.id, 0, promptText, context)}
+          className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200 cursor-pointer"
+        >
+          {domain ? (
+            <img
+              src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+              alt=""
+              className="w-10 h-10 rounded-full object-cover bg-muted p-1"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="font-medium text-sm truncate">{p.title}</p>
+            <p className="text-xs text-muted-foreground">{domain || 'Community'}</p>
+          </div>
+          <div className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <ArrowUp className="h-4 w-4" />
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // -----------------------------------------------------------------------
@@ -769,6 +827,51 @@ export default function PromptHub() {
               </div>
             </aside>
           </div>
+
+          {/* ============================================================= */}
+          {/* COMMUNITY PROMPTS SECTION                                      */}
+          {/* ============================================================= */}
+          {(submittedPrompts || []).length > 0 && (
+          <div className="mt-12 pt-12 border-t-2 border-dotted border-border/80">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+              {/* ------ New Prompts ------ */}
+              <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4 flex items-center gap-1.5">
+                  <Sparkles className="h-4 w-4" />
+                  New Prompts
+                </h3>
+                <div className="divide-y-2 divide-dotted divide-border/80">
+                  {(submittedPrompts || []).slice(0, 10).map(renderSubmittedRow)}
+                </div>
+              </div>
+
+              {/* ------ Top Prompts ------ */}
+              <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4 flex items-center gap-1.5">
+                  <TrendingUp className="h-4 w-4" />
+                  Top Prompts
+                </h3>
+                <div className="divide-y-2 divide-dotted divide-border/80">
+                  {(submittedPrompts || []).slice(0, 10).map(renderSubmittedRow)}
+                </div>
+              </div>
+
+              {/* ------ Editorial ------ */}
+              <div className="md:pl-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4 flex items-center gap-1.5">
+                  <Star className="h-4 w-4" />
+                  Editorial
+                </h3>
+                <div className="divide-y-2 divide-dotted divide-border/80">
+                  {(submittedPrompts || []).filter((p: any) => p.featured).length > 0
+                    ? (submittedPrompts || []).filter((p: any) => p.featured).slice(0, 10).map(renderSubmittedRow)
+                    : <p className="text-sm text-muted-foreground py-4">Editorial picks coming soon.</p>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+          )}
           </>
           )}
 
