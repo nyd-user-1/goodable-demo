@@ -938,25 +938,23 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           </div>
         </Collapsible>
 
-        {/* Features & Use Cases - for unauthenticated users */}
-        {!user && (
-          <div className="space-y-1 pt-1">
-            <button
-              onClick={() => { navigate('/features'); onClose?.(); }}
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-normal transition-colors hover:bg-muted w-full text-left text-muted-foreground"
-            >
-              <Sparkles className="h-4 w-4" />
-              <span>Features</span>
-            </button>
-            <button
-              onClick={() => { navigate('/use-cases'); onClose?.(); }}
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-normal transition-colors hover:bg-muted w-full text-left text-muted-foreground"
-            >
-              <Briefcase className="h-4 w-4" />
-              <span>Use Cases</span>
-            </button>
-          </div>
-        )}
+        {/* Features & Use Cases */}
+        <div className="space-y-1 pt-1">
+          <button
+            onClick={() => { navigate('/features'); onClose?.(); }}
+            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-normal transition-colors hover:bg-muted w-full text-left text-muted-foreground"
+          >
+            <Sparkles className="h-4 w-4" />
+            <span>Features</span>
+          </button>
+          <button
+            onClick={() => { navigate('/use-cases'); onClose?.(); }}
+            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-normal transition-colors hover:bg-muted w-full text-left text-muted-foreground"
+          >
+            <Briefcase className="h-4 w-4" />
+            <span>Use Cases</span>
+          </button>
+        </div>
 
       </div>
 
