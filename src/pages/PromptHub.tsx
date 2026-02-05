@@ -468,6 +468,15 @@ export default function PromptHub() {
   };
 
   // -----------------------------------------------------------------------
+  // Local favicon overrides for domains missing a good Google favicon
+  // -----------------------------------------------------------------------
+  const SUPABASE_FAVICON_BASE = 'https://kwyjohornlgujoqypyvu.supabase.co/storage/v1/object/public/Favicons';
+  const LOCAL_FAVICONS: Record<string, string> = {
+    'www.islandharvest.org': `${SUPABASE_FAVICON_BASE}/islandharvest.avif`,
+    'islandharvest.org': `${SUPABASE_FAVICON_BASE}/islandharvest.avif`,
+  };
+
+  // -----------------------------------------------------------------------
   // Community prompt row renderer
   // -----------------------------------------------------------------------
   const renderSubmittedRow = (p: any) => {
@@ -499,7 +508,7 @@ export default function PromptHub() {
               className="shrink-0"
             >
               <img
-                src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+                src={LOCAL_FAVICONS[domain] || `https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
                 alt=""
                 className="w-10 h-10 rounded-full object-cover bg-muted p-1"
               />
@@ -570,7 +579,7 @@ export default function PromptHub() {
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                     Trending
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-3.5">
                     {trendingPrompts.map((p, idx) => {
                       const articleUrl = p.context?.startsWith('fetchUrl:')
                         ? p.context.slice('fetchUrl:'.length).trim()
