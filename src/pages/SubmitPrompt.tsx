@@ -137,7 +137,7 @@ const SAMPLE_PROMPTS = [
 
 export default function SubmitPrompt() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { toast } = useToast();
 
   // Shared state
@@ -307,6 +307,7 @@ export default function SubmitPrompt() {
           prompt: generatedPrompt,
           url: url.trim(),
           category: null,
+          user_generated: !isAdmin,
         });
 
         if (error) throw error;
@@ -349,6 +350,7 @@ export default function SubmitPrompt() {
           url: '',
           category: null,
           avatar_url: selectedAvatar,
+          user_generated: !isAdmin,
         });
 
         if (error) throw error;

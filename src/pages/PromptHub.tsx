@@ -429,7 +429,7 @@ export default function PromptHub() {
     queryKey: ['submitted-prompts-hub'],
     queryFn: async () => {
       const { data } = await (supabase.from as any)('submitted_prompts')
-        .select('id, title, prompt, url, category, featured, created_at, avatar_url')
+        .select('id, title, prompt, url, category, featured, created_at, avatar_url, user_generated')
         .order('created_at', { ascending: false });
       return data || [];
     },
@@ -873,38 +873,42 @@ export default function PromptHub() {
           {(submittedPrompts || []).length > 0 && (
           <div id="community" className="mt-12 pt-12 border-t-2 border-dotted border-border/80">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-              {/* ------ New Prompts ------ */}
+              {/* ------ New Prompts (admin only) ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 pb-8 md:pb-0">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                   New
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
-                  {(submittedPrompts || []).slice(0, 10).map(renderSubmittedRow)}
+                  {(submittedPrompts || [])
+                    .filter((p: any) => !p.user_generated)
+                    .slice(0, 10)
+                    .map(renderSubmittedRow)}
                 </div>
               </div>
 
-              {/* ------ Top Prompts ------ */}
+              {/* ------ Top Prompts (admin only) ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                   Top
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {[...(submittedPrompts || [])]
+                    .filter((p: any) => !p.user_generated)
                     .sort((a: any, b: any) => getChatCount(b.id, 0) - getChatCount(a.id, 0))
                     .slice(0, 10)
                     .map(renderSubmittedRow)}
                 </div>
               </div>
 
-              {/* ------ Editorial ------ */}
+              {/* ------ User Generated ------ */}
               <div className="md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  Editorial
+                  User Generated
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
-                  {(submittedPrompts || []).filter((p: any) => p.featured).length > 0
-                    ? (submittedPrompts || []).filter((p: any) => p.featured).slice(0, 10).map(renderSubmittedRow)
-                    : <p className="text-sm text-muted-foreground py-4">Editorial picks coming soon.</p>
+                  {(submittedPrompts || []).filter((p: any) => p.user_generated).length > 0
+                    ? (submittedPrompts || []).filter((p: any) => p.user_generated).slice(0, 10).map(renderSubmittedRow)
+                    : <p className="text-sm text-muted-foreground py-4">User generated prompts coming soon.</p>
                   }
                 </div>
               </div>
