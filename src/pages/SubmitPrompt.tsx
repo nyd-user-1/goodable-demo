@@ -161,6 +161,7 @@ export default function SubmitPrompt() {
   // Admin column assignment
   const [assignNews, setAssignNews] = useState(true);
   const [assignTrending, setAssignTrending] = useState(true);
+  const [assignUserGenerated, setAssignUserGenerated] = useState(false);
 
   // Garbage titles from bot-challenge pages
   const JUNK_TITLES = [
@@ -305,15 +306,21 @@ export default function SubmitPrompt() {
       try {
         const generatedPrompt = `Summarize '${title.trim()}'`;
 
+        const isUG = isAdmin ? assignUserGenerated : true;
+        const displayName = isUG
+          ? (isAdmin ? 'NYSgpt' : (user.user_metadata?.full_name?.split(' ')[0] || user.user_metadata?.display_name || 'Anonymous'))
+          : null;
+
         const { error } = await (supabase.from as any)("submitted_prompts").insert({
           user_id: user.id,
           title: title.trim(),
           prompt: generatedPrompt,
           url: url.trim(),
           category: null,
-          user_generated: !isAdmin,
+          user_generated: isUG,
           show_in_news: isAdmin && assignNews,
           show_in_trending: isAdmin && assignTrending,
+          display_name: displayName,
         });
 
         if (error) throw error;
@@ -349,6 +356,11 @@ export default function SubmitPrompt() {
           ? customPrompt.trim().slice(0, 117) + '...'
           : customPrompt.trim();
 
+        const isUG = isAdmin ? assignUserGenerated : true;
+        const displayName = isUG
+          ? (isAdmin ? 'NYSgpt' : (user.user_metadata?.full_name?.split(' ')[0] || user.user_metadata?.display_name || 'Anonymous'))
+          : null;
+
         const { error } = await (supabase.from as any)("submitted_prompts").insert({
           user_id: user.id,
           title: truncatedTitle,
@@ -356,9 +368,10 @@ export default function SubmitPrompt() {
           url: '',
           category: null,
           avatar_url: selectedAvatar,
-          user_generated: !isAdmin,
+          user_generated: isUG,
           show_in_news: isAdmin && assignNews,
           show_in_trending: isAdmin && assignTrending,
+          display_name: displayName,
         });
 
         if (error) throw error;
@@ -391,6 +404,7 @@ export default function SubmitPrompt() {
     setMode('url');
     setAssignNews(true);
     setAssignTrending(true);
+    setAssignUserGenerated(false);
   };
 
   return (
@@ -687,6 +701,15 @@ export default function SubmitPrompt() {
                         className="rounded border-border h-3.5 w-3.5 accent-foreground"
                       />
                       Trending
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={assignUserGenerated}
+                        onChange={(e) => setAssignUserGenerated(e.target.checked)}
+                        className="rounded border-border h-3.5 w-3.5 accent-foreground"
+                      />
+                      User Generated
                     </label>
                   </div>
                   )}

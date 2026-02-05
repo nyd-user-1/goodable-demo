@@ -429,7 +429,7 @@ export default function PromptHub() {
     queryKey: ['submitted-prompts-hub'],
     queryFn: async () => {
       const { data } = await (supabase.from as any)('submitted_prompts')
-        .select('id, title, prompt, url, category, featured, created_at, avatar_url, user_generated, show_in_news, show_in_trending')
+        .select('id, title, prompt, url, category, featured, created_at, avatar_url, user_generated, show_in_news, show_in_trending, display_name')
         .order('created_at', { ascending: false });
       return data || [];
     },
@@ -512,6 +512,7 @@ export default function PromptHub() {
           <div className="flex-1 min-w-0">
             <p className="font-medium text-sm line-clamp-2">{decodeEntities(p.title)}</p>
             <div className="flex items-center gap-2 mt-0.5">
+              {p.display_name && <p className="text-xs font-medium text-muted-foreground">{p.display_name}</p>}
               <p className="text-xs text-muted-foreground">{dateStr || 'Community'}</p>
               {chats > 0 && <span className="text-xs text-blue-500">{chats} chats</span>}
             </div>
