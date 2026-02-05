@@ -17,6 +17,7 @@ import {
   Flashlight,
   FileText,
   Lightbulb,
+  ChevronDown,
 } from "lucide-react";
 
 function decodeHtmlEntities(str: string): string {
@@ -545,8 +546,8 @@ export default function SubmitPrompt() {
                   </div>
                   )}
 
-                  {/* ── OR Divider — only when neither field has content ── */}
-                  {!url.trim() && !customPrompt.trim() && (
+                  {/* ── OR Divider — only when URL mode ── */}
+                  {mode !== 'custom' && !url.trim() && (
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
                       <div className="border-border w-full border-t" />
@@ -559,18 +560,15 @@ export default function SubmitPrompt() {
                   </div>
                   )}
 
-                  {/* ── Custom Mode ── */}
-                  {mode !== 'url' && (
+                  {/* ── Custom Mode: Write your own + avatar picker ── */}
+                  {mode === 'custom' && (
                   <div>
                     <Label className="text-sm font-semibold mb-2 block">Write your own</Label>
                     <textarea
-                      placeholder="Write your prompt..."
+                      placeholder="Write your own prompt"
                       value={customPrompt}
                       onChange={(e) => {
-                        const v = e.target.value;
-                        setCustomPrompt(v);
-                        if (v.trim()) switchToCustom();
-                        else setMode('url');
+                        setCustomPrompt(e.target.value);
                       }}
                       rows={3}
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
@@ -612,29 +610,49 @@ export default function SubmitPrompt() {
                   </div>
                   )}
 
-                  {/* ── Sample Prompts ── */}
+                  {/* ── Sample Prompts Accordion ── */}
+                  {!url.trim() && (
                   <div className="rounded-xl border border-border overflow-hidden">
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
-                      <h3 className="text-sm font-semibold">Sample Prompts</h3>
-                      <Lightbulb className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <div className="divide-y divide-border max-h-[240px] overflow-y-auto">
-                      {SAMPLE_PROMPTS.map((sp) => (
-                        <button
-                          key={sp.title}
-                          type="button"
-                          onClick={() => {
-                            setCustomPrompt(sp.prompt);
-                            switchToCustom();
-                          }}
-                          className="w-full text-left px-4 py-3 hover:bg-muted/40 transition-colors"
-                        >
-                          <p className="font-semibold text-sm">{sp.title}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{sp.prompt}</p>
-                        </button>
-                      ))}
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (mode === 'custom') {
+                          // Collapse: go back to URL mode (shows both sections)
+                          setMode('url');
+                          setCustomPrompt('');
+                          setSelectedAvatar(null);
+                        } else {
+                          // Expand: switch to custom mode
+                          switchToCustom();
+                        }
+                      }}
+                      className="w-full flex items-center justify-between px-4 py-3 bg-muted/30 hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Lightbulb className="h-4 w-4 text-muted-foreground" />
+                        <h3 className="text-sm font-semibold">Sample Prompts</h3>
+                      </div>
+                      <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${mode === 'custom' ? 'rotate-180' : ''}`} />
+                    </button>
+                    {mode === 'custom' && (
+                      <div className="divide-y divide-border max-h-[240px] overflow-y-auto border-t border-border">
+                        {SAMPLE_PROMPTS.map((sp) => (
+                          <button
+                            key={sp.title}
+                            type="button"
+                            onClick={() => {
+                              setCustomPrompt(sp.prompt);
+                            }}
+                            className="w-full text-left px-4 py-3 hover:bg-muted/40 transition-colors"
+                          >
+                            <p className="font-semibold text-sm">{sp.title}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{sp.prompt}</p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
+                  )}
 
                   <Button
                     type="submit"
