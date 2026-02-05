@@ -403,6 +403,7 @@ const NewChat = () => {
 
   // Policy sample prompts - hardcoded
   const samplePrompts = [
+    { title: "How to Draft a Bill", prompt: "What are the essential components and best practices for drafting a legislative bill in New York State? Include guidance on formatting, required sections, and how to structure the findings, purpose, and operative provisions." },
     { title: "Policy Analysis Framework", prompt: "What framework should I use to analyze the potential impact of a proposed policy change?" },
     { title: "Stakeholder Mapping", prompt: "How do I identify and map stakeholders who would be affected by a new housing policy?" },
     { title: "Evidence-Based Policy", prompt: "What does evidence-based policymaking look like and how can I apply it to education reform?" },
