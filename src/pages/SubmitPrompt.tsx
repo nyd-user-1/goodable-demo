@@ -15,6 +15,7 @@ import {
   Send,
   ArrowUp,
   Pencil,
+  Flashlight,
 } from "lucide-react";
 
 function decodeHtmlEntities(str: string): string {
@@ -32,7 +33,7 @@ function decodeHtmlEntities(str: string): string {
 
 function getDomain(url: string): string | null {
   try {
-    return new URL(url).hostname;
+    return new URL(url.trim()).hostname;
   } catch {
     return null;
   }
@@ -69,7 +70,6 @@ export default function SubmitPrompt() {
     JUNK_TITLES.some((junk) => t.toLowerCase().startsWith(junk));
 
   const fetchPageTitle = useCallback(async (pageUrl: string) => {
-    if (title.trim()) return;
     const d = getDomain(pageUrl);
     if (!d) return;
 
@@ -77,9 +77,9 @@ export default function SubmitPrompt() {
     setFetchFailed(false);
     try {
       const res = await fetch(
-        `https://api.allorigins.win/get?url=${encodeURIComponent(pageUrl)}`
+        `https://api.allorigins.win/get?url=${encodeURIComponent(pageUrl.trim())}`
       );
-      if (!res.ok) return;
+      if (!res.ok) throw new Error('fetch failed');
       const json = await res.json();
       const html: string = json.contents || '';
 
@@ -112,7 +112,7 @@ export default function SubmitPrompt() {
     } finally {
       setFetchingTitle(false);
     }
-  }, [title]);
+  }, []);
 
   const domain = useMemo(() => getDomain(url), [url]);
   const faviconUrl = domain
@@ -198,7 +198,8 @@ export default function SubmitPrompt() {
             {/* Left Panel — Live Preview */}
             <div className="bg-black p-8 sm:p-10 lg:p-12 text-white flex flex-col justify-center">
               {fetchingTitle && (
-                <Shimmer duration={2} spread={1} className="text-neutral-400 text-xs mb-3 block">
+                <Shimmer duration={2} spread={1} className="text-neutral-400 text-sm mb-3 flex items-center gap-1.5">
+                  <Flashlight className="h-4 w-4" />
                   Reading article...
                 </Shimmer>
               )}
@@ -286,7 +287,7 @@ export default function SubmitPrompt() {
                       value={url}
                       onChange={(e) => setUrl(e.target.value)}
                       onPaste={(e) => {
-                        const pasted = e.clipboardData.getData('text');
+                        const pasted = e.clipboardData.getData('text').trim();
                         if (pasted && getDomain(pasted) && !title.trim()) {
                           setTimeout(() => fetchPageTitle(pasted), 100);
                         }
