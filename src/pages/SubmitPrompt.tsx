@@ -399,7 +399,7 @@ export default function SubmitPrompt() {
                         id="title"
                         placeholder="What's the headline?"
                         value={title}
-                        onChange={(e) => setTitle(e.target.value)}
+                        onChange={(e) => { setTitle(e.target.value); setEditingTitle(true); }}
                         maxLength={120}
                         autoFocus={editingTitle}
                       />
