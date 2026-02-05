@@ -120,47 +120,38 @@ export default function Conversation() {
     const dateStr = p.created_at
       ? new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
       : '';
+    const faviconSrc = domain
+      ? (LOCAL_FAVICONS[domain] || `https://www.google.com/s2/favicons?domain=${domain}&sz=64`)
+      : null;
     return (
       <div key={p.id} className="py-3 first:pt-0">
         <div
           onClick={() => handlePromptClick(p.id, 0, promptText, context)}
-          className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200 cursor-pointer"
+          className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg border border-transparent hover:border-border"
         >
-          {p.avatar_url ? (
-            <img
-              src={p.avatar_url}
-              alt=""
-              className="w-10 h-10 rounded-full object-cover bg-muted shrink-0"
-            />
-          ) : domain ? (
-            <a
-              href={p.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="shrink-0"
-            >
-              <img
-                src={LOCAL_FAVICONS[domain] || `https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
-                alt=""
-                className="w-10 h-10 rounded-full object-cover bg-muted p-1"
-              />
-            </a>
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm line-clamp-2">{decodeEntities(p.title)}</p>
-            <div className="flex items-center gap-2 mt-0.5">
-              {p.display_name && <p className="text-xs font-medium text-muted-foreground">{p.display_name}</p>}
-              <p className="text-xs text-muted-foreground">{dateStr || 'Community'}</p>
-              {chats > 0 && <span className="text-xs text-blue-500">{chats} chats</span>}
-            </div>
+          <p className="font-semibold text-sm line-clamp-2">{decodeEntities(p.title)}</p>
+          <div className="flex items-center gap-2 mt-1">
+            {p.display_name && <span className="text-xs font-medium text-muted-foreground">{p.display_name}</span>}
+            <span className="text-xs text-muted-foreground">{dateStr || 'Community'}</span>
+            {chats > 0 && <span className="text-xs text-blue-500">{chats} chats</span>}
           </div>
-          <div className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-            <ArrowUp className="h-4 w-4" />
+          <div className="flex items-end justify-between mt-3">
+            <div className="flex items-center gap-2">
+              {p.avatar_url ? (
+                <img src={p.avatar_url} alt="" className="h-7 rounded-lg object-cover border border-border/50" />
+              ) : faviconSrc ? (
+                <a href={p.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                  <img src={faviconSrc} alt="" className="h-7 rounded-lg object-cover border border-border/50 hover:shadow-md transition-all" />
+                </a>
+              ) : (
+                <div className="h-7 w-7 rounded-lg bg-muted flex items-center justify-center">
+                  <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+              )}
+            </div>
+            <div className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <ArrowUp className="h-4 w-4" />
+            </div>
           </div>
         </div>
       </div>
@@ -190,9 +181,9 @@ export default function Conversation() {
         <div className="container mx-auto px-4 max-w-7xl">
           {(submittedPrompts || []).length > 0 && (
           <div className="pb-12">
-            <div className="flex gap-8">
+            <div className="flex gap-6">
               {/* ------ Featured (left sidebar, sticky) ------ */}
-              <aside className="hidden lg:block w-[300px] flex-shrink-0 border-r-2 border-dotted border-border/80 pr-8">
+              <aside className="hidden lg:block w-[340px] flex-shrink-0 border-r-2 border-dotted border-border/80 pr-6">
                 <div className="sticky top-24">
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                     Featured
@@ -226,7 +217,7 @@ export default function Conversation() {
               </div>
 
               {/* ------ User Generated (right sidebar, sticky) ------ */}
-              <aside className="hidden xl:block w-[300px] flex-shrink-0 border-l-2 border-dotted border-border/80 pl-8">
+              <aside className="hidden xl:block w-[340px] flex-shrink-0 border-l-2 border-dotted border-border/80 pl-6">
                 <div className="sticky top-24">
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                     User Generated
