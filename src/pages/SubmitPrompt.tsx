@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChatHeader } from "@/components/ChatHeader";
 import FooterSimple from "@/components/marketing/FooterSimple";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -17,22 +16,21 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Lightbulb,
-  Users,
-  MessageSquare,
   Shield,
   CheckCircle2,
   Send,
+  ArrowUp,
 } from "lucide-react";
 
 const CATEGORIES = ["Bills", "Policy", "Advocacy", "Departments"] as const;
 
-const CATEGORY_COLORS: Record<string, string> = {
-  Bills: "bg-white/10 text-white border border-white/20",
-  Policy: "bg-white/10 text-white border border-white/20",
-  Advocacy: "bg-white/10 text-white border border-white/20",
-  Departments: "bg-white/10 text-white border border-white/20",
-};
+function getDomain(url: string): string | null {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
+  }
+}
 
 export default function SubmitPrompt() {
   const navigate = useNavigate();
@@ -40,18 +38,32 @@ export default function SubmitPrompt() {
   const { toast } = useToast();
 
   const [title, setTitle] = useState("");
-  const [prompt, setPrompt] = useState("");
+  const [url, setUrl] = useState("");
   const [category, setCategory] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
+  const domain = useMemo(() => getDomain(url), [url]);
+  const faviconUrl = domain
+    ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
+    : null;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!title.trim() || !prompt.trim() || !category) {
+    if (!title.trim() || !url.trim()) {
       toast({
         title: "Missing fields",
-        description: "Please fill in all fields before submitting.",
+        description: "Please provide a title and URL.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!getDomain(url)) {
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid URL (e.g. https://example.com/article).",
         variant: "destructive",
       });
       return;
@@ -69,11 +81,14 @@ export default function SubmitPrompt() {
 
     setSubmitting(true);
     try {
+      const generatedPrompt = `Summarize '${title.trim()}'`;
+
       const { error } = await (supabase.from as any)("submitted_prompts").insert({
         user_id: user.id,
         title: title.trim(),
-        prompt: prompt.trim(),
-        category,
+        prompt: generatedPrompt,
+        url: url.trim(),
+        category: category || null,
       });
 
       if (error) throw error;
@@ -96,7 +111,7 @@ export default function SubmitPrompt() {
 
   const handleReset = () => {
     setTitle("");
-    setPrompt("");
+    setUrl("");
     setCategory("");
     setSubmitted(false);
   };
@@ -108,65 +123,52 @@ export default function SubmitPrompt() {
       <main className="flex-1 pt-16">
         <div className="mx-auto max-w-[1200px] px-4 py-12 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 rounded-2xl overflow-hidden border border-border shadow-lg">
-            {/* Left Panel - Info */}
+            {/* Left Panel — Live Preview */}
             <div className="bg-black p-8 sm:p-10 lg:p-12 text-white flex flex-col justify-center">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
-                Share Your Prompt with the Community
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
+                Create a Prompt Card
               </h1>
-              <p className="text-neutral-400 text-sm sm:text-base leading-relaxed mb-8">
-                Help fellow New Yorkers navigate state government more effectively.
-                Submit your best prompts and we'll review them for inclusion in the
-                community prompt library.
+              <p className="text-neutral-400 text-sm leading-relaxed mb-8">
+                See your card come to life as you fill in the form
               </p>
 
-              <div className="space-y-5 mb-8">
-                <div className="flex items-start gap-3">
-                  <Lightbulb className="h-5 w-5 text-white mt-0.5 shrink-0" />
+              {/* Live Preview Card */}
+              <div className="group bg-white/10 rounded-2xl p-4 border border-white/10 transition-all duration-200 mb-8">
+                <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-medium text-sm">Share your expertise</p>
-                    <p className="text-neutral-400 text-xs mt-0.5">
-                      Your knowledge of NY government can help others ask better questions.
-                    </p>
+                    <h4 className="font-semibold text-sm text-white line-clamp-2">
+                      {title || "Your headline appears here"}
+                    </h4>
+                    <span className="text-xs text-blue-400">0 chats</span>
                   </div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <Users className="h-5 w-5 text-white mt-0.5 shrink-0" />
-                  <div>
-                    <p className="font-medium text-sm">Build the community</p>
-                    <p className="text-neutral-400 text-xs mt-0.5">
-                      Approved prompts appear in the public library for everyone to use.
-                    </p>
+                {/* Bottom row: favicon left, arrow right */}
+                <div className="flex items-end justify-between mt-3">
+                  <div className="flex items-center gap-2">
+                    {faviconUrl ? (
+                      <img
+                        src={faviconUrl}
+                        alt="Site favicon"
+                        className="h-7 w-7 rounded-lg object-cover border border-white/20"
+                      />
+                    ) : (
+                      <div className="h-7 w-7 rounded-lg bg-white/10 border border-white/20" />
+                    )}
                   </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <MessageSquare className="h-5 w-5 text-white mt-0.5 shrink-0" />
-                  <div>
-                    <p className="font-medium text-sm">Get feedback</p>
-                    <p className="text-neutral-400 text-xs mt-0.5">
-                      Our team reviews every submission and may refine prompts for clarity.
-                    </p>
+                  <div className="w-8 h-8 bg-white text-black rounded-full flex items-center justify-center">
+                    <ArrowUp className="h-4 w-4" />
                   </div>
                 </div>
               </div>
 
-              <div>
-                <p className="text-xs text-neutral-400 uppercase tracking-wide font-semibold mb-3">
-                  Categories
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {CATEGORIES.map((cat) => (
-                    <span
-                      key={cat}
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${CATEGORY_COLORS[cat]}`}
-                    >
-                      {cat}
-                    </span>
-                  ))}
-                </div>
-              </div>
+              {/* Explanation */}
+              <p className="text-neutral-500 text-xs leading-relaxed">
+                Your card will appear in the Community section after review.
+                When someone clicks it, NYSgpt summarizes the article.
+              </p>
             </div>
 
-            {/* Right Panel - Form */}
+            {/* Right Panel — Form */}
             <div className="bg-background p-8 sm:p-10 lg:p-12 flex flex-col justify-center">
               {submitted ? (
                 <div className="text-center space-y-6">
@@ -194,7 +196,7 @@ export default function SubmitPrompt() {
                   <div>
                     <h2 className="text-xl font-semibold mb-1">Submit a Prompt</h2>
                     <p className="text-muted-foreground text-sm">
-                      Fill out the details below to submit your prompt for review.
+                      Share an article for the community to explore.
                     </p>
                   </div>
 
@@ -202,7 +204,7 @@ export default function SubmitPrompt() {
                     <Label htmlFor="title">Title</Label>
                     <Input
                       id="title"
-                      placeholder="e.g. Compare two legislators' voting records"
+                      placeholder="What's the headline?"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       maxLength={120}
@@ -210,19 +212,20 @@ export default function SubmitPrompt() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="prompt">Prompt</Label>
-                    <Textarea
-                      id="prompt"
-                      placeholder="e.g. How did Senator [Name] and Assembly Member [Name] vote differently on education bills in the 2025 session?"
-                      value={prompt}
-                      onChange={(e) => setPrompt(e.target.value)}
-                      rows={5}
-                      className="resize-none"
+                    <Label htmlFor="url">URL</Label>
+                    <Input
+                      id="url"
+                      type="url"
+                      placeholder="Paste the article URL"
+                      value={url}
+                      onChange={(e) => setUrl(e.target.value)}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="category">Category</Label>
+                    <Label htmlFor="category">
+                      Category <span className="text-muted-foreground font-normal">(optional)</span>
+                    </Label>
                     <Select value={category} onValueChange={setCategory}>
                       <SelectTrigger id="category">
                         <SelectValue placeholder="Select a category" />
