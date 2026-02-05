@@ -429,7 +429,7 @@ export default function PromptHub() {
     queryKey: ['submitted-prompts-hub'],
     queryFn: async () => {
       const { data } = await (supabase.from as any)('submitted_prompts')
-        .select('id, title, prompt, url, category, featured, created_at')
+        .select('id, title, prompt, url, category, featured, created_at, avatar_url')
         .order('created_at', { ascending: false });
       return data || [];
     },
@@ -484,7 +484,13 @@ export default function PromptHub() {
           onClick={() => handlePromptClick(p.id, 0, promptText, context)}
           className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200 cursor-pointer"
         >
-          {domain ? (
+          {p.avatar_url ? (
+            <img
+              src={p.avatar_url}
+              alt=""
+              className="w-10 h-10 rounded-full object-cover bg-muted shrink-0"
+            />
+          ) : domain ? (
             <a
               href={p.url}
               target="_blank"

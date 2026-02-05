@@ -16,6 +16,7 @@ import {
   ArrowUp,
   Pencil,
   Flashlight,
+  FileText,
 } from "lucide-react";
 
 function decodeHtmlEntities(str: string): string {
@@ -97,18 +98,37 @@ function extractTitleFromUrl(url: string): string | null {
   }
 }
 
+const AVATAR_OPTIONS = [
+  '/avatars/profile-1.avif',
+  '/avatars/profile-2.avif',
+  '/avatars/profile-3.avif',
+  '/avatars/profile-4.avif',
+  '/avatars/profile-5.avif',
+  '/avatars/profile-6.avif',
+];
+
 export default function SubmitPrompt() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const [title, setTitle] = useState("");
-  const [url, setUrl] = useState("");
+  // Shared state
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  // Mode: which form section is active
+  const [mode, setMode] = useState<'url' | 'custom'>('url');
+
+  // URL mode state
+  const [title, setTitle] = useState("");
+  const [url, setUrl] = useState("");
   const [fetchingTitle, setFetchingTitle] = useState(false);
   const [fetchFailed, setFetchFailed] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
+
+  // Custom mode state
+  const [customPrompt, setCustomPrompt] = useState("");
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
 
   // Garbage titles from bot-challenge pages
   const JUNK_TITLES = [
@@ -189,26 +209,36 @@ export default function SubmitPrompt() {
     ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
     : null;
 
+  // Google auth avatar
+  const googleAvatar = user?.user_metadata?.avatar_url as string | undefined;
+
+  // Mode switching helpers
+  const switchToUrl = () => {
+    if (mode !== 'url') {
+      setMode('url');
+      setCustomPrompt("");
+      setSelectedAvatar(null);
+    }
+  };
+
+  const switchToCustom = () => {
+    if (mode !== 'custom') {
+      setMode('custom');
+      setUrl("");
+      setTitle("");
+      setFetchFailed(false);
+      setEditingTitle(false);
+    }
+  };
+
+  // Preview values based on mode
+  const previewTitle = mode === 'url' ? title : customPrompt;
+  const previewIcon = mode === 'url'
+    ? faviconUrl
+    : selectedAvatar;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!title.trim() || !url.trim()) {
-      toast({
-        title: "Missing fields",
-        description: "Please provide a title and URL.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!getDomain(url)) {
-      toast({
-        title: "Invalid URL",
-        description: "Please enter a valid URL (e.g. https://example.com/article).",
-        variant: "destructive",
-      });
-      return;
-    }
 
     if (!user) {
       toast({
@@ -220,42 +250,107 @@ export default function SubmitPrompt() {
       return;
     }
 
-    setSubmitting(true);
-    try {
-      const generatedPrompt = `Summarize '${title.trim()}'`;
+    if (mode === 'url') {
+      if (!title.trim() || !url.trim()) {
+        toast({
+          title: "Missing fields",
+          description: "Please provide a title and URL.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      const { error } = await (supabase.from as any)("submitted_prompts").insert({
-        user_id: user.id,
-        title: title.trim(),
-        prompt: generatedPrompt,
-        url: url.trim(),
-        category: null,
-      });
+      if (!getDomain(url)) {
+        toast({
+          title: "Invalid URL",
+          description: "Please enter a valid URL (e.g. https://example.com/article).",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      if (error) throw error;
+      setSubmitting(true);
+      try {
+        const generatedPrompt = `Summarize '${title.trim()}'`;
 
-      setSubmitted(true);
-      toast({
-        title: "Prompt submitted!",
-        description: "Your prompt has been submitted for review.",
-      });
-    } catch (err: any) {
-      toast({
-        title: "Submission failed",
-        description: err.message || "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setSubmitting(false);
+        const { error } = await (supabase.from as any)("submitted_prompts").insert({
+          user_id: user.id,
+          title: title.trim(),
+          prompt: generatedPrompt,
+          url: url.trim(),
+          category: null,
+        });
+
+        if (error) throw error;
+
+        setSubmitted(true);
+        toast({
+          title: "Prompt submitted!",
+          description: "Your prompt has been submitted for review.",
+        });
+      } catch (err: any) {
+        toast({
+          title: "Submission failed",
+          description: err.message || "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setSubmitting(false);
+      }
+    } else {
+      // Custom mode
+      if (!customPrompt.trim()) {
+        toast({
+          title: "Missing prompt",
+          description: "Please write your prompt.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setSubmitting(true);
+      try {
+        const truncatedTitle = customPrompt.trim().length > 120
+          ? customPrompt.trim().slice(0, 117) + '...'
+          : customPrompt.trim();
+
+        const { error } = await (supabase.from as any)("submitted_prompts").insert({
+          user_id: user.id,
+          title: truncatedTitle,
+          prompt: customPrompt.trim(),
+          url: null,
+          category: null,
+          avatar_url: selectedAvatar,
+        });
+
+        if (error) throw error;
+
+        setSubmitted(true);
+        toast({
+          title: "Prompt submitted!",
+          description: "Your prompt has been submitted for review.",
+        });
+      } catch (err: any) {
+        toast({
+          title: "Submission failed",
+          description: err.message || "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setSubmitting(false);
+      }
     }
   };
 
   const handleReset = () => {
     setTitle("");
     setUrl("");
+    setCustomPrompt("");
+    setSelectedAvatar(null);
     setSubmitted(false);
     setFetchFailed(false);
     setEditingTitle(false);
+    setMode('url');
   };
 
   return (
@@ -285,20 +380,24 @@ export default function SubmitPrompt() {
                 <div className="flex items-start justify-between">
                   <div>
                     <h4 className="font-semibold text-sm text-white line-clamp-2">
-                      {title || "Your headline appears here"}
+                      {previewTitle || "Your headline appears here"}
                     </h4>
                     <span className="text-xs text-blue-400">0 chats</span>
                   </div>
                 </div>
-                {/* Bottom row: favicon left, arrow right */}
+                {/* Bottom row: icon left, arrow right */}
                 <div className="flex items-end justify-between mt-3">
                   <div className="flex items-center gap-2">
-                    {faviconUrl ? (
+                    {previewIcon ? (
                       <img
-                        src={faviconUrl}
-                        alt="Site favicon"
+                        src={previewIcon}
+                        alt=""
                         className="h-7 w-7 rounded-lg object-cover border border-white/20"
                       />
+                    ) : mode === 'custom' ? (
+                      <div className="h-7 w-7 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center">
+                        <FileText className="h-3.5 w-3.5 text-white/50" />
+                      </div>
                     ) : (
                       <div className="h-7 w-7 rounded-lg bg-white/10 border border-white/20" />
                     )}
@@ -312,7 +411,9 @@ export default function SubmitPrompt() {
               {/* Explanation */}
               <p className="text-neutral-500 text-xs leading-relaxed">
                 Your card will appear in the Community section after review.
-                When someone clicks it, NYSgpt summarizes the article.
+                {mode === 'url'
+                  ? ' When someone clicks it, NYSgpt summarizes the article.'
+                  : ' When someone clicks it, NYSgpt responds to your prompt.'}
               </p>
             </div>
 
@@ -348,63 +449,139 @@ export default function SubmitPrompt() {
                     </p>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="url">URL</Label>
-                    <Input
-                      id="url"
-                      type="url"
-                      placeholder="Paste the article URL"
-                      value={url}
-                      onChange={(e) => setUrl(e.target.value)}
-                      onPaste={(e) => {
-                        const pasted = e.clipboardData.getData('text').trim();
-                        if (pasted && getDomain(pasted) && !title.trim()) {
-                          setTimeout(() => fetchPageTitle(pasted), 100);
-                        }
-                      }}
-                      onBlur={() => {
-                        if (url.trim() && !title.trim()) fetchPageTitle(url);
-                      }}
-                    />
-                  </div>
-
-                  {/* Title: auto-fetched display OR manual input */}
-                  {fetchingTitle && (
-                    <p className="text-sm text-muted-foreground animate-pulse">
-                      Fetching title...
-                    </p>
-                  )}
-
-                  {!fetchingTitle && title.trim() && !editingTitle && (
-                    <div className="space-y-1">
-                      <Label>Title</Label>
-                      <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                        <p className="flex-1 text-sm font-medium line-clamp-2">{title}</p>
-                        <button
-                          type="button"
-                          onClick={() => setEditingTitle(true)}
-                          className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-                          title="Edit title"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {!fetchingTitle && (editingTitle || (!title.trim() && (fetchFailed || !domain))) && (
+                  {/* ── URL Mode ── */}
+                  <div
+                    className={mode === 'custom' ? 'opacity-50 transition-opacity' : 'transition-opacity'}
+                  >
                     <div className="space-y-2">
-                      <Label htmlFor="title">Title</Label>
+                      <Label htmlFor="url">URL</Label>
                       <Input
-                        id="title"
-                        placeholder="What's the headline?"
-                        value={title}
-                        onChange={(e) => { setTitle(e.target.value); setEditingTitle(true); }}
-                        maxLength={120}
-                        autoFocus={editingTitle}
+                        id="url"
+                        type="url"
+                        placeholder="Paste the article URL"
+                        value={url}
+                        onChange={(e) => {
+                          setUrl(e.target.value);
+                          switchToUrl();
+                        }}
+                        onPaste={(e) => {
+                          switchToUrl();
+                          const pasted = e.clipboardData.getData('text').trim();
+                          if (pasted && getDomain(pasted) && !title.trim()) {
+                            setTimeout(() => fetchPageTitle(pasted), 100);
+                          }
+                        }}
+                        onBlur={() => {
+                          if (url.trim() && !title.trim()) fetchPageTitle(url);
+                        }}
+                        onFocus={switchToUrl}
                       />
                     </div>
-                  )}
+
+                    {/* Title: auto-fetched display OR manual input */}
+                    {mode === 'url' && fetchingTitle && (
+                      <p className="text-sm text-muted-foreground animate-pulse mt-2">
+                        Fetching title...
+                      </p>
+                    )}
+
+                    {mode === 'url' && !fetchingTitle && title.trim() && !editingTitle && (
+                      <div className="space-y-1 mt-2">
+                        <Label>Title</Label>
+                        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                          <p className="flex-1 text-sm font-medium line-clamp-2">{title}</p>
+                          <button
+                            type="button"
+                            onClick={() => setEditingTitle(true)}
+                            className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                            title="Edit title"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {mode === 'url' && !fetchingTitle && (editingTitle || (!title.trim() && (fetchFailed || !domain))) && (
+                      <div className="space-y-2 mt-2">
+                        <Label htmlFor="title">Title</Label>
+                        <Input
+                          id="title"
+                          placeholder="What's the headline?"
+                          value={title}
+                          onChange={(e) => { setTitle(e.target.value); setEditingTitle(true); }}
+                          maxLength={120}
+                          autoFocus={editingTitle}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ── OR Divider ── */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="border-border w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="bg-background text-muted-foreground px-2">
+                        OR
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* ── Custom Mode ── */}
+                  <div
+                    className={mode === 'url' ? 'opacity-50 transition-opacity' : 'transition-opacity'}
+                  >
+                    <Label className="text-sm font-semibold mb-2 block">Write your own</Label>
+                    <textarea
+                      placeholder="Write your prompt..."
+                      value={customPrompt}
+                      onChange={(e) => {
+                        setCustomPrompt(e.target.value);
+                        switchToCustom();
+                      }}
+                      onFocus={switchToCustom}
+                      rows={3}
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                    />
+
+                    {/* Avatar Picker */}
+                    {mode === 'custom' && (
+                      <div className="mt-3">
+                        <Label className="text-xs text-muted-foreground mb-2 block">Choose an avatar (optional)</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {googleAvatar && (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedAvatar(selectedAvatar === googleAvatar ? null : googleAvatar)}
+                              className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all ${
+                                selectedAvatar === googleAvatar
+                                  ? 'border-foreground ring-2 ring-foreground/20'
+                                  : 'border-transparent hover:border-border'
+                              }`}
+                            >
+                              <img src={googleAvatar} alt="Your photo" className="w-full h-full object-cover" />
+                            </button>
+                          )}
+                          {AVATAR_OPTIONS.map((avatar) => (
+                            <button
+                              key={avatar}
+                              type="button"
+                              onClick={() => setSelectedAvatar(selectedAvatar === avatar ? null : avatar)}
+                              className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all ${
+                                selectedAvatar === avatar
+                                  ? 'border-foreground ring-2 ring-foreground/20'
+                                  : 'border-transparent hover:border-border'
+                              }`}
+                            >
+                              <img src={avatar} alt="" className="w-full h-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="flex items-start gap-2 rounded-lg bg-muted/50 p-3">
                     <Shield className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
