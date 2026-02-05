@@ -472,8 +472,8 @@ export default function PromptHub() {
   // -----------------------------------------------------------------------
   const SUPABASE_FAVICON_BASE = 'https://kwyjohornlgujoqypyvu.supabase.co/storage/v1/object/public/Favicons';
   const LOCAL_FAVICONS: Record<string, string> = {
-    'www.islandharvest.org': `${SUPABASE_FAVICON_BASE}/islandharvest.avif`,
-    'islandharvest.org': `${SUPABASE_FAVICON_BASE}/islandharvest.avif`,
+    'www.islandharvest.org': `${SUPABASE_FAVICON_BASE}/island-harvest.avif`,
+    'islandharvest.org': `${SUPABASE_FAVICON_BASE}/island-harvest.avif`,
   };
 
   // -----------------------------------------------------------------------
@@ -831,7 +831,7 @@ export default function PromptHub() {
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                     Press Releases
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-3.5">
                     {pressReleaseItems.map((p) => {
                       const articleUrl = p.context?.startsWith('fetchUrl:')
                         ? p.context.slice('fetchUrl:'.length).trim()
