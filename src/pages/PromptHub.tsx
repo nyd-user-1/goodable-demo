@@ -475,6 +475,9 @@ export default function PromptHub() {
     const promptText = p.prompt || `Summarize '${p.title}'`;
     const context = p.url ? `fetchUrl:${p.url}` : undefined;
     const chats = getChatCount(p.id, 0);
+    const dateStr = p.created_at
+      ? new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      : '';
     return (
       <div key={p.id} className="py-3 first:pt-0">
         <div
@@ -482,11 +485,19 @@ export default function PromptHub() {
           className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200 cursor-pointer"
         >
           {domain ? (
-            <img
-              src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
-              alt=""
-              className="w-10 h-10 rounded-full object-cover bg-muted p-1 shrink-0"
-            />
+            <a
+              href={p.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="shrink-0"
+            >
+              <img
+                src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+                alt=""
+                className="w-10 h-10 rounded-full object-cover bg-muted p-1"
+              />
+            </a>
           ) : (
             <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
               <FileText className="h-4 w-4 text-muted-foreground" />
@@ -495,7 +506,7 @@ export default function PromptHub() {
           <div className="flex-1 min-w-0">
             <p className="font-medium text-sm line-clamp-2">{decodeEntities(p.title)}</p>
             <div className="flex items-center gap-2 mt-0.5">
-              <p className="text-xs text-muted-foreground">{domain || 'Community'}</p>
+              <p className="text-xs text-muted-foreground">{dateStr || 'Community'}</p>
               {chats > 0 && <span className="text-xs text-blue-500">{chats} chats</span>}
             </div>
           </div>
@@ -872,7 +883,10 @@ export default function PromptHub() {
                   Top
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
-                  {(submittedPrompts || []).slice(0, 10).map(renderSubmittedRow)}
+                  {[...(submittedPrompts || [])]
+                    .sort((a: any, b: any) => getChatCount(b.id, 0) - getChatCount(a.id, 0))
+                    .slice(0, 10)
+                    .map(renderSubmittedRow)}
                 </div>
               </div>
 
