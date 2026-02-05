@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   Send,
   ArrowUp,
+  Pencil,
 } from "lucide-react";
 
 function decodeHtmlEntities(str: string): string {
@@ -47,6 +48,8 @@ export default function SubmitPrompt() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [fetchingTitle, setFetchingTitle] = useState(false);
+  const [fetchFailed, setFetchFailed] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(false);
 
   // Garbage titles from bot-challenge pages
   const JUNK_TITLES = [
@@ -71,6 +74,7 @@ export default function SubmitPrompt() {
     if (!d) return;
 
     setFetchingTitle(true);
+    setFetchFailed(false);
     try {
       const res = await fetch(
         `https://api.allorigins.win/get?url=${encodeURIComponent(pageUrl)}`
@@ -97,12 +101,14 @@ export default function SubmitPrompt() {
         }
       }
 
-      if (!extracted || isJunkTitle(extracted)) return;
+      if (!extracted || isJunkTitle(extracted)) {
+        setFetchFailed(true);
+        return;
+      }
 
-      // Only set if the user hasn't typed anything while we were fetching
       setTitle((prev) => (prev.trim() ? prev : extracted));
     } catch {
-      // Silently fail — user can type title manually
+      setFetchFailed(true);
     } finally {
       setFetchingTitle(false);
     }
@@ -178,6 +184,8 @@ export default function SubmitPrompt() {
     setTitle("");
     setUrl("");
     setSubmitted(false);
+    setFetchFailed(false);
+    setEditingTitle(false);
   };
 
   return (
@@ -289,16 +297,43 @@ export default function SubmitPrompt() {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="title">Title</Label>
-                    <Input
-                      id="title"
-                      placeholder={fetchingTitle ? "Fetching title..." : "What's the headline?"}
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      maxLength={120}
-                    />
-                  </div>
+                  {/* Title: auto-fetched display OR manual input */}
+                  {fetchingTitle && (
+                    <p className="text-sm text-muted-foreground animate-pulse">
+                      Fetching title...
+                    </p>
+                  )}
+
+                  {!fetchingTitle && title.trim() && !editingTitle && (
+                    <div className="space-y-1">
+                      <Label>Title</Label>
+                      <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                        <p className="flex-1 text-sm font-medium line-clamp-2">{title}</p>
+                        <button
+                          type="button"
+                          onClick={() => setEditingTitle(true)}
+                          className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                          title="Edit title"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {!fetchingTitle && (editingTitle || (!title.trim() && (fetchFailed || !domain))) && (
+                    <div className="space-y-2">
+                      <Label htmlFor="title">Title</Label>
+                      <Input
+                        id="title"
+                        placeholder="What's the headline?"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        maxLength={120}
+                        autoFocus={editingTitle}
+                      />
+                    </div>
+                  )}
 
                   <div className="flex items-start gap-2 rounded-lg bg-muted/50 p-3">
                     <Shield className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
