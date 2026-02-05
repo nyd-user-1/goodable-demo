@@ -62,6 +62,7 @@ const Prompts = React.lazy(() => import("./pages/Prompts"));
 const PromptHub = React.lazy(() => import("./pages/PromptHub"));
 const DepartmentDetail = React.lazy(() => import("./pages/DepartmentDetail"));
 const FeedPage = React.lazy(() => import("./pages/FeedPage"));
+const SubmitPrompt = React.lazy(() => import("./pages/SubmitPrompt"));
 
 const queryClient = new QueryClient();
 
@@ -106,6 +107,7 @@ const App = () => {
                   <Route path="/digital-bill-of-rights" element={<DigitalBillOfRights />} />
                   <Route path="/ai-fluency" element={<AIFluency />} />
                   <Route path="/prompts" element={<PromptHub />} />
+                  <Route path="/submit-prompt" element={<SubmitPrompt />} />
                   <Route path="/use-cases" element={<UseCases />} />
                   <Route path="/use-cases/bills" element={<UseCasesBills />} />
                   <Route path="/use-cases/committees" element={<UseCasesCommittees />} />

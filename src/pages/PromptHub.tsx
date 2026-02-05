@@ -682,7 +682,7 @@ export default function PromptHub() {
                   <div className="divide-y-2 divide-dotted divide-border/80">
                     <div className="py-3">
                       <Link
-                        to="/"
+                        to="/submit-prompt"
                         className="flex items-center gap-3 py-3 bg-muted/30 hover:bg-muted/50 hover:shadow-lg hover:border-border rounded-lg px-2 border border-transparent transition-all"
                       >
                         <PenLine className="h-5 w-5 text-muted-foreground" />
