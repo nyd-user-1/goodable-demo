@@ -2257,7 +2257,16 @@ const NewChat = () => {
                                 onClick={() => {
                                   setQuery(item.prompt);
                                   setPromptsDropdownOpen(false);
-                                  textareaRef.current?.focus();
+                                  // Trigger textarea resize after React updates the value
+                                  setTimeout(() => {
+                                    if (textareaRef.current) {
+                                      textareaRef.current.style.height = 'auto';
+                                      const maxHeight = 144; // ~6 lines
+                                      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, maxHeight) + 'px';
+                                      textareaRef.current.style.overflowY = textareaRef.current.scrollHeight > maxHeight ? 'auto' : 'hidden';
+                                      textareaRef.current.focus();
+                                    }
+                                  }, 0);
                                 }}
                                 className={cn(
                                   "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted/50",
