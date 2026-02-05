@@ -10,13 +10,13 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Shield,
   CheckCircle2,
   Send,
   ArrowUp,
   Pencil,
   Flashlight,
   FileText,
+  Lightbulb,
 } from "lucide-react";
 
 function decodeHtmlEntities(str: string): string {
@@ -105,6 +105,33 @@ const AVATAR_OPTIONS = [
   '/avatars/profile-4.avif',
   '/avatars/profile-5.avif',
   '/avatars/profile-6.avif',
+];
+
+const SAMPLE_PROMPTS = [
+  {
+    title: 'Policy Analysis Framework',
+    prompt: 'What framework should I use to analyze the potential impact of a proposed policy change?',
+  },
+  {
+    title: 'Stakeholder Mapping',
+    prompt: 'How do I identify and map stakeholders who would be affected by a new housing policy?',
+  },
+  {
+    title: 'Evidence-Based Policy',
+    prompt: 'What does evidence-based policymaking look like and how can I apply it to education reform?',
+  },
+  {
+    title: 'Policy Implementation',
+    prompt: 'What are the key factors that determine whether a policy will be successfully implemented?',
+  },
+  {
+    title: 'Budget Impact Analysis',
+    prompt: 'How do I assess the fiscal impact of a proposed legislative change on the state budget?',
+  },
+  {
+    title: 'Community Engagement',
+    prompt: 'What are effective strategies for engaging communities in the policy development process?',
+  },
 ];
 
 export default function SubmitPrompt() {
@@ -318,7 +345,7 @@ export default function SubmitPrompt() {
           user_id: user.id,
           title: truncatedTitle,
           prompt: customPrompt.trim(),
-          url: null,
+          url: '',
           category: null,
           avatar_url: selectedAvatar,
         });
@@ -413,7 +440,8 @@ export default function SubmitPrompt() {
                 Your card will appear in the Community section after review.
                 {mode === 'url'
                   ? ' When someone clicks it, NYSgpt summarizes the article.'
-                  : ' When someone clicks it, NYSgpt responds to your prompt.'}
+                  : ' When someone clicks it, NYSgpt responds to your prompt.'}{' '}
+                AI-assisted moderation is used to screen submissions.
               </p>
             </div>
 
@@ -450,19 +478,19 @@ export default function SubmitPrompt() {
                   </div>
 
                   {/* ── URL Mode ── */}
-                  <div
-                    className={mode === 'custom' ? 'opacity-50 transition-opacity' : 'transition-opacity'}
-                  >
+                  {mode !== 'custom' && (
+                  <div>
                     <div className="space-y-2">
                       <Label htmlFor="url">URL</Label>
                       <Input
                         id="url"
                         type="url"
-                        placeholder="Paste the article URL"
+                        placeholder="Paste article or press release URL"
                         value={url}
                         onChange={(e) => {
-                          setUrl(e.target.value);
-                          switchToUrl();
+                          const v = e.target.value;
+                          setUrl(v);
+                          if (v.trim()) switchToUrl();
                         }}
                         onPaste={(e) => {
                           switchToUrl();
@@ -474,18 +502,17 @@ export default function SubmitPrompt() {
                         onBlur={() => {
                           if (url.trim() && !title.trim()) fetchPageTitle(url);
                         }}
-                        onFocus={switchToUrl}
                       />
                     </div>
 
                     {/* Title: auto-fetched display OR manual input */}
-                    {mode === 'url' && fetchingTitle && (
+                    {fetchingTitle && (
                       <p className="text-sm text-muted-foreground animate-pulse mt-2">
                         Fetching title...
                       </p>
                     )}
 
-                    {mode === 'url' && !fetchingTitle && title.trim() && !editingTitle && (
+                    {!fetchingTitle && title.trim() && !editingTitle && (
                       <div className="space-y-1 mt-2">
                         <Label>Title</Label>
                         <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
@@ -502,7 +529,7 @@ export default function SubmitPrompt() {
                       </div>
                     )}
 
-                    {mode === 'url' && !fetchingTitle && (editingTitle || (!title.trim() && (fetchFailed || !domain))) && (
+                    {!fetchingTitle && (editingTitle || (!title.trim() && (fetchFailed || !domain))) && (
                       <div className="space-y-2 mt-2">
                         <Label htmlFor="title">Title</Label>
                         <Input
@@ -516,8 +543,10 @@ export default function SubmitPrompt() {
                       </div>
                     )}
                   </div>
+                  )}
 
-                  {/* ── OR Divider ── */}
+                  {/* ── OR Divider — only when neither field has content ── */}
+                  {!url.trim() && !customPrompt.trim() && (
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
                       <div className="border-border w-full border-t" />
@@ -528,66 +557,83 @@ export default function SubmitPrompt() {
                       </span>
                     </div>
                   </div>
+                  )}
 
                   {/* ── Custom Mode ── */}
-                  <div
-                    className={mode === 'url' ? 'opacity-50 transition-opacity' : 'transition-opacity'}
-                  >
+                  {mode !== 'url' && (
+                  <div>
                     <Label className="text-sm font-semibold mb-2 block">Write your own</Label>
                     <textarea
                       placeholder="Write your prompt..."
                       value={customPrompt}
                       onChange={(e) => {
-                        setCustomPrompt(e.target.value);
-                        switchToCustom();
+                        const v = e.target.value;
+                        setCustomPrompt(v);
+                        if (v.trim()) switchToCustom();
+                        else setMode('url');
                       }}
-                      onFocus={switchToCustom}
                       rows={3}
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                     />
 
                     {/* Avatar Picker */}
-                    {mode === 'custom' && (
-                      <div className="mt-3">
-                        <Label className="text-xs text-muted-foreground mb-2 block">Choose an avatar (optional)</Label>
-                        <div className="flex flex-wrap gap-2">
-                          {googleAvatar && (
-                            <button
-                              type="button"
-                              onClick={() => setSelectedAvatar(selectedAvatar === googleAvatar ? null : googleAvatar)}
-                              className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all ${
-                                selectedAvatar === googleAvatar
-                                  ? 'border-foreground ring-2 ring-foreground/20'
-                                  : 'border-transparent hover:border-border'
-                              }`}
-                            >
-                              <img src={googleAvatar} alt="Your photo" className="w-full h-full object-cover" />
-                            </button>
-                          )}
-                          {AVATAR_OPTIONS.map((avatar) => (
-                            <button
-                              key={avatar}
-                              type="button"
-                              onClick={() => setSelectedAvatar(selectedAvatar === avatar ? null : avatar)}
-                              className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all ${
-                                selectedAvatar === avatar
-                                  ? 'border-foreground ring-2 ring-foreground/20'
-                                  : 'border-transparent hover:border-border'
-                              }`}
-                            >
-                              <img src={avatar} alt="" className="w-full h-full object-cover" />
-                            </button>
-                          ))}
-                        </div>
+                    <div className="mt-3">
+                      <Label className="text-xs text-muted-foreground mb-2 block">Choose an avatar (optional)</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {googleAvatar && (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedAvatar(selectedAvatar === googleAvatar ? null : googleAvatar)}
+                            className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all ${
+                              selectedAvatar === googleAvatar
+                                ? 'border-foreground ring-2 ring-foreground/20'
+                                : 'border-transparent hover:border-border'
+                            }`}
+                          >
+                            <img src={googleAvatar} alt="Your photo" className="w-full h-full object-cover" />
+                          </button>
+                        )}
+                        {AVATAR_OPTIONS.map((avatar) => (
+                          <button
+                            key={avatar}
+                            type="button"
+                            onClick={() => setSelectedAvatar(selectedAvatar === avatar ? null : avatar)}
+                            className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all ${
+                              selectedAvatar === avatar
+                                ? 'border-foreground ring-2 ring-foreground/20'
+                                : 'border-transparent hover:border-border'
+                            }`}
+                          >
+                            <img src={avatar} alt="" className="w-full h-full object-cover" />
+                          </button>
+                        ))}
                       </div>
-                    )}
+                    </div>
                   </div>
+                  )}
 
-                  <div className="flex items-start gap-2 rounded-lg bg-muted/50 p-3">
-                    <Shield className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      AI-assisted moderation is used to screen submissions.
-                    </p>
+                  {/* ── Sample Prompts ── */}
+                  <div className="rounded-xl border border-border overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
+                      <h3 className="text-sm font-semibold">Sample Prompts</h3>
+                      <Lightbulb className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="divide-y divide-border max-h-[240px] overflow-y-auto">
+                      {SAMPLE_PROMPTS.map((sp) => (
+                        <button
+                          key={sp.title}
+                          type="button"
+                          onClick={() => {
+                            setCustomPrompt(sp.prompt);
+                            switchToCustom();
+                          }}
+                          className="w-full text-left px-4 py-3 hover:bg-muted/40 transition-colors"
+                        >
+                          <p className="font-semibold text-sm">{sp.title}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{sp.prompt}</p>
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   <Button
