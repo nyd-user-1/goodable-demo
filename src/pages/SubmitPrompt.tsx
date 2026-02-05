@@ -28,10 +28,10 @@ import {
 const CATEGORIES = ["Bills", "Policy", "Advocacy", "Departments"] as const;
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Bills: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
-  Policy: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
-  Advocacy: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
-  Departments: "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300",
+  Bills: "bg-white/10 text-white border border-white/20",
+  Policy: "bg-white/10 text-white border border-white/20",
+  Advocacy: "bg-white/10 text-white border border-white/20",
+  Departments: "bg-white/10 text-white border border-white/20",
 };
 
 export default function SubmitPrompt() {
@@ -109,11 +109,11 @@ export default function SubmitPrompt() {
         <div className="mx-auto max-w-[1200px] px-4 py-12 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 rounded-2xl overflow-hidden border border-border shadow-lg">
             {/* Left Panel - Info */}
-            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 sm:p-10 lg:p-12 text-white flex flex-col justify-center">
+            <div className="bg-black p-8 sm:p-10 lg:p-12 text-white flex flex-col justify-center">
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
                 Share Your Prompt with the Community
               </h1>
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-8">
+              <p className="text-neutral-400 text-sm sm:text-base leading-relaxed mb-8">
                 Help fellow New Yorkers navigate state government more effectively.
                 Submit your best prompts and we'll review them for inclusion in the
                 community prompt library.
@@ -121,34 +121,28 @@ export default function SubmitPrompt() {
 
               <div className="space-y-5 mb-8">
                 <div className="flex items-start gap-3">
-                  <div className="mt-0.5 rounded-lg bg-yellow-500/20 p-2">
-                    <Lightbulb className="h-5 w-5 text-yellow-400" />
-                  </div>
+                  <Lightbulb className="h-5 w-5 text-white mt-0.5 shrink-0" />
                   <div>
                     <p className="font-medium text-sm">Share your expertise</p>
-                    <p className="text-slate-400 text-xs mt-0.5">
+                    <p className="text-neutral-400 text-xs mt-0.5">
                       Your knowledge of NY government can help others ask better questions.
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="mt-0.5 rounded-lg bg-blue-500/20 p-2">
-                    <Users className="h-5 w-5 text-blue-400" />
-                  </div>
+                  <Users className="h-5 w-5 text-white mt-0.5 shrink-0" />
                   <div>
                     <p className="font-medium text-sm">Build the community</p>
-                    <p className="text-slate-400 text-xs mt-0.5">
+                    <p className="text-neutral-400 text-xs mt-0.5">
                       Approved prompts appear in the public library for everyone to use.
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="mt-0.5 rounded-lg bg-green-500/20 p-2">
-                    <MessageSquare className="h-5 w-5 text-green-400" />
-                  </div>
+                  <MessageSquare className="h-5 w-5 text-white mt-0.5 shrink-0" />
                   <div>
                     <p className="font-medium text-sm">Get feedback</p>
-                    <p className="text-slate-400 text-xs mt-0.5">
+                    <p className="text-neutral-400 text-xs mt-0.5">
                       Our team reviews every submission and may refine prompts for clarity.
                     </p>
                   </div>
@@ -156,7 +150,7 @@ export default function SubmitPrompt() {
               </div>
 
               <div>
-                <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold mb-3">
+                <p className="text-xs text-neutral-400 uppercase tracking-wide font-semibold mb-3">
                   Categories
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -176,8 +170,8 @@ export default function SubmitPrompt() {
             <div className="bg-background p-8 sm:p-10 lg:p-12 flex flex-col justify-center">
               {submitted ? (
                 <div className="text-center space-y-6">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 mx-auto">
-                    <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mx-auto">
+                    <CheckCircle2 className="h-8 w-8 text-foreground" />
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold mb-2">Prompt Submitted!</h2>
