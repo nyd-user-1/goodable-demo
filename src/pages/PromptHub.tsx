@@ -4,8 +4,8 @@ import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
 import { cn } from '@/lib/utils';
 import {
-  ArrowUp, Flame, PenLine, Megaphone, Briefcase, Heart,
-  ExternalLink, Sparkles, Users, FileText, DollarSign,
+  ArrowUp, PenLine, Megaphone, Briefcase, Heart,
+  ExternalLink, Users, FileText, DollarSign,
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -469,12 +469,11 @@ export default function PromptHub() {
               <div className="sticky top-24">
                 {/* Trending */}
                 <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
-                    <Flame className="h-3.5 w-3.5" />
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                     Trending
                   </h3>
                   <div className="space-y-2">
-                    {trendingPrompts.map((p) => {
+                    {trendingPrompts.map((p, idx) => {
                       const articleUrl = p.context?.startsWith('fetchUrl:')
                         ? p.context.slice('fetchUrl:'.length).trim()
                         : null;
@@ -484,9 +483,13 @@ export default function PromptHub() {
                           onClick={() => handlePromptClick(p.id, p.upvotes, p.prompt, p.context)}
                           className="group bg-muted/30 hover:bg-muted/50 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg border border-transparent hover:border-border"
                         >
-                          <div>
-                            <h4 className="font-semibold text-sm line-clamp-2">{p.title}</h4>
-                            <span className="text-xs text-blue-500">{getChatCount(p.id, p.upvotes)} chats</span>
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4 className="font-semibold text-sm line-clamp-2">{p.title}</h4>
+                              <span className="text-xs text-blue-500">{getChatCount(p.id, p.upvotes)} chats</span>
+                            </div>
+                            {idx === 0 && <span className="text-base ml-2 shrink-0">🔥</span>}
+                            {idx === 1 && <span className="text-base ml-2 shrink-0">✅</span>}
                           </div>
                           {/* Bottom row: logo left, arrow right */}
                           <div className="flex items-end justify-between mt-3">
@@ -673,8 +676,7 @@ export default function PromptHub() {
               <div className="sticky top-24">
                 {/* Resources */}
                 <div className="mb-6 pb-6 border-b-2 border-dotted border-border/80">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
-                    <Megaphone className="h-3.5 w-3.5" />
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                     Resources
                   </h3>
                   <div className="divide-y-2 divide-dotted divide-border/80">
@@ -719,8 +721,7 @@ export default function PromptHub() {
 
                 {/* Press Releases */}
                 <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5">
-                    <Sparkles className="h-3.5 w-3.5" />
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                     Press Releases
                   </h3>
                   <div className="space-y-2">
