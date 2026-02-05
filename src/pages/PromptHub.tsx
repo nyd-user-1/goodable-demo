@@ -488,10 +488,10 @@ export default function PromptHub() {
       ? new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
       : '';
     return (
-      <div key={p.id} className="py-3 first:pt-0">
+      <div key={p.id} className="py-4 first:pt-0">
         <div
           onClick={() => handlePromptClick(p.id, 0, promptText, context)}
-          className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200 cursor-pointer"
+          className="group flex items-center gap-3 py-3 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200 cursor-pointer"
         >
           {p.avatar_url ? (
             <img
