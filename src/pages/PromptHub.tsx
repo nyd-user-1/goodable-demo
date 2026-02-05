@@ -873,23 +873,27 @@ export default function PromptHub() {
           {(submittedPrompts || []).length > 0 && (
           <div id="community" className="mt-12 pt-12 border-t-2 border-dotted border-border/80">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-              {/* ------ New Prompts ------ */}
+              {/* ------ News (non-user-generated) ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 pb-8 md:pb-0">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  New
+                  News
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
-                  {(submittedPrompts || []).slice(0, 10).map(renderSubmittedRow)}
+                  {(submittedPrompts || [])
+                    .filter((p: any) => !p.user_generated)
+                    .slice(0, 10)
+                    .map(renderSubmittedRow)}
                 </div>
               </div>
 
-              {/* ------ Top Prompts ------ */}
+              {/* ------ Trending (non-user-generated, by chats) ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  Top
+                  Trending
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {[...(submittedPrompts || [])]
+                    .filter((p: any) => !p.user_generated)
                     .sort((a: any, b: any) => getChatCount(b.id, 0) - getChatCount(a.id, 0))
                     .slice(0, 10)
                     .map(renderSubmittedRow)}
