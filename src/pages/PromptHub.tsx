@@ -461,6 +461,7 @@ export default function PromptHub() {
     const domain = getDomainFromUrl(p.url || '');
     const promptText = p.prompt || `Summarize '${p.title}'`;
     const context = p.url ? `fetchUrl:${p.url}` : undefined;
+    const chats = getChatCount(p.id, 0);
     return (
       <div key={p.id} className="py-3 first:pt-0">
         <div
@@ -471,16 +472,19 @@ export default function PromptHub() {
             <img
               src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
               alt=""
-              className="w-10 h-10 rounded-full object-cover bg-muted p-1"
+              className="w-10 h-10 rounded-full object-cover bg-muted p-1 shrink-0"
             />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
               <FileText className="h-4 w-4 text-muted-foreground" />
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm truncate">{p.title}</p>
-            <p className="text-xs text-muted-foreground">{domain || 'Community'}</p>
+            <p className="font-medium text-sm line-clamp-2">{p.title}</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-xs text-muted-foreground">{domain || 'Community'}</p>
+              {chats > 0 && <span className="text-xs text-blue-500">{chats} chats</span>}
+            </div>
           </div>
           <div className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
             <ArrowUp className="h-4 w-4" />
@@ -840,7 +844,7 @@ export default function PromptHub() {
           <div id="community" className="mt-12 pt-12 border-t-2 border-dotted border-border/80">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
               {/* ------ New Prompts ------ */}
-              <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
+              <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 pb-8 md:pb-0">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                   New
                 </h3>
@@ -860,7 +864,7 @@ export default function PromptHub() {
               </div>
 
               {/* ------ Editorial ------ */}
-              <div className="md:pl-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
+              <div className="md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                   Editorial
                 </h3>
