@@ -5,7 +5,7 @@ import FooterSimple from '@/components/marketing/FooterSimple';
 import { cn } from '@/lib/utils';
 import {
   ArrowUp, PenLine, Megaphone, Briefcase, Heart,
-  ExternalLink, Users, FileText, DollarSign, Sparkles, TrendingUp, Star,
+  ExternalLink, Users, FileText, DollarSign,
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -301,6 +301,11 @@ export default function PromptHub() {
   useEffect(() => {
     if (location.hash === '#lists') {
       setPageTab('lists');
+    } else if (location.hash === '#community') {
+      setPageTab('prompts');
+      setTimeout(() => {
+        document.getElementById('community')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     } else {
       setPageTab('prompts');
     }
@@ -832,13 +837,12 @@ export default function PromptHub() {
           {/* COMMUNITY PROMPTS SECTION                                      */}
           {/* ============================================================= */}
           {(submittedPrompts || []).length > 0 && (
-          <div className="mt-12 pt-12 border-t-2 border-dotted border-border/80">
+          <div id="community" className="mt-12 pt-12 border-t-2 border-dotted border-border/80">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
               {/* ------ New Prompts ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4 flex items-center gap-1.5">
-                  <Sparkles className="h-4 w-4" />
-                  New Prompts
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                  New
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {(submittedPrompts || []).slice(0, 10).map(renderSubmittedRow)}
@@ -847,9 +851,8 @@ export default function PromptHub() {
 
               {/* ------ Top Prompts ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4 flex items-center gap-1.5">
-                  <TrendingUp className="h-4 w-4" />
-                  Top Prompts
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                  Top
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {(submittedPrompts || []).slice(0, 10).map(renderSubmittedRow)}
@@ -858,8 +861,7 @@ export default function PromptHub() {
 
               {/* ------ Editorial ------ */}
               <div className="md:pl-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4 flex items-center gap-1.5">
-                  <Star className="h-4 w-4" />
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                   Editorial
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">

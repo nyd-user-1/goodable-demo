@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChatHeader } from "@/components/ChatHeader";
 import FooterSimple from "@/components/marketing/FooterSimple";
@@ -42,6 +42,40 @@ export default function SubmitPrompt() {
   const [category, setCategory] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [fetchingTitle, setFetchingTitle] = useState(false);
+
+  const fetchPageTitle = useCallback(async (pageUrl: string) => {
+    if (title.trim()) return;
+    const d = getDomain(pageUrl);
+    if (!d) return;
+
+    setFetchingTitle(true);
+    try {
+      const res = await fetch(
+        `https://api.allorigins.win/get?url=${encodeURIComponent(pageUrl)}`
+      );
+      if (!res.ok) return;
+      const json = await res.json();
+      const html: string = json.contents || '';
+      // Try og:title first (both attribute orderings)
+      const ogMatch =
+        html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i) ||
+        html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:title["']/i);
+      if (ogMatch?.[1]) {
+        setTitle(ogMatch[1].trim());
+        return;
+      }
+      // Fall back to <title>
+      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+      if (titleMatch?.[1]) {
+        setTitle(titleMatch[1].trim());
+      }
+    } catch {
+      // Silently fail — user can type title manually
+    } finally {
+      setFetchingTitle(false);
+    }
+  }, [title]);
 
   const domain = useMemo(() => getDomain(url), [url]);
   const faviconUrl = domain
@@ -186,8 +220,8 @@ export default function SubmitPrompt() {
                     <Button onClick={handleReset} variant="outline">
                       Submit Another
                     </Button>
-                    <Button onClick={() => navigate("/prompts")}>
-                      Back to Prompts
+                    <Button onClick={() => navigate("/prompts#community")}>
+                      Browse More
                     </Button>
                   </div>
                 </div>
@@ -201,17 +235,6 @@ export default function SubmitPrompt() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="title">Title</Label>
-                    <Input
-                      id="title"
-                      placeholder="What's the headline?"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      maxLength={120}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
                     <Label htmlFor="url">URL</Label>
                     <Input
                       id="url"
@@ -219,6 +242,26 @@ export default function SubmitPrompt() {
                       placeholder="Paste the article URL"
                       value={url}
                       onChange={(e) => setUrl(e.target.value)}
+                      onPaste={(e) => {
+                        const pasted = e.clipboardData.getData('text');
+                        if (pasted && getDomain(pasted) && !title.trim()) {
+                          setTimeout(() => fetchPageTitle(pasted), 100);
+                        }
+                      }}
+                      onBlur={() => {
+                        if (url.trim() && !title.trim()) fetchPageTitle(url);
+                      }}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Title</Label>
+                    <Input
+                      id="title"
+                      placeholder={fetchingTitle ? "Fetching title..." : "What's the headline?"}
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      maxLength={120}
                     />
                   </div>
 
