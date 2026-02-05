@@ -887,10 +887,10 @@ export default function PromptHub() {
                 </div>
               </div>
 
-              {/* ------ Trending (by chats) ------ */}
+              {/* ------ Featured (by chats) ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  Trending
+                  Featured
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {[...(submittedPrompts || [])]

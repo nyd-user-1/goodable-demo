@@ -700,7 +700,7 @@ export default function SubmitPrompt() {
                         onChange={(e) => setAssignTrending(e.target.checked)}
                         className="rounded border-border h-3.5 w-3.5 accent-foreground"
                       />
-                      Trending
+                      Featured
                     </label>
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input
