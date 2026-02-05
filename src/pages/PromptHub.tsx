@@ -429,7 +429,7 @@ export default function PromptHub() {
     queryKey: ['submitted-prompts-hub'],
     queryFn: async () => {
       const { data } = await (supabase.from as any)('submitted_prompts')
-        .select('id, title, prompt, url, category, featured, created_at, avatar_url, user_generated')
+        .select('id, title, prompt, url, category, featured, created_at, avatar_url, user_generated, show_in_news, show_in_trending')
         .order('created_at', { ascending: false });
       return data || [];
     },
@@ -880,20 +880,20 @@ export default function PromptHub() {
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {(submittedPrompts || [])
-                    .filter((p: any) => !p.user_generated)
+                    .filter((p: any) => p.show_in_news)
                     .slice(0, 10)
                     .map(renderSubmittedRow)}
                 </div>
               </div>
 
-              {/* ------ Trending (non-user-generated, by chats) ------ */}
+              {/* ------ Trending (by chats) ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                   Trending
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {[...(submittedPrompts || [])]
-                    .filter((p: any) => !p.user_generated)
+                    .filter((p: any) => p.show_in_trending)
                     .sort((a: any, b: any) => getChatCount(b.id, 0) - getChatCount(a.id, 0))
                     .slice(0, 10)
                     .map(renderSubmittedRow)}

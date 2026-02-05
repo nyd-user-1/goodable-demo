@@ -158,6 +158,10 @@ export default function SubmitPrompt() {
   const [customPrompt, setCustomPrompt] = useState("");
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
 
+  // Admin column assignment
+  const [assignNews, setAssignNews] = useState(true);
+  const [assignTrending, setAssignTrending] = useState(true);
+
   // Garbage titles from bot-challenge pages
   const JUNK_TITLES = [
     'just a moment',
@@ -308,6 +312,8 @@ export default function SubmitPrompt() {
           url: url.trim(),
           category: null,
           user_generated: !isAdmin,
+          show_in_news: isAdmin && assignNews,
+          show_in_trending: isAdmin && assignTrending,
         });
 
         if (error) throw error;
@@ -351,6 +357,8 @@ export default function SubmitPrompt() {
           category: null,
           avatar_url: selectedAvatar,
           user_generated: !isAdmin,
+          show_in_news: isAdmin && assignNews,
+          show_in_trending: isAdmin && assignTrending,
         });
 
         if (error) throw error;
@@ -381,6 +389,8 @@ export default function SubmitPrompt() {
     setFetchFailed(false);
     setEditingTitle(false);
     setMode('url');
+    setAssignNews(true);
+    setAssignTrending(true);
   };
 
   return (
@@ -653,6 +663,31 @@ export default function SubmitPrompt() {
                         ))}
                       </div>
                     )}
+                  </div>
+                  )}
+
+                  {/* Admin-only column assignment */}
+                  {isAdmin && (
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span className="font-medium">Columns:</span>
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={assignNews}
+                        onChange={(e) => setAssignNews(e.target.checked)}
+                        className="rounded border-border h-3.5 w-3.5 accent-foreground"
+                      />
+                      News
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={assignTrending}
+                        onChange={(e) => setAssignTrending(e.target.checked)}
+                        className="rounded border-border h-3.5 w-3.5 accent-foreground"
+                      />
+                      Trending
+                    </label>
                   </div>
                   )}
 
