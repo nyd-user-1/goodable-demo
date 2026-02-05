@@ -48,6 +48,23 @@ export default function SubmitPrompt() {
   const [submitted, setSubmitted] = useState(false);
   const [fetchingTitle, setFetchingTitle] = useState(false);
 
+  // Garbage titles from bot-challenge pages
+  const JUNK_TITLES = [
+    'just a moment',
+    'attention required',
+    'access denied',
+    'please wait',
+    'verify you are human',
+    'one more step',
+    'checking your browser',
+    'security check',
+    'forbidden',
+    'error',
+  ];
+
+  const isJunkTitle = (t: string) =>
+    JUNK_TITLES.some((junk) => t.toLowerCase().startsWith(junk));
+
   const fetchPageTitle = useCallback(async (pageUrl: string) => {
     if (title.trim()) return;
     const d = getDomain(pageUrl);
@@ -61,19 +78,29 @@ export default function SubmitPrompt() {
       if (!res.ok) return;
       const json = await res.json();
       const html: string = json.contents || '';
+
+      let extracted: string | null = null;
+
       // Try og:title first (both attribute orderings)
       const ogMatch =
         html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i) ||
         html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:title["']/i);
       if (ogMatch?.[1]) {
-        setTitle(decodeHtmlEntities(ogMatch[1].trim()));
-        return;
+        extracted = decodeHtmlEntities(ogMatch[1].trim());
       }
+
       // Fall back to <title>
-      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-      if (titleMatch?.[1]) {
-        setTitle(decodeHtmlEntities(titleMatch[1].trim()));
+      if (!extracted) {
+        const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+        if (titleMatch?.[1]) {
+          extracted = decodeHtmlEntities(titleMatch[1].trim());
+        }
       }
+
+      if (!extracted || isJunkTitle(extracted)) return;
+
+      // Only set if the user hasn't typed anything while we were fetching
+      setTitle((prev) => (prev.trim() ? prev : extracted));
     } catch {
       // Silently fail — user can type title manually
     } finally {
