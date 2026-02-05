@@ -110,6 +110,10 @@ const AVATAR_OPTIONS = [
 
 const SAMPLE_PROMPTS = [
   {
+    title: 'How to Draft a Bill',
+    prompt: 'What are the essential components and best practices for drafting a legislative bill in New York State? Include guidance on formatting, required sections, and how to structure the findings, purpose, and operative provisions.',
+  },
+  {
     title: 'Policy Analysis Framework',
     prompt: 'What framework should I use to analyze the potential impact of a proposed policy change?',
   },

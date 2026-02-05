@@ -105,9 +105,21 @@ const ExcerptView = () => {
     return (
       <div className="flex flex-col items-center justify-center h-screen gap-4">
         <p className="text-muted-foreground">Please log in to view excerpts.</p>
-        <Button onClick={() => navigate("/auth-2")} className="font-semibold">
-          Sign Up
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            onClick={() => navigate("/auth-4")}
+            className="bg-black text-white hover:bg-black/90 font-semibold"
+          >
+            Sign Up
+          </Button>
+          <Button
+            onClick={() => navigate("/auth")}
+            variant="outline"
+            className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold"
+          >
+            Log In
+          </Button>
+        </div>
       </div>
     );
   }

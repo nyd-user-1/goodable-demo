@@ -38,7 +38,7 @@ src/
 ├── contexts/              # AuthContext, ModelContext
 ├── hooks/                 # ~38 custom hooks
 ├── integrations/supabase/ # Supabase client and generated types
-├── pages/                 # 47 route page components
+├── pages/                 # Route page components
 ├── types/                 # TypeScript definitions
 └── utils/                 # adminHelpers, analytics, billNumberUtils, citationParser, committeeSlug, dateUtils, markdownUtils, memberSlug
 ```
@@ -61,7 +61,8 @@ All pages are lazy-loaded. The root `/` renders `NewChat`.
 | `/constitution` | Constitution | NY Constitution reference |
 | `/digital-bill-of-rights` | DigitalBillOfRights | Digital rights reference |
 | `/live-feed` | LiveFeed | Public legislative feed |
-| `/new-prompts` | PromptHub | Prompt library |
+| `/prompts` | PromptHub | Prompt discovery hub (Prompts/Lists tabs) |
+| `/submit-prompt` | SubmitPrompt | Community prompt submission form |
 | `/use-cases` | UseCases | Use case overview |
 | `/use-cases/bills` | UseCasesBills | Bills use case |
 | `/use-cases/committees` | UseCasesCommittees | Committees use case |
@@ -104,17 +105,82 @@ All pages are lazy-loaded. The root `/` renders `NewChat`.
 | `/e/:excerptId` | ExcerptView | View excerpt |
 | `/feed` | FeedPage | Activity feed |
 
+## Key Features
+
+### PromptHub (`/prompts`)
+
+The central discovery hub with two tabs:
+
+**Prompts Tab:**
+- Trending section: Curated news articles with source logos (City & State, Siena, CNBC, Politico, etc.)
+- Featured category cards: Bill Research, Policy, Advocacy, Departments (gradient colored)
+- Community prompts in 3 columns: News / Featured / User Generated
+- Resources sidebar: Submit a Prompt, Advertise, Use Cases, Advocacy links
+- Press Releases section: Governor, Senate, Assembly releases
+- Chat count tracking per prompt via `increment_prompt_chat_count` RPC
+
+**Lists Tab:**
+- Top Sponsors: Members ranked by bill count (Supabase join query)
+- Recent Bills: Latest 7 bills with status
+- Budget Explorer: 14 NYS budget categories with amounts and % of total
+
+**Implementation:** `PromptHub.tsx` (57KB). Uses hardcoded `hubPrompts` array (66 prompts) combined with `submitted_prompts` table for community content.
+
+### Submit a Prompt (`/submit-prompt`)
+
+Community submission form with two modes:
+
+**URL Mode:**
+- Paste article/press release URL
+- Auto-fetches title via allorigins API (og:title or <title> tag)
+- Displays favicon from domain
+- Live preview card
+
+**Write Your Own Mode:**
+- Custom prompt text input
+- Avatar picker (6 preset + user's Google avatar)
+
+**Admin Features:** Column assignment checkboxes (News/Featured/User Generated) visible only to admin.
+
+**Implementation:** `SubmitPrompt.tsx` (28KB). Stores to `submitted_prompts` table.
+
+## Database (Supabase)
+
+### Key Tables
+- `chat_sessions` - Chat history and messages
+- `notes` - TipTap editor notes
+- `excerpts` - Saved excerpts from chats
+- `submitted_prompts` - Community prompt submissions
+
+### submitted_prompts Schema
+```
+id, user_id, title, prompt, url, category,
+user_generated (boolean), show_in_news (boolean), show_in_trending (boolean),
+display_name, avatar_url, featured, created_at
+```
+
+### RPC Functions
+- `increment_prompt_chat_count(p_prompt_id, p_seed_count)` - Track chat usage per prompt
+
+### Storage Buckets
+- `Favicons` - Custom domain favicons for prompt cards
+
 ## Key Patterns
 
 **Authentication**: Supabase Auth via `AuthContext`. Protected routes use `<ProtectedRoute>` wrapper. Admin check via `isAdmin()` in `utils/adminHelpers.ts` (single admin: brendan.stanton@gmail.com).
 
 **Data fetching**: React Query (`@tanstack/react-query`) for all server state. Supabase client at `integrations/supabase/client.ts`. Generated types at `integrations/supabase/types.ts`.
 
-**AI chat**: Main chat is `NewChat.tsx` (the `/ ` route). Uses Supabase edge function `generate-with-openai`. Chat sessions persisted to `chat_sessions` table. Chat logic in `hooks/useChatLogic.tsx` and `hooks/useChatPersistence.ts`.
+**AI chat**: Main chat is `NewChat.tsx` (the `/` route). Uses Supabase edge function `generate-with-openai`. Chat sessions persisted to `chat_sessions` table. Chat logic in `hooks/useChatLogic.tsx` and `hooks/useChatPersistence.ts`.
+
+**Prompt-to-chat flow**: PromptHub passes context via URL params: `/?prompt=...&context=fetchUrl:...` which triggers chat with article context.
 
 **Notes system**: `NoteView.tsx` uses TipTap editor. Notes persisted via `hooks/useNotePersistence.ts`. Excerpts via `hooks/useExcerptPersistence.ts`.
 
-**Navigation**: `ChatHeader.tsx` (glass morphism fixed nav) + `NoteViewSidebar.tsx` (slide-out sidebar with chat history, notes, and settings). `SearchModal.tsx` for global search (Ctrl+K).
+**Navigation**:
+- Top nav (`ChatHeader.tsx`): Chat | Prompts | Lists
+- Sidebar (`NoteViewSidebar.tsx`): Prompts, Chats, Notes, Bills, Committees, Departments, Members, Pro Plan, Features, Use Cases
+- Global search (`SearchModal.tsx`): Ctrl+K
 
 **Listing → Detail pattern**: Most data pages follow a listing/detail pattern with "v2" listing pages (`Bills2`, `Members2`, `Committees2`) and original detail pages (`Bills`, `Members`, `Committees`). Listings use slug-based routing to detail views.
 
@@ -131,6 +197,7 @@ Strict mode with `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`. Pa
 - Glass morphism header: `bg-background/80 backdrop-blur-md`
 - Subtle animations, performance first
 - No GPT Engineer scripts in production builds
+- Category card gradients: Bill Research (blue), Policy (emerald), Advocacy (purple), Departments (yellow/amber)
 
 ## Build Optimization
 
