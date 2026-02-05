@@ -490,7 +490,7 @@ export default function SubmitPrompt() {
                     <Button onClick={handleReset} variant="outline">
                       Submit Another
                     </Button>
-                    <Button onClick={() => navigate("/prompts#community")}>
+                    <Button onClick={() => navigate("/conversation")}>
                       Browse More
                     </Button>
                   </div>

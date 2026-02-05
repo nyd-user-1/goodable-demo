@@ -105,6 +105,13 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
             </Link>
 
             <Link
+              to="/conversation"
+              className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
+            >
+              Conversation
+            </Link>
+
+            <Link
               to="/prompts"
               className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
             >

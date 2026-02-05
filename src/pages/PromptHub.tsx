@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
 import { cn } from '@/lib/utils';
 import {
   ArrowUp, PenLine, Megaphone, Briefcase, Heart,
-  ExternalLink, FileText,
+  ExternalLink,
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -174,26 +174,6 @@ const categoryColors: Record<string, string> = {
   Departments: 'bg-yellow-100 text-yellow-700',
 };
 
-function decodeEntities(str: string): string {
-  if (typeof document === 'undefined') return str;
-  const textarea = document.createElement('textarea');
-  let decoded = str;
-  let prev = '';
-  while (decoded !== prev) {
-    prev = decoded;
-    textarea.innerHTML = decoded;
-    decoded = textarea.value;
-  }
-  return decoded;
-}
-
-function getDomainFromUrl(url: string): string | null {
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return null;
-  }
-}
 
 // Featured category cards (gradient image placeholders)
 const featuredCards = [
@@ -287,19 +267,9 @@ const CATEGORIES = ['All', 'Bills', 'Policy', 'Advocacy', 'Departments'];
 
 export default function PromptHub() {
   const navigate = useNavigate();
-  const location = useLocation();
   const queryClient = useQueryClient();
-  const [pageTab, setPageTab] = useState<'prompts' | 'community'>('prompts');
   const [activeCategory, setActiveCategory] = useState('All');
   const [visibleCount, setVisibleCount] = useState(10);
-
-  useEffect(() => {
-    if (location.hash === '#community') {
-      setPageTab('community');
-    } else {
-      setPageTab('prompts');
-    }
-  }, [location.hash]);
 
   // Derived prompt lists
   const allFilteredPrompts = useMemo(() => {
@@ -344,20 +314,6 @@ export default function PromptHub() {
     staleTime: 30 * 1000,
   });
 
-  // -----------------------------------------------------------------------
-  // Supabase: submitted community prompts
-  // -----------------------------------------------------------------------
-  const { data: submittedPrompts } = useQuery({
-    queryKey: ['submitted-prompts-hub'],
-    queryFn: async () => {
-      const { data } = await (supabase.from as any)('submitted_prompts')
-        .select('id, title, prompt, url, category, featured, created_at, avatar_url, user_generated, show_in_news, show_in_trending, display_name')
-        .order('created_at', { ascending: false });
-      return data || [];
-    },
-    staleTime: 60 * 1000,
-  });
-
   const getChatCount = (id: string, fallback: number) =>
     chatCounts?.[id] ?? fallback;
 
@@ -380,73 +336,6 @@ export default function PromptHub() {
   };
 
   // -----------------------------------------------------------------------
-  // Local favicon overrides for domains missing a good Google favicon
-  // -----------------------------------------------------------------------
-  const SUPABASE_FAVICON_BASE = 'https://kwyjohornlgujoqypyvu.supabase.co/storage/v1/object/public/Favicons';
-  const LOCAL_FAVICONS: Record<string, string> = {
-    'www.islandharvest.org': `${SUPABASE_FAVICON_BASE}/island-harvest.avif`,
-    'islandharvest.org': `${SUPABASE_FAVICON_BASE}/island-harvest.avif`,
-  };
-
-  // -----------------------------------------------------------------------
-  // Community prompt row renderer
-  // -----------------------------------------------------------------------
-  const renderSubmittedRow = (p: any, baseChatCount = 0) => {
-    const domain = getDomainFromUrl(p.url || '');
-    const promptText = p.prompt || `Summarize '${p.title}'`;
-    const context = p.url ? `fetchUrl:${p.url}` : undefined;
-    const chats = getChatCount(p.id, 0) + baseChatCount;
-    const dateStr = p.created_at
-      ? new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-      : '';
-    return (
-      <div key={p.id} className="py-3 first:pt-0">
-        <div
-          onClick={() => handlePromptClick(p.id, 0, promptText, context)}
-          className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200 cursor-pointer"
-        >
-          {p.avatar_url ? (
-            <img
-              src={p.avatar_url}
-              alt=""
-              className="w-10 h-10 rounded-full object-cover bg-muted shrink-0"
-            />
-          ) : domain ? (
-            <a
-              href={p.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="shrink-0"
-            >
-              <img
-                src={LOCAL_FAVICONS[domain] || `https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
-                alt=""
-                className="w-10 h-10 rounded-full object-cover bg-muted p-1"
-              />
-            </a>
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm line-clamp-2">{decodeEntities(p.title)}</p>
-            <div className="flex items-center gap-2 mt-0.5">
-              {p.display_name && <p className="text-xs font-medium text-muted-foreground">{p.display_name}</p>}
-              <p className="text-xs text-muted-foreground">{dateStr || 'Community'}</p>
-              {chats > 0 && <span className="text-xs text-blue-500">{chats} chats</span>}
-            </div>
-          </div>
-          <div className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-            <ArrowUp className="h-4 w-4" />
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // -----------------------------------------------------------------------
   // Render
   // -----------------------------------------------------------------------
   return (
@@ -455,27 +344,6 @@ export default function PromptHub() {
 
       <main className="flex-1 pt-[120px] pb-16">
         <div className="container mx-auto px-4 max-w-7xl">
-          {/* Pill tab toggle */}
-          <div className="flex justify-center mb-12">
-            <div className="inline-flex items-center bg-muted/50 rounded-full p-1">
-              {(['prompts', 'community'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setPageTab(tab)}
-                  className={cn(
-                    'px-5 py-2 rounded-full text-sm font-medium transition-all duration-200',
-                    pageTab === tab
-                      ? 'bg-white text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  )}
-                >
-                  {tab === 'prompts' ? 'News' : 'Conversation'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {pageTab === 'prompts' && (
           <>
           {/* ============================================================= */}
           {/* 3-COLUMN LAYOUT                                                */}
@@ -790,65 +658,6 @@ export default function PromptHub() {
           </div>
 
           </>
-          )}
-
-          {pageTab === 'community' && (
-          <>
-          {/* ============================================================= */}
-          {/* CONVERSATION SECTION                                             */}
-          {/* ============================================================= */}
-          {(() => {
-            const newsSeed   = [74, 65, 58, 51, 43, 37, 29, 22, 16, 11];
-            const featSeed   = [69, 61, 52, 44, 38, 31, 24, 18, 12,  6];
-            const userSeed   = [78, 68, 59, 49, 42, 34, 27, 21, 14,  8];
-            return (submittedPrompts || []).length > 0 && (
-            <div id="community" className="pt-0 pb-12">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-                {/* ------ News (non-user-generated) ------ */}
-                <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 pb-8 md:pb-0">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                    News
-                  </h3>
-                  <div className="divide-y-2 divide-dotted divide-border/80">
-                    {(submittedPrompts || [])
-                      .filter((p: any) => p.show_in_news)
-                      .slice(0, 10)
-                      .map((p: any, idx: number) => renderSubmittedRow(p, newsSeed[idx] || 5))}
-                  </div>
-                </div>
-
-                {/* ------ Featured (by chats) ------ */}
-                <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                    Featured
-                  </h3>
-                  <div className="divide-y-2 divide-dotted divide-border/80">
-                    {[...(submittedPrompts || [])]
-                      .filter((p: any) => p.show_in_trending)
-                      .sort((a: any, b: any) => getChatCount(b.id, 0) - getChatCount(a.id, 0))
-                      .slice(0, 10)
-                      .map((p: any, idx: number) => renderSubmittedRow(p, featSeed[idx] || 4))}
-                  </div>
-                </div>
-
-                {/* ------ User Generated ------ */}
-                <div className="md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                    User Generated
-                  </h3>
-                  <div className="divide-y-2 divide-dotted divide-border/80">
-                    {(submittedPrompts || []).filter((p: any) => p.user_generated).length > 0
-                      ? (submittedPrompts || []).filter((p: any) => p.user_generated).slice(0, 10).map((p: any, idx: number) => renderSubmittedRow(p, userSeed[idx] || 3))
-                      : <p className="text-sm text-muted-foreground py-4">User generated prompts coming soon.</p>
-                    }
-                  </div>
-                </div>
-              </div>
-            </div>
-            );
-          })()}
-          </>
-          )}
         </div>
       </main>
 
