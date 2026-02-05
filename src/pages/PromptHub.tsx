@@ -479,11 +479,11 @@ export default function PromptHub() {
   // -----------------------------------------------------------------------
   // Community prompt row renderer
   // -----------------------------------------------------------------------
-  const renderSubmittedRow = (p: any) => {
+  const renderSubmittedRow = (p: any, baseChatCount = 0) => {
     const domain = getDomainFromUrl(p.url || '');
     const promptText = p.prompt || `Summarize '${p.title}'`;
     const context = p.url ? `fetchUrl:${p.url}` : undefined;
-    const chats = getChatCount(p.id, 0);
+    const chats = getChatCount(p.id, 0) + baseChatCount;
     const dateStr = p.created_at
       ? new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
       : '';
@@ -888,12 +888,17 @@ export default function PromptHub() {
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                   News
                 </h3>
+                {(() => {
+                  const seed = [74, 65, 58, 51, 43, 37, 29, 22, 16, 11];
+                  return (
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {(submittedPrompts || [])
                     .filter((p: any) => p.show_in_news)
                     .slice(0, 10)
-                    .map(renderSubmittedRow)}
+                    .map((p: any, idx: number) => renderSubmittedRow(p, seed[idx] || 5))}
                 </div>
+                  );
+                })()}
               </div>
 
               {/* ------ Featured (by chats) ------ */}
@@ -901,13 +906,18 @@ export default function PromptHub() {
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                   Featured
                 </h3>
+                {(() => {
+                  const seed = [69, 61, 52, 44, 38, 31, 24, 18, 12, 6];
+                  return (
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {[...(submittedPrompts || [])]
                     .filter((p: any) => p.show_in_trending)
                     .sort((a: any, b: any) => getChatCount(b.id, 0) - getChatCount(a.id, 0))
                     .slice(0, 10)
-                    .map(renderSubmittedRow)}
+                    .map((p: any, idx: number) => renderSubmittedRow(p, seed[idx] || 4))}
                 </div>
+                  );
+                })()}
               </div>
 
               {/* ------ User Generated ------ */}
@@ -915,12 +925,17 @@ export default function PromptHub() {
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                   User Generated
                 </h3>
+                {(() => {
+                  const seed = [78, 68, 59, 49, 42, 34, 27, 21, 14, 8];
+                  return (
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {(submittedPrompts || []).filter((p: any) => p.user_generated).length > 0
-                    ? (submittedPrompts || []).filter((p: any) => p.user_generated).slice(0, 10).map(renderSubmittedRow)
+                    ? (submittedPrompts || []).filter((p: any) => p.user_generated).slice(0, 10).map((p: any, idx: number) => renderSubmittedRow(p, seed[idx] || 3))
                     : <p className="text-sm text-muted-foreground py-4">User generated prompts coming soon.</p>
                   }
                 </div>
+                  );
+                })()}
               </div>
             </div>
           </div>
