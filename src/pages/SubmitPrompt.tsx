@@ -18,8 +18,15 @@ import {
 
 function decodeHtmlEntities(str: string): string {
   const textarea = document.createElement('textarea');
-  textarea.innerHTML = str;
-  return textarea.value;
+  let decoded = str;
+  let prev = '';
+  // Loop to handle double/triple-encoded entities like &amp;amp;
+  while (decoded !== prev) {
+    prev = decoded;
+    textarea.innerHTML = decoded;
+    decoded = textarea.value;
+  }
+  return decoded;
 }
 
 function getDomain(url: string): string | null {

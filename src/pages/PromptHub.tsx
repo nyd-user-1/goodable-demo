@@ -174,6 +174,19 @@ const categoryColors: Record<string, string> = {
   Departments: 'bg-yellow-100 text-yellow-700',
 };
 
+function decodeEntities(str: string): string {
+  if (typeof document === 'undefined') return str;
+  const textarea = document.createElement('textarea');
+  let decoded = str;
+  let prev = '';
+  while (decoded !== prev) {
+    prev = decoded;
+    textarea.innerHTML = decoded;
+    decoded = textarea.value;
+  }
+  return decoded;
+}
+
 function getDomainFromUrl(url: string): string | null {
   try {
     return new URL(url).hostname;
@@ -480,7 +493,7 @@ export default function PromptHub() {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm line-clamp-2">{p.title}</p>
+            <p className="font-medium text-sm line-clamp-2">{decodeEntities(p.title)}</p>
             <div className="flex items-center gap-2 mt-0.5">
               <p className="text-xs text-muted-foreground">{domain || 'Community'}</p>
               {chats > 0 && <span className="text-xs text-blue-500">{chats} chats</span>}
