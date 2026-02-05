@@ -39,6 +39,64 @@ function getDomain(url: string): string | null {
   }
 }
 
+// Extract a readable title from URL path slug
+function extractTitleFromUrl(url: string): string | null {
+  try {
+    const { pathname } = new URL(url.trim());
+    // Get the last meaningful path segment
+    const segments = pathname.split('/').filter(Boolean);
+    if (segments.length === 0) return null;
+
+    // Take the last segment (most likely the article slug)
+    let slug = segments[segments.length - 1];
+
+    // Remove common file extensions
+    slug = slug.replace(/\.(html?|php|aspx?)$/i, '');
+
+    // Strip trailing hash/ID suffixes (e.g. "readable-slug-V43C40k0QyuP6ZLK")
+    slug = slug.replace(/-[A-Za-z0-9]{10,}$/, (match) => {
+      // Only strip if it looks like a hash (mixed case/digits, no vowels pattern)
+      const candidate = match.slice(1); // remove leading dash
+      const hasUpper = /[A-Z]/.test(candidate);
+      const hasLower = /[a-z]/.test(candidate);
+      const hasDigit = /\d/.test(candidate);
+      if ((hasUpper && hasDigit) || (hasUpper && hasLower && hasDigit)) return '';
+      return match; // Keep it — probably a real word
+    });
+
+    // Skip if it looks like gibberish (UUIDs, hashes, numeric IDs)
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug)) return null; // UUID
+    if (/^[0-9a-f]{20,}$/i.test(slug)) return null; // Long hex hash
+    if (/^\d+$/.test(slug)) return null; // Pure numeric ID
+    if (slug.length < 5) return null; // Too short to be meaningful
+
+    // Convert slug to title case
+    const title = slug
+      .replace(/[-_]/g, ' ')  // Replace dashes/underscores with spaces
+      .replace(/\s+/g, ' ')   // Collapse multiple spaces
+      .trim()
+      .split(' ')
+      .map(word => {
+        // Handle common acronyms/abbreviations
+        const upper = word.toUpperCase();
+        if (['NYS', 'NYC', 'USA', 'FBI', 'CIA', 'DOJ', 'EPA', 'FDA', 'AI', 'CEO', 'CFO'].includes(upper)) {
+          return upper;
+        }
+        // Title case for regular words
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(' ');
+
+    // Skip if result is too short or still looks like gibberish
+    if (title.length < 10) return null;
+    if (!/[aeiou]/i.test(title)) return null; // No vowels = likely gibberish
+
+    return title;
+  } catch {
+    return null;
+  }
+}
+
 export default function SubmitPrompt() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -102,13 +160,25 @@ export default function SubmitPrompt() {
       }
 
       if (!extracted || isJunkTitle(extracted)) {
-        setFetchFailed(true);
+        // Fallback: try to extract title from URL slug
+        const slugTitle = extractTitleFromUrl(pageUrl);
+        if (slugTitle) {
+          setTitle((prev) => (prev.trim() ? prev : slugTitle));
+        } else {
+          setFetchFailed(true);
+        }
         return;
       }
 
       setTitle((prev) => (prev.trim() ? prev : extracted));
     } catch {
-      setFetchFailed(true);
+      // Fallback: try to extract title from URL slug
+      const slugTitle = extractTitleFromUrl(pageUrl);
+      if (slugTitle) {
+        setTitle((prev) => (prev.trim() ? prev : slugTitle));
+      } else {
+        setFetchFailed(true);
+      }
     } finally {
       setFetchingTitle(false);
     }
