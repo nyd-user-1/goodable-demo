@@ -214,6 +214,11 @@ export const MemberDetail = ({ member, onBack, onPrevious, onNext, hasPrevious =
           </CardContent>
         </Card>
 
+        {/* Member Tabs Section */}
+        <section>
+          <MemberTabs member={member} />
+        </section>
+
         {/* Your Notes Section */}
         <Card className="bg-card rounded-xl shadow-sm border">
           <CardHeader className="px-6 py-4 border-b">
@@ -353,11 +358,6 @@ export const MemberDetail = ({ member, onBack, onPrevious, onNext, hasPrevious =
             )}
           </CardContent>
         </Card>
-
-        {/* Member Tabs Section */}
-        <section>
-          <MemberTabs member={member} />
-        </section>
               </div>
             </div>
           </div>

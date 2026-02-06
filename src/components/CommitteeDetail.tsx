@@ -199,6 +199,11 @@ export const CommitteeDetail = ({ committee, onBack }: CommitteeDetailProps) => 
           </CardContent>
         </Card>
 
+        {/* Committee Tabs Section */}
+        <section>
+          <CommitteeTabs committee={committee} />
+        </section>
+
         {/* Your Notes Section */}
         <Card className="bg-card rounded-xl shadow-sm border">
           <CardHeader className="px-6 py-4 border-b">
@@ -338,11 +343,6 @@ export const CommitteeDetail = ({ committee, onBack }: CommitteeDetailProps) => 
             )}
           </CardContent>
         </Card>
-
-        {/* Committee Tabs Section */}
-        <section>
-          <CommitteeTabs committee={committee} />
-        </section>
               </div>
             </div>
           </div>
