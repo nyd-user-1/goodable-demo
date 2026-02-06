@@ -28,6 +28,14 @@ export const LobbyingIndividualLobbyists = ({ principalLobbyistName }: LobbyingI
       setLoading(true);
       console.log("Searching for principal lobbyist:", principalLobbyistName);
       try {
+        // First, test if we can access the table at all
+        const { data: testData, error: testError } = await supabase
+          .from("Individual_Lobbyists")
+          .select("*")
+          .limit(5);
+
+        console.log("Test query (first 5 rows):", { testData, testError, count: testData?.length });
+
         // Query the Individual_Lobbyists table by principal lobbyist name
         // Use fuzzy matching to handle slight name variations
         const { data, error } = await supabase
@@ -35,7 +43,7 @@ export const LobbyingIndividualLobbyists = ({ principalLobbyistName }: LobbyingI
           .select("*")
           .ilike("principal_lobbyist_name", `%${principalLobbyistName}%`);
 
-        console.log("Individual lobbyists query result:", { data, error, count: data?.length });
+        console.log("Filtered query result:", { data, error, count: data?.length });
 
         if (error) {
           console.error("Error fetching individual lobbyists:", error);
