@@ -1001,24 +1001,6 @@ export default function PromptHub() {
                         <span className="text-sm font-medium">Advertise on NYSgpt</span>
                       </Link>
                     </div>
-                    <div className="py-3">
-                      <Link
-                        to="/use-cases"
-                        className="flex items-center gap-3 py-3 bg-muted/30 hover:bg-muted/50 hover:shadow-lg hover:border-border rounded-lg px-2 border border-transparent transition-all"
-                      >
-                        <Briefcase className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-sm font-medium">Use Cases</span>
-                      </Link>
-                    </div>
-                    <div className="py-3">
-                      <Link
-                        to="/nonprofits"
-                        className="flex items-center gap-3 py-3 bg-muted/30 hover:bg-muted/50 hover:shadow-lg hover:border-border rounded-lg px-2 border border-transparent transition-all"
-                      >
-                        <Heart className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-sm font-medium">Advocacy</span>
-                      </Link>
-                    </div>
                   </div>
                 </div>
 
