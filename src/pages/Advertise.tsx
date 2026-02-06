@@ -186,10 +186,10 @@ export default function Advertise() {
         origin: { x: 1 }
       });
     }, 250);
-    // Redirect to /prompts after delay
-    setTimeout(() => {
-      navigate('/prompts');
-    }, 2000);
+    // Redirect to /prompts after delay (temporarily disabled for debugging)
+    // setTimeout(() => {
+    //   navigate('/prompts');
+    // }, 2000);
   };
 
   const handleNYSgptClick = () => {
