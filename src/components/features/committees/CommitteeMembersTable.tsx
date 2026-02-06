@@ -1,11 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { User, Users, ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { User, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { generateMemberSlug } from "@/utils/memberSlug";
@@ -34,17 +31,11 @@ interface CommitteeMembersTableProps {
   committee: Committee;
 }
 
-type SortField = 'name' | 'party' | 'chamber' | 'district' | 'role';
-type SortDirection = 'asc' | 'desc' | null;
-
 export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps) => {
-  const navigate = useNavigate();
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+  const [chairId, setChairId] = useState<number | null>(null);
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortField, setSortField] = useState<SortField | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -70,6 +61,7 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
 
           if (chairData) {
             allMembers.push(chairData);
+            setChairId(chairData.people_id);
           }
         }
 
@@ -81,10 +73,13 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
             .filter(slug => slug.length > 0);
 
           if (memberSlugs.length > 0) {
-            // Convert slugs to search patterns
+            // Convert slugs to search patterns (e.g., "rebecca-seawright" -> "rebecca%seawright")
             const memberPromises = memberSlugs.map(async (slug) => {
+              // Convert hyphenated slug to space-separated for matching
+              // "rebecca-seawright" becomes "rebecca seawright"
               const searchName = slug.replace(/-/g, ' ');
 
+              // Try to find member by matching name parts
               const { data: memberData } = await supabase
                 .from("People")
                 .select("*")
@@ -97,6 +92,8 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
 
             const results = await Promise.all(memberPromises);
             const foundMembers = results.filter((member): member is Member => member !== null);
+
+            // Add all found members
             allMembers.push(...foundMembers);
           }
         }
@@ -105,6 +102,13 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
         const uniqueMembers = Array.from(
           new Map(allMembers.map(m => [m.people_id, m])).values()
         );
+
+        // Debug: Log members with photo URLs
+        console.log("Fetched members:", uniqueMembers.map(m => ({
+          name: m.name,
+          photo_url: m.photo_url,
+          people_id: m.people_id
+        })));
 
         setMembers(uniqueMembers);
       } catch (error) {
@@ -118,236 +122,101 @@ export const CommitteeMembersTable = ({ committee }: CommitteeMembersTableProps)
     fetchMembers();
   }, [committee.committee_id, committee.chair_name]);
 
-  const handleMemberClick = (member: Member) => {
-    navigate(`/members/${generateMemberSlug(member)}`);
-  };
-
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      if (sortDirection === 'asc') {
-        setSortDirection('desc');
-      } else if (sortDirection === 'desc') {
-        setSortField(null);
-        setSortDirection(null);
-      } else {
-        setSortDirection('asc');
-      }
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
-
-  const getSortIcon = (field: SortField) => {
-    if (sortField !== field) return <ArrowUpDown className="h-4 w-4" />;
-    if (sortDirection === 'asc') return <ArrowUp className="h-4 w-4" />;
-    if (sortDirection === 'desc') return <ArrowDown className="h-4 w-4" />;
-    return <ArrowUpDown className="h-4 w-4" />;
-  };
-
-  // Check if member is the chair
-  const isChair = (member: Member): boolean => {
-    if (!committee.chair_name || !member.name) return false;
-    const chairLastName = committee.chair_name.trim().split(' ').pop()?.toLowerCase();
-    const memberLastName = member.name.trim().split(' ').pop()?.toLowerCase();
-    const chairFirstName = committee.chair_name.trim().split(' ')[0]?.toLowerCase();
-    const memberFirstName = member.name.trim().split(' ')[0]?.toLowerCase();
-    return chairLastName === memberLastName && chairFirstName === memberFirstName;
-  };
-
-  // Filter and sort members
-  const filteredAndSortedMembers = useMemo(() => {
-    let filtered = members;
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = members.filter(member =>
-        member.name?.toLowerCase().includes(query) ||
-        member.party?.toLowerCase().includes(query) ||
-        member.chamber?.toLowerCase().includes(query) ||
-        member.district?.toLowerCase().includes(query) ||
-        member.role?.toLowerCase().includes(query)
-      );
-    }
-
-    // Apply sorting
-    if (sortField && sortDirection) {
-      filtered = [...filtered].sort((a, b) => {
-        let aValue = String(a[sortField] || '').toLowerCase();
-        let bValue = String(b[sortField] || '').toLowerCase();
-
-        // Special handling for district (numeric sort)
-        if (sortField === 'district') {
-          const aNum = parseInt(aValue) || 0;
-          const bNum = parseInt(bValue) || 0;
-          if (sortDirection === 'asc') {
-            return aNum - bNum;
-          } else {
-            return bNum - aNum;
-          }
-        }
-
-        if (sortDirection === 'asc') {
-          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-        } else {
-          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-        }
-      });
-    }
-
-    return filtered;
-  }, [members, searchQuery, sortField, sortDirection]);
-
   return (
     <div className="space-y-4">
-      {/* Search Section */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search members by name, party, chamber, or district..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
-        />
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Committee Members</h2>
+        <Badge variant="secondary" className="text-xs">
+          {loading ? '...' : `${members.length} ${members.length === 1 ? 'Member' : 'Members'}`}
+        </Badge>
       </div>
-
-      {/* Members Table */}
-      <div className="border rounded-md overflow-hidden bg-card">
+      <div>
         {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="text-muted-foreground">Loading members...</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full" />
+            ))}
           </div>
-        ) : filteredAndSortedMembers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <Users className="h-12 w-12 text-muted-foreground mb-4" />
+        ) : members.length === 0 ? (
+          <div className="text-center py-12">
+            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground">
-              {searchQuery ? "No members found matching your search" : "No members found for this committee"}
+              No members found for this committee.
             </p>
           </div>
         ) : (
-          <div className="relative">
-            {/* Fixed Header */}
-            <Table className="table-fixed w-full">
-              <TableHeader className="bg-background border-b">
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[200px] px-4 text-left">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleSort('name')}
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
-                    >
-                      Name {getSortIcon('name')}
-                    </Button>
-                  </TableHead>
-                  <TableHead className="w-[100px] px-4 text-left">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleSort('party')}
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
-                    >
-                      Party {getSortIcon('party')}
-                    </Button>
-                  </TableHead>
-                  <TableHead className="w-[100px] px-4 text-left">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleSort('chamber')}
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
-                    >
-                      Chamber {getSortIcon('chamber')}
-                    </Button>
-                  </TableHead>
-                  <TableHead className="w-[80px] px-4 text-left">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleSort('district')}
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
-                    >
-                      District {getSortIcon('district')}
-                    </Button>
-                  </TableHead>
-                  <TableHead className="px-4 text-left">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleSort('role')}
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
-                    >
-                      Role {getSortIcon('role')}
-                    </Button>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-            </Table>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {members.map((member) => (
+              <Link
+                key={member.people_id}
+                to={`/members/${generateMemberSlug(member)}`}
+                className="p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors block"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    {member.photo_url && !failedImages.has(member.people_id) ? (
+                      <img
+                        src={member.photo_url}
+                        alt={member.name || 'Member photo'}
+                        className="w-8 h-8 rounded-full object-cover bg-primary/10"
+                        onError={() => {
+                          console.log(`Failed to load image for ${member.name}: ${member.photo_url}`);
+                          setFailedImages(prev => new Set([...prev, member.people_id]));
+                        }}
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="h-4 w-4" />
+                      </div>
+                    )}
+                    {(() => {
+                      if (!committee.chair_name || !member.name) return false;
+                      // Get last names - "Rebecca A. Seawright" -> "Seawright", "Rebecca Seawright" -> "Seawright"
+                      const chairLastName = committee.chair_name.trim().split(' ').pop()?.toLowerCase();
+                      const memberLastName = member.name.trim().split(' ').pop()?.toLowerCase();
+                      // Also check first names
+                      const chairFirstName = committee.chair_name.trim().split(' ')[0]?.toLowerCase();
+                      const memberFirstName = member.name.trim().split(' ')[0]?.toLowerCase();
+                      return chairLastName === memberLastName && chairFirstName === memberFirstName;
+                    })() && (
+                      <Badge variant="default" className="text-xs">
+                        Chair
+                      </Badge>
+                    )}
+                  </div>
+                </div>
 
-            {/* Scrollable Body */}
-            <ScrollArea className="h-[500px] w-full">
-              <Table className="table-fixed w-full">
-                <TableBody>
-                  {filteredAndSortedMembers.map((member) => (
-                    <TableRow
-                      key={member.people_id}
-                      className="cursor-pointer hover:bg-muted/50 transition-colors"
-                      onClick={() => handleMemberClick(member)}
-                    >
-                      <TableCell className="w-[200px] px-4 text-left">
-                        <div className="flex items-center gap-3">
-                          {member.photo_url && !failedImages.has(member.people_id) ? (
-                            <img
-                              src={member.photo_url}
-                              alt={member.name || 'Member photo'}
-                              className="w-8 h-8 rounded-full object-cover bg-primary/10 flex-shrink-0"
-                              onError={() => {
-                                setFailedImages(prev => new Set([...prev, member.people_id]));
-                              }}
-                            />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                              <User className="h-4 w-4" />
-                            </div>
-                          )}
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="font-medium truncate" title={member.name || ""}>
-                              {member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim() || `Member #${member.people_id}`}
-                            </span>
-                            {isChair(member) && (
-                              <Badge variant="default" className="text-xs flex-shrink-0">
-                                Chair
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="w-[100px] px-4 text-left">
-                        {member.party ? (
-                          <Badge variant="outline" className="text-xs">
-                            {member.party}
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="w-[100px] px-4 text-left text-sm text-muted-foreground">
-                        {member.chamber || "—"}
-                      </TableCell>
-                      <TableCell className="w-[80px] px-4 text-left text-sm text-muted-foreground">
-                        {member.district || "—"}
-                      </TableCell>
-                      <TableCell className="px-4 text-left text-sm text-muted-foreground">
-                        <div className="truncate" title={member.role || ""}>
-                          {member.role || "—"}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </ScrollArea>
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm">
+                    {member.name ||
+                     `${member.first_name || ''} ${member.last_name || ''}`.trim() ||
+                     `Member #${member.people_id}`}
+                  </h4>
+
+                  <div className="flex flex-wrap gap-2">
+                    {member.party && (
+                      <Badge variant="outline" className="text-xs">
+                        {member.party}
+                      </Badge>
+                    )}
+                    {member.chamber && (
+                      <Badge variant="outline" className="text-xs">
+                        {member.chamber}
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="space-y-1 text-xs text-muted-foreground">
+                    {member.role && (
+                      <p>{member.role}</p>
+                    )}
+                    {member.district && (
+                      <p>District {member.district}</p>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         )}
       </div>
