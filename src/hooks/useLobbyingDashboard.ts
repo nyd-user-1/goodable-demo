@@ -36,10 +36,10 @@ function parseCurrency(value: string | number | null | undefined): number {
   return isNaN(num) ? 0 : num;
 }
 
-export function useLobbyingDashboard() {
-  // Fetch all compensation records (lobbyists)
+export function useLobbyingDashboard(year: number = 2025) {
+  // Fetch compensation records for selected year (lobbyists)
   const { data: compensationData, isLoading: compLoading, error: compError } = useQuery({
-    queryKey: ['lobbying-dashboard-compensation'],
+    queryKey: ['lobbying-dashboard-compensation', year],
     queryFn: async () => {
       let allRows: LobbyistCompensation[] = [];
       let offset = 0;
@@ -50,6 +50,7 @@ export function useLobbyingDashboard() {
         const { data, error } = await supabase
           .from('lobbyist_compensation')
           .select('*')
+          .eq('year', year)
           .range(offset, offset + batchSize - 1);
 
         if (error) throw error;

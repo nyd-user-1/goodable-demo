@@ -40,6 +40,7 @@ const LobbyingDashboard = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatLobbyistName, setChatLobbyistName] = useState<string | null>(null);
   const [chatClientName, setChatClientName] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number>(2025);
 
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
@@ -56,7 +57,7 @@ const LobbyingDashboard = () => {
     totalLobbyists,
     totalClients,
     getClientsForLobbyist,
-  } = useLobbyingDashboard();
+  } = useLobbyingDashboard(selectedYear);
 
   // Get rows for the active tab
   const rows: LobbyingDashboardRow[] = useMemo(() => {
@@ -326,13 +327,31 @@ const LobbyingDashboard = () => {
 
               {/* Stats row */}
               {!isLoading && (
-                <div className="flex items-center gap-6 mb-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    <span>{totalLobbyists.toLocaleString()} Lobbyists</span>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      <span>{totalLobbyists.toLocaleString()} Lobbyists</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>{totalClients.toLocaleString()} Clients</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span>{totalClients.toLocaleString()} Clients</span>
+                  <div className="flex items-center gap-1">
+                    {[2024, 2025].map((year) => (
+                      <button
+                        key={year}
+                        onClick={() => setSelectedYear(year)}
+                        className={cn(
+                          'px-3 py-1.5 rounded-lg text-sm transition-colors',
+                          selectedYear === year
+                            ? 'bg-foreground text-background font-medium'
+                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                        )}
+                      >
+                        {year}
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
