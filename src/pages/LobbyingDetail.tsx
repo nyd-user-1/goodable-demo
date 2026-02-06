@@ -66,9 +66,17 @@ const clientColumns: ColumnDef<LobbyistClientWithSpending>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("contractual_client") || "Unknown Client"}</div>
-    ),
+    cell: ({ row }) => {
+      const clientName = row.getValue("contractual_client") as string || "Unknown Client";
+      return (
+        <div
+          className="font-medium max-w-[400px] truncate"
+          title={clientName}
+        >
+          {clientName}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "start_date",
