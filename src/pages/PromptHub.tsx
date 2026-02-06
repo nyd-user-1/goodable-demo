@@ -737,6 +737,22 @@ export default function PromptHub() {
           {pageTab === 'prompts' && (
           <>
           {/* ============================================================= */}
+          {/* SECTION 1: Trending                                            */}
+          {/* ============================================================= */}
+          <div className="mb-8">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
+                  Trending
+                </h2>
+                <p className="text-muted-foreground mt-2">
+                  News and analysis from across New York.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* ============================================================= */}
           {/* 3-COLUMN LAYOUT                                                */}
           {/* ============================================================= */}
           <div className="flex gap-8">
@@ -1049,10 +1065,24 @@ export default function PromptHub() {
           </div>
 
           {/* ============================================================= */}
-          {/* COMMUNITY PROMPTS SECTION                                      */}
+          {/* SECTION 2: User Generated                                      */}
           {/* ============================================================= */}
           {(submittedPrompts || []).length > 0 && (
           <div id="community" className="mt-12 pt-12 border-t-2 border-dotted border-border/80">
+            {/* Heading Block */}
+            <div className="mb-8">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h2 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
+                    User Generated
+                  </h2>
+                  <p className="text-muted-foreground mt-2">
+                    Community prompts and submissions.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
               {/* ------ News (non-user-generated) ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 pb-8 md:pb-0">
