@@ -184,6 +184,16 @@ display_name, avatar_url, featured, created_at
 
 **Listing → Detail pattern**: Most data pages follow a listing/detail pattern with "v2" listing pages (`Bills2`, `Members2`, `Committees2`) and original detail pages (`Bills`, `Members`, `Committees`). Listings use slug-based routing to detail views.
 
+**Fixed Header Scrollable Table**: Used for bills tables on detail pages. Key characteristics:
+- `table-layout: fixed` with `w-full` for consistent column widths
+- Header table outside `ScrollArea`, body table inside for sticky header effect
+- Matching pixel widths on header and body cells for alignment
+- Single-line truncation (`truncate` class) with `title` attribute for hover tooltips
+- Sortable columns with cycling state (asc → desc → null)
+- Reference implementations:
+  - `src/components/features/committees/CommitteeBillsTableFull.tsx` (Committee Detail Bills tab)
+  - `src/components/features/members/MemberBillsTable.tsx` (Member Detail Bills tab)
+
 ## TypeScript
 
 Strict mode with `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`. Path alias `@/*` maps to `./src/*`. Always run `npm run typecheck` after changes.
