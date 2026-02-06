@@ -241,16 +241,34 @@ export function useLobbyingSearch() {
   };
 }
 
-// Helper to format currency strings (they come as formatted strings from the DB)
-export function formatLobbyingCurrency(amount: string | null): string {
-  if (!amount) return 'N/A';
+// Helper to format currency - handles both numeric values and legacy strings
+export function formatLobbyingCurrency(amount: string | number | null): string {
+  if (amount === null || amount === undefined || amount === '') return 'N/A';
+
+  // If it's a number, format it as currency
+  if (typeof amount === 'number') {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  }
+
+  // If it's already a formatted string (legacy), return as-is
   return amount;
 }
 
-// Helper to parse currency string to number for sorting
-export function parseCurrencyToNumber(amount: string | null): number {
-  if (!amount) return 0;
-  // Remove $ and commas, then parse
+// Helper to parse currency to number for sorting - handles both numeric and string values
+export function parseCurrencyToNumber(amount: string | number | null): number {
+  if (amount === null || amount === undefined || amount === '') return 0;
+
+  // If it's already a number, return it directly
+  if (typeof amount === 'number') {
+    return isNaN(amount) ? 0 : amount;
+  }
+
+  // If it's a string, remove $ and commas, then parse
   const cleaned = amount.replace(/[$,]/g, '');
   const parsed = parseFloat(cleaned);
   return isNaN(parsed) ? 0 : parsed;

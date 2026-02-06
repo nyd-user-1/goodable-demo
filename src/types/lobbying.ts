@@ -1,5 +1,8 @@
 // Lobbying types matching Supabase tables
 
+// Monetary fields can be numeric (after DB migration) or string (legacy)
+type MonetaryField = string | number | null;
+
 // lobbyists master table - Normalized lobbyist data
 export interface Lobbyist {
   id: number;
@@ -13,21 +16,21 @@ export interface Lobbyist {
 export interface LobbyingSpend {
   id: number;
   contractual_client: string | null;
-  compensation: string | null;
-  expenses_less_than_75: string | null;
-  salaries_no_lobbying_employees: string | null;
-  itemized_expenses: string | null;
-  total_expenses: string | null;
-  compensation_and_expenses: string | null;
+  compensation: MonetaryField;
+  expenses_less_than_75: MonetaryField;
+  salaries_no_lobbying_employees: MonetaryField;
+  itemized_expenses: MonetaryField;
+  total_expenses: MonetaryField;
+  compensation_and_expenses: MonetaryField;
 }
 
 // lobbyist_compensation table - Lobbyist earnings data
 export interface LobbyistCompensation {
   id: number;
   principal_lobbyist: string | null;
-  compensation: string | null;
-  reimbursed_expenses: string | null;
-  grand_total_compensation_expenses: string | null;
+  compensation: MonetaryField;
+  reimbursed_expenses: MonetaryField;
+  grand_total_compensation_expenses: MonetaryField;
   lobbyist_id: number | null;
   normalized_lobbyist: string | null;
 }
@@ -48,9 +51,9 @@ export interface LobbyistFullProfile {
   lobbyist_name: string;
   normalized_name: string;
   type_of_lobbyist: string | null;
-  compensation: string | null;
-  reimbursed_expenses: string | null;
-  grand_total_compensation_expenses: string | null;
+  compensation: MonetaryField;
+  reimbursed_expenses: MonetaryField;
+  grand_total_compensation_expenses: MonetaryField;
   client_count: number;
   total_compensation: number | null;
   total_expenses: number | null;
