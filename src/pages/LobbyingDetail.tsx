@@ -79,7 +79,7 @@ const clientColumns: ColumnDef<LobbyistClientWithSpending>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           className="-ml-4"
         >
-          Start Date
+          Relationship Start
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -128,7 +128,7 @@ const clientColumns: ColumnDef<LobbyistClientWithSpending>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           className="-ml-4"
         >
-          Client Spending
+          2025 Spending
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
