@@ -143,21 +143,22 @@ const clientColumns: ColumnDef<LobbyistClientWithSpending>[] = [
     accessorKey: "spending",
     header: ({ column }) => {
       return (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-              className="-ml-4"
-            >
-              2025 Spending
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Total client spending on lobbying in 2025</p>
-          </TooltipContent>
-        </Tooltip>
+        <div className="flex justify-end">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+              >
+                2025 Spending
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Total client spending on lobbying in 2025</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
       );
     },
     cell: ({ row }) => {
