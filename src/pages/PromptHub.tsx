@@ -648,9 +648,6 @@ export default function PromptHub() {
     const promptText = p.prompt || `Summarize '${p.title}'`;
     const context = p.url ? `fetchUrl:${p.url}` : undefined;
     const chats = getChatCount(p.id, 0) + baseChatCount;
-    const dateStr = p.created_at
-      ? new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-      : '';
     return (
       <div key={p.id} className="py-3 first:pt-0">
         <div
@@ -692,9 +689,13 @@ export default function PromptHub() {
           <div className="flex-1 min-w-0">
             <p className="font-medium text-sm line-clamp-2">{decodeEntities(p.title)}</p>
             <div className="flex items-center gap-2 mt-1.5">
-              {p.display_name && <p className="text-xs font-medium text-muted-foreground">{p.display_name}</p>}
-              <p className="text-xs text-muted-foreground">{dateStr || 'Community'}</p>
-              {chats > 0 && <span className="text-xs text-blue-500">{chats} chats</span>}
+              <span className="text-xs text-blue-500">{chats} chats</span>
+              {p.display_name && (
+                <>
+                  <span className="text-xs text-muted-foreground">·</span>
+                  <p className="text-xs font-medium text-muted-foreground">{p.display_name}</p>
+                </>
+              )}
             </div>
           </div>
           <div className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -749,6 +750,17 @@ export default function PromptHub() {
                   News and analysis from across New York.
                 </p>
               </div>
+
+              <div className="flex items-center gap-2">
+                <div className="relative w-full md:w-64">
+                  <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
+                  <Input
+                    type="search"
+                    placeholder="Search..."
+                    className="pl-8"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -761,11 +773,7 @@ export default function PromptHub() {
             {/* ----------------------------------------------------------- */}
             <aside className="hidden lg:block w-[300px] flex-shrink-0 border-r-2 border-dotted border-border/80 pr-8">
               <div className="sticky top-24">
-                {/* Trending */}
                 <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                    Trending
-                  </h3>
                   <div className="space-y-3.5">
                     {trendingPrompts.map((p, idx) => {
                       const articleUrl = p.context?.startsWith('fetchUrl:')
@@ -1080,65 +1088,60 @@ export default function PromptHub() {
                     Community prompts and submissions.
                   </p>
                 </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="relative w-full md:w-64">
+                    <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
+                    <Input
+                      type="search"
+                      placeholder="Search..."
+                      className="pl-8"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-              {/* ------ News (non-user-generated) ------ */}
-              <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 pb-8 md:pb-0">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  News
-                </h3>
-                {(() => {
-                  const seed = [74, 65, 58, 51, 43, 37, 29, 22, 16, 11];
-                  return (
-                <div className="divide-y-2 divide-dotted divide-border/80">
-                  {(submittedPrompts || [])
-                    .filter((p: any) => p.show_in_news)
-                    .slice(0, 10)
-                    .map((p: any, idx: number) => renderSubmittedRow(p, seed[idx] || 5))}
-                </div>
-                  );
-                })()}
-              </div>
+            {(() => {
+              // Combine all prompts and sort by chats descending
+              const seed = [78, 74, 69, 68, 65, 61, 59, 58, 52, 51, 49, 44, 43, 42, 38, 37, 34, 31, 29, 27, 24, 22, 21, 18, 16, 14, 12, 11, 8, 6];
+              const allPrompts = [...(submittedPrompts || [])]
+                .map((p: any, idx: number) => ({ ...p, seedCount: seed[idx % seed.length] || 5 }))
+                .sort((a: any, b: any) => {
+                  const aChats = getChatCount(a.id, 0) + a.seedCount;
+                  const bChats = getChatCount(b.id, 0) + b.seedCount;
+                  return bChats - aChats;
+                })
+                .slice(0, 30);
 
-              {/* ------ Featured (by chats) ------ */}
-              <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  Featured
-                </h3>
-                {(() => {
-                  const seed = [69, 61, 52, 44, 38, 31, 24, 18, 12, 6];
-                  return (
-                <div className="divide-y-2 divide-dotted divide-border/80">
-                  {[...(submittedPrompts || [])]
-                    .filter((p: any) => p.show_in_trending)
-                    .sort((a: any, b: any) => getChatCount(b.id, 0) - getChatCount(a.id, 0))
-                    .slice(0, 10)
-                    .map((p: any, idx: number) => renderSubmittedRow(p, seed[idx] || 4))}
-                </div>
-                  );
-                })()}
-              </div>
+              // Split into 3 columns
+              const itemsPerColumn = Math.ceil(allPrompts.length / 3);
+              const col1 = allPrompts.slice(0, itemsPerColumn);
+              const col2 = allPrompts.slice(itemsPerColumn, itemsPerColumn * 2);
+              const col3 = allPrompts.slice(itemsPerColumn * 2);
 
-              {/* ------ User Generated ------ */}
-              <div className="md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  User Generated
-                </h3>
-                {(() => {
-                  const seed = [78, 68, 59, 49, 42, 34, 27, 21, 14, 8];
-                  return (
-                <div className="divide-y-2 divide-dotted divide-border/80">
-                  {(submittedPrompts || []).filter((p: any) => p.user_generated).length > 0
-                    ? (submittedPrompts || []).filter((p: any) => p.user_generated).slice(0, 10).map((p: any, idx: number) => renderSubmittedRow(p, seed[idx] || 3))
-                    : <p className="text-sm text-muted-foreground py-4">User generated prompts coming soon.</p>
-                  }
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+                  <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
+                    <div className="divide-y-2 divide-dotted divide-border/80">
+                      {col1.map((p: any) => renderSubmittedRow(p, p.seedCount))}
+                    </div>
+                  </div>
+
+                  <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
+                    <div className="divide-y-2 divide-dotted divide-border/80">
+                      {col2.map((p: any) => renderSubmittedRow(p, p.seedCount))}
+                    </div>
+                  </div>
+
+                  <div className="md:pl-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
+                    <div className="divide-y-2 divide-dotted divide-border/80">
+                      {col3.map((p: any) => renderSubmittedRow(p, p.seedCount))}
+                    </div>
+                  </div>
                 </div>
-                  );
-                })()}
-              </div>
-            </div>
+              );
+            })()}
           </div>
           )}
           </>
