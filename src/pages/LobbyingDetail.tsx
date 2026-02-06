@@ -552,6 +552,14 @@ const LobbyingDetail = () => {
                 </CardContent>
               </Card>
 
+              {/* Lobbying Tabs Section */}
+              <section>
+                <LobbyingTabs
+                  principalLobbyistName={compensationRecord.principal_lobbyist || ''}
+                  clients={clientsWithSpending}
+                />
+              </section>
+
               {/* Related Chats Section */}
               <Card className="bg-card rounded-xl shadow-sm border">
                 <CardHeader className="px-6 py-4 border-b">
@@ -615,14 +623,6 @@ const LobbyingDetail = () => {
                   )}
                 </CardContent>
               </Card>
-
-              {/* Lobbying Tabs Section */}
-              <section>
-                <LobbyingTabs
-                  principalLobbyistName={compensationRecord.principal_lobbyist || ''}
-                  clients={clientsWithSpending}
-                />
-              </section>
                 </div>
               </div>
             </div>
