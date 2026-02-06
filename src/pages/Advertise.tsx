@@ -151,6 +151,7 @@ export default function Advertise() {
             { objectTypeId: '0-1', name: 'company_size', value: companySize },
             { objectTypeId: '0-1', name: 'interests', value: interests.join(', ') },
             { objectTypeId: '0-1', name: 'ad_option', value: selectedAdOption?.title || '' },
+            { objectTypeId: '0-2', name: 'name', value: company },
           ],
           context: {
             pageUri: window.location.href,
