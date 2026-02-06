@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,7 @@ import { Info } from "lucide-react";
 import { LobbyingClientsTable } from "./LobbyingClientsTable";
 import { LobbyingIndividualLobbyists } from "./LobbyingIndividualLobbyists";
 import { LobbyingSpend, LobbyistClient } from "@/types/lobbying";
+import { supabase } from "@/integrations/supabase/client";
 
 // Extended type that includes spending data for each client
 interface LobbyistClientWithSpending extends LobbyistClient {
@@ -23,6 +25,26 @@ interface LobbyingTabsProps {
 }
 
 export const LobbyingTabs = ({ principalLobbyistName, clients }: LobbyingTabsProps) => {
+  const [lobbyistCount, setLobbyistCount] = useState<number | null>(null);
+
+  // Fetch lobbyist count for the accordion header
+  useEffect(() => {
+    const fetchLobbyistCount = async () => {
+      if (!principalLobbyistName) return;
+
+      const { count, error } = await supabase
+        .from("Individual_Lobbyists")
+        .select("*", { count: "exact", head: true })
+        .ilike("principal_lobbyist_name", `%${principalLobbyistName}%`);
+
+      if (!error && count !== null) {
+        setLobbyistCount(count);
+      }
+    };
+
+    fetchLobbyistCount();
+  }, [principalLobbyistName]);
+
   return (
     <Tabs defaultValue="overview" className="space-y-6">
       <TabsList className="grid w-full grid-cols-3 h-12 p-1 bg-muted rounded-lg">
@@ -59,10 +81,24 @@ export const LobbyingTabs = ({ principalLobbyistName, clients }: LobbyingTabsPro
       </TabsContent>
 
       <TabsContent value="registered">
-        <Card>
-          <CardContent className="p-6">
-            <LobbyingIndividualLobbyists principalLobbyistName={principalLobbyistName} />
-          </CardContent>
+        <Card className="bg-card rounded-xl shadow-sm border">
+          <Accordion type="single" collapsible defaultValue="lobbyists">
+            <AccordionItem value="lobbyists" className="border-0">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <div className="flex items-center gap-3 w-full">
+                  <span className="text-lg font-semibold">Individual Lobbyists</span>
+                  {lobbyistCount !== null && (
+                    <Badge variant="secondary" className="text-xs">
+                      {lobbyistCount} {lobbyistCount === 1 ? 'lobbyist' : 'lobbyists'}
+                    </Badge>
+                  )}
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6">
+                <LobbyingIndividualLobbyists principalLobbyistName={principalLobbyistName} />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </Card>
       </TabsContent>
 
