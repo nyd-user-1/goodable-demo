@@ -295,6 +295,7 @@ export default function PromptHub() {
   const [visibleCount, setVisibleCount] = useState(10);
   const [lobbyingSearch, setLobbyingSearch] = useState('');
   const [memberSearch, setMemberSearch] = useState('');
+  const [lobbyistVisibleCount, setLobbyistVisibleCount] = useState(10);
 
   useEffect(() => {
     if (location.hash === '#lists') {
@@ -531,7 +532,7 @@ export default function PromptHub() {
         .from('lobbyist_compensation')
         .select('principal_lobbyist, grand_total_compensation_expenses')
         .order('grand_total_compensation_expenses', { ascending: false })
-        .limit(10);
+        .limit(50);
       return data || [];
     },
     staleTime: 10 * 60 * 1000,
@@ -572,11 +573,11 @@ export default function PromptHub() {
         }
       });
 
-      // Sort and return top 10
+      // Sort and return top 50
       return Object.entries(clientCounts)
         .map(([name, count]) => ({ principal_lobbyist: name, clientCount: count }))
         .sort((a, b) => b.clientCount - a.clientCount)
-        .slice(0, 10);
+        .slice(0, 50);
     },
     staleTime: 10 * 60 * 1000,
   });
@@ -616,11 +617,11 @@ export default function PromptHub() {
         }
       });
 
-      // Sort and return top 10
+      // Sort and return top 50
       return Object.entries(employeeCounts)
         .map(([name, count]) => ({ principal_lobbyist: name, employeeCount: count }))
         .sort((a, b) => b.employeeCount - a.employeeCount)
-        .slice(0, 10);
+        .slice(0, 50);
     },
     staleTime: 10 * 60 * 1000,
   });
@@ -1356,7 +1357,7 @@ export default function PromptHub() {
                   Earnings
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
-                  {(lobbyistsByEarnings || []).map((l: any, idx: number) => {
+                  {(lobbyistsByEarnings || []).slice(0, lobbyistVisibleCount).map((l: any, idx: number) => {
                     const amount = typeof l.grand_total_compensation_expenses === 'number'
                       ? l.grand_total_compensation_expenses
                       : parseFloat(String(l.grand_total_compensation_expenses || '0').replace(/[$,]/g, ''));
@@ -1402,7 +1403,7 @@ export default function PromptHub() {
                   Clients
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
-                  {(lobbyistsByClients || []).map((l: any, idx: number) => (
+                  {(lobbyistsByClients || []).slice(0, lobbyistVisibleCount).map((l: any, idx: number) => (
                     <div key={idx} className="py-3 first:pt-0">
                       <Link
                         to="/lobbying-dashboard"
@@ -1438,7 +1439,7 @@ export default function PromptHub() {
                   Individual Lobbyists
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
-                  {(lobbyistsByEmployees || []).map((l: any, idx: number) => (
+                  {(lobbyistsByEmployees || []).slice(0, lobbyistVisibleCount).map((l: any, idx: number) => (
                     <div key={idx} className="py-3 first:pt-0">
                       <Link
                         to="/lobbying-dashboard"
@@ -1468,6 +1469,22 @@ export default function PromptHub() {
                 </div>
               </div>
             </div>
+
+            {/* Load More button */}
+            {lobbyistVisibleCount < Math.max(
+              (lobbyistsByEarnings || []).length,
+              (lobbyistsByClients || []).length,
+              (lobbyistsByEmployees || []).length
+            ) && (
+              <div className="flex justify-center py-8">
+                <button
+                  onClick={() => setLobbyistVisibleCount((prev) => prev + 10)}
+                  className="rounded-lg border border-border bg-muted/30 px-6 py-2.5 text-sm font-medium text-foreground hover:bg-muted/50 hover:shadow-lg transition-all"
+                >
+                  Load More
+                </button>
+              </div>
+            )}
           </div>
           </>
           )}
