@@ -1513,7 +1513,7 @@ const NewChat = () => {
           {isPublicPage ? (
             <ChatHeader onNewChat={handleNewChat} onWhatIsGoodable={handleWhatIsGoodable} onOpenSidebar={() => setLeftSidebarOpen(true)} />
           ) : (
-            <div className="flex items-center justify-between px-4 py-3 bg-background flex-shrink-0">
+            <div className="flex items-center justify-between px-4 py-3 bg-background flex-shrink-0 relative">
               {/* Left side: Logs button */}
               <div className="flex items-center gap-2">
                 <button
@@ -1528,6 +1528,27 @@ const NewChat = () => {
                   </svg>
                 </button>
               </div>
+              {/* Center - Navigation (desktop only) */}
+              <nav className="hidden md:flex items-center justify-center gap-6 absolute left-1/2 -translate-x-1/2">
+                <Link
+                  to="/"
+                  className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
+                >
+                  Chat
+                </Link>
+                <Link
+                  to="/prompts"
+                  className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
+                >
+                  Prompts
+                </Link>
+                <Link
+                  to="/lists"
+                  className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
+                >
+                  Lists
+                </Link>
+              </nav>
               {/* Right side: NYSgpt */}
               <button
                 onClick={() => navigate('/?prompt=What%20is%20NYSgpt%3F')}
