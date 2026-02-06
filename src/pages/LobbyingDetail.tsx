@@ -383,50 +383,60 @@ const LobbyingDetail = () => {
     enabled: isCompensation && !!compensationRecord,
   });
 
-  // Fetch spending data for each client to show what they spent
+  // Fetch all spending data to match against clients
+  // We fetch all because client names may not match exactly between tables
+  // (e.g., "HALMAR INTERNATIONAL, LLC" vs "HALMAR INTERNATIONAL, LLC ( ASTM...)")
   const { data: clientSpendingData } = useQuery({
-    queryKey: ['client-spending', lobbyistClients?.map(c => c.contractual_client)],
+    queryKey: ['all-lobbying-spend'],
     queryFn: async () => {
-      if (!lobbyistClients || lobbyistClients.length === 0) return [];
-
-      // Get unique client names
-      const clientNames = lobbyistClients
-        .map(c => c.contractual_client)
-        .filter((name): name is string => !!name);
-
-      if (clientNames.length === 0) return [];
-
-      // Fetch spending records for these clients
       const { data, error } = await supabase
         .from('lobbying_spend')
-        .select('*')
-        .in('contractual_client', clientNames);
+        .select('contractual_client, compensation_and_expenses');
 
       if (error) throw error;
-      return (data || []) as LobbyingSpend[];
+      return (data || []) as Pick<LobbyingSpend, 'contractual_client' | 'compensation_and_expenses'>[];
     },
     enabled: isCompensation && !!lobbyistClients && lobbyistClients.length > 0,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
-  // Merge clients with their spending data
+  // Merge clients with their spending data using fuzzy matching
+  // Client names may differ between tables (e.g., "HALMAR INTERNATIONAL, LLC" vs
+  // "HALMAR INTERNATIONAL, LLC ( ASTM North America, Inc.; HALMAR INTERNATIONAL, LLC)")
   const clientsWithSpending: LobbyistClientWithSpending[] = useMemo(() => {
     if (!lobbyistClients) return [];
 
-    // Create a map of client name -> spending record
-    const spendingMap = new Map<string, LobbyingSpend>();
-    if (clientSpendingData) {
-      clientSpendingData.forEach(spend => {
-        if (spend.contractual_client) {
-          spendingMap.set(spend.contractual_client, spend);
-        }
-      });
-    }
+    // Helper to normalize names for comparison (uppercase, trim)
+    const normalize = (name: string | null): string =>
+      (name || '').toUpperCase().trim();
 
-    // Merge clients with their spending
-    return lobbyistClients.map(client => ({
-      ...client,
-      spending: client.contractual_client ? spendingMap.get(client.contractual_client) ?? null : null,
-    }));
+    // Helper to check if names match (exact or one contains the other)
+    const namesMatch = (clientName: string | null, spendingName: string | null): boolean => {
+      if (!clientName || !spendingName) return false;
+      const normClient = normalize(clientName);
+      const normSpend = normalize(spendingName);
+      // Exact match or one contains the other
+      return normClient === normSpend ||
+             normClient.includes(normSpend) ||
+             normSpend.includes(normClient);
+    };
+
+    // For each client, find their matching spending record
+    return lobbyistClients.map(client => {
+      let matchedSpending: Partial<LobbyingSpend> | null = null;
+
+      if (client.contractual_client && clientSpendingData) {
+        // Find a spending record that matches this client
+        matchedSpending = clientSpendingData.find(spend =>
+          namesMatch(client.contractual_client, spend.contractual_client)
+        ) ?? null;
+      }
+
+      return {
+        ...client,
+        spending: matchedSpending as LobbyingSpend | null,
+      };
+    });
   }, [lobbyistClients, clientSpendingData]);
 
   const isLoading = isSpend ? spendLoading : compensationLoading;
