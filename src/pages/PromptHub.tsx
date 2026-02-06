@@ -952,8 +952,7 @@ export default function PromptHub() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
               {/* ------ Top Sponsors (members by bills sponsored) ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4 flex items-center gap-1.5">
-                  <Users className="h-4 w-4" />
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                   Top Sponsors
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
@@ -1003,8 +1002,7 @@ export default function PromptHub() {
 
               {/* ------ Recent Bills ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4 flex items-center gap-1.5">
-                  <FileText className="h-4 w-4" />
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                   Recent Bills
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
@@ -1044,9 +1042,8 @@ export default function PromptHub() {
 
               {/* ------ Budget Explorer ------ */}
               <div className="md:pl-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4 flex items-center gap-1.5">
-                  <DollarSign className="h-4 w-4" />
-                  Budget Explorer
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                  Budget
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {budgetItems.map((item, idx) => (
