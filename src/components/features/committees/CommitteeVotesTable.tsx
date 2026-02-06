@@ -43,8 +43,13 @@ interface CommitteeVotesTableProps {
 const VoteCard = ({ rollCall, formatDate }: { rollCall: RollCallWithVotes; formatDate: (date: string | null) => string }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const hasVotes = rollCall.votes && rollCall.votes.length > 0;
+
   return (
-    <Card className="transition-all duration-300">
+    <Card
+      className={`transition-all duration-300 ${hasVotes ? 'cursor-pointer hover:bg-muted/30' : ''}`}
+      onClick={hasVotes ? () => setIsExpanded(!isExpanded) : undefined}
+    >
       <CardContent className="p-4">
         {/* Card Header - Always visible */}
         <div className="flex items-start justify-between">
@@ -84,19 +89,15 @@ const VoteCard = ({ rollCall, formatDate }: { rollCall: RollCallWithVotes; forma
             </div>
           </div>
 
-          {/* Expand button */}
-          {rollCall.votes && rollCall.votes.length > 0 && (
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="p-1.5 rounded-full hover:bg-muted transition-colors"
-              aria-label={isExpanded ? "Collapse votes" : "Expand votes"}
-            >
+          {/* Expand indicator */}
+          {hasVotes && (
+            <div className="p-1.5">
               <ChevronDown
                 className={`h-5 w-5 text-muted-foreground transition-transform duration-300 ${
                   isExpanded ? 'rotate-180' : ''
                 }`}
               />
-            </button>
+            </div>
           )}
         </div>
 
