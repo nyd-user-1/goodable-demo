@@ -324,7 +324,9 @@ export default function Lists() {
                       Sponsored
                     </h3>
                     <div className="divide-y-2 divide-dotted divide-border/80">
-                      {(topMembers || []).slice(0, memberVisibleCount).map((m: any) => (
+                      {(topMembers || [])
+                        .filter((m: any) => !memberSearch || m.name?.toLowerCase().includes(memberSearch.toLowerCase()))
+                        .slice(0, memberVisibleCount).map((m: any) => (
                         <div key={m.people_id} className="py-3 first:pt-0">
                           <Link
                             to={`/members/${makeMemberSlug(m)}`}
@@ -374,7 +376,9 @@ export default function Lists() {
                       Yay
                     </h3>
                     <div className="divide-y-2 divide-dotted divide-border/80">
-                      {(membersByYesVotes || []).slice(0, memberVisibleCount).map((m: any) => (
+                      {(membersByYesVotes || [])
+                        .filter((m: any) => !memberSearch || m.name?.toLowerCase().includes(memberSearch.toLowerCase()))
+                        .slice(0, memberVisibleCount).map((m: any) => (
                         <div key={m.people_id} className="py-3 first:pt-0">
                           <Link
                             to={`/members/${makeMemberSlug(m)}`}
@@ -424,7 +428,9 @@ export default function Lists() {
                       Nay
                     </h3>
                     <div className="divide-y-2 divide-dotted divide-border/80">
-                      {(membersByNoVotes || []).slice(0, memberVisibleCount).map((m: any) => (
+                      {(membersByNoVotes || [])
+                        .filter((m: any) => !memberSearch || m.name?.toLowerCase().includes(memberSearch.toLowerCase()))
+                        .slice(0, memberVisibleCount).map((m: any) => (
                         <div key={m.people_id} className="py-3 first:pt-0">
                           <Link
                             to={`/members/${makeMemberSlug(m)}`}
@@ -526,7 +532,9 @@ export default function Lists() {
                       Earnings
                     </h3>
                     <div className="divide-y-2 divide-dotted divide-border/80">
-                      {(lobbyistsByEarnings || []).slice(0, lobbyistVisibleCount).map((l: any, idx: number) => {
+                      {(lobbyistsByEarnings || [])
+                        .filter((l: any) => !lobbyingSearch || l.principal_lobbyist?.toLowerCase().includes(lobbyingSearch.toLowerCase()))
+                        .slice(0, lobbyistVisibleCount).map((l: any, idx: number) => {
                         const amount = typeof l.grand_total_compensation_expenses === 'number'
                           ? l.grand_total_compensation_expenses
                           : parseFloat(String(l.grand_total_compensation_expenses || '0').replace(/[$,]/g, ''));
@@ -583,7 +591,9 @@ export default function Lists() {
                       Clients
                     </h3>
                     <div className="divide-y-2 divide-dotted divide-border/80">
-                      {(lobbyistsByClients || []).slice(0, lobbyistVisibleCount).map((l: any, idx: number) => (
+                      {(lobbyistsByClients || [])
+                        .filter((l: any) => !lobbyingSearch || l.principal_lobbyist?.toLowerCase().includes(lobbyingSearch.toLowerCase()))
+                        .slice(0, lobbyistVisibleCount).map((l: any, idx: number) => (
                         <div key={idx} className="py-3 first:pt-0">
                           <Link
                             to="/lobbying-dashboard"
@@ -619,7 +629,9 @@ export default function Lists() {
                       Individual Lobbyists
                     </h3>
                     <div className="divide-y-2 divide-dotted divide-border/80">
-                      {(lobbyistsByEmployees || []).slice(0, lobbyistVisibleCount).map((l: any, idx: number) => (
+                      {(lobbyistsByEmployees || [])
+                        .filter((l: any) => !lobbyingSearch || l.principal_lobbyist?.toLowerCase().includes(lobbyingSearch.toLowerCase()))
+                        .slice(0, lobbyistVisibleCount).map((l: any, idx: number) => (
                         <div key={idx} className="py-3 first:pt-0">
                           <Link
                             to="/lobbying-dashboard"
