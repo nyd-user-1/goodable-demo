@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Vote } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Vote, ChevronDown, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 
@@ -31,23 +32,126 @@ type Bill = Tables<"Bills">;
 
 interface RollCallWithVotes extends RollCall {
   votes?: (VoteRecord & { person?: Person })[];
-  bill?: Bill;
+  bill?: Pick<Bill, "bill_id" | "bill_number">;
 }
 
 interface CommitteeVotesTableProps {
   committee: Committee;
 }
 
+// Individual expandable vote card component
+const VoteCard = ({ rollCall, formatDate }: { rollCall: RollCallWithVotes; formatDate: (date: string | null) => string }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <Card className="transition-all duration-300">
+      <CardContent className="p-4">
+        {/* Card Header - Always visible */}
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="font-medium text-sm">
+                {formatDate(rollCall.date)}
+              </span>
+              {rollCall.chamber && (
+                <Badge variant="outline" className="text-xs">
+                  {rollCall.chamber}
+                </Badge>
+              )}
+            </div>
+            {rollCall.bill?.bill_number && (
+              <p className="text-sm text-primary font-medium mb-1">
+                {rollCall.bill.bill_number}
+              </p>
+            )}
+            {rollCall.description && (
+              <p className="text-xs text-muted-foreground mb-2">
+                {rollCall.description}
+              </p>
+            )}
+            <div className="flex items-center gap-3 text-sm">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
+                <span className="font-medium">{rollCall.yea || 0} Yes</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 bg-red-500 rounded-full"></div>
+                <span className="font-medium">{rollCall.nay || 0} No</span>
+              </div>
+              <span className="text-muted-foreground text-xs">
+                Total: {rollCall.total || 0}
+              </span>
+            </div>
+          </div>
+
+          {/* Expand button */}
+          {rollCall.votes && rollCall.votes.length > 0 && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="p-1.5 rounded-full hover:bg-muted transition-colors"
+              aria-label={isExpanded ? "Collapse votes" : "Expand votes"}
+            >
+              <ChevronDown
+                className={`h-5 w-5 text-muted-foreground transition-transform duration-300 ${
+                  isExpanded ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
+          )}
+        </div>
+
+        {/* Expandable Individual Votes Section */}
+        <div
+          className={`overflow-hidden transition-all duration-300 ${
+            isExpanded ? 'mt-4 max-h-[400px]' : 'max-h-0'
+          }`}
+        >
+          <div className="border-t pt-3">
+            <h5 className="font-medium text-xs text-muted-foreground mb-2">Individual Votes</h5>
+            <div className="space-y-1.5">
+              {rollCall.votes?.map((vote) => (
+                <div
+                  key={`${vote.people_id}-${vote.roll_call_id}`}
+                  className="flex items-center justify-between text-xs py-1.5 px-2 bg-muted/30 rounded"
+                >
+                  <span className="font-medium truncate mr-2">
+                    {vote.person?.name || `Person ${vote.people_id}`}
+                  </span>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {vote.person?.party && (
+                      <Badge variant="outline" className="text-xs px-1.5 py-0">
+                        {vote.person.party}
+                      </Badge>
+                    )}
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                      vote.vote_desc === 'Yes' || vote.vote_desc === 'Yea' ? 'bg-green-100 text-green-800' :
+                      vote.vote_desc === 'No' || vote.vote_desc === 'Nay' ? 'bg-red-100 text-red-800' :
+                      vote.vote_desc === 'NV' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-muted text-muted-foreground'
+                    }`}>
+                      {vote.vote_desc || 'Unknown'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 export const CommitteeVotesTable = ({ committee }: CommitteeVotesTableProps) => {
   const [rollCalls, setRollCalls] = useState<RollCallWithVotes[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchCommitteeVotes = async () => {
       setLoading(true);
       try {
         // First, find bills that belong to this committee
-        // Match by committee name (case-insensitive partial match)
         const { data: committeeBills, error: billsError } = await supabase
           .from("Bills")
           .select("bill_id, bill_number")
@@ -73,7 +177,7 @@ export const CommitteeVotesTable = ({ committee }: CommitteeVotesTableProps) => 
           .in("bill_id", billIds)
           .ilike("description", "%COMMITTEE%")
           .order("date", { ascending: false })
-          .limit(50);
+          .limit(100);
 
         if (rollCallError) {
           console.error("Error fetching roll calls:", rollCallError);
@@ -89,13 +193,11 @@ export const CommitteeVotesTable = ({ committee }: CommitteeVotesTableProps) => 
         // Fetch detailed vote records for each roll call
         const rollCallsWithVotes: RollCallWithVotes[] = await Promise.all(
           rollCallData.map(async (rollCall) => {
-            // Get votes for this roll call
             const { data: votesData } = await supabase
               .from("Votes")
               .select("*")
               .eq("roll_call_id", rollCall.roll_call_id);
 
-            // Get person data for the votes
             let votesWithPeople: (VoteRecord & { person?: Person })[] = [];
             if (votesData && votesData.length > 0) {
               const voterIds = votesData.map(v => v.people_id);
@@ -110,13 +212,12 @@ export const CommitteeVotesTable = ({ committee }: CommitteeVotesTableProps) => 
               }));
             }
 
-            // Get bill info
             const bill = committeeBills.find(b => b.bill_id === rollCall.bill_id);
 
             return {
               ...rollCall,
               votes: votesWithPeople,
-              bill: bill as Bill | undefined
+              bill: bill
             };
           })
         );
@@ -146,6 +247,22 @@ export const CommitteeVotesTable = ({ committee }: CommitteeVotesTableProps) => 
     }
   };
 
+  // Filter roll calls based on search query
+  const filteredRollCalls = useMemo(() => {
+    if (!searchQuery.trim()) return rollCalls;
+
+    const query = searchQuery.toLowerCase();
+    return rollCalls.filter(rollCall => {
+      // Search by bill number
+      if (rollCall.bill?.bill_number?.toLowerCase().includes(query)) return true;
+      // Search by date
+      if (rollCall.date?.toLowerCase().includes(query)) return true;
+      // Search by voter name
+      if (rollCall.votes?.some(v => v.person?.name?.toLowerCase().includes(query))) return true;
+      return false;
+    });
+  }, [rollCalls, searchQuery]);
+
   if (loading) {
     return (
       <Card>
@@ -153,8 +270,8 @@ export const CommitteeVotesTable = ({ committee }: CommitteeVotesTableProps) => 
           <CardTitle>Committee Votes</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[...Array(4)].map((_, i) => (
               <Skeleton key={i} className="h-32 w-full" />
             ))}
           </div>
@@ -190,98 +307,41 @@ export const CommitteeVotesTable = ({ committee }: CommitteeVotesTableProps) => 
         <div className="flex items-center justify-between">
           <CardTitle>Committee Votes</CardTitle>
           <Badge variant="secondary" className="text-xs">
-            {rollCalls.length} {rollCalls.length === 1 ? 'Vote' : 'Votes'}
+            {filteredRollCalls.length} {filteredRollCalls.length === 1 ? 'Vote' : 'Votes'}
           </Badge>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by bill number or voter name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        {/* Vote Cards Grid */}
         <ScrollArea className="h-[500px]">
-          <div className="space-y-6 pr-4">
-            {rollCalls.map((rollCall) => (
-              <div key={rollCall.roll_call_id} className="border border-border rounded-lg p-4">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h4 className="font-medium text-sm">
-                        {formatDate(rollCall.date)}
-                      </h4>
-                      {rollCall.chamber && (
-                        <Badge variant="outline" className="text-xs">
-                          {rollCall.chamber}
-                        </Badge>
-                      )}
-                    </div>
-                    {rollCall.bill && (
-                      <p className="text-sm text-primary mb-2">
-                        {rollCall.bill.bill_number}
-                      </p>
-                    )}
-                    {rollCall.description && (
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {rollCall.description}
-                      </p>
-                    )}
-
-                    <div className="flex items-center gap-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                        <span className="font-medium">{rollCall.yea || 0} Yes</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <span className="font-medium">{rollCall.nay || 0} No</span>
-                      </div>
-                      {rollCall.absent && Number(rollCall.absent) > 0 && (
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-muted rounded-full"></div>
-                          <span className="font-medium">{rollCall.absent} Absent</span>
-                        </div>
-                      )}
-                      {rollCall.nv && Number(rollCall.nv) > 0 && (
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                          <span className="font-medium">{rollCall.nv} NV</span>
-                        </div>
-                      )}
-                      <div className="text-muted-foreground">
-                        Total: {rollCall.total || 0}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {rollCall.votes && rollCall.votes.length > 0 && (
-                  <div className="border-t border-border pt-4">
-                    <h5 className="font-medium text-sm mb-3">Individual Votes</h5>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-40 overflow-y-auto">
-                      {rollCall.votes.map((vote) => (
-                        <div key={`${vote.people_id}-${vote.roll_call_id}`} className="flex items-center justify-between text-xs p-2 bg-muted/30 rounded">
-                          <span className="font-medium">
-                            {vote.person?.name || `Person ${vote.people_id}`}
-                          </span>
-                          <div className="flex items-center gap-1">
-                            {vote.person?.party && (
-                              <Badge variant="outline" className="text-xs px-1 py-0">
-                                {vote.person.party}
-                              </Badge>
-                            )}
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              vote.vote_desc === 'Yes' || vote.vote_desc === 'Yea' ? 'bg-green-100 text-green-800' :
-                              vote.vote_desc === 'No' || vote.vote_desc === 'Nay' ? 'bg-red-100 text-red-800' :
-                              vote.vote_desc === 'NV' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-muted text-muted-foreground'
-                            }`}>
-                              {vote.vote_desc || 'Unknown'}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-4">
+            {filteredRollCalls.map((rollCall) => (
+              <VoteCard
+                key={rollCall.roll_call_id}
+                rollCall={rollCall}
+                formatDate={formatDate}
+              />
             ))}
           </div>
+
+          {filteredRollCalls.length === 0 && searchQuery && (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">
+                No votes found matching "{searchQuery}"
+              </p>
+            </div>
+          )}
         </ScrollArea>
       </CardContent>
     </Card>
