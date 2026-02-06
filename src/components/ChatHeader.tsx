@@ -112,7 +112,7 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
             </Link>
 
             <Link
-              to="/prompts#lists"
+              to="/lists"
               className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
             >
               Lists

@@ -302,7 +302,7 @@ export default function Lists() {
                         <div key={m.people_id} className="py-3 first:pt-0">
                           <Link
                             to={`/members/${makeMemberSlug(m)}`}
-                            className="group flex items-center gap-3 py-2 bg-muted/40 hover:bg-muted/50 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-border"
+                            className="group flex items-center gap-3 py-2 bg-muted/50 hover:bg-muted/60 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-border"
                           >
                             {m.photo_url ? (
                               <img
@@ -333,7 +333,7 @@ export default function Lists() {
                             >
                               <ArrowUp className="h-4 w-4" />
                             </button>
-                            <span className="text-sm font-medium text-muted-foreground">
+                            <span className="text-sm font-medium text-foreground">
                               {m.billCount}
                             </span>
                           </Link>
@@ -352,7 +352,7 @@ export default function Lists() {
                         <div key={m.people_id} className="py-3 first:pt-0">
                           <Link
                             to={`/members/${makeMemberSlug(m)}`}
-                            className="group flex items-center gap-3 py-2 bg-muted/40 hover:bg-muted/50 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-border"
+                            className="group flex items-center gap-3 py-2 bg-muted/50 hover:bg-muted/60 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-border"
                           >
                             {m.photo_url ? (
                               <img
@@ -383,7 +383,7 @@ export default function Lists() {
                             >
                               <ArrowUp className="h-4 w-4" />
                             </button>
-                            <span className="text-sm font-medium text-muted-foreground">
+                            <span className="text-sm font-medium text-foreground">
                               {m.yeaCount}
                             </span>
                           </Link>
@@ -402,7 +402,7 @@ export default function Lists() {
                         <div key={m.people_id} className="py-3 first:pt-0">
                           <Link
                             to={`/members/${makeMemberSlug(m)}`}
-                            className="group flex items-center gap-3 py-2 bg-muted/40 hover:bg-muted/50 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-border"
+                            className="group flex items-center gap-3 py-2 bg-muted/50 hover:bg-muted/60 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-border"
                           >
                             {m.photo_url ? (
                               <img
@@ -433,7 +433,7 @@ export default function Lists() {
                             >
                               <ArrowUp className="h-4 w-4" />
                             </button>
-                            <span className="text-sm font-medium text-muted-foreground">
+                            <span className="text-sm font-medium text-foreground">
                               {m.noCount}
                             </span>
                           </Link>
@@ -497,7 +497,7 @@ export default function Lists() {
                           <div key={idx} className="py-3 first:pt-0">
                             <Link
                               to="/lobbying-dashboard"
-                              className="group flex items-center gap-3 py-2 bg-muted/40 hover:bg-muted/50 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-border"
+                              className="group flex items-center gap-3 py-2 bg-muted/50 hover:bg-muted/60 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-border"
                             >
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-sm truncate">{l.principal_lobbyist}</p>
@@ -514,7 +514,7 @@ export default function Lists() {
                               >
                                 <ArrowUp className="h-4 w-4" />
                               </button>
-                              <span className="text-sm font-medium text-muted-foreground">
+                              <span className="text-sm font-medium text-foreground">
                                 {formatted}
                               </span>
                             </Link>
@@ -534,7 +534,7 @@ export default function Lists() {
                         <div key={idx} className="py-3 first:pt-0">
                           <Link
                             to="/lobbying-dashboard"
-                            className="group flex items-center gap-3 py-2 bg-muted/40 hover:bg-muted/50 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-border"
+                            className="group flex items-center gap-3 py-2 bg-muted/50 hover:bg-muted/60 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-border"
                           >
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm truncate">{l.principal_lobbyist}</p>
@@ -551,7 +551,7 @@ export default function Lists() {
                             >
                               <ArrowUp className="h-4 w-4" />
                             </button>
-                            <span className="text-sm font-medium text-muted-foreground">
+                            <span className="text-sm font-medium text-foreground">
                               {l.clientCount}
                             </span>
                           </Link>
@@ -570,7 +570,7 @@ export default function Lists() {
                         <div key={idx} className="py-3 first:pt-0">
                           <Link
                             to="/lobbying-dashboard"
-                            className="group flex items-center gap-3 py-2 bg-muted/40 hover:bg-muted/50 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-border"
+                            className="group flex items-center gap-3 py-2 bg-muted/50 hover:bg-muted/60 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-border"
                           >
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm truncate">{l.principal_lobbyist}</p>
@@ -587,7 +587,7 @@ export default function Lists() {
                             >
                               <ArrowUp className="h-4 w-4" />
                             </button>
-                            <span className="text-sm font-medium text-muted-foreground">
+                            <span className="text-sm font-medium text-foreground">
                               {l.employeeCount}
                             </span>
                           </Link>
