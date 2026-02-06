@@ -450,13 +450,29 @@ export default function PromptHub() {
 
       if (!lobbyists) return [];
 
-      // Get client counts for these lobbyists
-      const { data: clients } = await supabase
-        .from('lobbyists_clients')
-        .select('principal_lobbyist');
+      // Get ALL client records to count properly (paginated)
+      let allClients: any[] = [];
+      let offset = 0;
+      const batchSize = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data: batch } = await supabase
+          .from('lobbyists_clients')
+          .select('principal_lobbyist')
+          .range(offset, offset + batchSize - 1);
+
+        if (!batch || batch.length === 0) {
+          hasMore = false;
+        } else {
+          allClients = allClients.concat(batch);
+          hasMore = batch.length === batchSize;
+          offset += batchSize;
+        }
+      }
 
       const clientCounts: Record<string, number> = {};
-      (clients || []).forEach((c: any) => {
+      allClients.forEach((c: any) => {
         clientCounts[c.principal_lobbyist] = (clientCounts[c.principal_lobbyist] || 0) + 1;
       });
 
@@ -484,15 +500,15 @@ export default function PromptHub() {
   });
 
   // -----------------------------------------------------------------------
-  // Supabase: recent contracts
+  // Supabase: top contracts by amount
   // -----------------------------------------------------------------------
   const { data: recentContracts } = useQuery({
     queryKey: ['prompt-hub-contracts'],
     queryFn: async () => {
       const { data } = await supabase
         .from('Contracts')
-        .select('contract_number, contractor, agency_name, current_amount')
-        .order('start_date', { ascending: false })
+        .select('contract_number, vendor_name, department_facility, current_contract_amount')
+        .order('current_contract_amount', { ascending: false, nullsFirst: false })
         .limit(10);
       return data || [];
     },
@@ -1248,14 +1264,16 @@ export default function PromptHub() {
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {(recentContracts || []).map((contract: any, idx: number) => {
-                    const amount = typeof contract.current_amount === 'number'
-                      ? contract.current_amount
-                      : parseFloat(String(contract.current_amount || '0').replace(/[$,]/g, ''));
-                    const formatted = amount >= 1_000_000
-                      ? `$${(amount / 1_000_000).toFixed(1)}M`
-                      : amount >= 1_000
-                        ? `$${(amount / 1_000).toFixed(0)}K`
-                        : `$${amount.toFixed(0)}`;
+                    const amount = typeof contract.current_contract_amount === 'number'
+                      ? contract.current_contract_amount
+                      : parseFloat(String(contract.current_contract_amount || '0').replace(/[$,]/g, ''));
+                    const formatted = amount >= 1_000_000_000
+                      ? `$${(amount / 1_000_000_000).toFixed(1)}B`
+                      : amount >= 1_000_000
+                        ? `$${(amount / 1_000_000).toFixed(1)}M`
+                        : amount >= 1_000
+                          ? `$${(amount / 1_000).toFixed(0)}K`
+                          : `$${amount.toFixed(0)}`;
                     return (
                       <div key={idx} className="py-3 first:pt-0">
                         <Link
@@ -1264,8 +1282,8 @@ export default function PromptHub() {
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm truncate">{contract.contractor}</p>
-                              <p className="text-xs text-muted-foreground truncate">{contract.agency_name}</p>
+                              <p className="font-medium text-sm truncate">{contract.vendor_name}</p>
+                              <p className="text-xs text-muted-foreground truncate">{contract.department_facility}</p>
                             </div>
                             <span className="text-sm font-medium text-muted-foreground ml-2 shrink-0">
                               {formatted}
@@ -1276,7 +1294,7 @@ export default function PromptHub() {
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                const prompt = `Tell me about contract ${contract.contract_number} with ${contract.contractor}`;
+                                const prompt = `Tell me about contract ${contract.contract_number} with ${contract.vendor_name}`;
                                 navigate(`/?prompt=${encodeURIComponent(prompt)}`);
                               }}
                               className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
