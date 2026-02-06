@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,13 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowLeft, User, Pencil, Plus, Trash2, ExternalLink } from "lucide-react";
+import { ArrowLeft, User, Pencil, Plus, Trash2, ExternalLink, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +33,116 @@ interface BillDetailProps {
   onBack: () => void;
 }
 
+// Expandable Vote Card component
+const VoteCard = ({
+  rollCall,
+  formatDate
+}: {
+  rollCall: RollCall & { votes?: (Vote & { person?: Person })[] };
+  formatDate: (date: string | null) => string;
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const hasVotes = rollCall.votes && rollCall.votes.length > 0;
+
+  return (
+    <Card
+      className={`transition-all duration-300 ${hasVotes ? 'cursor-pointer hover:bg-muted/30' : ''}`}
+      onClick={hasVotes ? () => setIsExpanded(!isExpanded) : undefined}
+    >
+      <CardContent className="p-4">
+        {/* Card Header - Always visible */}
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="font-medium text-sm">
+                {formatDate(rollCall.date)}
+              </span>
+              {rollCall.chamber && (
+                <Badge variant="outline" className="text-xs">
+                  {rollCall.chamber}
+                </Badge>
+              )}
+            </div>
+            {rollCall.description && (
+              <p className="text-xs text-muted-foreground mb-2">
+                {rollCall.description}
+              </p>
+            )}
+            <div className="flex items-center gap-3 text-sm">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
+                <span className="font-medium">{rollCall.yea || 0} Yes</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 bg-red-500 rounded-full"></div>
+                <span className="font-medium">{rollCall.nay || 0} No</span>
+              </div>
+              {rollCall.nv && Number(rollCall.nv) > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 bg-yellow-500 rounded-full"></div>
+                  <span className="font-medium">{rollCall.nv} NV</span>
+                </div>
+              )}
+              <span className="text-muted-foreground text-xs">
+                Total: {rollCall.total || 0}
+              </span>
+            </div>
+          </div>
+
+          {/* Expand indicator */}
+          {hasVotes && (
+            <div className="p-1.5">
+              <ChevronDown
+                className={`h-5 w-5 text-muted-foreground transition-transform duration-300 ${
+                  isExpanded ? 'rotate-180' : ''
+                }`}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Expandable Individual Votes Section */}
+        <div
+          className={`overflow-hidden transition-all duration-300 ${
+            isExpanded ? 'mt-4 max-h-[400px]' : 'max-h-0'
+          }`}
+        >
+          <div className="border-t pt-3">
+            <h5 className="font-medium text-xs text-muted-foreground mb-2">Individual Votes</h5>
+            <div className="space-y-1.5">
+              {rollCall.votes?.map((vote) => (
+                <div
+                  key={`${vote.people_id}-${vote.roll_call_id}`}
+                  className="flex items-center justify-between text-xs py-1.5 px-2 bg-muted/30 rounded"
+                >
+                  <span className="font-medium truncate mr-2">
+                    {vote.person?.name || `Person ${vote.people_id}`}
+                  </span>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {vote.person?.party && (
+                      <Badge variant="outline" className="text-xs px-1.5 py-0">
+                        {vote.person.party}
+                      </Badge>
+                    )}
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                      vote.vote_desc === 'Yes' || vote.vote_desc === 'Yea' ? 'bg-green-100 text-green-800' :
+                      vote.vote_desc === 'No' || vote.vote_desc === 'Nay' ? 'bg-red-100 text-red-800' :
+                      vote.vote_desc === 'NV' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-muted text-muted-foreground'
+                    }`}>
+                      {vote.vote_desc || 'Unknown'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
   const navigate = useNavigate();
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -45,6 +156,7 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
   const [otherSessionBills, setOtherSessionBills] = useState<Array<{ session_id: number; bill_number: string; status_desc: string | null; bill_id: number }>>([]);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [sidebarMounted, setSidebarMounted] = useState(false);
+  const [voteSearchQuery, setVoteSearchQuery] = useState("");
 
   // Enable sidebar transitions after mount to prevent flash
   useEffect(() => {
@@ -246,6 +358,22 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
     if (!person.name) return '';
     return person.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   };
+
+  // Filter roll calls based on search query
+  const filteredRollCalls = useMemo(() => {
+    if (!voteSearchQuery.trim()) return rollCalls;
+
+    const query = voteSearchQuery.toLowerCase();
+    return rollCalls.filter(rollCall => {
+      // Search by description (COMMITTEE, FLOOR, etc.)
+      if (rollCall.description?.toLowerCase().includes(query)) return true;
+      // Search by date
+      if (rollCall.date?.toLowerCase().includes(query)) return true;
+      // Search by voter name
+      if (rollCall.votes?.some(v => v.person?.name?.toLowerCase().includes(query))) return true;
+      return false;
+    });
+  }, [rollCalls, voteSearchQuery]);
 
   const handleAIAnalysis = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -554,107 +682,59 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
                   <div className="flex items-center justify-between">
                     <h2 className="text-lg font-semibold">Voting Records</h2>
                     <Badge variant="secondary" className="text-xs">
-                      {rollCalls.length} {rollCalls.length === 1 ? 'Vote' : 'Votes'}
+                      {filteredRollCalls.length} {filteredRollCalls.length === 1 ? 'Vote' : 'Votes'}
                     </Badge>
                   </div>
-                  <div>
-                    {loading ? (
-                      <div className="space-y-4">
-                        {[...Array(3)].map((_, i) => (
-                          <Skeleton key={i} className="h-20 w-full" />
-                        ))}
+
+                  {loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {[...Array(4)].map((_, i) => (
+                        <Skeleton key={i} className="h-32 w-full" />
+                      ))}
+                    </div>
+                  ) : rollCalls.length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium mb-2">No Voting Records</h3>
+                      <p className="text-muted-foreground text-sm max-w-md mx-auto">
+                        No roll call votes have been recorded for this bill yet.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Search Bar */}
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Search by voter name or vote type..."
+                          value={voteSearchQuery}
+                          onChange={(e) => setVoteSearchQuery(e.target.value)}
+                          className="pl-9"
+                        />
                       </div>
-                    ) : rollCalls.length === 0 ? (
-                      <div className="text-center py-12">
-                        <div className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <h3 className="text-lg font-medium mb-2">No Voting Records</h3>
-                        <p className="text-muted-foreground text-sm max-w-md mx-auto">
-                          No roll call votes have been recorded for this bill yet.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-6">
-                        {rollCalls.map((rollCall, _index) => (
-                          <div key={rollCall.roll_call_id} className="border border-border rounded-lg p-4">
-                            <div className="flex items-start justify-between mb-4">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-2">
-                                  <h4 className="font-medium text-sm">
-                                    {formatDate(rollCall.date)}
-                                  </h4>
-                                  {rollCall.chamber && (
-                                    <Badge variant="outline" className="text-xs">
-                                      {rollCall.chamber}
-                                    </Badge>
-                                  )}
-                                </div>
-                                {rollCall.description && (
-                                  <p className="text-sm text-muted-foreground mb-3">
-                                    {rollCall.description}
-                                  </p>
-                                )}
-                                
-                                <div className="flex items-center gap-4 text-sm">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                                    <span className="font-medium">{rollCall.yea || 0} Yes</span>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                                    <span className="font-medium">{rollCall.nay || 0} No</span>
-                                  </div>
-                                  {rollCall.absent && (
-                                    <div className="flex items-center gap-2">
-                                      <div className="w-3 h-3 bg-muted rounded-full"></div>
-                                      <span className="font-medium">{rollCall.absent} Absent</span>
-                                    </div>
-                                  )}
-                                  {rollCall.nv && (
-                                    <div className="flex items-center gap-2">
-                                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                                      <span className="font-medium">{rollCall.nv} NV</span>
-                                    </div>
-                                  )}
-                                  <div className="text-muted-foreground">
-                                    Total: {rollCall.total || 0}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            {rollCall.votes && rollCall.votes.length > 0 && (
-                              <div className="border-t border-border pt-4">
-                                <h5 className="font-medium text-sm mb-3">Individual Votes</h5>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-40 overflow-y-auto">
-                                  {rollCall.votes.map((vote, _voteIndex) => (
-                                    <div key={`${vote.people_id}-${vote.roll_call_id}`} className="flex items-center justify-between text-xs p-2 bg-muted/30 rounded">
-                                      <span className="font-medium">
-                                        {vote.person?.name || `Person ${vote.people_id}`}
-                                      </span>
-                                      <div className="flex items-center gap-1">
-                                        {vote.person?.party && (
-                                          <Badge variant="outline" className="text-xs px-1 py-0">
-                                            {vote.person.party}
-                                          </Badge>
-                                        )}
-                                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                          vote.vote_desc === 'Yes' || vote.vote_desc === 'Yea' ? 'bg-green-100 text-green-800' :
-                                          vote.vote_desc === 'No' || vote.vote_desc === 'Nay' ? 'bg-red-100 text-red-800' :
-                                          'bg-muted text-muted-foreground'
-                                        }`}>
-                                          {vote.vote_desc || 'Unknown'}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
+
+                      {/* Vote Cards Grid */}
+                      <ScrollArea className="h-[500px]">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-4">
+                          {filteredRollCalls.map((rollCall) => (
+                            <VoteCard
+                              key={rollCall.roll_call_id}
+                              rollCall={rollCall}
+                              formatDate={formatDate}
+                            />
+                          ))}
+                        </div>
+
+                        {filteredRollCalls.length === 0 && voteSearchQuery && (
+                          <div className="text-center py-8">
+                            <p className="text-muted-foreground">
+                              No votes found matching "{voteSearchQuery}"
+                            </p>
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                        )}
+                      </ScrollArea>
+                    </>
+                  )}
                 </div>
               </TabsContent>
             </Tabs>
