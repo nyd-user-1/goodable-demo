@@ -364,40 +364,42 @@ function SpendCard({ record, onClick, onChatClick }: SpendCardProps) {
       <p className="text-sm text-muted-foreground leading-relaxed">{promptText}</p>
 
       {/* Details - always visible */}
-      <div className="mt-4">
-        {/* Details grid */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-          {record.compensation && (
-            <div>
-              <span className="text-muted-foreground">Compensation</span>
-              <p className="font-medium">{formatLobbyingCurrency(record.compensation)}</p>
-            </div>
-          )}
-          {record.total_expenses && (
-            <div>
-              <span className="text-muted-foreground">Total Expenses</span>
-              <p className="font-medium">{formatLobbyingCurrency(record.total_expenses)}</p>
-            </div>
-          )}
-          {record.expenses_less_than_75 && (
-            <div>
-              <span className="text-muted-foreground">Expenses &lt;$75</span>
-              <p className="font-medium">{formatLobbyingCurrency(record.expenses_less_than_75)}</p>
-            </div>
-          )}
-          {record.itemized_expenses && (
-            <div>
-              <span className="text-muted-foreground">Itemized Expenses</span>
-              <p className="font-medium">{formatLobbyingCurrency(record.itemized_expenses)}</p>
-            </div>
-          )}
-          {record.compensation_and_expenses && (
-            <div className="col-span-2">
-              <span className="text-muted-foreground">Total (Comp + Expenses)</span>
-              <p className="font-medium text-green-600 dark:text-green-400">{formatLobbyingCurrency(record.compensation_and_expenses)}</p>
-            </div>
-          )}
+      <div className="mt-4 space-y-2 text-xs">
+        {/* Row 1: Total (Comp + Expenses) - hero metric */}
+        <div>
+          <span className="text-muted-foreground">Total (Comp + Expenses)</span>
+          <p className="font-medium text-green-600 dark:text-green-400">{formatLobbyingCurrency(record.compensation_and_expenses)}</p>
         </div>
+
+        {/* Row 2: Compensation + Total Expenses */}
+        <div className="grid grid-cols-2 gap-x-4">
+          <div>
+            <span className="text-muted-foreground">Compensation</span>
+            <p className="font-medium">{formatLobbyingCurrency(record.compensation)}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Total Expenses</span>
+            <p className="font-medium">{formatLobbyingCurrency(record.total_expenses)}</p>
+          </div>
+        </div>
+
+        {/* Row 3: Secondary expenses (only show if has value) */}
+        {(record.expenses_less_than_75 != null || record.itemized_expenses != null) && (
+          <div className="grid grid-cols-2 gap-x-4">
+            {record.expenses_less_than_75 != null && (
+              <div>
+                <span className="text-muted-foreground">Expenses &lt;$75</span>
+                <p className="font-medium">{formatLobbyingCurrency(record.expenses_less_than_75)}</p>
+              </div>
+            )}
+            {record.itemized_expenses != null && (
+              <div>
+                <span className="text-muted-foreground">Itemized Expenses</span>
+                <p className="font-medium">{formatLobbyingCurrency(record.itemized_expenses)}</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Action button - appears on hover */}
         <div className="flex justify-end mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
