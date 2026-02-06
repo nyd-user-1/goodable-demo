@@ -373,13 +373,13 @@ export default function PromptHub() {
   });
 
   // -----------------------------------------------------------------------
-  // Supabase: members by total votes
+  // Supabase: members by yes votes (Yea)
   // -----------------------------------------------------------------------
-  const { data: membersByVotes } = useQuery({
-    queryKey: ['prompt-hub-members-votes'],
+  const { data: membersByYesVotes } = useQuery({
+    queryKey: ['prompt-hub-members-yes-votes'],
     queryFn: async () => {
-      // Get ALL votes (paginated)
-      let allVotes: any[] = [];
+      // Get ALL Yea votes (paginated)
+      let allYeaVotes: any[] = [];
       let offset = 0;
       const batchSize = 1000;
       let hasMore = true;
@@ -388,83 +388,28 @@ export default function PromptHub() {
         const { data: batch } = await supabase
           .from('Votes')
           .select('people_id, vote_desc')
+          .eq('vote_desc', 'Yea')
           .range(offset, offset + batchSize - 1);
 
         if (!batch || batch.length === 0) {
           hasMore = false;
         } else {
-          allVotes = allVotes.concat(batch);
+          allYeaVotes = allYeaVotes.concat(batch);
           hasMore = batch.length === batchSize;
           offset += batchSize;
         }
       }
 
-      // Count total votes per member
-      const voteCounts: Record<number, number> = {};
-      allVotes.forEach((v: any) => {
+      // Count Yea votes per member
+      const yeaCounts: Record<number, number> = {};
+      allYeaVotes.forEach((v: any) => {
         if (v.people_id) {
-          voteCounts[v.people_id] = (voteCounts[v.people_id] || 0) + 1;
+          yeaCounts[v.people_id] = (yeaCounts[v.people_id] || 0) + 1;
         }
       });
 
       // Top 14 by count
-      const topIds = Object.entries(voteCounts)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 14)
-        .map(([id]) => parseInt(id));
-
-      const { data: members } = await supabase
-        .from('People')
-        .select('people_id, name, first_name, last_name, party, chamber, photo_url')
-        .in('people_id', topIds);
-
-      if (!members) return [];
-
-      return members
-        .map((m: any) => ({ ...m, voteCount: voteCounts[m.people_id] || 0 }))
-        .sort((a: any, b: any) => b.voteCount - a.voteCount);
-    },
-    staleTime: 10 * 60 * 1000,
-  });
-
-  // -----------------------------------------------------------------------
-  // Supabase: members by NV (not voting) votes
-  // -----------------------------------------------------------------------
-  const { data: membersByNoVotes } = useQuery({
-    queryKey: ['prompt-hub-members-nv-votes'],
-    queryFn: async () => {
-      // Get ALL votes with NV (paginated)
-      let allNvVotes: any[] = [];
-      let offset = 0;
-      const batchSize = 1000;
-      let hasMore = true;
-
-      while (hasMore) {
-        const { data: batch } = await supabase
-          .from('Votes')
-          .select('people_id, vote_desc')
-          .eq('vote_desc', 'NV')
-          .range(offset, offset + batchSize - 1);
-
-        if (!batch || batch.length === 0) {
-          hasMore = false;
-        } else {
-          allNvVotes = allNvVotes.concat(batch);
-          hasMore = batch.length === batchSize;
-          offset += batchSize;
-        }
-      }
-
-      // Count NV votes per member
-      const nvCounts: Record<number, number> = {};
-      allNvVotes.forEach((v: any) => {
-        if (v.people_id) {
-          nvCounts[v.people_id] = (nvCounts[v.people_id] || 0) + 1;
-        }
-      });
-
-      // Top 14 by count
-      const topIds = Object.entries(nvCounts)
+      const topIds = Object.entries(yeaCounts)
         .sort(([, a], [, b]) => b - a)
         .slice(0, 14)
         .map(([id]) => parseInt(id));
@@ -479,8 +424,66 @@ export default function PromptHub() {
       if (!members) return [];
 
       return members
-        .map((m: any) => ({ ...m, nvCount: nvCounts[m.people_id] || 0 }))
-        .sort((a: any, b: any) => b.nvCount - a.nvCount);
+        .map((m: any) => ({ ...m, yeaCount: yeaCounts[m.people_id] || 0 }))
+        .sort((a: any, b: any) => b.yeaCount - a.yeaCount);
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // -----------------------------------------------------------------------
+  // Supabase: members by no votes (No)
+  // -----------------------------------------------------------------------
+  const { data: membersByNoVotes } = useQuery({
+    queryKey: ['prompt-hub-members-no-votes'],
+    queryFn: async () => {
+      // Get ALL No votes (paginated)
+      let allNoVotes: any[] = [];
+      let offset = 0;
+      const batchSize = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data: batch } = await supabase
+          .from('Votes')
+          .select('people_id, vote_desc')
+          .eq('vote_desc', 'No')
+          .range(offset, offset + batchSize - 1);
+
+        if (!batch || batch.length === 0) {
+          hasMore = false;
+        } else {
+          allNoVotes = allNoVotes.concat(batch);
+          hasMore = batch.length === batchSize;
+          offset += batchSize;
+        }
+      }
+
+      // Count No votes per member
+      const noCounts: Record<number, number> = {};
+      allNoVotes.forEach((v: any) => {
+        if (v.people_id) {
+          noCounts[v.people_id] = (noCounts[v.people_id] || 0) + 1;
+        }
+      });
+
+      // Top 14 by count
+      const topIds = Object.entries(noCounts)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 14)
+        .map(([id]) => parseInt(id));
+
+      if (topIds.length === 0) return [];
+
+      const { data: members } = await supabase
+        .from('People')
+        .select('people_id, name, first_name, last_name, party, chamber, photo_url')
+        .in('people_id', topIds);
+
+      if (!members) return [];
+
+      return members
+        .map((m: any) => ({ ...m, noCount: noCounts[m.people_id] || 0 }))
+        .sort((a: any, b: any) => b.noCount - a.noCount);
     },
     staleTime: 10 * 60 * 1000,
   });
@@ -1143,7 +1146,7 @@ export default function PromptHub() {
                     Members
                   </h2>
                   <p className="text-muted-foreground mt-2">
-                    Top legislators ranked by bills sponsored, votes cast, and absences
+                    By bills, yes votes, and no votes
                   </p>
                 </div>
 
@@ -1213,13 +1216,13 @@ export default function PromptHub() {
                 </div>
               </div>
 
-              {/* ------ By Votes (members by total votes) ------ */}
+              {/* ------ Yes Votes (members by Yea votes) ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  By Votes
+                  Yes Votes
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
-                  {(membersByVotes || []).map((m: any) => (
+                  {(membersByYesVotes || []).map((m: any) => (
                     <div key={m.people_id} className="py-3 first:pt-0">
                       <Link
                         to={`/members/${makeMemberSlug(m)}`}
@@ -1255,7 +1258,7 @@ export default function PromptHub() {
                           <ArrowUp className="h-4 w-4" />
                         </button>
                         <span className="text-sm font-medium text-muted-foreground">
-                          {m.voteCount}
+                          {m.yeaCount}
                         </span>
                       </Link>
                     </div>
@@ -1263,10 +1266,10 @@ export default function PromptHub() {
                 </div>
               </div>
 
-              {/* ------ By No Votes (members by NV votes) ------ */}
+              {/* ------ No Votes (members by No votes) ------ */}
               <div className="md:pl-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  By No Votes
+                  No Votes
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {(membersByNoVotes || []).map((m: any) => (
@@ -1296,7 +1299,7 @@ export default function PromptHub() {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            const prompt = `Tell me about ${m.name} and their voting attendance record`;
+                            const prompt = `Tell me about ${m.name} and their voting record`;
                             navigate(`/?prompt=${encodeURIComponent(prompt)}`);
                           }}
                           className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -1305,7 +1308,7 @@ export default function PromptHub() {
                           <ArrowUp className="h-4 w-4" />
                         </button>
                         <span className="text-sm font-medium text-muted-foreground">
-                          {m.nvCount}
+                          {m.noCount}
                         </span>
                       </Link>
                     </div>
@@ -1327,7 +1330,7 @@ export default function PromptHub() {
                     Lobbyists
                   </h2>
                   <p className="text-muted-foreground mt-2">
-                    Top lobbying firms ranked
+                    By earnings, clients, and staff
                   </p>
                 </div>
 
