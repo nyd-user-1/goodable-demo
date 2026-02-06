@@ -155,7 +155,7 @@ export default function Advertise() {
           ],
           context: {
             pageUri: window.location.href,
-            pageName: 'Advertise on NYSgpt',
+            pageName: 'Advertise with NYSgpt',
           },
         }),
       });
@@ -272,24 +272,24 @@ export default function Advertise() {
           <div className="bg-black/30 absolute inset-0 flex items-center justify-center p-10 backdrop-blur-sm">
             <div className="bg-background/80 max-w-md rounded-lg p-8 shadow-lg backdrop-blur-md">
               <h2 className="mb-4 text-2xl font-bold">
-                Why advertise on NYSgpt?
+                Why NYSgpt?
               </h2>
               <ul className="space-y-3">
                 <li className="flex items-start">
                   <CheckCircle2Icon className="text-foreground mt-0.5 mr-2 h-5 w-5 flex-shrink-0" />
-                  <span>Reach legislators, staffers, and policy professionals</span>
+                  <span>Conversational access to the full legislative corpus</span>
                 </li>
                 <li className="flex items-start">
                   <CheckCircle2Icon className="text-foreground mt-0.5 mr-2 h-5 w-5 flex-shrink-0" />
-                  <span>Connect with nonprofits and advocacy organizations</span>
+                  <span>Natural-language access to decades of public finance data</span>
                 </li>
                 <li className="flex items-start">
                   <CheckCircle2Icon className="text-foreground mt-0.5 mr-2 h-5 w-5 flex-shrink-0" />
-                  <span>Target lobbyists and government affairs professionals</span>
+                  <span>Direct interaction with primary budget documents</span>
                 </li>
                 <li className="flex items-start">
                   <CheckCircle2Icon className="text-foreground mt-0.5 mr-2 h-5 w-5 flex-shrink-0" />
-                  <span>Engage an audience actively researching policy and legislation</span>
+                  <span>Embedded inside the government affairs workflow</span>
                 </li>
               </ul>
             </div>
@@ -300,7 +300,7 @@ export default function Advertise() {
         <div className="flex items-center justify-center p-8">
           <div className="w-full max-w-md">
             <h1 className="mb-2 scroll-m-20 text-3xl font-bold tracking-tight md:text-4xl">
-              Advertise on NYSgpt
+              Advertise with NYSgpt
             </h1>
             <p className="text-muted-foreground mb-8">
               Complete the steps below to get started.
