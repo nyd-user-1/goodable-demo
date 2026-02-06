@@ -13,7 +13,9 @@ import { formatDate } from "@/utils/dateUtils";
 import { useToast } from "@/hooks/use-toast";
 import { useStickyTableHeader } from "@/hooks/useStickyTableHeader";
 
-type Bill = Tables<"Bills">;
+type Bill = Tables<"Bills"> & {
+  sponsors?: Array<{ name: string | null; party: string | null; chamber: string | null }>;
+};
 
 type Committee = {
   committee_id: number;
@@ -36,7 +38,7 @@ interface CommitteeBillsTableFullProps {
   committee: Committee;
 }
 
-type SortField = 'bill_number' | 'title' | 'status_desc' | 'last_action' | 'last_action_date' | 'status_date';
+type SortField = 'bill_number' | 'sponsor' | 'title' | 'status_desc' | 'last_action' | 'last_action_date';
 type SortDirection = 'asc' | 'desc' | null;
 
 export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullProps) => {
@@ -50,14 +52,14 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
-  // Fetch bills for this committee
+  // Fetch bills for this committee with sponsors
   useEffect(() => {
     const fetchCommitteeBills = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Match bills where committee contains the committee name
+        // Step 1: Fetch bills for this committee
         const { data: billsData, error: billsError } = await supabase
           .from("Bills")
           .select("*")
@@ -65,8 +67,56 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
           .order("last_action_date", { ascending: false });
 
         if (billsError) throw billsError;
+        if (!billsData || billsData.length === 0) {
+          setBills([]);
+          return;
+        }
 
-        setBills(billsData || []);
+        // Step 2: Fetch sponsors for all bills
+        const billIds = billsData.map(b => b.bill_id);
+        const { data: sponsorsData } = await supabase
+          .from("Sponsors")
+          .select("bill_id, people_id, position")
+          .in("bill_id", billIds);
+
+        // Step 3: Fetch people data for sponsors
+        const peopleIds = [...new Set(sponsorsData?.map(s => s.people_id).filter(Boolean) || [])];
+        const { data: peopleData } = peopleIds.length > 0 ? await supabase
+          .from("People")
+          .select("people_id, name, party, chamber")
+          .in("people_id", peopleIds) : { data: [] };
+
+        // Create lookup map for people
+        const peopleMap = new Map(peopleData?.map(p => [p.people_id, p]) || []);
+
+        // Step 4: Group sponsors by bill (sorted by position - primary sponsor first)
+        const sponsorsByBill = new Map<number, Array<{ name: string | null; party: string | null; chamber: string | null }>>();
+
+        // Sort sponsors by position before grouping
+        const sortedSponsors = [...(sponsorsData || [])].sort((a, b) => (a.position || 99) - (b.position || 99));
+
+        sortedSponsors.forEach(sponsor => {
+          if (!sponsor.bill_id) return;
+          if (!sponsorsByBill.has(sponsor.bill_id)) {
+            sponsorsByBill.set(sponsor.bill_id, []);
+          }
+          const person = peopleMap.get(sponsor.people_id!);
+          if (person) {
+            sponsorsByBill.get(sponsor.bill_id)!.push({
+              name: person.name,
+              party: person.party,
+              chamber: person.chamber,
+            });
+          }
+        });
+
+        // Step 5: Attach sponsors to bills
+        const billsWithSponsors = billsData.map(bill => ({
+          ...bill,
+          sponsors: sponsorsByBill.get(bill.bill_id) || []
+        }));
+
+        setBills(billsWithSponsors);
       } catch (err) {
         setError("Failed to load bills. Please try again.");
         toast({
@@ -122,18 +172,28 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
         bill.title?.toLowerCase().includes(query) ||
         bill.description?.toLowerCase().includes(query) ||
         bill.last_action?.toLowerCase().includes(query) ||
-        bill.status_desc?.toLowerCase().includes(query)
+        bill.status_desc?.toLowerCase().includes(query) ||
+        bill.sponsors?.some(s => s.name?.toLowerCase().includes(query))
       );
     }
 
     // Apply sorting
     if (sortField && sortDirection) {
       filtered = [...filtered].sort((a, b) => {
-        let aValue: any = a[sortField] || '';
-        let bValue: any = b[sortField] || '';
+        let aValue: any;
+        let bValue: any;
+
+        // Special handling for sponsor (use primary sponsor name)
+        if (sortField === 'sponsor') {
+          aValue = a.sponsors?.[0]?.name || '';
+          bValue = b.sponsors?.[0]?.name || '';
+        } else {
+          aValue = a[sortField] || '';
+          bValue = b[sortField] || '';
+        }
 
         // Special handling for dates
-        if (sortField === 'last_action_date' || sortField === 'status_date') {
+        if (sortField === 'last_action_date') {
           const aDate = new Date(aValue || 0);
           const bDate = new Date(bValue || 0);
           if (sortDirection === 'asc') {
@@ -202,7 +262,17 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
                           Bill {getSortIcon('bill_number')}
                         </Button>
                       </TableHead>
-                      <TableHead className="w-[35%]">
+                      <TableHead className="w-[140px]">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleSort('sponsor')}
+                          className="h-auto p-0 font-semibold hover:bg-transparent"
+                        >
+                          Sponsor {getSortIcon('sponsor')}
+                        </Button>
+                      </TableHead>
+                      <TableHead className="w-[30%]">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -222,7 +292,7 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
                           Status {getSortIcon('status_desc')}
                         </Button>
                       </TableHead>
-                      <TableHead className="w-[20%]">
+                      <TableHead className="w-[18%]">
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
@@ -249,16 +319,6 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
                           Action Date {getSortIcon('last_action_date')}
                         </Button>
                       </TableHead>
-                      <TableHead className="w-[100px]">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleSort('status_date')}
-                          className="h-auto p-0 font-semibold hover:bg-transparent"
-                        >
-                          Status Date {getSortIcon('status_date')}
-                        </Button>
-                      </TableHead>
                     </TableRow>
                   </TableHeader>
                 </Table>
@@ -267,48 +327,53 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
                 <ScrollArea className="h-[500px] w-full">
                   <Table>
                     <TableBody>
-                      {filteredAndSortedBills.map((bill) => (
-                        <TableRow
-                          key={bill.bill_id}
-                          className="cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => handleBillClick(bill)}
-                        >
-                          <TableCell className="w-[80px] font-medium">
-                            {bill.bill_number}
-                          </TableCell>
-                          <TableCell className="w-[35%]">
-                            <div className="text-sm truncate max-w-[400px]" title={bill.title || ""}>
-                              {bill.title}
-                            </div>
-                          </TableCell>
-                          <TableCell className="w-[140px]">
-                            <Badge
-                              variant={bill.status_desc?.toLowerCase() === "passed" ? "success" : "secondary"}
-                              className="whitespace-nowrap"
-                            >
-                              {bill.status_desc || "Unknown"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="w-[20%] text-sm text-muted-foreground">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="cursor-help truncate max-w-[200px]" title={bill.last_action || ""}>
-                                  {bill.last_action || "No action recorded"}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>ALL CAPS = Senate, lowercase = Assembly</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TableCell>
-                          <TableCell className="w-[100px] text-sm text-muted-foreground whitespace-nowrap">
-                            {formatDate(bill.last_action_date)}
-                          </TableCell>
-                          <TableCell className="w-[100px] text-sm text-muted-foreground whitespace-nowrap">
-                            {formatDate(bill.status_date)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {filteredAndSortedBills.map((bill) => {
+                        const primarySponsor = bill.sponsors?.[0]?.name || "—";
+                        return (
+                          <TableRow
+                            key={bill.bill_id}
+                            className="cursor-pointer hover:bg-muted/50 transition-colors"
+                            onClick={() => handleBillClick(bill)}
+                          >
+                            <TableCell className="w-[80px] font-medium">
+                              {bill.bill_number}
+                            </TableCell>
+                            <TableCell className="w-[140px]">
+                              <div className="text-sm truncate" title={primarySponsor}>
+                                {primarySponsor}
+                              </div>
+                            </TableCell>
+                            <TableCell className="w-[30%]">
+                              <div className="text-sm truncate max-w-[350px]" title={bill.title || ""}>
+                                {bill.title}
+                              </div>
+                            </TableCell>
+                            <TableCell className="w-[140px]">
+                              <Badge
+                                variant={bill.status_desc?.toLowerCase() === "passed" ? "success" : "secondary"}
+                                className="whitespace-nowrap"
+                              >
+                                {bill.status_desc || "Unknown"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="w-[18%] text-sm text-muted-foreground">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="cursor-help truncate max-w-[180px]" title={bill.last_action || ""}>
+                                    {bill.last_action || "No action recorded"}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>ALL CAPS = Senate, lowercase = Assembly</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell className="w-[100px] text-sm text-muted-foreground whitespace-nowrap">
+                              {formatDate(bill.last_action_date)}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </ScrollArea>
