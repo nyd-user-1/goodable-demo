@@ -136,7 +136,7 @@ export default function Advertise() {
     const formGuid = '536281ae-0a9b-4288-9e1f-07ef0f4b4463';
 
     try {
-      await fetch(`https://api.hsforms.com/submissions/v3/integration/submit/${portalId}/${formGuid}`, {
+      const response = await fetch(`https://api.hsforms.com/submissions/v3/integration/submit/${portalId}/${formGuid}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -158,6 +158,8 @@ export default function Advertise() {
           },
         }),
       });
+      const result = await response.json();
+      console.log('HubSpot response:', response.status, result);
     } catch (error) {
       console.error('HubSpot submission error:', error);
     }
