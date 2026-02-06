@@ -370,31 +370,31 @@ function SpendCard({ record, onClick, onChatClick }: SpendCardProps) {
           {record.compensation && (
             <div>
               <span className="text-muted-foreground">Compensation</span>
-              <p className="font-medium">{record.compensation}</p>
+              <p className="font-medium">{formatLobbyingCurrency(record.compensation)}</p>
             </div>
           )}
           {record.total_expenses && (
             <div>
               <span className="text-muted-foreground">Total Expenses</span>
-              <p className="font-medium">{record.total_expenses}</p>
+              <p className="font-medium">{formatLobbyingCurrency(record.total_expenses)}</p>
             </div>
           )}
           {record.expenses_less_than_75 && (
             <div>
               <span className="text-muted-foreground">Expenses &lt;$75</span>
-              <p className="font-medium">{record.expenses_less_than_75}</p>
+              <p className="font-medium">{formatLobbyingCurrency(record.expenses_less_than_75)}</p>
             </div>
           )}
           {record.itemized_expenses && (
             <div>
               <span className="text-muted-foreground">Itemized Expenses</span>
-              <p className="font-medium">{record.itemized_expenses}</p>
+              <p className="font-medium">{formatLobbyingCurrency(record.itemized_expenses)}</p>
             </div>
           )}
           {record.compensation_and_expenses && (
             <div className="col-span-2">
               <span className="text-muted-foreground">Total (Comp + Expenses)</span>
-              <p className="font-medium text-green-600 dark:text-green-400">{record.compensation_and_expenses}</p>
+              <p className="font-medium text-green-600 dark:text-green-400">{formatLobbyingCurrency(record.compensation_and_expenses)}</p>
             </div>
           )}
         </div>
