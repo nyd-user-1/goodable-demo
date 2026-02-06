@@ -48,6 +48,7 @@ const ContractDetail = React.lazy(() => import("./pages/ContractDetail"));
 const Budget = React.lazy(() => import("./pages/Budget"));
 const BudgetDashboard = React.lazy(() => import("./pages/BudgetDashboard"));
 const Lobbying = React.lazy(() => import("./pages/Lobbying"));
+const LobbyingDashboard = React.lazy(() => import("./pages/LobbyingDashboard"));
 const LobbyingDetail = React.lazy(() => import("./pages/LobbyingDetail"));
 const SchoolFunding = React.lazy(() => import("./pages/SchoolFunding"));
 const SchoolFundingDetail = React.lazy(() => import("./pages/SchoolFundingDetail"));
@@ -141,6 +142,7 @@ const App = () => {
                   <Route path="/contracts/:contractNumber" element={<ProtectedRoute><ContractDetail /></ProtectedRoute>} />
                   <Route path="/lobbying" element={<ProtectedRoute><Lobbying /></ProtectedRoute>} />
                   <Route path="/lobbying/:id" element={<ProtectedRoute><LobbyingDetail /></ProtectedRoute>} />
+                  <Route path="/lobbying-dashboard" element={<ProtectedRoute><LobbyingDashboard /></ProtectedRoute>} />
                   <Route path="/budget" element={<ProtectedRoute><Budget /></ProtectedRoute>} />
                   <Route path="/budget-dashboard" element={<ProtectedRoute><BudgetDashboard /></ProtectedRoute>} />
                   <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
