@@ -18,23 +18,13 @@ import {
 } from '@/hooks/useLobbyingDashboard';
 import {
   XAxis,
-  YAxis,
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Area,
   AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
 } from 'recharts';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from '@/components/ui/chart';
 
-const TABS: LobbyingDashboardTab[] = ['lobbyist', 'lobbyist2', 'client'];
+const TABS: LobbyingDashboardTab[] = ['lobbyist', 'client'];
 
 const LobbyingDashboard = () => {
   const navigate = useNavigate();
@@ -70,12 +60,11 @@ const LobbyingDashboard = () => {
   const rows: LobbyingDashboardRow[] = useMemo(() => {
     switch (activeTab) {
       case 'lobbyist': return byLobbyist;
-      case 'lobbyist2': return byLobbyist;
       case 'client': return byClient;
     }
   }, [activeTab, byLobbyist, byClient]);
 
-  const grandTotal = activeTab === 'client' ? clientGrandTotal : lobbyistGrandTotal;
+  const grandTotal = activeTab === 'lobbyist' ? lobbyistGrandTotal : clientGrandTotal;
 
   // Toggle row expansion
   const toggleRow = (name: string) => {
@@ -136,23 +125,6 @@ const LobbyingDashboard = () => {
 
     return points;
   }, [rows, grandTotal]);
-
-  // Bar chart data for lobbyist2 tab: top 15 lobbyists
-  const barChartData = useMemo(() => {
-    return byLobbyist.slice(0, 15).map(row => ({
-      name: row.name.length > 20 ? row.name.slice(0, 20) + '...' : row.name,
-      fullName: row.name,
-      amount: row.amount,
-    }));
-  }, [byLobbyist]);
-
-  // Chart config for bar chart
-  const barChartConfig: ChartConfig = {
-    amount: {
-      label: 'Earnings',
-      color: 'hsl(var(--foreground))',
-    },
-  };
 
   // Open chat drawer
   const openChat = (lobbyistName?: string | null, clientName?: string | null) => {
@@ -338,58 +310,6 @@ const LobbyingDashboard = () => {
                 {Array.from({ length: 10 }).map((_, i) => (
                   <div key={i} className="h-14 bg-muted/30 rounded-lg animate-pulse" />
                 ))}
-              </div>
-            ) : activeTab === 'lobbyist2' ? (
-              <div className="p-4 md:p-6">
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold">Top 15 Lobbyists by Earnings</h3>
-                  <p className="text-sm text-muted-foreground">Click on a bar to chat about that lobbyist</p>
-                </div>
-                <ChartContainer config={barChartConfig} className="min-h-[400px] w-full">
-                  <BarChart
-                    accessibilityLayer
-                    data={barChartData}
-                    layout="vertical"
-                    margin={{ left: 0, right: 16 }}
-                  >
-                    <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-                    <YAxis
-                      dataKey="name"
-                      type="category"
-                      tickLine={false}
-                      tickMargin={10}
-                      axisLine={false}
-                      width={180}
-                      tick={{ fontSize: 11 }}
-                    />
-                    <XAxis
-                      dataKey="amount"
-                      type="number"
-                      tickFormatter={(value) => formatCompactCurrency(value)}
-                      tick={{ fontSize: 11 }}
-                    />
-                    <ChartTooltip
-                      cursor={{ fill: 'hsl(var(--muted))' }}
-                      content={
-                        <ChartTooltipContent
-                          hideLabel
-                          formatter={(value) => formatFullCurrency(value as number)}
-                        />
-                      }
-                    />
-                    <Bar
-                      dataKey="amount"
-                      fill="hsl(var(--foreground))"
-                      radius={[0, 4, 4, 0]}
-                      onClick={(data) => {
-                        if (data && data.fullName) {
-                          openChat(data.fullName, null);
-                        }
-                      }}
-                      style={{ cursor: 'pointer' }}
-                    />
-                  </BarChart>
-                </ChartContainer>
               </div>
             ) : rows.length === 0 ? (
               <div className="text-center py-12 px-4">
