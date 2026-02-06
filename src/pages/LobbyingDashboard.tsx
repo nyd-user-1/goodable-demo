@@ -99,12 +99,24 @@ const LobbyingDashboard = () => {
   const headerAmount = selectedRowData ? selectedRowData.amount : grandTotal;
 
   // Chart data: cumulative distribution showing concentration of lobbying spend
+  // When a lobbyist is selected, show their clients' distribution instead
   const chartData = useMemo(() => {
-    if (rows.length === 0) return [];
+    // Determine which data to use
+    let dataRows: { amount: number }[] = rows;
+    let total = grandTotal;
+
+    // If a lobbyist is selected (not client tab), show their clients
+    if (selectedRow && activeTab !== 'client') {
+      const clients = getClientsForLobbyist(selectedRow);
+      if (clients.length > 0) {
+        dataRows = clients;
+        total = clients.reduce((sum, c) => sum + c.amount, 0);
+      }
+    }
+
+    if (dataRows.length === 0) return [];
 
     // Create cumulative distribution data points
-    // Show how total accumulates across top entities
-    const total = grandTotal;
     let cumulative = 0;
     const points: { rank: number; label: string; cumulative: number; pct: number }[] = [];
 
@@ -112,10 +124,10 @@ const LobbyingDashboard = () => {
     const samplePoints = [1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
 
     for (const targetPct of samplePoints) {
-      const targetIdx = Math.min(Math.floor((targetPct / 100) * rows.length), rows.length - 1);
+      const targetIdx = Math.min(Math.floor((targetPct / 100) * dataRows.length), dataRows.length - 1);
       cumulative = 0;
       for (let i = 0; i <= targetIdx; i++) {
-        cumulative += rows[i].amount;
+        cumulative += dataRows[i].amount;
       }
       const pct = total > 0 ? (cumulative / total) * 100 : 0;
       points.push({
@@ -127,7 +139,7 @@ const LobbyingDashboard = () => {
     }
 
     return points;
-  }, [rows, grandTotal]);
+  }, [rows, grandTotal, selectedRow, activeTab, getClientsForLobbyist]);
 
   // Bar chart data for lobbyist3 tab: top 40 lobbyists OR clients when a lobbyist is selected
   const barChartData = useMemo(() => {
