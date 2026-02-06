@@ -363,15 +363,15 @@ const LobbyingDetail = () => {
   const handleNewChat = () => {
     if (isSpend && spendRecord) {
       const client = spendRecord.contractual_client || 'this client';
-      const compensation = spendRecord.compensation || 'N/A';
-      const totalExpenses = spendRecord.total_expenses || 'N/A';
+      const compensation = formatLobbyingCurrency(spendRecord.compensation);
+      const totalExpenses = formatLobbyingCurrency(spendRecord.total_expenses);
 
       const initialPrompt = `Tell me about lobbying spending by ${client}. They paid ${compensation} in compensation with ${totalExpenses} in total expenses.`;
       navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
     } else if (isCompensation && compensationRecord) {
       const lobbyist = compensationRecord.principal_lobbyist || 'this lobbyist';
-      const compensation = compensationRecord.compensation || 'N/A';
-      const expenses = compensationRecord.reimbursed_expenses || 'N/A';
+      const compensation = formatLobbyingCurrency(compensationRecord.compensation);
+      const expenses = formatLobbyingCurrency(compensationRecord.reimbursed_expenses);
 
       const initialPrompt = `Tell me about ${lobbyist}. They received ${compensation} in compensation plus ${expenses} in reimbursed expenses.`;
       navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
@@ -528,38 +528,38 @@ const LobbyingDetail = () => {
                     {/* Additional Details */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-6">
-                        {spendRecord.expenses_less_than_75 && (
+                        {spendRecord.expenses_less_than_75 != null && (
                           <div className="space-y-2">
                             <div className="flex items-center gap-2 text-foreground font-medium">
                               <DollarSign className="h-4 w-4" />
                               <span>Expenses less than $75</span>
                             </div>
                             <div className="text-muted-foreground ml-6">
-                              {spendRecord.expenses_less_than_75}
+                              {formatLobbyingCurrency(spendRecord.expenses_less_than_75)}
                             </div>
                           </div>
                         )}
-                        {spendRecord.salaries_no_lobbying_employees && (
+                        {spendRecord.salaries_no_lobbying_employees != null && (
                           <div className="space-y-2">
                             <div className="flex items-center gap-2 text-foreground font-medium">
                               <DollarSign className="h-4 w-4" />
                               <span>Non-Lobbying Salaries</span>
                             </div>
                             <div className="text-muted-foreground ml-6">
-                              {spendRecord.salaries_no_lobbying_employees}
+                              {formatLobbyingCurrency(spendRecord.salaries_no_lobbying_employees)}
                             </div>
                           </div>
                         )}
                       </div>
                       <div className="space-y-6">
-                        {spendRecord.itemized_expenses && (
+                        {spendRecord.itemized_expenses != null && (
                           <div className="space-y-2">
                             <div className="flex items-center gap-2 text-foreground font-medium">
                               <DollarSign className="h-4 w-4" />
                               <span>Itemized Expenses</span>
                             </div>
                             <div className="text-muted-foreground ml-6">
-                              {spendRecord.itemized_expenses}
+                              {formatLobbyingCurrency(spendRecord.itemized_expenses)}
                             </div>
                           </div>
                         )}

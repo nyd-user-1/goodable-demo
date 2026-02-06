@@ -68,8 +68,8 @@ const Lobbying = () => {
 
   const handleSpendChatClick = (record: LobbyingSpend) => {
     const client = record.contractual_client || 'this client';
-    const compensation = record.compensation || 'N/A';
-    const totalExpenses = record.total_expenses || 'N/A';
+    const compensation = formatLobbyingCurrency(record.compensation);
+    const totalExpenses = formatLobbyingCurrency(record.total_expenses);
 
     const initialPrompt = `Tell me about lobbying spending by ${client}. They paid ${compensation} in compensation with ${totalExpenses} in total expenses.`;
     navigate(`/new-chat?prompt=${encodeURIComponent(initialPrompt)}`);
@@ -77,9 +77,9 @@ const Lobbying = () => {
 
   const handleCompensationChatClick = (record: LobbyistCompensation, clients: LobbyistClient[]) => {
     const lobbyist = record.principal_lobbyist || 'this lobbyist';
-    const compensation = record.compensation || 'N/A';
-    const expenses = record.reimbursed_expenses || 'N/A';
-    const grandTotal = record.grand_total_compensation_expenses || 'N/A';
+    const compensation = formatLobbyingCurrency(record.compensation);
+    const expenses = formatLobbyingCurrency(record.reimbursed_expenses);
+    const grandTotal = formatLobbyingCurrency(record.grand_total_compensation_expenses);
     const clientCount = clients.length;
 
     // Get client names for the context (limit to first 50 for URL length)
@@ -582,29 +582,23 @@ function CompensationCard({ record, clients, onClick, onChatClick }: Compensatio
         <p className="text-sm text-muted-foreground leading-relaxed">{promptText}</p>
 
         {/* Details - always visible */}
-        <div className="mt-4">
-          {/* Details grid */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-            {record.compensation && (
-              <div>
-                <span className="text-muted-foreground">Compensation</span>
-                <p className="font-medium">{record.compensation}</p>
-              </div>
-            )}
-            {record.reimbursed_expenses && (
-              <div>
-                <span className="text-muted-foreground">Reimbursed Expenses</span>
-                <p className="font-medium">{record.reimbursed_expenses}</p>
-              </div>
-            )}
-            {record.grand_total_compensation_expenses && (
-              <div className="col-span-2">
-                <span className="text-muted-foreground">Grand Total</span>
-                <p className="font-medium text-green-600 dark:text-green-400">
-                  {record.grand_total_compensation_expenses}
-                </p>
-              </div>
-            )}
+        <div className="mt-4 space-y-2 text-xs">
+          {/* Row 1: Grand Total - hero metric */}
+          <div>
+            <span className="text-muted-foreground">Grand Total</span>
+            <p className="font-medium text-green-600 dark:text-green-400">{formatLobbyingCurrency(record.grand_total_compensation_expenses)}</p>
+          </div>
+
+          {/* Row 2: Compensation + Reimbursed Expenses */}
+          <div className="grid grid-cols-2 gap-x-4">
+            <div>
+              <span className="text-muted-foreground">Compensation</span>
+              <p className="font-medium">{formatLobbyingCurrency(record.compensation)}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Reimbursed Expenses</span>
+              <p className="font-medium">{formatLobbyingCurrency(record.reimbursed_expenses)}</p>
+            </div>
           </div>
 
           {/* Action button - appears on hover */}
