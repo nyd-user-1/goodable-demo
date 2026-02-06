@@ -282,14 +282,14 @@ const LobbyingDashboard = () => {
                     <AreaChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
                       <defs>
                         <linearGradient id="lobbyingGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(var(--foreground))" stopOpacity={0.15} />
-                          <stop offset="95%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
+                          <stop offset="5%" stopColor="hsl(217 91% 60%)" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="hsl(217 91% 60%)" stopOpacity={0.05} />
                         </linearGradient>
                       </defs>
                       <Area
                         type="monotone"
                         dataKey="cumulative"
-                        stroke="hsl(var(--foreground))"
+                        stroke="hsl(217 91% 60%)"
                         strokeWidth={1.5}
                         fill="url(#lobbyingGradient)"
                         dot={false}
