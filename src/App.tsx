@@ -61,6 +61,7 @@ const DigitalBillOfRights = React.lazy(() => import("./pages/DigitalBillOfRights
 const LiveFeed = React.lazy(() => import("./pages/LiveFeed"));
 const Prompts = React.lazy(() => import("./pages/Prompts"));
 const PromptHub = React.lazy(() => import("./pages/PromptHub"));
+const Lists = React.lazy(() => import("./pages/Lists"));
 const DepartmentDetail = React.lazy(() => import("./pages/DepartmentDetail"));
 const FeedPage = React.lazy(() => import("./pages/FeedPage"));
 const SubmitPrompt = React.lazy(() => import("./pages/SubmitPrompt"));
@@ -110,6 +111,7 @@ const App = () => {
                   <Route path="/digital-bill-of-rights" element={<DigitalBillOfRights />} />
                   <Route path="/ai-fluency" element={<AIFluency />} />
                   <Route path="/prompts" element={<PromptHub />} />
+                  <Route path="/lists" element={<Lists />} />
                   <Route path="/submit-prompt" element={<SubmitPrompt />} />
                   <Route path="/new-excerpt" element={<NewExcerpt />} />
                   <Route path="/advertise" element={<Advertise />} />
