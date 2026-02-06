@@ -10,15 +10,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeftIcon, ArrowRightIcon, CheckCircle2Icon, PanelLeft } from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon, CheckCircle2Icon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
-import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import confetti from 'canvas-confetti';
 
 export default function Advertise() {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const totalSteps = 4;
 
@@ -139,6 +145,16 @@ export default function Advertise() {
     }, 250);
   };
 
+  const handleNYSgptClick = () => {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { x: 0.9, y: 0.1 },
+      colors: ['#ff6b6b', '#ff8e8e', '#ffb3b3', '#ffd4d4', '#3D63DD'],
+    });
+    navigate('/?prompt=What%20is%20NYSgpt%3F');
+  };
+
   // Show loading state while auth is being determined
   if (loading) {
     return (
@@ -169,23 +185,33 @@ export default function Advertise() {
         />
       )}
 
-      {/* Minimal Header */}
-      <div className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-2 py-2">
-        <div className="flex items-center gap-1">
-          {/* Mobile Sidebar Toggle */}
-          <MobileMenuIcon onOpenSidebar={() => setLeftSidebarOpen(!leftSidebarOpen)} />
-          {/* Desktop Sidebar Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-            className={cn("hidden md:inline-flex", leftSidebarOpen && "bg-muted")}
+      {/* Logs icon - top left */}
+      <button
+        onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+        className="fixed top-2 left-3 z-30 inline-flex items-center justify-center h-10 w-10 rounded-md text-foreground hover:bg-muted transition-colors"
+        aria-label="Open menu"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 5h1"/><path d="M3 12h1"/><path d="M3 19h1"/>
+          <path d="M8 5h1"/><path d="M8 12h1"/><path d="M8 19h1"/>
+          <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
+        </svg>
+      </button>
+
+      {/* NYSgpt button - top right */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={handleNYSgptClick}
+            className="fixed top-2 right-3 z-30 inline-flex items-center justify-center h-10 rounded-md px-3 text-black hover:bg-muted transition-colors font-semibold text-xl"
           >
-            <PanelLeft className="h-4 w-4" />
-          </Button>
-        </div>
-        <MobileNYSgpt />
-      </div>
+            NYSgpt
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="font-medium">
+          What is NYSgpt?
+        </TooltipContent>
+      </Tooltip>
 
       {/* Hero */}
       <div className="bg-background relative grid min-h-[600px] overflow-hidden md:min-h-screen md:grid-cols-2">
