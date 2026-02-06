@@ -5,9 +5,8 @@ import FooterSimple from '@/components/marketing/FooterSimple';
 import { cn } from '@/lib/utils';
 import {
   ArrowUp, PenLine, Megaphone, Briefcase, Heart,
-  ExternalLink, Users, FileText, DollarSign, Search,
+  ExternalLink, Users, FileText, Search,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -205,24 +204,6 @@ const featuredCards = [
   { title: 'Departments', subtitle: '100+ state entities', gradient: 'from-yellow-300 via-amber-400 to-amber-600', category: 'Departments' },
 ];
 
-// Budget explorer items for bottom section (14 functional categories)
-const budgetItems = [
-  { name: 'Health', amount: '$96.7B', change: '+4.1%', share: '38.3%' },
-  { name: 'Social Welfare', amount: '$42.3B', change: '+5.3%', share: '16.8%' },
-  { name: 'Education', amount: '$37.8B', change: '+3.2%', share: '15.0%' },
-  { name: 'Capital Projects', amount: '$15.7B', change: '+6.2%', share: '6.2%' },
-  { name: 'Transportation', amount: '$14.2B', change: '+2.8%', share: '5.6%' },
-  { name: 'Mental Hygiene', amount: '$12.9B', change: '+3.7%', share: '5.1%' },
-  { name: 'General Government', amount: '$11.4B', change: '+2.1%', share: '4.5%' },
-  { name: 'Higher Education', amount: '$9.4B', change: '+1.8%', share: '3.7%' },
-  { name: 'Debt Service', amount: '$8.6B', change: '+0.9%', share: '3.4%' },
-  { name: 'Public Safety', amount: '$8.1B', change: '+1.9%', share: '3.2%' },
-  { name: 'Local Gov Assistance', amount: '$7.3B', change: '+2.4%', share: '2.9%' },
-  { name: 'Economic Development', amount: '$6.8B', change: '+3.5%', share: '2.7%' },
-  { name: 'Environment & Parks', amount: '$5.2B', change: '+4.6%', share: '2.1%' },
-  { name: 'All Other', amount: '$3.9B', change: '+1.2%', share: '1.5%' },
-];
-
 // Press releases for the right sidebar
 const pressReleaseItems = [
   {
@@ -313,7 +294,7 @@ export default function PromptHub() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [visibleCount, setVisibleCount] = useState(10);
   const [lobbyingSearch, setLobbyingSearch] = useState('');
-  const [lobbyingYear, setLobbyingYear] = useState<'2024' | '2025' | '2026' | null>(null);
+  const [memberSearch, setMemberSearch] = useState('');
 
   useEffect(() => {
     if (location.hash === '#lists') {
@@ -353,22 +334,6 @@ export default function PromptHub() {
 
 
   // -----------------------------------------------------------------------
-  // Supabase: recent bills
-  // -----------------------------------------------------------------------
-  const { data: recentBills } = useQuery({
-    queryKey: ['prompt-hub-bills'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('Bills')
-        .select('bill_id, bill_number, title, status_desc')
-        .order('bill_id', { ascending: false })
-        .limit(7);
-      return data || [];
-    },
-    staleTime: 10 * 60 * 1000,
-  });
-
-  // -----------------------------------------------------------------------
   // Supabase: top members by # of bills sponsored
   // -----------------------------------------------------------------------
   const { data: topMembers } = useQuery({
@@ -403,6 +368,119 @@ export default function PromptHub() {
       return members
         .map((m: any) => ({ ...m, billCount: counts[m.people_id] || 0 }))
         .sort((a: any, b: any) => b.billCount - a.billCount);
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // -----------------------------------------------------------------------
+  // Supabase: members by total votes
+  // -----------------------------------------------------------------------
+  const { data: membersByVotes } = useQuery({
+    queryKey: ['prompt-hub-members-votes'],
+    queryFn: async () => {
+      // Get ALL votes (paginated)
+      let allVotes: any[] = [];
+      let offset = 0;
+      const batchSize = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data: batch } = await supabase
+          .from('Votes')
+          .select('people_id, vote_desc')
+          .range(offset, offset + batchSize - 1);
+
+        if (!batch || batch.length === 0) {
+          hasMore = false;
+        } else {
+          allVotes = allVotes.concat(batch);
+          hasMore = batch.length === batchSize;
+          offset += batchSize;
+        }
+      }
+
+      // Count total votes per member
+      const voteCounts: Record<number, number> = {};
+      allVotes.forEach((v: any) => {
+        if (v.people_id) {
+          voteCounts[v.people_id] = (voteCounts[v.people_id] || 0) + 1;
+        }
+      });
+
+      // Top 14 by count
+      const topIds = Object.entries(voteCounts)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 14)
+        .map(([id]) => parseInt(id));
+
+      const { data: members } = await supabase
+        .from('People')
+        .select('people_id, name, first_name, last_name, party, chamber, photo_url')
+        .in('people_id', topIds);
+
+      if (!members) return [];
+
+      return members
+        .map((m: any) => ({ ...m, voteCount: voteCounts[m.people_id] || 0 }))
+        .sort((a: any, b: any) => b.voteCount - a.voteCount);
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // -----------------------------------------------------------------------
+  // Supabase: members by NV (not voting) votes
+  // -----------------------------------------------------------------------
+  const { data: membersByNoVotes } = useQuery({
+    queryKey: ['prompt-hub-members-nv-votes'],
+    queryFn: async () => {
+      // Get ALL votes with NV (paginated)
+      let allNvVotes: any[] = [];
+      let offset = 0;
+      const batchSize = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data: batch } = await supabase
+          .from('Votes')
+          .select('people_id, vote_desc')
+          .eq('vote_desc', 'NV')
+          .range(offset, offset + batchSize - 1);
+
+        if (!batch || batch.length === 0) {
+          hasMore = false;
+        } else {
+          allNvVotes = allNvVotes.concat(batch);
+          hasMore = batch.length === batchSize;
+          offset += batchSize;
+        }
+      }
+
+      // Count NV votes per member
+      const nvCounts: Record<number, number> = {};
+      allNvVotes.forEach((v: any) => {
+        if (v.people_id) {
+          nvCounts[v.people_id] = (nvCounts[v.people_id] || 0) + 1;
+        }
+      });
+
+      // Top 14 by count
+      const topIds = Object.entries(nvCounts)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 14)
+        .map(([id]) => parseInt(id));
+
+      if (topIds.length === 0) return [];
+
+      const { data: members } = await supabase
+        .from('People')
+        .select('people_id, name, first_name, last_name, party, chamber, photo_url')
+        .in('people_id', topIds);
+
+      if (!members) return [];
+
+      return members
+        .map((m: any) => ({ ...m, nvCount: nvCounts[m.people_id] || 0 }))
+        .sort((a: any, b: any) => b.nvCount - a.nvCount);
     },
     staleTime: 10 * 60 * 1000,
   });
@@ -1054,9 +1132,36 @@ export default function PromptHub() {
           {pageTab === 'lists' && (
           <>
           {/* ============================================================= */}
-          {/* LISTS SECTION                                                  */}
+          {/* LISTS SECTION 1: MemberListBlock                              */}
           {/* ============================================================= */}
           <div id="lists" className="pt-0 pb-12">
+            {/* Heading Block */}
+            <div className="mb-8">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h2 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
+                    Members
+                  </h2>
+                  <p className="text-muted-foreground mt-2">
+                    Top legislators ranked by bills sponsored, votes cast, and absences
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="relative w-full md:w-64">
+                    <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
+                    <Input
+                      type="search"
+                      placeholder="Search..."
+                      className="pl-8"
+                      value={memberSearch}
+                      onChange={(e) => setMemberSearch(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
               {/* ------ Top Sponsors (members by bills sponsored) ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
@@ -1099,8 +1204,8 @@ export default function PromptHub() {
                         >
                           <ArrowUp className="h-4 w-4" />
                         </button>
-                        <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                          {m.billCount} bills
+                        <span className="text-sm font-medium text-muted-foreground">
+                          {m.billCount}
                         </span>
                       </Link>
                     </div>
@@ -1108,82 +1213,100 @@ export default function PromptHub() {
                 </div>
               </div>
 
-              {/* ------ Recent Bills ------ */}
+              {/* ------ By Votes (members by total votes) ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  Recent Bills
+                  By Votes
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
-                  {(recentBills || []).map((bill: any) => (
-                    <div key={bill.bill_id} className="py-3 first:pt-0">
-                      <div
-                        className="group py-3 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200"
+                  {(membersByVotes || []).map((m: any) => (
+                    <div key={m.people_id} className="py-3 first:pt-0">
+                      <Link
+                        to={`/members/${makeMemberSlug(m)}`}
+                        className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200"
                       >
-                        <Link to={`/bills/${bill.bill_number}`} className="block">
-                          <p className="font-semibold text-sm">{bill.bill_number}</p>
-                          <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                            {bill.title}
+                        {m.photo_url ? (
+                          <img
+                            src={m.photo_url}
+                            alt=""
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{m.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {m.party} · {m.chamber}
                           </p>
-                          {bill.status_desc && (
-                            <p className="text-xs text-muted-foreground/70 mt-1.5">
-                              {bill.status_desc}
-                            </p>
-                          )}
-                        </Link>
-                        <div className="flex justify-end mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                          <button
-                            onClick={() => {
-                              const prompt = `Tell me about bill ${bill.bill_number}: ${bill.title || ''}`;
-                              navigate(`/?prompt=${encodeURIComponent(prompt)}`);
-                            }}
-                            className="w-9 h-9 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
-                            title="Ask about this bill"
-                          >
-                            <ArrowUp className="h-4 w-4" />
-                          </button>
                         </div>
-                      </div>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const prompt = `Tell me about ${m.name} and their voting record`;
+                            navigate(`/?prompt=${encodeURIComponent(prompt)}`);
+                          }}
+                          className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title={`Ask about ${m.name}`}
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </button>
+                        <span className="text-sm font-medium text-muted-foreground">
+                          {m.voteCount}
+                        </span>
+                      </Link>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* ------ Budget Explorer ------ */}
+              {/* ------ By No Votes (members by NV votes) ------ */}
               <div className="md:pl-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  Budget
+                  By No Votes
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
-                  {budgetItems.map((item, idx) => (
-                    <div key={idx} className="py-3 first:pt-0">
+                  {(membersByNoVotes || []).map((m: any) => (
+                    <div key={m.people_id} className="py-3 first:pt-0">
                       <Link
-                        to="/budget-dashboard"
-                        className="group flex items-center justify-between py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200"
+                        to={`/members/${makeMemberSlug(m)}`}
+                        className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200"
                       >
-                        <div>
-                          <p className="font-medium text-sm">{item.name}</p>
+                        {m.photo_url ? (
+                          <img
+                            src={m.photo_url}
+                            alt=""
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{m.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {item.share} of total
+                            {m.party} · {m.chamber}
                           </p>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              const prompt = `Tell me about New York State's ${item.name} budget category and its ${item.amount} allocation`;
-                              navigate(`/?prompt=${encodeURIComponent(prompt)}`);
-                            }}
-                            className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            title={`Ask about ${item.name} budget`}
-                          >
-                            <ArrowUp className="h-4 w-4" />
-                          </button>
-                          <div className="text-right">
-                            <p className="font-medium text-sm">{item.amount}</p>
-                            <p className="text-xs text-emerald-600">{item.change}</p>
-                          </div>
-                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const prompt = `Tell me about ${m.name} and their voting attendance record`;
+                            navigate(`/?prompt=${encodeURIComponent(prompt)}`);
+                          }}
+                          className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title={`Ask about ${m.name}`}
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </button>
+                        <span className="text-sm font-medium text-muted-foreground">
+                          {m.nvCount}
+                        </span>
                       </Link>
                     </div>
                   ))}
@@ -1218,18 +1341,6 @@ export default function PromptHub() {
                       value={lobbyingSearch}
                       onChange={(e) => setLobbyingSearch(e.target.value)}
                     />
-                  </div>
-                  <div className="flex gap-1">
-                    {(['2024', '2025', '2026'] as const).map((year) => (
-                      <Button
-                        key={year}
-                        variant={lobbyingYear === year ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setLobbyingYear(lobbyingYear === year ? null : year)}
-                      >
-                        {year}
-                      </Button>
-                    ))}
                   </div>
                 </div>
               </div>
