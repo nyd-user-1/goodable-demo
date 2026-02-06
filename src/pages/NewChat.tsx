@@ -2602,8 +2602,6 @@ const NewChat = () => {
                     { key: 'bills', label: 'Bills', icon: <FileText className="h-3.5 w-3.5" />, mobileVisible: true },
                     { key: 'committees', label: 'Committees', icon: <Building2 className="h-3.5 w-3.5" />, mobileVisible: true },
                     { key: 'members', label: 'Members', icon: <Users className="h-3.5 w-3.5" />, mobileVisible: true },
-                    { key: 'contracts', label: 'Contracts', icon: <Wallet className="h-3.5 w-3.5" />, mobileVisible: false },
-                    { key: 'lobbying', label: 'Lobbying', icon: <HandCoins className="h-3.5 w-3.5" />, mobileVisible: false },
                   ].map((cat) => (
                     <button
                       key={cat.key}
@@ -2621,13 +2619,6 @@ const NewChat = () => {
                       {cat.label}
                     </button>
                   ))}
-                </div>
-
-                {/* Prompts and Lists link */}
-                <div className="flex items-center justify-center gap-1 mt-[70px] text-sm">
-                  <a href="/prompts" className="text-foreground">Prompts</a>
-                  <span className="text-muted-foreground">and</span>
-                  <a href="/prompts#lists" className="text-foreground">Lists</a>
                 </div>
 
                 {/* Click-outside backdrop for drawer */}
