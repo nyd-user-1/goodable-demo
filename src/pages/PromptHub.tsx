@@ -1189,14 +1189,14 @@ export default function PromptHub() {
           </div>
 
           {/* ============================================================= */}
-          {/* LISTS SECTION 2: Lobbyists By Earnings, Clients, Employees    */}
+          {/* LISTS SECTION 2: Lobbyists Earnings, Clients, Employees    */}
           {/* ============================================================= */}
           <div className="mt-12 pt-12 border-t-2 border-dotted border-border/80">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-              {/* ------ By Earnings ------ */}
+              {/* ------ Earnings ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  By Earnings
+                  Earnings
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {(lobbyistsByEarnings || []).map((l: any, idx: number) => {
@@ -1239,10 +1239,10 @@ export default function PromptHub() {
                 </div>
               </div>
 
-              {/* ------ By Clients ------ */}
+              {/* ------ Clients ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  By Clients
+                  Clients
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {(lobbyistsByClients || []).map((l: any, idx: number) => (
@@ -1275,10 +1275,10 @@ export default function PromptHub() {
                 </div>
               </div>
 
-              {/* ------ By Employees ------ */}
+              {/* ------ Individual Lobbyists ------ */}
               <div className="md:pl-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  By Employees
+                  Individual Lobbyists
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {(lobbyistsByEmployees || []).map((l: any, idx: number) => (
