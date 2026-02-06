@@ -125,11 +125,12 @@ export default function Lists() {
   // Supabase: top lobbyists by earnings
   // -----------------------------------------------------------------------
   const { data: lobbyistsByEarnings } = useQuery({
-    queryKey: ['lists-lobbyists-earnings'],
+    queryKey: ['lists-lobbyists-earnings-2025'],
     queryFn: async () => {
       const { data } = await supabase
         .from('lobbyist_compensation')
         .select('principal_lobbyist, grand_total_compensation_expenses')
+        .eq('year', 2025)
         .order('grand_total_compensation_expenses', { ascending: false })
         .limit(50);
       return data || [];
