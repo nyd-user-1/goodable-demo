@@ -154,6 +154,16 @@ export const MemberBillsTable = ({ member }: MemberBillsTableProps) => {
                         Bill {getSortIcon('bill_number')}
                       </Button>
                     </TableHead>
+                    <TableHead className="w-[110px] px-3 text-left">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleSort('committee')}
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                      >
+                        Committee {getSortIcon('committee')}
+                      </Button>
+                    </TableHead>
                     <TableHead className="w-[200px] px-3 text-left">
                       <Button
                         variant="ghost"
@@ -172,16 +182,6 @@ export const MemberBillsTable = ({ member }: MemberBillsTableProps) => {
                         className="h-auto p-0 font-semibold hover:bg-transparent"
                       >
                         Status {getSortIcon('status_desc')}
-                      </Button>
-                    </TableHead>
-                    <TableHead className="w-[110px] px-3 text-left">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleSort('committee')}
-                        className="h-auto p-0 font-semibold hover:bg-transparent"
-                      >
-                        Committee {getSortIcon('committee')}
                       </Button>
                     </TableHead>
                     <TableHead className="w-[120px] px-3 text-left">
@@ -228,6 +228,11 @@ export const MemberBillsTable = ({ member }: MemberBillsTableProps) => {
                         <TableCell className="w-[60px] px-3 font-medium text-left">
                           {bill.bill_number}
                         </TableCell>
+                        <TableCell className="w-[110px] px-3 text-left">
+                          <div className="text-sm truncate" title={bill.committee || ""}>
+                            {bill.committee || "N/A"}
+                          </div>
+                        </TableCell>
                         <TableCell className="w-[200px] px-3 text-left">
                           <div className="text-sm truncate" title={bill.title || ""}>
                             {bill.title}
@@ -240,11 +245,6 @@ export const MemberBillsTable = ({ member }: MemberBillsTableProps) => {
                           >
                             {bill.status_desc || "Unknown"}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="w-[110px] px-3 text-left">
-                          <div className="text-sm truncate" title={bill.committee || ""}>
-                            {bill.committee || "N/A"}
-                          </div>
                         </TableCell>
                         <TableCell className="w-[120px] px-3 text-sm text-muted-foreground text-left">
                           <div className="truncate" title={bill.last_action || ""}>
