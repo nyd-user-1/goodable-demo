@@ -26,6 +26,7 @@ export const LobbyingIndividualLobbyists = ({ principalLobbyistName }: LobbyingI
   useEffect(() => {
     const fetchIndividualLobbyists = async () => {
       setLoading(true);
+      console.log("Searching for principal lobbyist:", principalLobbyistName);
       try {
         // Query the Individual_Lobbyists table by principal lobbyist name
         // Use fuzzy matching to handle slight name variations
@@ -33,6 +34,8 @@ export const LobbyingIndividualLobbyists = ({ principalLobbyistName }: LobbyingI
           .from("Individual_Lobbyists")
           .select("*")
           .ilike("principal_lobbyist_name", `%${principalLobbyistName}%`);
+
+        console.log("Individual lobbyists query result:", { data, error, count: data?.length });
 
         if (error) {
           console.error("Error fetching individual lobbyists:", error);
@@ -52,6 +55,7 @@ export const LobbyingIndividualLobbyists = ({ principalLobbyistName }: LobbyingI
     if (principalLobbyistName) {
       fetchIndividualLobbyists();
     } else {
+      console.log("No principal lobbyist name provided");
       setLoading(false);
     }
   }, [principalLobbyistName]);
