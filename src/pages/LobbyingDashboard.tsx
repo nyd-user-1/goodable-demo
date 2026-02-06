@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronDown, ArrowUp, MessageSquare, Users } from 'lucide-react';
+import { ChevronRight, ChevronDown, ArrowUp, MessageSquare, Users, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
@@ -10,11 +10,19 @@ import { LobbyingChatDrawer } from '@/components/LobbyingChatDrawer';
 import {
   useLobbyingDashboard,
   formatCompactCurrency,
+  formatFullCurrency,
   type LobbyingDashboardTab,
   type LobbyingDashboardRow,
   type LobbyingDrillDownRow,
   TAB_LABELS,
 } from '@/hooks/useLobbyingDashboard';
+import {
+  XAxis,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  Area,
+  AreaChart,
+} from 'recharts';
 
 const TABS: LobbyingDashboardTab[] = ['lobbyist', 'client'];
 
@@ -87,6 +95,37 @@ const LobbyingDashboard = () => {
   // Header values: show selected row's values when selected, otherwise grand totals
   const headerAmount = selectedRowData ? selectedRowData.amount : grandTotal;
 
+  // Chart data: cumulative distribution showing concentration of lobbying spend
+  const chartData = useMemo(() => {
+    if (rows.length === 0) return [];
+
+    // Create cumulative distribution data points
+    // Show how total accumulates across top entities
+    const total = grandTotal;
+    let cumulative = 0;
+    const points: { rank: number; label: string; cumulative: number; pct: number }[] = [];
+
+    // Sample at key percentiles to create smooth curve
+    const samplePoints = [1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+
+    for (const targetPct of samplePoints) {
+      const targetIdx = Math.min(Math.floor((targetPct / 100) * rows.length), rows.length - 1);
+      cumulative = 0;
+      for (let i = 0; i <= targetIdx; i++) {
+        cumulative += rows[i].amount;
+      }
+      const pct = total > 0 ? (cumulative / total) * 100 : 0;
+      points.push({
+        rank: targetPct,
+        label: `Top ${targetPct}%`,
+        cumulative,
+        pct,
+      });
+    }
+
+    return points;
+  }, [rows, grandTotal]);
+
   // Open chat drawer
   const openChat = (lobbyistName?: string | null, clientName?: string | null) => {
     setChatLobbyistName(lobbyistName || null);
@@ -158,15 +197,68 @@ const LobbyingDashboard = () => {
                       <span className="text-3xl md:text-4xl font-bold tracking-tight transition-all duration-300">
                         {formatCompactCurrency(headerAmount)}
                       </span>
+                      {selectedRow && (
+                        <button
+                          onClick={() => setSelectedRow(null)}
+                          className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
                     </div>
                     <span className="text-sm text-muted-foreground">
-                      {activeTab === 'lobbyist' ? 'Total Lobbyist Earnings' : 'Total Client Spending'}
+                      {selectedRow
+                        ? `${selectedRowData?.pctOfTotal.toFixed(1)}% of total`
+                        : activeTab === 'lobbyist' ? 'Total Lobbyist Earnings' : 'Total Client Spending'}
                     </span>
                   </div>
                 )}
 
                 <MobileNYSgpt />
               </div>
+
+              {/* Cumulative Distribution Chart */}
+              {!isLoading && chartData.length > 1 && (
+                <div className="h-24 md:h-28 mb-4 -mx-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                      <defs>
+                        <linearGradient id="lobbyingGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="hsl(var(--foreground))" stopOpacity={0.15} />
+                          <stop offset="95%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <Area
+                        type="monotone"
+                        dataKey="cumulative"
+                        stroke="hsl(var(--foreground))"
+                        strokeWidth={1.5}
+                        fill="url(#lobbyingGradient)"
+                        dot={false}
+                        animationDuration={500}
+                      />
+                      <XAxis
+                        dataKey="rank"
+                        tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                        tickLine={false}
+                        axisLine={false}
+                        interval="preserveStartEnd"
+                        tickFormatter={(value) => `${value}%`}
+                      />
+                      <RechartsTooltip
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--background))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                        }}
+                        formatter={(value: number) => [formatFullCurrency(value), 'Cumulative']}
+                        labelFormatter={(label) => `Top ${label}% of ${activeTab === 'lobbyist' ? 'Lobbyists' : 'Clients'}`}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
 
               {/* Stats row */}
               {!isLoading && (
