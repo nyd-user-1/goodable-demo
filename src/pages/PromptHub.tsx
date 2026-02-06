@@ -296,6 +296,7 @@ export default function PromptHub() {
   const [lobbyingSearch, setLobbyingSearch] = useState('');
   const [memberSearch, setMemberSearch] = useState('');
   const [lobbyistVisibleCount, setLobbyistVisibleCount] = useState(10);
+  const [userGenVisibleCount, setUserGenVisibleCount] = useState(10);
 
   useEffect(() => {
     if (location.hash === '#lists') {
@@ -744,10 +745,10 @@ export default function PromptHub() {
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-                  Trending
+                  News Prompts
                 </h2>
                 <p className="text-muted-foreground mt-2">
-                  News and analysis from across New York.
+                  Prompts of the news from across New York.
                 </p>
               </div>
 
@@ -1089,57 +1090,70 @@ export default function PromptHub() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <div className="relative w-full md:w-64">
-                    <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
-                    <Input
-                      type="search"
-                      placeholder="Search..."
-                      className="pl-8"
-                    />
-                  </div>
-                </div>
+                <Link
+                  to="/submit-prompt"
+                  className="flex items-center gap-3 py-3 bg-muted/30 hover:bg-muted/50 hover:shadow-lg hover:border-border rounded-lg px-4 border border-transparent transition-all"
+                >
+                  <PenLine className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm font-medium">Submit a Prompt</span>
+                </Link>
               </div>
             </div>
 
             {(() => {
               // Combine all prompts and sort by chats descending
               const seed = [78, 74, 69, 68, 65, 61, 59, 58, 52, 51, 49, 44, 43, 42, 38, 37, 34, 31, 29, 27, 24, 22, 21, 18, 16, 14, 12, 11, 8, 6];
-              const allPrompts = [...(submittedPrompts || [])]
+              const allSortedPrompts = [...(submittedPrompts || [])]
                 .map((p: any, idx: number) => ({ ...p, seedCount: seed[idx % seed.length] || 5 }))
                 .sort((a: any, b: any) => {
                   const aChats = getChatCount(a.id, 0) + a.seedCount;
                   const bChats = getChatCount(b.id, 0) + b.seedCount;
                   return bChats - aChats;
-                })
-                .slice(0, 30);
+                });
 
-              // Split into 3 columns
-              const itemsPerColumn = Math.ceil(allPrompts.length / 3);
-              const col1 = allPrompts.slice(0, itemsPerColumn);
-              const col2 = allPrompts.slice(itemsPerColumn, itemsPerColumn * 2);
-              const col3 = allPrompts.slice(itemsPerColumn * 2);
+              // Each column gets userGenVisibleCount items
+              const totalToShow = userGenVisibleCount * 3;
+              const visiblePrompts = allSortedPrompts.slice(0, totalToShow);
+              const hasMore = allSortedPrompts.length > totalToShow;
+
+              // Split evenly into 3 columns (each column gets userGenVisibleCount items)
+              const col1 = visiblePrompts.slice(0, userGenVisibleCount);
+              const col2 = visiblePrompts.slice(userGenVisibleCount, userGenVisibleCount * 2);
+              const col3 = visiblePrompts.slice(userGenVisibleCount * 2, userGenVisibleCount * 3);
 
               return (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-                  <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
-                    <div className="divide-y-2 divide-dotted divide-border/80">
-                      {col1.map((p: any) => renderSubmittedRow(p, p.seedCount))}
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+                    <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
+                      <div className="divide-y-2 divide-dotted divide-border/80">
+                        {col1.map((p: any) => renderSubmittedRow(p, p.seedCount))}
+                      </div>
+                    </div>
+
+                    <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
+                      <div className="divide-y-2 divide-dotted divide-border/80">
+                        {col2.map((p: any) => renderSubmittedRow(p, p.seedCount))}
+                      </div>
+                    </div>
+
+                    <div className="md:pl-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
+                      <div className="divide-y-2 divide-dotted divide-border/80">
+                        {col3.map((p: any) => renderSubmittedRow(p, p.seedCount))}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
-                    <div className="divide-y-2 divide-dotted divide-border/80">
-                      {col2.map((p: any) => renderSubmittedRow(p, p.seedCount))}
+                  {hasMore && (
+                    <div className="flex justify-center py-8">
+                      <button
+                        onClick={() => setUserGenVisibleCount((prev) => prev + 10)}
+                        className="rounded-lg border border-border bg-muted/30 px-6 py-2.5 text-sm font-medium text-foreground hover:bg-muted/50 hover:shadow-lg transition-all"
+                      >
+                        Load More
+                      </button>
                     </div>
-                  </div>
-
-                  <div className="md:pl-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
-                    <div className="divide-y-2 divide-dotted divide-border/80">
-                      {col3.map((p: any) => renderSubmittedRow(p, p.seedCount))}
-                    </div>
-                  </div>
-                </div>
+                  )}
+                </>
               );
             })()}
           </div>
