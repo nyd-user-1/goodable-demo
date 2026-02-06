@@ -1327,7 +1327,7 @@ export default function PromptHub() {
                     Lobbyists
                   </h2>
                   <p className="text-muted-foreground mt-2">
-                    Top lobbying firms ranked by earnings, clients, and staff
+                    Top lobbying firms ranked
                   </p>
                 </div>
 
