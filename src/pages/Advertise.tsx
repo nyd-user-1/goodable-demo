@@ -122,7 +122,46 @@ export default function Advertise() {
   const isStep2Valid = industry && company.trim() && companySize;
   const isStep3Valid = interests.length > 0;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    // Split name into first and last
+    const nameParts = name.trim().split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+
+    // Get selected ad option title
+    const selectedAdOption = adOptions.find(opt => opt.id === adOption);
+
+    // HubSpot Forms API
+    const portalId = '245035447';
+    const formGuid = '536281ae-0a9b-4288-9e1f-07ef0f4b4463';
+
+    try {
+      await fetch(`https://api.hsforms.com/submissions/v3/integration/submit/${portalId}/${formGuid}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fields: [
+            { name: 'firstname', value: firstName },
+            { name: 'lastname', value: lastName },
+            { name: 'email', value: email },
+            { name: 'company', value: company },
+            { name: 'industry', value: industry },
+            { name: 'company_size', value: companySize },
+            { name: 'interests', value: interests.join(', ') },
+            { name: 'ad_option', value: selectedAdOption?.title || '' },
+          ],
+          context: {
+            pageUri: window.location.href,
+            pageName: 'Advertise on NYSgpt',
+          },
+        }),
+      });
+    } catch (error) {
+      console.error('HubSpot submission error:', error);
+    }
+
     setSubmitted(true);
     // Fire confetti
     confetti({
