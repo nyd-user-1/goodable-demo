@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Users, Phone, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -90,44 +91,46 @@ export const LobbyingIndividualLobbyists = ({ principalLobbyistName }: LobbyingI
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {lobbyists.map((lobbyist, index) => (
-              <div
-                key={index}
-                className="p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <h4 className="font-semibold text-sm">
-                    {normalizeName(lobbyist.individual_lobbyist)}
-                  </h4>
-                  {lobbyist.phone_number && (
-                    <a
-                      href={`tel:${lobbyist.phone_number}`}
-                      className="p-1.5 rounded-md hover:bg-muted transition-colors"
-                      title="Click to call"
-                    >
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                    </a>
-                  )}
-                </div>
+          <ScrollArea className="h-[500px]">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-4">
+              {lobbyists.map((lobbyist, index) => (
+                <div
+                  key={index}
+                  className="p-4 border border-border rounded-lg hover:bg-muted/30 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <h4 className="font-semibold text-sm">
+                      {normalizeName(lobbyist.individual_lobbyist)}
+                    </h4>
+                    {lobbyist.phone_number && (
+                      <a
+                        href={`tel:${lobbyist.phone_number}`}
+                        className="p-1.5 rounded-md hover:bg-muted transition-colors"
+                        title="Click to call"
+                      >
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                      </a>
+                    )}
+                  </div>
 
-                <div className="text-xs text-muted-foreground">
-                  {(lobbyist.address || lobbyist.address_2 || lobbyist.city) && (
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-3 w-3 flex-shrink-0 mt-0.5" />
-                      <div className="space-y-0.5">
-                        {lobbyist.address && <div>{lobbyist.address}</div>}
-                        {lobbyist.address_2 && <div>{lobbyist.address_2}</div>}
-                        {(lobbyist.city || lobbyist.state) && (
-                          <div>{[lobbyist.city, lobbyist.state].filter(Boolean).join(", ")}</div>
-                        )}
+                  <div className="text-xs text-muted-foreground">
+                    {(lobbyist.address || lobbyist.address_2 || lobbyist.city) && (
+                      <div className="flex items-start gap-2">
+                        <MapPin className="h-3 w-3 flex-shrink-0 mt-0.5" />
+                        <div className="space-y-0.5">
+                          {lobbyist.address && <div>{lobbyist.address}</div>}
+                          {lobbyist.address_2 && <div>{lobbyist.address_2}</div>}
+                          {(lobbyist.city || lobbyist.state) && (
+                            <div>{[lobbyist.city, lobbyist.state].filter(Boolean).join(", ")}</div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </ScrollArea>
         )}
     </div>
   );
