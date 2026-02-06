@@ -437,19 +437,27 @@ export default function PromptHub() {
   });
 
   // -----------------------------------------------------------------------
-  // Supabase: top lobbyists by compensation with client counts
+  // Supabase: top lobbyists by earnings
   // -----------------------------------------------------------------------
-  const { data: topLobbyists } = useQuery({
-    queryKey: ['prompt-hub-lobbyists'],
+  const { data: lobbyistsByEarnings } = useQuery({
+    queryKey: ['prompt-hub-lobbyists-earnings'],
     queryFn: async () => {
-      const { data: lobbyists } = await supabase
+      const { data } = await supabase
         .from('lobbyist_compensation')
         .select('principal_lobbyist, grand_total_compensation_expenses')
         .order('grand_total_compensation_expenses', { ascending: false })
         .limit(10);
+      return data || [];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
 
-      if (!lobbyists) return [];
-
+  // -----------------------------------------------------------------------
+  // Supabase: top lobbyists by client count
+  // -----------------------------------------------------------------------
+  const { data: lobbyistsByClients } = useQuery({
+    queryKey: ['prompt-hub-lobbyists-clients'],
+    queryFn: async () => {
       // Get ALL client records to count properly (paginated)
       let allClients: any[] = [];
       let offset = 0;
@@ -471,46 +479,63 @@ export default function PromptHub() {
         }
       }
 
+      // Count clients per lobbyist
       const clientCounts: Record<string, number> = {};
       allClients.forEach((c: any) => {
-        clientCounts[c.principal_lobbyist] = (clientCounts[c.principal_lobbyist] || 0) + 1;
+        if (c.principal_lobbyist) {
+          clientCounts[c.principal_lobbyist] = (clientCounts[c.principal_lobbyist] || 0) + 1;
+        }
       });
 
-      return lobbyists.map((l: any) => ({
-        ...l,
-        clientCount: clientCounts[l.principal_lobbyist] || 0,
-      }));
+      // Sort and return top 10
+      return Object.entries(clientCounts)
+        .map(([name, count]) => ({ principal_lobbyist: name, clientCount: count }))
+        .sort((a, b) => b.clientCount - a.clientCount)
+        .slice(0, 10);
     },
     staleTime: 10 * 60 * 1000,
   });
 
   // -----------------------------------------------------------------------
-  // Supabase: committees
+  // Supabase: top lobbyists by employee count (individual lobbyists)
   // -----------------------------------------------------------------------
-  const { data: committees } = useQuery({
-    queryKey: ['prompt-hub-committees'],
+  const { data: lobbyistsByEmployees } = useQuery({
+    queryKey: ['prompt-hub-lobbyists-employees'],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('Committees')
-        .select('committee_id, chamber, name')
-        .limit(14);
-      return data || [];
-    },
-    staleTime: 10 * 60 * 1000,
-  });
+      // Get ALL individual lobbyist records (paginated)
+      let allEmployees: any[] = [];
+      let offset = 0;
+      const batchSize = 1000;
+      let hasMore = true;
 
-  // -----------------------------------------------------------------------
-  // Supabase: top contracts by amount
-  // -----------------------------------------------------------------------
-  const { data: recentContracts } = useQuery({
-    queryKey: ['prompt-hub-contracts'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('Contracts')
-        .select('contract_number, vendor_name, department_facility, current_contract_amount')
-        .order('current_contract_amount', { ascending: false, nullsFirst: false })
-        .limit(10);
-      return data || [];
+      while (hasMore) {
+        const { data: batch } = await supabase
+          .from('Individual_Lobbyists')
+          .select('principal_lobbyist_name')
+          .range(offset, offset + batchSize - 1);
+
+        if (!batch || batch.length === 0) {
+          hasMore = false;
+        } else {
+          allEmployees = allEmployees.concat(batch);
+          hasMore = batch.length === batchSize;
+          offset += batchSize;
+        }
+      }
+
+      // Count employees per principal lobbyist
+      const employeeCounts: Record<string, number> = {};
+      allEmployees.forEach((e: any) => {
+        if (e.principal_lobbyist_name) {
+          employeeCounts[e.principal_lobbyist_name] = (employeeCounts[e.principal_lobbyist_name] || 0) + 1;
+        }
+      });
+
+      // Sort and return top 10
+      return Object.entries(employeeCounts)
+        .map(([name, count]) => ({ principal_lobbyist: name, employeeCount: count }))
+        .sort((a, b) => b.employeeCount - a.employeeCount)
+        .slice(0, 10);
     },
     staleTime: 10 * 60 * 1000,
   });
@@ -1164,17 +1189,17 @@ export default function PromptHub() {
           </div>
 
           {/* ============================================================= */}
-          {/* LISTS SECTION 2: Lobbying, Committees, Contracts              */}
+          {/* LISTS SECTION 2: Lobbyists By Earnings, Clients, Employees    */}
           {/* ============================================================= */}
           <div className="mt-12 pt-12 border-t-2 border-dotted border-border/80">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-              {/* ------ Top Lobbyists ------ */}
+              {/* ------ By Earnings ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  Top Lobbyists
+                  By Earnings
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
-                  {(topLobbyists || []).map((l: any, idx: number) => {
+                  {(lobbyistsByEarnings || []).map((l: any, idx: number) => {
                     const amount = typeof l.grand_total_compensation_expenses === 'number'
                       ? l.grand_total_compensation_expenses
                       : parseFloat(String(l.grand_total_compensation_expenses || '0').replace(/[$,]/g, ''));
@@ -1191,7 +1216,6 @@ export default function PromptHub() {
                         >
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm truncate">{l.principal_lobbyist}</p>
-                            <p className="text-xs text-muted-foreground">{l.clientCount} clients</p>
                           </div>
                           <button
                             onClick={(e) => {
@@ -1215,98 +1239,75 @@ export default function PromptHub() {
                 </div>
               </div>
 
-              {/* ------ Committees ------ */}
+              {/* ------ By Clients ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  Committees
+                  By Clients
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
-                  {(committees || []).map((c: any) => {
-                    const slug = (c.name || '')
-                      .toLowerCase()
-                      .replace(/[^a-z0-9\s]/g, '')
-                      .split(/\s+/)
-                      .filter((p: string) => p.length > 1)
-                      .join('-');
-                    return (
-                      <div key={c.committee_id} className="py-3 first:pt-0">
-                        <Link
-                          to={`/committees/${slug}`}
-                          className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200"
+                  {(lobbyistsByClients || []).map((l: any, idx: number) => (
+                    <div key={idx} className="py-3 first:pt-0">
+                      <Link
+                        to="/lobbying-dashboard"
+                        className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{l.principal_lobbyist}</p>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const prompt = `Tell me about ${l.principal_lobbyist} and their ${l.clientCount} clients in New York State`;
+                            navigate(`/?prompt=${encodeURIComponent(prompt)}`);
+                          }}
+                          className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title={`Ask about ${l.principal_lobbyist}`}
                         >
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{c.name}</p>
-                            <p className="text-xs text-muted-foreground">{c.chamber}</p>
-                          </div>
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              const prompt = `Tell me about the ${c.name} committee in the New York ${c.chamber}`;
-                              navigate(`/?prompt=${encodeURIComponent(prompt)}`);
-                            }}
-                            className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            title={`Ask about ${c.name}`}
-                          >
-                            <ArrowUp className="h-4 w-4" />
-                          </button>
-                        </Link>
-                      </div>
-                    );
-                  })}
+                          <ArrowUp className="h-4 w-4" />
+                        </button>
+                        <span className="text-sm font-medium text-muted-foreground">
+                          {l.clientCount}
+                        </span>
+                      </Link>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* ------ Recent Contracts ------ */}
+              {/* ------ By Employees ------ */}
               <div className="md:pl-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  Contracts
+                  By Employees
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
-                  {(recentContracts || []).map((contract: any, idx: number) => {
-                    const amount = typeof contract.current_contract_amount === 'number'
-                      ? contract.current_contract_amount
-                      : parseFloat(String(contract.current_contract_amount || '0').replace(/[$,]/g, ''));
-                    const formatted = amount >= 1_000_000_000
-                      ? `$${(amount / 1_000_000_000).toFixed(1)}B`
-                      : amount >= 1_000_000
-                        ? `$${(amount / 1_000_000).toFixed(1)}M`
-                        : amount >= 1_000
-                          ? `$${(amount / 1_000).toFixed(0)}K`
-                          : `$${amount.toFixed(0)}`;
-                    return (
-                      <div key={idx} className="py-3 first:pt-0">
-                        <Link
-                          to={`/contracts/${contract.contract_number}`}
-                          className="group py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200 block"
+                  {(lobbyistsByEmployees || []).map((l: any, idx: number) => (
+                    <div key={idx} className="py-3 first:pt-0">
+                      <Link
+                        to="/lobbying-dashboard"
+                        className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{l.principal_lobbyist}</p>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const prompt = `Tell me about ${l.principal_lobbyist} and their ${l.employeeCount} lobbyists in New York State`;
+                            navigate(`/?prompt=${encodeURIComponent(prompt)}`);
+                          }}
+                          className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title={`Ask about ${l.principal_lobbyist}`}
                         >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm truncate">{contract.vendor_name}</p>
-                              <p className="text-xs text-muted-foreground truncate">{contract.department_facility}</p>
-                            </div>
-                            <span className="text-sm font-medium text-muted-foreground ml-2 shrink-0">
-                              {formatted}
-                            </span>
-                          </div>
-                          <div className="flex justify-end mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                const prompt = `Tell me about contract ${contract.contract_number} with ${contract.vendor_name}`;
-                                navigate(`/?prompt=${encodeURIComponent(prompt)}`);
-                              }}
-                              className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
-                              title="Ask about this contract"
-                            >
-                              <ArrowUp className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </Link>
-                      </div>
-                    );
-                  })}
+                          <ArrowUp className="h-4 w-4" />
+                        </button>
+                        <span className="text-sm font-medium text-muted-foreground">
+                          {l.employeeCount}
+                        </span>
+                      </Link>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
