@@ -743,6 +743,7 @@ export default function PromptHub() {
           {/* ============================================================= */}
           {/* SECTION 1: User Generated                                      */}
           {/* ============================================================= */}
+          {(submittedPrompts || []).length > 0 && (
           <div id="community" className="mb-12 pb-12 border-b-2 border-dotted border-border/80">
             {/* Heading Block */}
             <div className="mb-8">
@@ -756,26 +757,17 @@ export default function PromptHub() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Link
-                    to="/advertise"
-                    className="flex items-center gap-3 py-3 bg-muted/50 hover:bg-muted/70 hover:shadow-lg hover:border-border rounded-lg px-4 border border-transparent transition-all"
-                  >
-                    <Megaphone className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-sm font-medium">Advertise</span>
-                  </Link>
-                  <Link
-                    to="/submit-prompt"
-                    className="flex items-center gap-3 py-3 bg-muted/50 hover:bg-muted/70 hover:shadow-lg hover:border-border rounded-lg px-4 border border-transparent transition-all"
-                  >
-                    <PenLine className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-sm font-medium">Submit a Prompt</span>
-                  </Link>
-                </div>
+                <Link
+                  to="/submit-prompt"
+                  className="flex items-center gap-3 py-3 bg-muted/50 hover:bg-muted/70 hover:shadow-lg hover:border-border rounded-lg px-4 border border-transparent transition-all"
+                >
+                  <PenLine className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm font-medium">Submit a Prompt</span>
+                </Link>
               </div>
             </div>
 
-            {(submittedPrompts || []).length > 0 ? (() => {
+            {(() => {
               // Combine all prompts and sort by chats descending
               const seed = [78, 74, 69, 68, 65, 61, 59, 58, 52, 51, 49, 44, 43, 42, 38, 37, 34, 31, 29, 27, 24, 22, 21, 18, 16, 14, 12, 11, 8, 6];
               const allSortedPrompts = [...(submittedPrompts || [])]
@@ -830,69 +822,34 @@ export default function PromptHub() {
                   )}
                 </>
               );
-            }) : (
-              // Loading state - show empty grid structure
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-                <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
-                  <div className="divide-y-2 divide-dotted divide-border/80">
-                    {[1,2,3].map((i) => (
-                      <div key={i} className="py-3 first:pt-0">
-                        <div className="flex items-center gap-3 py-2 px-4">
-                          <div className="w-10 h-10 rounded-full bg-muted/50 animate-pulse" />
-                          <div className="flex-1">
-                            <div className="h-4 bg-muted/50 rounded animate-pulse mb-2 w-3/4" />
-                            <div className="h-3 bg-muted/30 rounded animate-pulse w-1/2" />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
-                  <div className="divide-y-2 divide-dotted divide-border/80">
-                    {[1,2,3].map((i) => (
-                      <div key={i} className="py-3 first:pt-0">
-                        <div className="flex items-center gap-3 py-2 px-4">
-                          <div className="w-10 h-10 rounded-full bg-muted/50 animate-pulse" />
-                          <div className="flex-1">
-                            <div className="h-4 bg-muted/50 rounded animate-pulse mb-2 w-3/4" />
-                            <div className="h-3 bg-muted/30 rounded animate-pulse w-1/2" />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="md:pl-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
-                  <div className="divide-y-2 divide-dotted divide-border/80">
-                    {[1,2,3].map((i) => (
-                      <div key={i} className="py-3 first:pt-0">
-                        <div className="flex items-center gap-3 py-2 px-4">
-                          <div className="w-10 h-10 rounded-full bg-muted/50 animate-pulse" />
-                          <div className="flex-1">
-                            <div className="h-4 bg-muted/50 rounded animate-pulse mb-2 w-3/4" />
-                            <div className="h-3 bg-muted/30 rounded animate-pulse w-1/2" />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+            })()}
           </div>
+          )}
 
           {/* ============================================================= */}
           {/* SECTION 2: News Prompts                                        */}
           {/* ============================================================= */}
           <div className="mb-8">
-            <div>
-              <h2 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-                News Prompts
-              </h2>
-              <p className="text-muted-foreground mt-2">
-                Prompts of the news from across New York.
-              </p>
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
+                  News Prompts
+                </h2>
+                <p className="text-muted-foreground mt-2">
+                  Prompts of the news from across New York.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="relative w-full md:w-64">
+                  <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
+                  <Input
+                    type="search"
+                    placeholder="Search..."
+                    className="pl-8"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1108,6 +1065,33 @@ export default function PromptHub() {
             {/* ----------------------------------------------------------- */}
             <aside className="hidden xl:block w-[300px] flex-shrink-0 border-l-2 border-dotted border-border/80 pl-8">
               <div className="sticky top-24">
+                {/* Resources */}
+                <div className="mb-6 pb-6 border-b-2 border-dotted border-border/80">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                    Resources
+                  </h3>
+                  <div className="divide-y-2 divide-dotted divide-border/80">
+                    <div className="py-3">
+                      <Link
+                        to="/submit-prompt"
+                        className="flex items-center gap-3 py-3 bg-muted/30 hover:bg-muted/50 hover:shadow-lg hover:border-border rounded-lg px-2 border border-transparent transition-all"
+                      >
+                        <PenLine className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-sm font-medium">Submit a Prompt</span>
+                      </Link>
+                    </div>
+                    <div className="py-3">
+                      <Link
+                        to="/advertise"
+                        className="flex items-center gap-3 py-3 bg-muted/30 hover:bg-muted/50 hover:shadow-lg hover:border-border rounded-lg px-2 border border-transparent transition-all"
+                      >
+                        <Megaphone className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-sm font-medium">Advertise on NYSgpt</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Press Releases */}
                 <div>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
