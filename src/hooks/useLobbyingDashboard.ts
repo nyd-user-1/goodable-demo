@@ -3,10 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { LobbyistCompensation, LobbyingSpend, LobbyistClient } from '@/types/lobbying';
 
-export type LobbyingDashboardTab = 'lobbyist' | 'client';
+export type LobbyingDashboardTab = 'lobbyist' | 'lobbyist3' | 'client';
 
 export const TAB_LABELS: Record<LobbyingDashboardTab, string> = {
   lobbyist: 'By Lobbyist',
+  lobbyist3: 'Lobbying 3',
   client: 'By Client',
 };
 

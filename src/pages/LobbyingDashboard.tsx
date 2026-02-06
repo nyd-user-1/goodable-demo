@@ -22,9 +22,11 @@ import {
   ResponsiveContainer,
   Area,
   AreaChart,
+  Bar,
+  BarChart,
 } from 'recharts';
 
-const TABS: LobbyingDashboardTab[] = ['lobbyist', 'client'];
+const TABS: LobbyingDashboardTab[] = ['lobbyist', 'lobbyist3', 'client'];
 
 const LobbyingDashboard = () => {
   const navigate = useNavigate();
@@ -60,11 +62,12 @@ const LobbyingDashboard = () => {
   const rows: LobbyingDashboardRow[] = useMemo(() => {
     switch (activeTab) {
       case 'lobbyist': return byLobbyist;
+      case 'lobbyist3': return byLobbyist;
       case 'client': return byClient;
     }
   }, [activeTab, byLobbyist, byClient]);
 
-  const grandTotal = activeTab === 'lobbyist' ? lobbyistGrandTotal : clientGrandTotal;
+  const grandTotal = activeTab === 'client' ? clientGrandTotal : lobbyistGrandTotal;
 
   // Toggle row expansion
   const toggleRow = (name: string) => {
@@ -125,6 +128,15 @@ const LobbyingDashboard = () => {
 
     return points;
   }, [rows, grandTotal]);
+
+  // Bar chart data for lobbyist3 tab: top 40 lobbyists as vertical bars
+  const barChartData = useMemo(() => {
+    return byLobbyist.slice(0, 40).map((row, idx) => ({
+      idx: idx + 1,
+      name: row.name,
+      amount: row.amount,
+    }));
+  }, [byLobbyist]);
 
   // Open chat drawer
   const openChat = (lobbyistName?: string | null, clientName?: string | null) => {
@@ -209,7 +221,7 @@ const LobbyingDashboard = () => {
                     <span className="text-sm text-muted-foreground">
                       {selectedRow
                         ? `${selectedRowData?.pctOfTotal.toFixed(1)}% of total`
-                        : activeTab === 'lobbyist' ? 'Total Lobbyist Earnings' : 'Total Client Spending'}
+                        : activeTab === 'client' ? 'Total Client Spending' : 'Total Lobbyist Earnings'}
                     </span>
                   </div>
                 )}
@@ -217,8 +229,38 @@ const LobbyingDashboard = () => {
                 <MobileNYSgpt />
               </div>
 
-              {/* Cumulative Distribution Chart */}
-              {!isLoading && chartData.length > 1 && (
+              {/* Chart - Bar chart for lobbyist3, Area chart for others */}
+              {!isLoading && activeTab === 'lobbyist3' && barChartData.length > 0 && (
+                <div className="h-28 md:h-32 mb-4 -mx-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={barChartData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                      <Bar
+                        dataKey="amount"
+                        fill="hsl(217 91% 60%)"
+                        radius={[2, 2, 0, 0]}
+                      />
+                      <XAxis
+                        dataKey="idx"
+                        tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+                        tickLine={false}
+                        axisLine={false}
+                        interval={4}
+                      />
+                      <RechartsTooltip
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--background))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                        }}
+                        formatter={(value: number) => [formatFullCurrency(value), 'Earnings']}
+                        labelFormatter={(_, payload) => payload?.[0]?.payload?.name || ''}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+              {!isLoading && activeTab !== 'lobbyist3' && chartData.length > 1 && (
                 <div className="h-24 md:h-28 mb-4 -mx-2">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
@@ -404,7 +446,7 @@ function DashboardRowItem({
   getClientsForLobbyist,
   onDrillDownChatClick,
 }: DashboardRowItemProps) {
-  const drillDownRows = isExpanded && tab === 'lobbyist' ? getClientsForLobbyist(row.name) : [];
+  const drillDownRows = isExpanded && (tab === 'lobbyist' || tab === 'lobbyist3') ? getClientsForLobbyist(row.name) : [];
 
   const handleChatClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -431,7 +473,7 @@ function DashboardRowItem({
             "flex-shrink-0 transition-colors",
             isSelected ? "text-foreground" : "text-muted-foreground"
           )}>
-            {tab === 'lobbyist' ? (
+            {(tab === 'lobbyist' || tab === 'lobbyist3') ? (
               isExpanded ? (
                 <ChevronDown className="h-4 w-4" />
               ) : (
@@ -451,7 +493,7 @@ function DashboardRowItem({
             <span className="hidden md:inline-flex h-1.5 w-1.5 rounded-full bg-foreground flex-shrink-0" />
           )}
           {/* Client count badge for lobbyists */}
-          {tab === 'lobbyist' && row.clientCount !== undefined && row.clientCount > 0 && (
+          {(tab === 'lobbyist' || tab === 'lobbyist3') && row.clientCount !== undefined && row.clientCount > 0 && (
             <span className="hidden md:inline-flex text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
               {row.clientCount} clients
             </span>
@@ -496,7 +538,7 @@ function DashboardRowItem({
         "md:hidden px-4 pb-3 -mt-2 flex items-center gap-3 text-xs text-muted-foreground pl-10 transition-opacity duration-200",
         hasSelection && !isSelected && "opacity-50"
       )}>
-        {tab === 'lobbyist' && row.clientCount !== undefined && row.clientCount > 0 && (
+        {(tab === 'lobbyist' || tab === 'lobbyist3') && row.clientCount !== undefined && row.clientCount > 0 && (
           <span>{row.clientCount} clients</span>
         )}
         <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden max-w-[120px]">
