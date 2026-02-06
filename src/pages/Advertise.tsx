@@ -10,8 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeftIcon, ArrowRightIcon, CheckCircle2Icon } from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon, CheckCircle2Icon, PanelLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { NoteViewSidebar } from '@/components/NoteViewSidebar';
+import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
+import { cn } from '@/lib/utils';
 import confetti from 'canvas-confetti';
 
 export default function Advertise() {
@@ -29,6 +32,14 @@ export default function Advertise() {
   const [interests, setInterests] = useState<string[]>([]);
   const [adOption, setAdOption] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+  const [sidebarMounted, setSidebarMounted] = useState(false);
+
+  // Enable sidebar transitions after mount to prevent flash
+  useEffect(() => {
+    const timer = setTimeout(() => setSidebarMounted(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Dropdown options
   const industryOptions = ['Government', 'Lobbying', 'Non Profit', 'Legal', 'Construction'];
@@ -138,7 +149,44 @@ export default function Advertise() {
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-background">
+      {/* Left Sidebar - slides in from off-screen */}
+      <div
+        className={cn(
+          "fixed left-0 top-0 bottom-0 w-[85vw] max-w-sm md:w-72 bg-background border-r z-50",
+          sidebarMounted && "transition-transform duration-300 ease-in-out",
+          leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <NoteViewSidebar onClose={() => setLeftSidebarOpen(false)} />
+      </div>
+
+      {/* Backdrop overlay when sidebar is open */}
+      {leftSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 z-40 transition-opacity"
+          onClick={() => setLeftSidebarOpen(false)}
+        />
+      )}
+
+      {/* Minimal Header */}
+      <div className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-2 py-2">
+        <div className="flex items-center gap-1">
+          {/* Mobile Sidebar Toggle */}
+          <MobileMenuIcon onOpenSidebar={() => setLeftSidebarOpen(!leftSidebarOpen)} />
+          {/* Desktop Sidebar Toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+            className={cn("hidden md:inline-flex", leftSidebarOpen && "bg-muted")}
+          >
+            <PanelLeft className="h-4 w-4" />
+          </Button>
+        </div>
+        <MobileNYSgpt />
+      </div>
+
       {/* Hero */}
       <div className="bg-background relative grid min-h-[600px] overflow-hidden md:min-h-screen md:grid-cols-2">
         {/* Left Image */}
@@ -421,6 +469,6 @@ export default function Advertise() {
         </div>
       </div>
       {/* End Hero */}
-    </>
+    </div>
   );
 }
