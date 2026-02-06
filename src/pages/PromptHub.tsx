@@ -374,48 +374,25 @@ export default function PromptHub() {
   });
 
   // -----------------------------------------------------------------------
-  // Supabase: members by yes votes (Yea)
+  // Supabase: members by yes votes (from pre-computed tallies table)
   // -----------------------------------------------------------------------
   const { data: membersByYesVotes } = useQuery({
     queryKey: ['prompt-hub-members-yes-votes'],
     queryFn: async () => {
-      // Get ALL Yea votes (paginated)
-      let allYeaVotes: any[] = [];
-      let offset = 0;
-      const batchSize = 1000;
-      let hasMore = true;
+      // Get top members by yea_count from pre-computed table
+      const { data: tallies } = await supabase
+        .from('member_vote_tallies')
+        .select('people_id, yea_count')
+        .order('yea_count', { ascending: false })
+        .limit(14);
 
-      while (hasMore) {
-        const { data: batch } = await supabase
-          .from('Votes')
-          .select('people_id, vote_desc')
-          .eq('vote_desc', 'Yea')
-          .range(offset, offset + batchSize - 1);
+      if (!tallies || tallies.length === 0) return [];
 
-        if (!batch || batch.length === 0) {
-          hasMore = false;
-        } else {
-          allYeaVotes = allYeaVotes.concat(batch);
-          hasMore = batch.length === batchSize;
-          offset += batchSize;
-        }
-      }
-
-      // Count Yea votes per member
+      const topIds = tallies.map((t: any) => t.people_id);
       const yeaCounts: Record<number, number> = {};
-      allYeaVotes.forEach((v: any) => {
-        if (v.people_id) {
-          yeaCounts[v.people_id] = (yeaCounts[v.people_id] || 0) + 1;
-        }
+      tallies.forEach((t: any) => {
+        yeaCounts[t.people_id] = t.yea_count;
       });
-
-      // Top 14 by count
-      const topIds = Object.entries(yeaCounts)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 14)
-        .map(([id]) => parseInt(id));
-
-      if (topIds.length === 0) return [];
 
       const { data: members } = await supabase
         .from('People')
@@ -432,48 +409,25 @@ export default function PromptHub() {
   });
 
   // -----------------------------------------------------------------------
-  // Supabase: members by no votes (No)
+  // Supabase: members by no votes (from pre-computed tallies table)
   // -----------------------------------------------------------------------
   const { data: membersByNoVotes } = useQuery({
     queryKey: ['prompt-hub-members-no-votes'],
     queryFn: async () => {
-      // Get ALL No votes (paginated)
-      let allNoVotes: any[] = [];
-      let offset = 0;
-      const batchSize = 1000;
-      let hasMore = true;
+      // Get top members by no_count from pre-computed table
+      const { data: tallies } = await supabase
+        .from('member_vote_tallies')
+        .select('people_id, no_count')
+        .order('no_count', { ascending: false })
+        .limit(14);
 
-      while (hasMore) {
-        const { data: batch } = await supabase
-          .from('Votes')
-          .select('people_id, vote_desc')
-          .eq('vote_desc', 'No')
-          .range(offset, offset + batchSize - 1);
+      if (!tallies || tallies.length === 0) return [];
 
-        if (!batch || batch.length === 0) {
-          hasMore = false;
-        } else {
-          allNoVotes = allNoVotes.concat(batch);
-          hasMore = batch.length === batchSize;
-          offset += batchSize;
-        }
-      }
-
-      // Count No votes per member
+      const topIds = tallies.map((t: any) => t.people_id);
       const noCounts: Record<number, number> = {};
-      allNoVotes.forEach((v: any) => {
-        if (v.people_id) {
-          noCounts[v.people_id] = (noCounts[v.people_id] || 0) + 1;
-        }
+      tallies.forEach((t: any) => {
+        noCounts[t.people_id] = t.no_count;
       });
-
-      // Top 14 by count
-      const topIds = Object.entries(noCounts)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 14)
-        .map(([id]) => parseInt(id));
-
-      if (topIds.length === 0) return [];
 
       const { data: members } = await supabase
         .from('People')
