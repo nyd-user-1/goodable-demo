@@ -143,14 +143,14 @@ export default function Advertise() {
         },
         body: JSON.stringify({
           fields: [
-            { name: 'firstname', value: firstName },
-            { name: 'lastname', value: lastName },
-            { name: 'email', value: email },
-            { name: 'company', value: company },
-            { name: 'industry', value: industry },
-            { name: 'company_size', value: companySize },
-            { name: 'interests', value: interests.join(', ') },
-            { name: 'ad_option', value: selectedAdOption?.title || '' },
+            { objectTypeId: '0-1', name: 'firstname', value: firstName },
+            { objectTypeId: '0-1', name: 'lastname', value: lastName },
+            { objectTypeId: '0-1', name: 'email', value: email },
+            { objectTypeId: '0-1', name: 'company', value: company },
+            { objectTypeId: '0-1', name: 'industry', value: industry },
+            { objectTypeId: '0-1', name: 'company_size', value: companySize },
+            { objectTypeId: '0-1', name: 'interests', value: interests.join(', ') },
+            { objectTypeId: '0-1', name: 'ad_option', value: selectedAdOption?.title || '' },
           ],
           context: {
             pageUri: window.location.href,
