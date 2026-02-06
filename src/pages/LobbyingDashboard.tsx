@@ -129,14 +129,24 @@ const LobbyingDashboard = () => {
     return points;
   }, [rows, grandTotal]);
 
-  // Bar chart data for lobbyist3 tab: top 40 lobbyists as vertical bars
+  // Bar chart data for lobbyist3 tab: top 40 lobbyists OR clients when a lobbyist is selected
   const barChartData = useMemo(() => {
+    // If a lobbyist row is selected, show their clients
+    if (selectedRow && activeTab === 'lobbyist3') {
+      const clients = getClientsForLobbyist(selectedRow);
+      return clients.slice(0, 40).map((client, idx) => ({
+        idx: idx + 1,
+        name: client.name,
+        amount: client.amount,
+      }));
+    }
+    // Otherwise show top lobbyists
     return byLobbyist.slice(0, 40).map((row, idx) => ({
       idx: idx + 1,
       name: row.name,
       amount: row.amount,
     }));
-  }, [byLobbyist]);
+  }, [byLobbyist, selectedRow, activeTab, getClientsForLobbyist]);
 
   // Open chat drawer
   const openChat = (lobbyistName?: string | null, clientName?: string | null) => {
