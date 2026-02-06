@@ -183,12 +183,8 @@ const clientColumns: ColumnDef<LobbyistClientWithSpending>[] = [
   },
 ];
 
-// Clients DataTable Component
-interface ClientsDataTableProps {
-  data: LobbyistClientWithSpending[];
-}
-
-function ClientsDataTable({ data }: ClientsDataTableProps) {
+// Hook to create clients table state (allows pagination controls to be rendered separately)
+function useClientsTable(data: LobbyistClientWithSpending[]) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -215,6 +211,55 @@ function ClientsDataTable({ data }: ClientsDataTableProps) {
     },
   });
 
+  return table;
+}
+
+// Pagination controls component (rendered in accordion header)
+interface ClientsPaginationProps {
+  table: ReturnType<typeof useClientsTable>;
+}
+
+function ClientsPagination({ table }: ClientsPaginationProps) {
+  const pageCount = table.getPageCount();
+  const currentPage = table.getState().pagination.pageIndex + 1;
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-sm text-muted-foreground hidden sm:inline">
+        Page {currentPage} of {pageCount || 1}
+      </span>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={(e) => {
+          e.stopPropagation();
+          table.previousPage();
+        }}
+        disabled={!table.getCanPreviousPage()}
+      >
+        Previous
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={(e) => {
+          e.stopPropagation();
+          table.nextPage();
+        }}
+        disabled={!table.getCanNextPage()}
+      >
+        Next
+      </Button>
+    </div>
+  );
+}
+
+// Clients DataTable Component (table body only, no pagination)
+interface ClientsDataTableProps {
+  table: ReturnType<typeof useClientsTable>;
+}
+
+function ClientsDataTable({ table }: ClientsDataTableProps) {
   return (
     <div className="w-full">
       <div className="flex items-center py-4 px-6">
@@ -302,30 +347,48 @@ function ClientsDataTable({ data }: ClientsDataTableProps) {
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-between space-x-2 py-4 px-6">
+      <div className="flex items-center justify-end py-4 px-6">
         <div className="text-muted-foreground text-sm">
           {table.getFilteredRowModel().rows.length} client(s) total
         </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-        </div>
       </div>
     </div>
+  );
+}
+
+// Clients Accordion wrapper - combines header with pagination and collapsible table
+interface ClientsAccordionProps {
+  clients: LobbyistClientWithSpending[];
+}
+
+function ClientsAccordion({ clients }: ClientsAccordionProps) {
+  const table = useClientsTable(clients);
+
+  if (!clients || clients.length === 0) {
+    return null;
+  }
+
+  return (
+    <Card className="bg-card rounded-xl shadow-sm border">
+      <Accordion type="single" collapsible defaultValue="clients">
+        <AccordionItem value="clients" className="border-0">
+          <AccordionTrigger className="px-6 py-4 hover:no-underline [&[data-state=open]>div]:border-b">
+            <div className="flex items-center justify-between w-full pr-2">
+              <div className="flex items-center gap-3">
+                <span className="text-lg font-semibold">Clients</span>
+                <Badge variant="secondary" className="text-xs">
+                  {clients.length} {clients.length === 1 ? 'client' : 'clients'}
+                </Badge>
+              </div>
+              <ClientsPagination table={table} />
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pb-0">
+            <ClientsDataTable table={table} />
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </Card>
   );
 }
 
@@ -922,24 +985,8 @@ const LobbyingDetail = () => {
                 </CardContent>
               </Card>
 
-              {/* Clients Section */}
-              {lobbyistClients && lobbyistClients.length > 0 && (
-                <Card className="bg-card rounded-xl shadow-sm border">
-                  <CardHeader className="px-6 py-4 border-b">
-                    <div className="flex items-center gap-3">
-                      <CardTitle className="text-lg font-semibold">
-                        Clients
-                      </CardTitle>
-                      <Badge variant="secondary" className="text-xs">
-                        {lobbyistClients.length} {lobbyistClients.length === 1 ? 'client' : 'clients'}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <ClientsDataTable data={clientsWithSpending} />
-                  </CardContent>
-                </Card>
-              )}
+              {/* Clients Section with Accordion */}
+              <ClientsAccordion clients={clientsWithSpending} />
                 </div>
               </div>
             </div>
