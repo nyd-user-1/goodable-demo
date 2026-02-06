@@ -252,7 +252,7 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
                 <Table className="table-fixed w-full">
                   <TableHeader className="bg-background border-b">
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="w-[70px] px-4 text-left">
+                      <TableHead className="w-[60px] px-3 text-left">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -262,7 +262,7 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
                           Bill {getSortIcon('bill_number')}
                         </Button>
                       </TableHead>
-                      <TableHead className="w-[130px] px-4 text-left">
+                      <TableHead className="w-[110px] px-3 text-left">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -272,7 +272,7 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
                           Sponsor {getSortIcon('sponsor')}
                         </Button>
                       </TableHead>
-                      <TableHead className="px-4 text-left">
+                      <TableHead className="w-[200px] px-3 text-left">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -282,7 +282,7 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
                           Description {getSortIcon('title')}
                         </Button>
                       </TableHead>
-                      <TableHead className="w-[130px] px-4 text-left">
+                      <TableHead className="w-[100px] px-3 text-left">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -292,7 +292,7 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
                           Status {getSortIcon('status_desc')}
                         </Button>
                       </TableHead>
-                      <TableHead className="w-[180px] px-4 text-left">
+                      <TableHead className="w-[120px] px-3 text-left">
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
@@ -309,7 +309,7 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
                           </TooltipContent>
                         </Tooltip>
                       </TableHead>
-                      <TableHead className="w-[100px] px-4 text-left">
+                      <TableHead className="w-[90px] px-3 text-left">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -335,33 +335,33 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
                             className="cursor-pointer hover:bg-muted/50 transition-colors"
                             onClick={() => handleBillClick(bill)}
                           >
-                            <TableCell className="w-[70px] px-4 font-medium text-left">
+                            <TableCell className="w-[60px] px-3 font-medium text-left">
                               {bill.bill_number}
                             </TableCell>
-                            <TableCell className="w-[130px] px-4 text-left">
+                            <TableCell className="w-[110px] px-3 text-left">
                               <div className="text-sm truncate" title={primarySponsor}>
                                 {primarySponsor}
                               </div>
                             </TableCell>
-                            <TableCell className="px-4 text-left">
+                            <TableCell className="w-[200px] px-3 text-left">
                               <div className="text-sm truncate" title={bill.title || ""}>
                                 {bill.title}
                               </div>
                             </TableCell>
-                            <TableCell className="w-[130px] px-4 text-left">
+                            <TableCell className="w-[100px] px-3 text-left">
                               <Badge
                                 variant={bill.status_desc?.toLowerCase() === "passed" ? "success" : "secondary"}
-                                className="whitespace-nowrap"
+                                className="whitespace-nowrap text-xs"
                               >
                                 {bill.status_desc || "Unknown"}
                               </Badge>
                             </TableCell>
-                            <TableCell className="w-[180px] px-4 text-sm text-muted-foreground text-left">
+                            <TableCell className="w-[120px] px-3 text-sm text-muted-foreground text-left">
                               <div className="truncate" title={bill.last_action || ""}>
-                                {bill.last_action || "No action recorded"}
+                                {bill.last_action || "—"}
                               </div>
                             </TableCell>
-                            <TableCell className="w-[100px] px-4 text-sm text-muted-foreground text-left whitespace-nowrap">
+                            <TableCell className="w-[90px] px-3 text-sm text-muted-foreground text-left whitespace-nowrap">
                               {formatDate(bill.last_action_date)}
                             </TableCell>
                           </TableRow>
