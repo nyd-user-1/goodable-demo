@@ -494,7 +494,7 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
 
               <TabsContent value="overview" className="mt-6 space-y-6">
                 {/* Bill Key Information Section */}
-                <BillKeyInformation bill={bill} sponsors={sponsors} totalSponsors={sponsors.length} otherSessionBills={otherSessionBills} />
+                <BillKeyInformation bill={bill} />
               </TabsContent>
 
               <TabsContent value="sponsors" className="mt-6">
