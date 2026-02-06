@@ -612,12 +612,32 @@ export default function PromptHub() {
   };
 
   // -----------------------------------------------------------------------
-  // Local favicon overrides for domains missing a good Google favicon
+  // Favicon logic: Try Supabase bucket first, fall back to Google
   // -----------------------------------------------------------------------
   const SUPABASE_FAVICON_BASE = 'https://kwyjohornlgujoqypyvu.supabase.co/storage/v1/object/public/Favicons';
+
+  // Explicit domain-to-favicon mappings (for non-standard naming)
   const LOCAL_FAVICONS: Record<string, string> = {
     'www.islandharvest.org': `${SUPABASE_FAVICON_BASE}/island-harvest.avif`,
     'islandharvest.org': `${SUPABASE_FAVICON_BASE}/island-harvest.avif`,
+    'www.votemamafoundation.org': `${SUPABASE_FAVICON_BASE}/votemamafoundation.avif`,
+    'votemamafoundation.org': `${SUPABASE_FAVICON_BASE}/votemamafoundation.avif`,
+  };
+
+  // Normalize domain to a likely bucket filename (e.g., "www.ncsl.org" -> "ncsl")
+  const getDomainFaviconUrl = (domain: string): string => {
+    // Check explicit overrides first
+    if (LOCAL_FAVICONS[domain]) {
+      return LOCAL_FAVICONS[domain];
+    }
+    // Normalize: remove www., take first part before .org/.com/etc
+    const normalized = domain.replace(/^www\./, '').split('.')[0];
+    return `${SUPABASE_FAVICON_BASE}/${normalized}.avif`;
+  };
+
+  // Fallback to Google favicon
+  const getGoogleFavicon = (domain: string): string => {
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
   };
 
   // -----------------------------------------------------------------------
@@ -652,7 +672,14 @@ export default function PromptHub() {
               className="shrink-0"
             >
               <img
-                src={LOCAL_FAVICONS[domain] || `https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+                src={getDomainFaviconUrl(domain)}
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  const googleUrl = getGoogleFavicon(domain);
+                  if (target.src !== googleUrl) {
+                    target.src = googleUrl;
+                  }
+                }}
                 alt=""
                 className="w-10 h-10 rounded-full object-cover bg-muted p-1"
               />

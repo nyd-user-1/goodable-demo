@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
 import { cn } from '@/lib/utils';
-import { ArrowUp, Users, Search } from 'lucide-react';
+import { ArrowUp, Users, Search, TrendingUp, TrendingDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +14,7 @@ export default function Lists() {
   const [memberSearch, setMemberSearch] = useState('');
   const [lobbyingSearch, setLobbyingSearch] = useState('');
   const [lobbyistVisibleCount, setLobbyistVisibleCount] = useState(10);
+  const [memberVisibleCount, setMemberVisibleCount] = useState(14);
 
   // -----------------------------------------------------------------------
   // Supabase: top members by # of bills sponsored
@@ -35,7 +36,7 @@ export default function Lists() {
 
       const topIds = Object.entries(counts)
         .sort(([, a], [, b]) => b - a)
-        .slice(0, 14)
+        .slice(0, 50)
         .map(([id]) => parseInt(id));
 
       const { data: members } = await supabase
@@ -62,7 +63,7 @@ export default function Lists() {
         .from('member_vote_tallies')
         .select('people_id, yea_count')
         .order('yea_count', { ascending: false })
-        .limit(14);
+        .limit(50);
 
       if (!tallies || tallies.length === 0) return [];
 
@@ -96,7 +97,7 @@ export default function Lists() {
         .from('member_vote_tallies')
         .select('people_id, no_count')
         .order('no_count', { ascending: false })
-        .limit(14);
+        .limit(50);
 
       if (!tallies || tallies.length === 0) return [];
 
@@ -219,6 +220,30 @@ export default function Lists() {
   });
 
   // -----------------------------------------------------------------------
+  // Supabase: YoY change data for lobbyists
+  // -----------------------------------------------------------------------
+  const { data: lobbyistYoY } = useQuery({
+    queryKey: ['lists-lobbyists-yoy'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('lobbyist_compensation_yoy')
+        .select('principal_lobbyist, pct_change');
+      return data || [];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // Build YoY lookup map
+  const yoyMap = new Map<string, number | null>();
+  if (lobbyistYoY) {
+    lobbyistYoY.forEach((row: any) => {
+      if (row.principal_lobbyist) {
+        yoyMap.set(row.principal_lobbyist, row.pct_change);
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------------
   // Helpers
   // -----------------------------------------------------------------------
   const makeMemberSlug = (m: any): string => {
@@ -298,7 +323,7 @@ export default function Lists() {
                       Sponsored
                     </h3>
                     <div className="divide-y-2 divide-dotted divide-border/80">
-                      {(topMembers || []).map((m: any) => (
+                      {(topMembers || []).slice(0, memberVisibleCount).map((m: any) => (
                         <div key={m.people_id} className="py-3 first:pt-0">
                           <Link
                             to={`/members/${makeMemberSlug(m)}`}
@@ -348,7 +373,7 @@ export default function Lists() {
                       Yay
                     </h3>
                     <div className="divide-y-2 divide-dotted divide-border/80">
-                      {(membersByYesVotes || []).map((m: any) => (
+                      {(membersByYesVotes || []).slice(0, memberVisibleCount).map((m: any) => (
                         <div key={m.people_id} className="py-3 first:pt-0">
                           <Link
                             to={`/members/${makeMemberSlug(m)}`}
@@ -398,7 +423,7 @@ export default function Lists() {
                       Nay
                     </h3>
                     <div className="divide-y-2 divide-dotted divide-border/80">
-                      {(membersByNoVotes || []).map((m: any) => (
+                      {(membersByNoVotes || []).slice(0, memberVisibleCount).map((m: any) => (
                         <div key={m.people_id} className="py-3 first:pt-0">
                           <Link
                             to={`/members/${makeMemberSlug(m)}`}
@@ -442,6 +467,22 @@ export default function Lists() {
                     </div>
                   </div>
                 </div>
+
+                {/* Load More button for Members */}
+                {memberVisibleCount < Math.max(
+                  (topMembers || []).length,
+                  (membersByYesVotes || []).length,
+                  (membersByNoVotes || []).length
+                ) && (
+                  <div className="flex justify-center py-8">
+                    <button
+                      onClick={() => setMemberVisibleCount((prev) => prev + 14)}
+                      className="rounded-lg border border-border bg-muted/30 px-6 py-2.5 text-sm font-medium text-foreground hover:bg-muted/50 hover:shadow-lg transition-all"
+                    >
+                      Load More
+                    </button>
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -493,6 +534,7 @@ export default function Lists() {
                           : amount >= 1_000
                             ? `$${(amount / 1_000).toFixed(0)}K`
                             : `$${amount.toFixed(0)}`;
+                        const pctChange = yoyMap.get(l.principal_lobbyist);
                         return (
                           <div key={idx} className="py-3 first:pt-0">
                             <Link
@@ -501,6 +543,16 @@ export default function Lists() {
                             >
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-sm truncate">{l.principal_lobbyist}</p>
+                                {pctChange !== null && pctChange !== undefined && (
+                                  <p className={`text-xs flex items-center gap-1 ${pctChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                    {pctChange >= 0 ? (
+                                      <TrendingUp className="h-3 w-3" />
+                                    ) : (
+                                      <TrendingDown className="h-3 w-3" />
+                                    )}
+                                    {pctChange >= 0 ? '+' : ''}{pctChange.toFixed(1)}%
+                                  </p>
+                                )}
                               </div>
                               <button
                                 onClick={(e) => {
