@@ -526,7 +526,7 @@ export default function PromptHub() {
                     User Prompts
                   </h2>
                   <p className="text-muted-foreground mt-2">
-                    Community prompts and submissions.
+                    User generated prompts and submissions.
                   </p>
                 </div>
 

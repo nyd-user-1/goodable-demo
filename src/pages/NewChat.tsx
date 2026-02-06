@@ -2587,7 +2587,7 @@ const NewChat = () => {
             {!chatStarted && query.length === 0 && (
               <div className="relative">
                 {/* Pills row - always visible */}
-                <div className="flex flex-wrap gap-2 mt-3 justify-center px-2">
+                <div className="flex flex-wrap gap-2 mt-6 justify-center px-2">
                   {/* Sign Up pill - show on public page, hide on mobile and /new-chat when authenticated */}
                   {(isPublicPage || !user) && (
                     <button
