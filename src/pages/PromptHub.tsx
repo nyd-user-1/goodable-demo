@@ -5,8 +5,10 @@ import FooterSimple from '@/components/marketing/FooterSimple';
 import { cn } from '@/lib/utils';
 import {
   ArrowUp, PenLine, Megaphone, Briefcase, Heart,
-  ExternalLink, Users, FileText, DollarSign,
+  ExternalLink, Users, FileText, DollarSign, Search,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -310,6 +312,8 @@ export default function PromptHub() {
   const [pageTab, setPageTab] = useState<'prompts' | 'lists'>('prompts');
   const [activeCategory, setActiveCategory] = useState('All');
   const [visibleCount, setVisibleCount] = useState(10);
+  const [lobbyingSearch, setLobbyingSearch] = useState('');
+  const [lobbyingYear, setLobbyingYear] = useState<'2024' | '2025' | '2026' | null>(null);
 
   useEffect(() => {
     if (location.hash === '#lists') {
@@ -1192,6 +1196,45 @@ export default function PromptHub() {
           {/* LISTS SECTION 2: Lobbyists Earnings, Clients, Employees    */}
           {/* ============================================================= */}
           <div className="mt-12 pt-12 border-t-2 border-dotted border-border/80">
+            {/* Heading Block */}
+            <div className="mb-8">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h2 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
+                    Lobbyists
+                  </h2>
+                  <p className="text-muted-foreground mt-2">
+                    Top lobbying firms ranked by earnings, clients, and staff
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="relative w-full md:w-64">
+                    <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
+                    <Input
+                      type="search"
+                      placeholder="Search..."
+                      className="pl-8"
+                      value={lobbyingSearch}
+                      onChange={(e) => setLobbyingSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex gap-1">
+                    {(['2024', '2025', '2026'] as const).map((year) => (
+                      <Button
+                        key={year}
+                        variant={lobbyingYear === year ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setLobbyingYear(lobbyingYear === year ? null : year)}
+                      >
+                        {year}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
               {/* ------ Earnings ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
