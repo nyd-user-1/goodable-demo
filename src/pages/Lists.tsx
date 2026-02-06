@@ -302,7 +302,7 @@ export default function Lists() {
                         <div key={m.people_id} className="py-3 first:pt-0">
                           <Link
                             to={`/members/${makeMemberSlug(m)}`}
-                            className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-border hover:border-border"
+                            className="group flex items-center gap-3 py-2 bg-muted/30 hover:bg-muted/50 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-border"
                           >
                             {m.photo_url ? (
                               <img
@@ -352,7 +352,7 @@ export default function Lists() {
                         <div key={m.people_id} className="py-3 first:pt-0">
                           <Link
                             to={`/members/${makeMemberSlug(m)}`}
-                            className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-border hover:border-border"
+                            className="group flex items-center gap-3 py-2 bg-muted/30 hover:bg-muted/50 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-border"
                           >
                             {m.photo_url ? (
                               <img
@@ -402,7 +402,7 @@ export default function Lists() {
                         <div key={m.people_id} className="py-3 first:pt-0">
                           <Link
                             to={`/members/${makeMemberSlug(m)}`}
-                            className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-border hover:border-border"
+                            className="group flex items-center gap-3 py-2 bg-muted/30 hover:bg-muted/50 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-border"
                           >
                             {m.photo_url ? (
                               <img
@@ -497,7 +497,7 @@ export default function Lists() {
                           <div key={idx} className="py-3 first:pt-0">
                             <Link
                               to="/lobbying-dashboard"
-                              className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-border hover:border-border"
+                              className="group flex items-center gap-3 py-2 bg-muted/30 hover:bg-muted/50 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-border"
                             >
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-sm truncate">{l.principal_lobbyist}</p>
@@ -534,7 +534,7 @@ export default function Lists() {
                         <div key={idx} className="py-3 first:pt-0">
                           <Link
                             to="/lobbying-dashboard"
-                            className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-border hover:border-border"
+                            className="group flex items-center gap-3 py-2 bg-muted/30 hover:bg-muted/50 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-border"
                           >
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm truncate">{l.principal_lobbyist}</p>
@@ -570,7 +570,7 @@ export default function Lists() {
                         <div key={idx} className="py-3 first:pt-0">
                           <Link
                             to="/lobbying-dashboard"
-                            className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-border hover:border-border"
+                            className="group flex items-center gap-3 py-2 bg-muted/30 hover:bg-muted/50 hover:shadow-md px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-border"
                           >
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm truncate">{l.principal_lobbyist}</p>
