@@ -92,28 +92,28 @@ export default function Advertise() {
 
   const adOptions = [
     {
-      id: 'hero-carousel',
-      title: 'Hero Carousel',
+      id: 'hero-sponsor',
+      title: 'Hero Sponsor',
       description: 'Premium placement in the main hero section. Maximum visibility with rotating featured content.',
       price: 'Premium',
     },
     {
-      id: 'category-card',
-      title: 'Category Card',
+      id: 'category-sponsor',
+      title: 'Category Sponsor',
       description: 'Sponsored category card alongside Bill Research, Policy, Advocacy, and Departments.',
-      price: 'Standard',
+      price: null,
     },
     {
-      id: 'sponsored-prompts',
-      title: 'Sponsored by Pill (Prompts)',
+      id: 'prompt-page-sponsor',
+      title: 'Prompt Page Sponsor',
       description: 'Your organization featured as sponsor above the community prompts section.',
-      price: 'Basic',
+      price: null,
     },
     {
-      id: 'sponsored-lists',
-      title: 'Sponsored by Pill (Lists)',
+      id: 'list-page-sponsor',
+      title: 'List Page Sponsor',
       description: 'Your organization featured as sponsor at the top of the Lists page.',
-      price: 'Basic',
+      price: null,
     },
   ];
 
@@ -443,15 +443,11 @@ export default function Advertise() {
                           <p className="font-semibold text-sm">{option.title}</p>
                           <p className="text-xs text-muted-foreground mt-1">{option.description}</p>
                         </div>
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                          option.price === 'Premium'
-                            ? 'bg-blue-100 text-blue-600'
-                            : option.price === 'Standard'
-                            ? 'bg-gray-200 text-gray-700'
-                            : 'bg-gray-100 text-gray-600'
-                        }`}>
-                          {option.price}
-                        </span>
+                        {option.price && (
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-600">
+                            {option.price}
+                          </span>
+                        )}
                       </div>
                       {adOption === option.id && (
                         <div className="mt-2 flex items-center text-black text-xs">
