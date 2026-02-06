@@ -732,7 +732,7 @@ export default function PromptHub() {
                       : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
-                  {tab === 'prompts' ? 'Prompts' : 'Lists'}
+                  {tab === 'prompts' ? 'User' : 'Admin'}
                 </button>
               ))}
             </div>
