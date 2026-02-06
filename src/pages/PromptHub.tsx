@@ -1101,7 +1101,7 @@ export default function PromptHub() {
                     Members
                   </h2>
                   <p className="text-muted-foreground mt-2">
-                    By bills, yes votes, and no votes
+                    By Bills, yay, and nay.
                   </p>
                 </div>
 
@@ -1121,10 +1121,10 @@ export default function PromptHub() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-              {/* ------ Top Sponsors (members by bills sponsored) ------ */}
+              {/* ------ Sponsored (members by bills sponsored) ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  Top Sponsors
+                  Sponsored
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {(topMembers || []).map((m: any) => (
@@ -1171,10 +1171,10 @@ export default function PromptHub() {
                 </div>
               </div>
 
-              {/* ------ Yes Votes (members by Yea votes) ------ */}
+              {/* ------ Yay (members by Yea votes) ------ */}
               <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  Yes Votes
+                  Yay
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {(membersByYesVotes || []).map((m: any) => (
@@ -1221,10 +1221,10 @@ export default function PromptHub() {
                 </div>
               </div>
 
-              {/* ------ No Votes (members by No votes) ------ */}
+              {/* ------ Nay (members by Nay votes) ------ */}
               <div className="md:pl-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  No Votes
+                  Nay
                 </h3>
                 <div className="divide-y-2 divide-dotted divide-border/80">
                   {(membersByNoVotes || []).map((m: any) => (
