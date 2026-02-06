@@ -43,10 +43,15 @@ import {
 } from "@tanstack/react-table";
 import { supabase } from "@/integrations/supabase/client";
 import { LobbyingSpend, LobbyistCompensation, LobbyistClient } from "@/types/lobbying";
-import { formatLobbyingCurrency } from "@/hooks/useLobbyingSearch";
+import { formatLobbyingCurrency, parseCurrencyToNumber } from "@/hooks/useLobbyingSearch";
 
-// Column definitions for the clients table
-const clientColumns: ColumnDef<LobbyistClient>[] = [
+// Extended type that includes spending data for each client
+interface LobbyistClientWithSpending extends LobbyistClient {
+  spending?: LobbyingSpend | null;
+}
+
+// Column definitions for the clients table (with spending data)
+const clientColumns: ColumnDef<LobbyistClientWithSpending>[] = [
   {
     accessorKey: "contractual_client",
     header: ({ column }) => {
@@ -114,11 +119,45 @@ const clientColumns: ColumnDef<LobbyistClient>[] = [
       return parsedA.getTime() - parsedB.getTime();
     },
   },
+  {
+    accessorKey: "spending",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="-ml-4"
+        >
+          Client Spending
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const spending = row.original.spending;
+      const amount = spending?.compensation_and_expenses;
+      return (
+        <div className="text-right font-medium text-green-600 dark:text-green-400">
+          {amount != null ? formatLobbyingCurrency(amount) : "—"}
+        </div>
+      );
+    },
+    // Sort by the numeric spending amount
+    sortingFn: (rowA, rowB) => {
+      const spendingA = rowA.original.spending?.compensation_and_expenses;
+      const spendingB = rowB.original.spending?.compensation_and_expenses;
+
+      const valA = parseCurrencyToNumber(spendingA ?? null);
+      const valB = parseCurrencyToNumber(spendingB ?? null);
+
+      return valA - valB;
+    },
+  },
 ];
 
 // Clients DataTable Component
 interface ClientsDataTableProps {
-  data: LobbyistClient[];
+  data: LobbyistClientWithSpending[];
 }
 
 function ClientsDataTable({ data }: ClientsDataTableProps) {
@@ -343,6 +382,52 @@ const LobbyingDetail = () => {
     },
     enabled: isCompensation && !!compensationRecord,
   });
+
+  // Fetch spending data for each client to show what they spent
+  const { data: clientSpendingData } = useQuery({
+    queryKey: ['client-spending', lobbyistClients?.map(c => c.contractual_client)],
+    queryFn: async () => {
+      if (!lobbyistClients || lobbyistClients.length === 0) return [];
+
+      // Get unique client names
+      const clientNames = lobbyistClients
+        .map(c => c.contractual_client)
+        .filter((name): name is string => !!name);
+
+      if (clientNames.length === 0) return [];
+
+      // Fetch spending records for these clients
+      const { data, error } = await supabase
+        .from('lobbying_spend')
+        .select('*')
+        .in('contractual_client', clientNames);
+
+      if (error) throw error;
+      return (data || []) as LobbyingSpend[];
+    },
+    enabled: isCompensation && !!lobbyistClients && lobbyistClients.length > 0,
+  });
+
+  // Merge clients with their spending data
+  const clientsWithSpending: LobbyistClientWithSpending[] = useMemo(() => {
+    if (!lobbyistClients) return [];
+
+    // Create a map of client name -> spending record
+    const spendingMap = new Map<string, LobbyingSpend>();
+    if (clientSpendingData) {
+      clientSpendingData.forEach(spend => {
+        if (spend.contractual_client) {
+          spendingMap.set(spend.contractual_client, spend);
+        }
+      });
+    }
+
+    // Merge clients with their spending
+    return lobbyistClients.map(client => ({
+      ...client,
+      spending: client.contractual_client ? spendingMap.get(client.contractual_client) ?? null : null,
+    }));
+  }, [lobbyistClients, clientSpendingData]);
 
   const isLoading = isSpend ? spendLoading : compensationLoading;
   const error = isSpend ? spendError : compensationError;
@@ -813,7 +898,7 @@ const LobbyingDetail = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <ClientsDataTable data={lobbyistClients} />
+                    <ClientsDataTable data={clientsWithSpending} />
                   </CardContent>
                 </Card>
               )}
