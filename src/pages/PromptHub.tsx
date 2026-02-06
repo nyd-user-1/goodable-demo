@@ -5,7 +5,7 @@ import FooterSimple from '@/components/marketing/FooterSimple';
 import { cn } from '@/lib/utils';
 import {
   ArrowUp, PenLine, Megaphone, Briefcase, Heart,
-  ExternalLink, Users, FileText, DollarSign, Building2, Handshake,
+  ExternalLink, Users, FileText, DollarSign,
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -437,17 +437,33 @@ export default function PromptHub() {
   });
 
   // -----------------------------------------------------------------------
-  // Supabase: top lobbyists by compensation
+  // Supabase: top lobbyists by compensation with client counts
   // -----------------------------------------------------------------------
   const { data: topLobbyists } = useQuery({
     queryKey: ['prompt-hub-lobbyists'],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: lobbyists } = await supabase
         .from('lobbyist_compensation')
         .select('principal_lobbyist, grand_total_compensation_expenses')
         .order('grand_total_compensation_expenses', { ascending: false })
         .limit(10);
-      return data || [];
+
+      if (!lobbyists) return [];
+
+      // Get client counts for these lobbyists
+      const { data: clients } = await supabase
+        .from('lobbyists_clients')
+        .select('principal_lobbyist');
+
+      const clientCounts: Record<string, number> = {};
+      (clients || []).forEach((c: any) => {
+        clientCounts[c.principal_lobbyist] = (clientCounts[c.principal_lobbyist] || 0) + 1;
+      });
+
+      return lobbyists.map((l: any) => ({
+        ...l,
+        clientCount: clientCounts[l.principal_lobbyist] || 0,
+      }));
     },
     staleTime: 10 * 60 * 1000,
   });
@@ -474,7 +490,7 @@ export default function PromptHub() {
     queryKey: ['prompt-hub-contracts'],
     queryFn: async () => {
       const { data } = await supabase
-        .from('contracts')
+        .from('Contracts')
         .select('contract_number, contractor, agency_name, current_amount')
         .order('start_date', { ascending: false })
         .limit(10);
@@ -1157,12 +1173,9 @@ export default function PromptHub() {
                           to="/lobbying-dashboard"
                           className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200"
                         >
-                          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
-                            <Handshake className="h-4 w-4 text-muted-foreground" />
-                          </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm truncate">{l.principal_lobbyist}</p>
-                            <p className="text-xs text-muted-foreground">Lobbyist</p>
+                            <p className="text-xs text-muted-foreground">{l.clientCount} clients</p>
                           </div>
                           <button
                             onClick={(e) => {
@@ -1205,9 +1218,6 @@ export default function PromptHub() {
                           to={`/committees/${slug}`}
                           className="group flex items-center gap-3 py-2 hover:bg-muted/30 hover:shadow-md px-4 rounded-lg transition-all duration-200"
                         >
-                          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
-                            <Building2 className="h-4 w-4 text-muted-foreground" />
-                          </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm truncate">{c.name}</p>
                             <p className="text-xs text-muted-foreground">{c.chamber}</p>
