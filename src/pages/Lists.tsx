@@ -601,6 +601,7 @@ export default function Lists() {
                           >
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm truncate">{l.principal_lobbyist}</p>
+                              <p className="text-xs text-muted-foreground">2025</p>
                             </div>
                             <button
                               onClick={(e) => {
@@ -639,6 +640,7 @@ export default function Lists() {
                           >
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm truncate">{l.principal_lobbyist}</p>
+                              <p className="text-xs text-muted-foreground">2025</p>
                             </div>
                             <button
                               onClick={(e) => {

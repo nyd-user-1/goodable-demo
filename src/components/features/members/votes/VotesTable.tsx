@@ -4,11 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { CardActionButtons } from "@/components/ui/CardActionButtons";
 import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { formatDate } from "@/utils/dateUtils";
 
-type SortField = 'bill_number' | 'description' | 'vote_date' | 'vote_type' | 'sponsor' | 'committee';
+type SortField = 'bill_number' | 'sponsor' | 'description' | 'vote_date' | 'vote_type';
 type SortDirection = 'asc' | 'desc' | null;
 
 interface VotesTableProps {
@@ -19,12 +18,10 @@ interface VotesTableProps {
   searchQuery: string;
 }
 
-export const VotesTable = ({ 
-  votes, 
-  onVoteClick, 
-  onAIAnalysis, 
-  onFavorite,
-  searchQuery 
+export const VotesTable = ({
+  votes,
+  onVoteClick,
+  searchQuery
 }: VotesTableProps) => {
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
@@ -70,7 +67,7 @@ export const VotesTable = ({
 
     let aValue: any = a[sortField] || '';
     let bValue: any = b[sortField] || '';
-    
+
     // Special handling for dates
     if (sortField === 'vote_date') {
       const aDate = new Date(aValue || 0);
@@ -103,87 +100,102 @@ export const VotesTable = ({
 
   return (
     <TooltipProvider>
-      <ScrollArea className="w-full">
-        <div className="min-w-[900px]">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[120px]">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleSort('bill_number')}
-                    className="h-auto p-0 font-semibold hover:bg-transparent"
-                  >
-                    Bill {getSortIcon('bill_number')}
-                  </Button>
-                </TableHead>
-                <TableHead className="min-w-[300px]">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleSort('description')}
-                    className="h-auto p-0 font-semibold hover:bg-transparent"
-                  >
-                    Description {getSortIcon('description')}
-                  </Button>
-                </TableHead>
-                <TableHead className="w-[120px]">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleSort('vote_date')}
-                    className="h-auto p-0 font-semibold hover:bg-transparent"
-                  >
-                    Vote Date {getSortIcon('vote_date')}
-                  </Button>
-                </TableHead>
-                <TableHead className="w-[120px]">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleSort('vote_type')}
-                    className="h-auto p-0 font-semibold hover:bg-transparent"
-                  >
-                    Vote Type {getSortIcon('vote_type')}
-                  </Button>
-                </TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
+      <div className="relative border-t">
+        {/* Fixed Header */}
+        <Table className="table-fixed w-full">
+          <TableHeader className="bg-background border-b">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-[80px] px-3 text-left">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleSort('bill_number')}
+                  className="h-auto p-0 font-semibold hover:bg-transparent"
+                >
+                  Bill {getSortIcon('bill_number')}
+                </Button>
+              </TableHead>
+              <TableHead className="w-[120px] px-3 text-left">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleSort('sponsor')}
+                  className="h-auto p-0 font-semibold hover:bg-transparent"
+                >
+                  Sponsor {getSortIcon('sponsor')}
+                </Button>
+              </TableHead>
+              <TableHead className="w-[250px] px-3 text-left">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleSort('description')}
+                  className="h-auto p-0 font-semibold hover:bg-transparent"
+                >
+                  Description {getSortIcon('description')}
+                </Button>
+              </TableHead>
+              <TableHead className="w-[100px] px-3 text-left">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleSort('vote_date')}
+                  className="h-auto p-0 font-semibold hover:bg-transparent"
+                >
+                  Date {getSortIcon('vote_date')}
+                </Button>
+              </TableHead>
+              <TableHead className="w-[80px] px-3 text-left">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleSort('vote_type')}
+                  className="h-auto p-0 font-semibold hover:bg-transparent"
+                >
+                  Vote {getSortIcon('vote_type')}
+                </Button>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+        </Table>
+
+        {/* Scrollable Body */}
+        <ScrollArea className="h-[500px] w-full">
+          <Table className="table-fixed w-full">
             <TableBody>
               {sortedVotes.map((vote) => (
-                <TableRow 
+                <TableRow
                   key={vote.id}
                   className="cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => onVoteClick(vote)}
                 >
-                  <TableCell className="font-medium">{vote.bill_number}</TableCell>
-                  <TableCell className="max-w-[300px]">
-                    <div className="line-clamp-2 text-sm">{vote.description}</div>
+                  <TableCell className="w-[80px] px-3 font-medium text-left">
+                    {vote.bill_number}
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="w-[120px] px-3 text-left">
+                    <div className="text-sm truncate" title={vote.sponsor || ""}>
+                      {vote.sponsor || "N/A"}
+                    </div>
+                  </TableCell>
+                  <TableCell className="w-[250px] px-3 text-left">
+                    <div className="text-sm truncate" title={vote.description || ""}>
+                      {vote.description}
+                    </div>
+                  </TableCell>
+                  <TableCell className="w-[100px] px-3 text-sm text-muted-foreground text-left whitespace-nowrap">
                     {formatDate(vote.vote_date)}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="w-[80px] px-3 text-left">
                     <Badge variant={getVoteBadgeVariant(vote.vote_type)}>
                       {vote.vote_type}
                     </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <CardActionButtons
-                      onFavorite={(e) => onFavorite(vote, e)}
-                      onAIAnalysis={(e) => onAIAnalysis(vote, e)}
-                      isFavorited={false}
-                      hasAIChat={false}
-                    />
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </div>
-      </ScrollArea>
+        </ScrollArea>
+      </div>
     </TooltipProvider>
   );
 };
