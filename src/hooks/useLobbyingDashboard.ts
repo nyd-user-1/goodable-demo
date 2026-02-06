@@ -6,8 +6,8 @@ import { LobbyistCompensation, LobbyingSpend, LobbyistClient } from '@/types/lob
 export type LobbyingDashboardTab = 'lobbyist' | 'lobbyist3' | 'client';
 
 export const TAB_LABELS: Record<LobbyingDashboardTab, string> = {
-  lobbyist: 'By Lobbyist',
-  lobbyist3: 'Lobbying 3',
+  lobbyist: 'Line Chart',
+  lobbyist3: 'Bar Chart',
   client: 'By Client',
 };
 
@@ -18,6 +18,7 @@ export interface LobbyingDashboardRow {
   clientCount?: number;
   pctOfTotal: number;
   rowCount: number;
+  pctChange?: number | null;
 }
 
 // Drill-down row (clients for a lobbyist, or lobbyists for a client)
@@ -36,10 +37,19 @@ function parseCurrency(value: string | number | null | undefined): number {
   return isNaN(num) ? 0 : num;
 }
 
-export function useLobbyingDashboard(year: number = 2025) {
-  // Fetch compensation records for selected year (lobbyists)
+// YoY data row from the view
+interface LobbyistYoY {
+  principal_lobbyist: string;
+  total_2024: string | number | null;
+  total_2025: string | number | null;
+  diff: number | null;
+  pct_change: number | null;
+}
+
+export function useLobbyingDashboard() {
+  // Fetch compensation records for 2025 (lobbyists)
   const { data: compensationData, isLoading: compLoading, error: compError } = useQuery({
-    queryKey: ['lobbying-dashboard-compensation', year],
+    queryKey: ['lobbying-dashboard-compensation-2025'],
     queryFn: async () => {
       let allRows: LobbyistCompensation[] = [];
       let offset = 0;
@@ -50,7 +60,7 @@ export function useLobbyingDashboard(year: number = 2025) {
         const { data, error } = await supabase
           .from('lobbyist_compensation')
           .select('*')
-          .eq('year', year)
+          .eq('year', 2025)
           .range(offset, offset + batchSize - 1);
 
         if (error) throw error;
@@ -140,6 +150,21 @@ export function useLobbyingDashboard(year: number = 2025) {
     gcTime: 15 * 60 * 1000,
   });
 
+  // Fetch YoY data for percentage change column
+  const { data: yoyData } = useQuery({
+    queryKey: ['lobbying-dashboard-yoy'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('lobbyist_compensation_yoy')
+        .select('principal_lobbyist, pct_change');
+
+      if (error) throw error;
+      return data as LobbyistYoY[];
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
   // Aggregate lobbyist data
   const byLobbyist = useMemo(() => {
     if (!compensationData || compensationData.length === 0) return [];
@@ -153,16 +178,28 @@ export function useLobbyingDashboard(year: number = 2025) {
       });
     }
 
+    // Build YoY lookup map
+    const yoyMap = new Map<string, number | null>();
+    if (yoyData) {
+      yoyData.forEach(row => {
+        if (row.principal_lobbyist) {
+          yoyMap.set(row.principal_lobbyist, row.pct_change);
+        }
+      });
+    }
+
     let grandTotal = 0;
     const rows: LobbyingDashboardRow[] = compensationData.map(record => {
       const amount = parseCurrency(record.grand_total_compensation_expenses);
       grandTotal += amount;
+      const lobbyistName = record.principal_lobbyist || 'Unknown Lobbyist';
       return {
-        name: record.principal_lobbyist || 'Unknown Lobbyist',
+        name: lobbyistName,
         amount,
         clientCount: clientCounts.get(record.principal_lobbyist || 'Unknown') || 0,
         pctOfTotal: 0,
         rowCount: 1,
+        pctChange: yoyMap.get(lobbyistName) ?? null,
       };
     });
 
@@ -173,7 +210,7 @@ export function useLobbyingDashboard(year: number = 2025) {
     rows.sort((a, b) => b.amount - a.amount);
 
     return rows;
-  }, [compensationData, clientsData]);
+  }, [compensationData, clientsData, yoyData]);
 
   // Aggregate client data
   const byClient = useMemo(() => {

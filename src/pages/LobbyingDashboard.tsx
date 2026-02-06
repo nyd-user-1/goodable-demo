@@ -26,7 +26,7 @@ import {
   BarChart,
 } from 'recharts';
 
-const TABS: LobbyingDashboardTab[] = ['lobbyist', 'lobbyist3', 'client'];
+const TABS: LobbyingDashboardTab[] = ['lobbyist', 'lobbyist3'];
 
 const LobbyingDashboard = () => {
   const navigate = useNavigate();
@@ -40,7 +40,6 @@ const LobbyingDashboard = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatLobbyistName, setChatLobbyistName] = useState<string | null>(null);
   const [chatClientName, setChatClientName] = useState<string | null>(null);
-  const [selectedYear, setSelectedYear] = useState<number>(2025);
 
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
@@ -51,24 +50,18 @@ const LobbyingDashboard = () => {
     isLoading,
     error,
     byLobbyist,
-    byClient,
     lobbyistGrandTotal,
-    clientGrandTotal,
     totalLobbyists,
     totalClients,
     getClientsForLobbyist,
-  } = useLobbyingDashboard(selectedYear);
+  } = useLobbyingDashboard();
 
-  // Get rows for the active tab
+  // Get rows for the active tab (both tabs use lobbyist data)
   const rows: LobbyingDashboardRow[] = useMemo(() => {
-    switch (activeTab) {
-      case 'lobbyist': return byLobbyist;
-      case 'lobbyist3': return byLobbyist;
-      case 'client': return byClient;
-    }
-  }, [activeTab, byLobbyist, byClient]);
+    return byLobbyist;
+  }, [byLobbyist]);
 
-  const grandTotal = activeTab === 'client' ? clientGrandTotal : lobbyistGrandTotal;
+  const grandTotal = lobbyistGrandTotal;
 
   // Toggle row expansion
   const toggleRow = (name: string) => {
@@ -244,7 +237,7 @@ const LobbyingDashboard = () => {
                     <span className="text-sm text-muted-foreground">
                       {selectedRow
                         ? `${selectedRowData?.pctOfTotal.toFixed(1)}% of total`
-                        : activeTab === 'client' ? 'Total Client Spending' : 'Total Lobbyist Earnings'}
+                        : 'Total Lobbyist Earnings'}
                     </span>
                   </div>
                 )}
@@ -318,7 +311,7 @@ const LobbyingDashboard = () => {
                           fontSize: '12px',
                         }}
                         formatter={(value: number) => [formatFullCurrency(value), 'Cumulative']}
-                        labelFormatter={(label) => `Top ${label}% of ${activeTab === 'lobbyist' ? 'Lobbyists' : 'Clients'}`}
+                        labelFormatter={(label) => `Top ${label}% of Lobbyists`}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -327,31 +320,13 @@ const LobbyingDashboard = () => {
 
               {/* Stats row */}
               {!isLoading && (
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      <span>{totalLobbyists.toLocaleString()} Lobbyists</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span>{totalClients.toLocaleString()} Clients</span>
-                    </div>
+                <div className="flex items-center gap-6 text-sm text-muted-foreground mb-4">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    <span>{totalLobbyists.toLocaleString()} Lobbyists</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    {[2024, 2025].map((year) => (
-                      <button
-                        key={year}
-                        onClick={() => setSelectedYear(year)}
-                        className={cn(
-                          'px-3 py-1.5 rounded-lg text-sm transition-colors',
-                          selectedYear === year
-                            ? 'bg-foreground text-background font-medium'
-                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                        )}
-                      >
-                        {year}
-                      </button>
-                    ))}
+                  <div className="flex items-center gap-2">
+                    <span>{totalClients.toLocaleString()} Clients</span>
                   </div>
                 </div>
               )}
@@ -402,12 +377,13 @@ const LobbyingDashboard = () => {
               <>
                 <div className="divide-y">
                   {/* Column headers */}
-                  <div className="hidden md:grid grid-cols-[1fr_44px_120px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                  <div className="hidden md:grid grid-cols-[1fr_44px_100px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
                     <span>Name</span>
                     <span className="flex items-center justify-center">
                       <MessageSquare className="h-3.5 w-3.5" />
                     </span>
-                    <span className="text-right">Amount</span>
+                    <span className="text-right">'25</span>
+                    <span className="text-right">Change</span>
                     <span className="text-right">Share</span>
                   </div>
 
@@ -427,10 +403,11 @@ const LobbyingDashboard = () => {
                   ))}
 
                   {/* Grand total row */}
-                  <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_120px_80px] gap-4 px-4 md:px-6 py-4 bg-muted/30 font-semibold">
+                  <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_100px_80px_80px] gap-4 px-4 md:px-6 py-4 bg-muted/30 font-semibold">
                     <span>Total</span>
                     <span className="hidden md:block" />
                     <span className="text-right">{formatCompactCurrency(grandTotal)}</span>
+                    <span className="hidden md:block text-right">—</span>
                     <span className="hidden md:block text-right">100%</span>
                   </div>
                 </div>
@@ -500,7 +477,7 @@ function DashboardRowItem({
       <div
         onClick={onToggle}
         className={cn(
-          "group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_120px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer transition-all duration-200 items-center",
+          "group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_100px_80px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer transition-all duration-200 items-center",
           isSelected
             ? "bg-muted/50"
             : hasSelection
@@ -560,7 +537,25 @@ function DashboardRowItem({
           {formatCompactCurrency(row.amount)}
         </span>
 
-        {/* Percentage bar */}
+        {/* Change column */}
+        <span className={cn(
+          "hidden md:block text-right text-sm tabular-nums",
+          row.pctChange === null || row.pctChange === undefined
+            ? "text-muted-foreground"
+            : row.pctChange > 0
+              ? "text-green-600"
+              : row.pctChange < 0
+                ? "text-red-600"
+                : "text-muted-foreground"
+        )}>
+          {row.pctChange === null || row.pctChange === undefined
+            ? "—"
+            : row.pctChange > 0
+              ? `+${row.pctChange.toFixed(1)}%`
+              : `${row.pctChange.toFixed(1)}%`}
+        </span>
+
+        {/* Share bar */}
         <div className="hidden md:flex items-center gap-2">
           <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
             <div
@@ -634,7 +629,7 @@ function ClientRow({ client, onChatClick }: ClientRowProps) {
   return (
     <>
       {/* Desktop */}
-      <div className="hidden md:grid grid-cols-[1fr_44px_120px_80px] gap-4 px-6 py-3 pl-14 hover:bg-muted/20 transition-colors items-center group">
+      <div className="hidden md:grid grid-cols-[1fr_44px_100px_80px_80px] gap-4 px-6 py-3 pl-14 hover:bg-muted/20 transition-colors items-center group">
         <span className="text-sm truncate">{client.name}</span>
         <div className="flex justify-center">
           <button
@@ -647,6 +642,7 @@ function ClientRow({ client, onChatClick }: ClientRowProps) {
         <span className="text-right text-sm tabular-nums">
           {client.amount > 0 ? formatCompactCurrency(client.amount) : '—'}
         </span>
+        <span className="text-right text-sm text-muted-foreground">—</span>
         <div className="flex items-center gap-2">
           <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
             <div
