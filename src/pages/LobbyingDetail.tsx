@@ -82,6 +82,37 @@ const clientColumns: ColumnDef<LobbyistClient>[] = [
     cell: ({ row }) => (
       <div className="text-muted-foreground">{row.getValue("start_date") || "N/A"}</div>
     ),
+    // Custom sort function to sort dates chronologically instead of alphabetically
+    sortingFn: (rowA, rowB) => {
+      const dateA = rowA.getValue("start_date") as string | null;
+      const dateB = rowB.getValue("start_date") as string | null;
+
+      // Handle null/empty values - push them to the end
+      if (!dateA && !dateB) return 0;
+      if (!dateA) return 1;
+      if (!dateB) return -1;
+
+      // Parse MM/DD/YYYY format to Date objects
+      const parseDate = (str: string): Date => {
+        const parts = str.split('/');
+        if (parts.length === 3) {
+          // MM/DD/YYYY format
+          return new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
+        }
+        // Fallback: try native Date parsing
+        return new Date(str);
+      };
+
+      const parsedA = parseDate(dateA);
+      const parsedB = parseDate(dateB);
+
+      // Handle invalid dates
+      if (isNaN(parsedA.getTime()) && isNaN(parsedB.getTime())) return 0;
+      if (isNaN(parsedA.getTime())) return 1;
+      if (isNaN(parsedB.getTime())) return -1;
+
+      return parsedA.getTime() - parsedB.getTime();
+    },
   },
 ];
 
