@@ -6,9 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { CardActionButtons } from "@/components/ui/CardActionButtons";
 import { ArrowUpDown, ArrowUp, ArrowDown, Search, HelpCircle } from "lucide-react";
-import { useFavorites } from "@/hooks/useFavorites";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { formatDate } from "@/utils/dateUtils";
@@ -38,7 +36,7 @@ interface CommitteeBillsTableFullProps {
   committee: Committee;
 }
 
-type SortField = 'bill_number' | 'title' | 'status_desc' | 'last_action' | 'last_action_date';
+type SortField = 'bill_number' | 'title' | 'status_desc' | 'last_action' | 'last_action_date' | 'status_date';
 type SortDirection = 'asc' | 'desc' | null;
 
 export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullProps) => {
@@ -51,8 +49,6 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
-
-  const { favoriteBillIds, toggleFavorite } = useFavorites();
 
   // Fetch bills for this committee
   useEffect(() => {
@@ -88,15 +84,6 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
 
   const handleBillClick = (bill: any) => {
     navigate(`/bills?selected=${bill.bill_id}`);
-  };
-
-  const handleAIAnalysis = async (bill: any, e: React.MouseEvent) => {
-    e.stopPropagation();
-  };
-
-  const handleFavorite = async (bill: any, e: React.MouseEvent) => {
-    e.stopPropagation();
-    await toggleFavorite(bill.bill_id);
   };
 
   const handleSort = (field: SortField) => {
@@ -146,7 +133,7 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
         let bValue: any = b[sortField] || '';
 
         // Special handling for dates
-        if (sortField === 'last_action_date') {
+        if (sortField === 'last_action_date' || sortField === 'status_date') {
           const aDate = new Date(aValue || 0);
           const bDate = new Date(bValue || 0);
           if (sortDirection === 'asc') {
@@ -240,7 +227,7 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
                                 Status {getSortIcon('status_desc')}
                               </Button>
                             </TableHead>
-                            <TableHead className="min-w-[250px]">
+                            <TableHead className="min-w-[200px]">
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Button
@@ -257,7 +244,26 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
                                 </TooltipContent>
                               </Tooltip>
                             </TableHead>
-                            <TableHead className="w-[100px]">Actions</TableHead>
+                            <TableHead className="w-[120px]">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleSort('last_action_date')}
+                                className="h-auto p-0 font-semibold hover:bg-transparent"
+                              >
+                                Action Date {getSortIcon('last_action_date')}
+                              </Button>
+                            </TableHead>
+                            <TableHead className="w-[120px]">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleSort('status_date')}
+                                className="h-auto p-0 font-semibold hover:bg-transparent"
+                              >
+                                Status Date {getSortIcon('status_date')}
+                              </Button>
+                            </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -282,22 +288,20 @@ export const CommitteeBillsTableFull = ({ committee }: CommitteeBillsTableFullPr
                               <TableCell className="text-sm text-muted-foreground">
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <div className="cursor-help">
+                                    <div className="cursor-help line-clamp-2">
                                       {bill.last_action || "No action recorded"}
                                     </div>
                                   </TooltipTrigger>
                                   <TooltipContent>
-                                    <p>{formatDate(bill.last_action_date)}</p>
+                                    <p>ALL CAPS = Senate, lowercase = Assembly</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TableCell>
-                              <TableCell>
-                                <CardActionButtons
-                                  onFavorite={(e) => handleFavorite(bill, e)}
-                                  onAIAnalysis={(e) => handleAIAnalysis(bill, e)}
-                                  isFavorited={favoriteBillIds.has(bill.bill_id)}
-                                  hasAIChat={false}
-                                />
+                              <TableCell className="text-sm text-muted-foreground">
+                                {formatDate(bill.last_action_date)}
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">
+                                {formatDate(bill.status_date)}
                               </TableCell>
                             </TableRow>
                           ))}
