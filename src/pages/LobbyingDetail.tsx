@@ -22,6 +22,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Table,
   TableBody,
   TableCell,
@@ -82,14 +87,21 @@ const clientColumns: ColumnDef<LobbyistClientWithSpending>[] = [
     accessorKey: "start_date",
     header: ({ column }) => {
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="-ml-4"
-        >
-          Relationship Start
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+              className="-ml-4"
+            >
+              Relationship Start
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>When the lobbying relationship began</p>
+          </TooltipContent>
+        </Tooltip>
       );
     },
     cell: ({ row }) => (
@@ -131,14 +143,21 @@ const clientColumns: ColumnDef<LobbyistClientWithSpending>[] = [
     accessorKey: "spending",
     header: ({ column }) => {
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="-ml-4"
-        >
-          2025 Spending
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+              className="-ml-4"
+            >
+              2025 Spending
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Total client spending on lobbying in 2025</p>
+          </TooltipContent>
+        </Tooltip>
       );
     },
     cell: ({ row }) => {
