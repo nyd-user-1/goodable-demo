@@ -3,8 +3,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { ArrowLeftIcon, ArrowRightIcon, CheckCircle2Icon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import confetti from 'canvas-confetti';
 
 export default function Advertise() {
   const { user, loading } = useAuth();
@@ -20,6 +28,11 @@ export default function Advertise() {
   const [companySize, setCompanySize] = useState('');
   const [interests, setInterests] = useState<string[]>([]);
   const [adOption, setAdOption] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+
+  // Dropdown options
+  const industryOptions = ['Government', 'Lobbying', 'Non Profit', 'Legal', 'Construction'];
+  const companySizeOptions = ['1-25', '26-50', '51-100', '101-200', '201+'];
 
   // Track if user is logged in (to avoid flash of password field)
   const isLoggedIn = !!user;
@@ -52,6 +65,7 @@ export default function Advertise() {
 
   const interestOptions = [
     'Advocacy',
+    'Appropriations',
     'Bills',
     'Budget',
     'Committees',
@@ -88,6 +102,31 @@ export default function Advertise() {
       price: 'Basic',
     },
   ];
+
+  const handleSubmit = () => {
+    setSubmitted(true);
+    // Fire confetti
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+    // Second burst for more impact
+    setTimeout(() => {
+      confetti({
+        particleCount: 50,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 }
+      });
+      confetti({
+        particleCount: 50,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 }
+      });
+    }, 250);
+  };
 
   // Show loading state while auth is being determined
   if (loading) {
@@ -218,12 +257,16 @@ export default function Advertise() {
                   <Label htmlFor="industry" className="mb-2">
                     Industry
                   </Label>
-                  <Input
-                    id="industry"
-                    placeholder="Government, Nonprofit, Legal, etc."
-                    value={industry}
-                    onChange={(e) => setIndustry(e.target.value)}
-                  />
+                  <Select value={industry} onValueChange={setIndustry}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your industry" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {industryOptions.map((opt) => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="company" className="mb-2">
@@ -240,12 +283,16 @@ export default function Advertise() {
                   <Label htmlFor="companySize" className="mb-2">
                     Company Size
                   </Label>
-                  <Input
-                    id="companySize"
-                    placeholder="1-10, 11-50, 51-200, 200+"
-                    value={companySize}
-                    onChange={(e) => setCompanySize(e.target.value)}
-                  />
+                  <Select value={companySize} onValueChange={setCompanySize}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select company size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companySizeOptions.map((opt) => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="flex gap-3 pt-4">
                   <Button variant="outline" onClick={prevStep}>
@@ -266,7 +313,7 @@ export default function Advertise() {
                   Select the topics you're interested in:
                 </p>
 
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {interestOptions.map((interest) => (
                     <div key={interest} className="flex items-center space-x-2">
                       <Checkbox
@@ -342,8 +389,19 @@ export default function Advertise() {
                   <Button variant="outline" onClick={prevStep}>
                     <ArrowLeftIcon className="mr-2 h-4 w-4" /> Back
                   </Button>
-                  <Button className="flex-1 bg-black hover:bg-black/90 text-white" disabled={!adOption}>
-                    Submit Inquiry
+                  <Button
+                    className="flex-1 bg-black hover:bg-black/90 text-white"
+                    disabled={!adOption || submitted}
+                    onClick={handleSubmit}
+                  >
+                    {submitted ? (
+                      <>
+                        <CheckCircle2Icon className="mr-2 h-4 w-4" />
+                        Thank you!
+                      </>
+                    ) : (
+                      'Submit Inquiry'
+                    )}
                   </Button>
                 </div>
               </div>
