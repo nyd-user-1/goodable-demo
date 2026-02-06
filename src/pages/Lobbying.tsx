@@ -384,8 +384,14 @@ function SpendCard({ record, onClick, onChatClick }: SpendCardProps) {
         </div>
 
         {/* Row 3: Secondary expenses (only show if has value) */}
-        {(record.expenses_less_than_75 != null || record.itemized_expenses != null) && (
-          <div className="grid grid-cols-2 gap-x-4">
+        {(record.expenses_less_than_75 != null || record.itemized_expenses != null || record.salaries_no_lobbying_employees != null) && (
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+            {record.salaries_no_lobbying_employees != null && (
+              <div>
+                <span className="text-muted-foreground">Salaries (Non-Lobbying)</span>
+                <p className="font-medium">{formatLobbyingCurrency(record.salaries_no_lobbying_employees)}</p>
+              </div>
+            )}
             {record.expenses_less_than_75 != null && (
               <div>
                 <span className="text-muted-foreground">Expenses &lt;$75</span>
