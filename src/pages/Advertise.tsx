@@ -31,7 +31,6 @@ export default function Advertise() {
   // Form state
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [industry, setIndustry] = useState('');
   const [company, setCompany] = useState('');
   const [companySize, setCompanySize] = useState('');
@@ -51,8 +50,6 @@ export default function Advertise() {
   const industryOptions = ['Government', 'Lobbying', 'Non Profit', 'Legal', 'Construction'];
   const companySizeOptions = ['1-25', '26-50', '51-100', '101-200', '201+'];
 
-  // Track if user is logged in (to avoid flash of password field)
-  const isLoggedIn = !!user;
 
   // Pre-fill from logged in user
   useEffect(() => {
@@ -121,7 +118,7 @@ export default function Advertise() {
   ];
 
   // Validation for each step
-  const isStep1Valid = name.trim() && email.trim() && (isLoggedIn || password.trim());
+  const isStep1Valid = name.trim() && email.trim();
   const isStep2Valid = industry && company.trim() && companySize;
   const isStep3Valid = interests.length > 0;
 
@@ -310,20 +307,6 @@ export default function Advertise() {
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
-                {!isLoggedIn && (
-                  <div>
-                    <Label htmlFor="password" className="mb-2">
-                      Create password
-                    </Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="********"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
-                )}
                 <div className="pt-4">
                   <Button
                     className="w-full bg-black hover:bg-black/90 text-white"
