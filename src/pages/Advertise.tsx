@@ -120,6 +120,11 @@ export default function Advertise() {
     },
   ];
 
+  // Validation for each step
+  const isStep1Valid = name.trim() && email.trim() && (isLoggedIn || password.trim());
+  const isStep2Valid = industry && company.trim() && companySize;
+  const isStep3Valid = interests.length > 0;
+
   const handleSubmit = () => {
     setSubmitted(true);
     // Fire confetti
@@ -143,6 +148,10 @@ export default function Advertise() {
         origin: { x: 1 }
       });
     }, 250);
+    // Redirect to /prompts after delay
+    setTimeout(() => {
+      navigate('/prompts');
+    }, 2000);
   };
 
   const handleNYSgptClick = () => {
@@ -316,7 +325,11 @@ export default function Advertise() {
                   </div>
                 )}
                 <div className="pt-4">
-                  <Button className="w-full bg-black hover:bg-black/90 text-white" onClick={nextStep}>
+                  <Button
+                    className="w-full bg-black hover:bg-black/90 text-white"
+                    onClick={nextStep}
+                    disabled={!isStep1Valid}
+                  >
                     Continue <ArrowRightIcon className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -337,7 +350,7 @@ export default function Advertise() {
                     </SelectTrigger>
                     <SelectContent>
                       {industryOptions.map((opt) => (
-                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                        <SelectItem key={opt} value={opt} className="focus:bg-muted focus:text-foreground">{opt}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -363,7 +376,7 @@ export default function Advertise() {
                     </SelectTrigger>
                     <SelectContent>
                       {companySizeOptions.map((opt) => (
-                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                        <SelectItem key={opt} value={opt} className="focus:bg-muted focus:text-foreground">{opt}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -372,7 +385,11 @@ export default function Advertise() {
                   <Button variant="outline" onClick={prevStep}>
                     <ArrowLeftIcon className="mr-2 h-4 w-4" /> Back
                   </Button>
-                  <Button className="flex-1 bg-black hover:bg-black/90 text-white" onClick={nextStep}>
+                  <Button
+                    className="flex-1 bg-black hover:bg-black/90 text-white"
+                    onClick={nextStep}
+                    disabled={!isStep2Valid}
+                  >
                     Continue <ArrowRightIcon className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -394,7 +411,7 @@ export default function Advertise() {
                         id={interest}
                         checked={interests.includes(interest)}
                         onCheckedChange={() => toggleInterest(interest)}
-                        className="data-[state=checked]:bg-black data-[state=checked]:border-black"
+                        className="border-black data-[state=checked]:bg-black data-[state=checked]:border-black"
                       />
                       <Label htmlFor={interest} className="cursor-pointer">
                         {interest}
@@ -407,7 +424,11 @@ export default function Advertise() {
                   <Button variant="outline" onClick={prevStep}>
                     <ArrowLeftIcon className="mr-2 h-4 w-4" /> Back
                   </Button>
-                  <Button className="flex-1 bg-black hover:bg-black/90 text-white" onClick={nextStep}>
+                  <Button
+                    className="flex-1 bg-black hover:bg-black/90 text-white"
+                    onClick={nextStep}
+                    disabled={!isStep3Valid}
+                  >
                     Continue <ArrowRightIcon className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -441,7 +462,7 @@ export default function Advertise() {
                         </div>
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                           option.price === 'Premium'
-                            ? 'bg-amber-100 text-amber-700'
+                            ? 'bg-blue-100 text-blue-600'
                             : option.price === 'Standard'
                             ? 'bg-gray-200 text-gray-700'
                             : 'bg-gray-100 text-gray-600'
@@ -471,7 +492,7 @@ export default function Advertise() {
                     {submitted ? (
                       <>
                         <CheckCircle2Icon className="mr-2 h-4 w-4" />
-                        Thank you!
+                        Inquiry received.
                       </>
                     ) : (
                       'Submit Inquiry'
