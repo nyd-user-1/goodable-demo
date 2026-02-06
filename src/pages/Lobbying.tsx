@@ -234,6 +234,12 @@ List ALL the client names provided above as bullet points between these markers.
                   >
                     Spending
                   </button>
+                  <button
+                    className="px-3 py-2 rounded-lg text-sm transition-colors text-muted-foreground hover:bg-muted hover:text-foreground"
+                    onClick={() => navigate('/lobbying-dashboard')}
+                  >
+                    Dashboard
+                  </button>
                 </div>
               </div>
             </div>
