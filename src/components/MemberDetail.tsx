@@ -172,41 +172,6 @@ export const MemberDetail = ({ member, onBack, onPrevious, onNext, hasPrevious =
           <div className="flex-1 overflow-y-auto">
             <div className="container mx-auto px-4 sm:px-6 py-6">
               <div className="max-w-7xl mx-auto space-y-6">
-                {/* Back to Members button + navigation */}
-                <div className="flex items-center justify-between">
-                  <Button
-                    variant="outline"
-                    onClick={onBack}
-                    className="flex items-center gap-2"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    <span className="hidden sm:inline">Back to Members</span>
-                    <span className="sm:hidden">Back</span>
-                  </Button>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={onPrevious}
-                      disabled={!hasPrevious}
-                      className="h-8 w-8 p-0"
-                      title="Previous member"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={onNext}
-                      disabled={!hasNext}
-                      className="h-8 w-8 p-0"
-                      title="Next member"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
         {/* Member Header Card */}
         <Card className="overflow-hidden">
           <CardContent className="p-6">

@@ -179,19 +179,6 @@ export const CommitteeDetail = ({ committee, onBack }: CommitteeDetailProps) => 
           <div className="flex-1 overflow-y-auto">
             <div className="container mx-auto px-4 sm:px-6 py-6">
               <div className="max-w-7xl mx-auto space-y-6">
-                {/* Back to Committees button */}
-                <div>
-                  <Button
-                    variant="outline"
-                    onClick={onBack}
-                    className="flex items-center gap-2"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    <span className="hidden sm:inline">Back to Committees</span>
-                    <span className="sm:hidden">Back</span>
-                  </Button>
-                </div>
-
         {/* Committee Header Card */}
         <Card className="overflow-hidden">
           <CardContent className="p-6">

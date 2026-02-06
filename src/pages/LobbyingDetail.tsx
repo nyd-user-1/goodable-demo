@@ -327,17 +327,6 @@ const LobbyingDetail = () => {
             <div className="flex-1 overflow-y-auto">
               <div className="p-4 sm:p-6 lg:p-8">
                 <div className="max-w-7xl mx-auto space-y-6">
-              {/* Back button */}
-              <Button
-                variant="outline"
-                onClick={handleBack}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span className="hidden sm:inline">Back to Lobbying</span>
-                <span className="sm:hidden">Back</span>
-              </Button>
-
               {/* Header Card */}
               <Card className="overflow-hidden">
                 <CardContent className="p-6">
@@ -503,17 +492,6 @@ const LobbyingDetail = () => {
             <div className="flex-1 overflow-y-auto">
               <div className="p-4 sm:p-6 lg:p-8">
                 <div className="max-w-7xl mx-auto space-y-6">
-              {/* Back button */}
-              <Button
-                variant="outline"
-                onClick={handleBack}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span className="hidden sm:inline">Back to Lobbying</span>
-                <span className="sm:hidden">Back</span>
-              </Button>
-
               {/* Header Card */}
               <Card className="overflow-hidden">
                 <CardContent className="p-6">
