@@ -1,5 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Info } from "lucide-react";
 import { LobbyingClientsTable } from "./LobbyingClientsTable";
 import { LobbyingIndividualLobbyists } from "./LobbyingIndividualLobbyists";
@@ -60,15 +67,22 @@ export const LobbyingTabs = ({ principalLobbyistName, clients }: LobbyingTabsPro
       </TabsContent>
 
       <TabsContent value="clients">
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Clients</h2>
-              </div>
-              <LobbyingClientsTable clients={clients} />
-            </div>
-          </CardContent>
+        <Card className="bg-card rounded-xl shadow-sm border">
+          <Accordion type="single" collapsible defaultValue="clients">
+            <AccordionItem value="clients" className="border-0">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <div className="flex items-center gap-3 w-full">
+                  <span className="text-lg font-semibold">Clients</span>
+                  <Badge variant="secondary" className="text-xs">
+                    {clients.length} {clients.length === 1 ? 'client' : 'clients'}
+                  </Badge>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6">
+                <LobbyingClientsTable clients={clients} />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </Card>
       </TabsContent>
     </Tabs>

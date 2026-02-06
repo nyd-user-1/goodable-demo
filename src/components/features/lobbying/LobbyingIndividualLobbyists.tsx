@@ -6,13 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 // Type for Individual Lobbyist from the new table
 interface IndividualLobbyist {
-  "Principal Lobbyist Name": string | null;
-  "Individual Lobbyist": string | null;
-  "Address": string | null;
-  "Address 2": string | null;
-  "City": string | null;
-  "State": string | null;
-  "Phone Number": string | null;
+  principal_lobbyist_name: string | null;
+  individual_lobbyist: string | null;
+  address: string | null;
+  address_2: string | null;
+  city: string | null;
+  state: string | null;
+  phone_number: string | null;
 }
 
 interface LobbyingIndividualLobbyistsProps {
@@ -28,10 +28,11 @@ export const LobbyingIndividualLobbyists = ({ principalLobbyistName }: LobbyingI
       setLoading(true);
       try {
         // Query the Individual_Lobbyists table by principal lobbyist name
+        // Use fuzzy matching to handle slight name variations
         const { data, error } = await supabase
           .from("Individual_Lobbyists")
           .select("*")
-          .ilike("Principal Lobbyist Name", `%${principalLobbyistName}%`);
+          .ilike("principal_lobbyist_name", `%${principalLobbyistName}%`);
 
         if (error) {
           console.error("Error fetching individual lobbyists:", error);
@@ -58,19 +59,19 @@ export const LobbyingIndividualLobbyists = ({ principalLobbyistName }: LobbyingI
   // Format address from components
   const formatAddress = (lobbyist: IndividualLobbyist): string | null => {
     const parts = [
-      lobbyist["Address"],
-      lobbyist["Address 2"],
-      lobbyist["City"],
-      lobbyist["State"]
+      lobbyist.address,
+      lobbyist.address_2,
+      lobbyist.city,
+      lobbyist.state
     ].filter(Boolean);
 
     if (parts.length === 0) return null;
 
     // Format as: Address, Address 2, City, State
-    let address = lobbyist["Address"] || "";
-    if (lobbyist["Address 2"]) address += `, ${lobbyist["Address 2"]}`;
-    if (lobbyist["City"] || lobbyist["State"]) {
-      address += `, ${[lobbyist["City"], lobbyist["State"]].filter(Boolean).join(", ")}`;
+    let address = lobbyist.address || "";
+    if (lobbyist.address_2) address += `, ${lobbyist.address_2}`;
+    if (lobbyist.city || lobbyist.state) {
+      address += `, ${[lobbyist.city, lobbyist.state].filter(Boolean).join(", ")}`;
     }
     return address;
   };
@@ -112,16 +113,16 @@ export const LobbyingIndividualLobbyists = ({ principalLobbyistName }: LobbyingI
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-semibold text-sm truncate">
-                        {lobbyist["Individual Lobbyist"] || "Unknown Lobbyist"}
+                        {lobbyist.individual_lobbyist || "Unknown Lobbyist"}
                       </h4>
                     </div>
                   </div>
 
                   <div className="space-y-2 text-xs text-muted-foreground">
-                    {lobbyist["Phone Number"] && (
+                    {lobbyist.phone_number && (
                       <div className="flex items-center gap-2">
                         <Phone className="h-3 w-3 flex-shrink-0" />
-                        <span>{lobbyist["Phone Number"]}</span>
+                        <span>{lobbyist.phone_number}</span>
                       </div>
                     )}
                     {address && (

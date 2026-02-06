@@ -1,11 +1,10 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ArrowUpDown, ArrowUp, ArrowDown, Search, HelpCircle } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react";
 import { formatLobbyingCurrency, parseCurrencyToNumber } from "@/hooks/useLobbyingSearch";
 import { LobbyingSpend, LobbyistClient } from "@/types/lobbying";
 
@@ -151,9 +150,9 @@ export const LobbyingClientsTable = ({ clients }: LobbyingClientsTableProps) => 
                             variant="ghost"
                             size="sm"
                             onClick={() => handleSort('start_date')}
-                            className="h-auto p-0 font-semibold hover:bg-transparent flex items-center gap-1"
+                            className="h-auto p-0 font-semibold hover:bg-transparent"
                           >
-                            Relationship Start {getSortIcon('start_date')} <HelpCircle className="h-3 w-3" />
+                            Registered {getSortIcon('start_date')}
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -168,9 +167,9 @@ export const LobbyingClientsTable = ({ clients }: LobbyingClientsTableProps) => 
                             variant="ghost"
                             size="sm"
                             onClick={() => handleSort('spending')}
-                            className="h-auto p-0 font-semibold hover:bg-transparent flex items-center gap-1 ml-auto"
+                            className="h-auto p-0 font-semibold hover:bg-transparent ml-auto"
                           >
-                            2025 Spending {getSortIcon('spending')} <HelpCircle className="h-3 w-3" />
+                            2025 {getSortIcon('spending')}
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -215,12 +214,6 @@ export const LobbyingClientsTable = ({ clients }: LobbyingClientsTableProps) => 
           )}
         </div>
 
-        {/* Footer with count */}
-        <div className="flex items-center justify-between">
-          <Badge variant="secondary" className="text-xs">
-            {filteredAndSortedClients.length} {filteredAndSortedClients.length === 1 ? 'client' : 'clients'}
-          </Badge>
-        </div>
       </div>
     </TooltipProvider>
   );
