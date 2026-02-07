@@ -138,7 +138,9 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   // Infinite scroll - load more chats when scrolling sidebar to bottom
   useEffect(() => {
     const scrollContainer = sidebarScrollRef.current;
-    if (!scrollContainer) return;
+    const loadMoreElement = loadMoreRef.current;
+
+    if (!scrollContainer || !loadMoreElement) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -153,12 +155,10 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
       }
     );
 
-    if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current);
-    }
+    observer.observe(loadMoreElement);
 
     return () => observer.disconnect();
-  }, [hasMore, loadingMore, loadMore]);
+  }, [hasMore, loadingMore, loadMore, recentChats.length]);
 
   // Check current theme
   useEffect(() => {
@@ -968,21 +968,19 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   </div>
                 );
               })}
-              {/* Load more trigger & skeleton */}
-              {hasMore && (
-                <div ref={loadMoreRef} className="py-2">
-                  {loadingMore && (
-                    <div className="space-y-2">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="flex items-center gap-3 px-3">
-                          <Skeleton className="h-4 w-4 rounded" />
-                          <Skeleton className="h-4 flex-1" />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Load more trigger - always rendered so IntersectionObserver can observe */}
+              <div ref={loadMoreRef} className="py-1">
+                {loadingMore && (
+                  <div className="space-y-2">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center gap-3 px-3">
+                        <Skeleton className="h-4 w-4 rounded" />
+                        <Skeleton className="h-4 flex-1" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </CollapsibleContent>
           </Collapsible>
         )}
