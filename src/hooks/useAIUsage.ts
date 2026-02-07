@@ -142,6 +142,11 @@ export const useAIUsage = () => {
 
   // Check if user can make AI request
   const canMakeRequest = useCallback((estimatedWords: number = 0) => {
+    // Admins can always make requests
+    if (isAdmin(user?.email)) {
+      return true;
+    }
+
     const today = getTodayDateString();
 
     // Reset check for new day
@@ -150,7 +155,7 @@ export const useAIUsage = () => {
     }
 
     return usage.wordsUsed + estimatedWords <= usage.dailyLimit;
-  }, [usage]);
+  }, [usage, user?.email]);
 
   // Get remaining words
   const remainingWords = Math.max(0, usage.dailyLimit - usage.wordsUsed);
@@ -160,8 +165,8 @@ export const useAIUsage = () => {
     ? 0
     : Math.min(100, (usage.wordsUsed / usage.dailyLimit) * 100);
 
-  // Check if limit is exceeded
-  const isLimitExceeded = usage.wordsUsed >= usage.dailyLimit && usage.dailyLimit !== Infinity;
+  // Check if limit is exceeded (admins never exceed)
+  const isLimitExceeded = !isAdmin(user?.email) && usage.wordsUsed >= usage.dailyLimit && usage.dailyLimit !== Infinity;
 
   // Load usage on mount and when user changes
   useEffect(() => {
