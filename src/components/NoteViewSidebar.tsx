@@ -149,6 +149,11 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
     setIsDarkMode(document.documentElement.classList.contains('dark'));
   }, []);
 
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    onClose?.();
+  }, [location.pathname]);
+
   // Fetch recent excerpts
   const fetchRecentExcerpts = useCallback(async () => {
     if (!user) return;
