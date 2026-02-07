@@ -180,7 +180,7 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
                   onMouseEnter={() => handleTabHover(index)}
                   onFocus={() => handleTabHover(index)}
                   className={cn(
-                    "relative z-10 text-sm font-normal px-3 py-2 rounded-lg transition-colors",
+                    "relative z-10 text-sm font-normal px-3 py-2 rounded-lg transition-colors min-w-[80px] text-center",
                     // Active state based on current route
                     (item.to === "/" ? location.pathname === "/" : location.pathname.startsWith(item.to))
                       ? "text-foreground"
