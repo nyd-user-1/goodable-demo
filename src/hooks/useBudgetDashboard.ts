@@ -11,9 +11,9 @@ const TAB_COLUMN: Record<DashboardTab, string> = {
 };
 
 export const TAB_LABELS: Record<DashboardTab, string> = {
-  function: 'By Function',
-  fundType: 'By Fund Type',
-  fpCategory: 'By FP Category',
+  function: 'Function',
+  fundType: 'Type',
+  fpCategory: 'Category',
 };
 
 // A single aggregated row in the dashboard table
