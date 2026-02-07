@@ -59,19 +59,19 @@ export const EngineSelection = () => {
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <button
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-left transition-colors hover:bg-muted focus:outline-none focus-visible:outline-none"
+          className="flex items-center gap-1.5 px-2 sm:px-3 py-2 rounded-lg text-left transition-colors hover:bg-muted focus:outline-none focus-visible:outline-none"
         >
           {currentModel && (
             <img src={currentModel.logo} alt="" className="h-5 w-5 rounded-sm" />
           )}
-          <span className="text-lg font-semibold text-foreground">
+          <span className="hidden sm:inline text-lg font-semibold text-foreground">
             {currentModel?.label || "Select model"}
           </span>
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        align="start"
+        align="end"
         className="w-[240px] p-2"
         sideOffset={8}
       >
