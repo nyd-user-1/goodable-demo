@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +11,7 @@ export interface ChatWithPinned extends ChatSession {
 }
 
 const PINNED_CHATS_KEY = "goodable_pinned_chats";
+const PAGE_SIZE = 15;
 
 const getPinnedChatIds = (): Set<string> => {
   try {
@@ -25,13 +26,16 @@ const savePinnedChatIds = (ids: Set<string>) => {
   localStorage.setItem(PINNED_CHATS_KEY, JSON.stringify([...ids]));
 };
 
-export const useRecentChats = (limit: number = 10) => {
+export const useRecentChats = (_limit: number = 10) => {
   const [recentChats, setRecentChats] = useState<ChatWithPinned[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(getPinnedChatIds());
   const { toast } = useToast();
+  const cursorRef = useRef<string | null>(null);
 
-  const fetchRecentChats = useCallback(async () => {
+  const fetchRecentChats = useCallback(async (reset: boolean = true) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -39,40 +43,83 @@ export const useRecentChats = (limit: number = 10) => {
         return;
       }
 
-      const { data, error } = await supabase
+      if (reset) {
+        setLoading(true);
+        cursorRef.current = null;
+      } else {
+        setLoadingMore(true);
+      }
+
+      let query = supabase
         .from("chat_sessions")
         .select("*")
         .eq("user_id", user.id)
         .order("updated_at", { ascending: false })
-        .limit(limit);
+        .limit(PAGE_SIZE);
+
+      // Apply cursor for pagination
+      if (!reset && cursorRef.current) {
+        query = query.lt("updated_at", cursorRef.current);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
-      // Add pinned status and sort with pinned first
       const currentPinnedIds = getPinnedChatIds();
       const chatsWithPinned: ChatWithPinned[] = (data || []).map(chat => ({
         ...chat,
         isPinned: currentPinnedIds.has(chat.id),
       }));
 
-      // Sort: pinned first, then by updated_at
-      chatsWithPinned.sort((a, b) => {
-        if (a.isPinned && !b.isPinned) return -1;
-        if (!a.isPinned && b.isPinned) return 1;
-        return 0; // Keep original order for same pin status
-      });
+      // Update cursor for next page
+      if (data && data.length > 0) {
+        cursorRef.current = data[data.length - 1].updated_at;
+      }
 
-      setRecentChats(chatsWithPinned);
+      // Check if there are more items
+      setHasMore(data?.length === PAGE_SIZE);
+
+      if (reset) {
+        // Sort: pinned first, then by updated_at
+        chatsWithPinned.sort((a, b) => {
+          if (a.isPinned && !b.isPinned) return -1;
+          if (!a.isPinned && b.isPinned) return 1;
+          return 0;
+        });
+        setRecentChats(chatsWithPinned);
+      } else {
+        // Append to existing chats
+        setRecentChats(prev => {
+          const combined = [...prev, ...chatsWithPinned];
+          // Re-sort to keep pinned at top
+          combined.sort((a, b) => {
+            if (a.isPinned && !b.isPinned) return -1;
+            if (!a.isPinned && b.isPinned) return 1;
+            return 0;
+          });
+          return combined;
+        });
+      }
     } catch (error) {
       console.error("Error fetching recent chats:", error);
-      setRecentChats([]);
+      if (reset) {
+        setRecentChats([]);
+      }
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  }, [limit]);
+  }, []);
+
+  const loadMore = useCallback(() => {
+    if (!loadingMore && hasMore) {
+      fetchRecentChats(false);
+    }
+  }, [loadingMore, hasMore, fetchRecentChats]);
 
   useEffect(() => {
-    fetchRecentChats();
+    fetchRecentChats(true);
   }, [fetchRecentChats]);
 
   const deleteChat = useCallback(async (chatId: string) => {
@@ -174,7 +221,10 @@ export const useRecentChats = (limit: number = 10) => {
   return {
     recentChats,
     loading,
-    refetch: fetchRecentChats,
+    loadingMore,
+    hasMore,
+    loadMore,
+    refetch: () => fetchRecentChats(true),
     deleteChat,
     togglePinChat,
     renameChat,

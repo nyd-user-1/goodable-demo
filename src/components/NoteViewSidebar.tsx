@@ -3,7 +3,7 @@
  * Slides in from off-screen outside the main container
  */
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   MessageSquare,
@@ -80,6 +80,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface NoteViewSidebarProps {
   onClose?: () => void;
@@ -95,19 +96,6 @@ interface Note {
   title: string;
   updated_at: string;
   isPinned?: boolean;
-}
-
-// Combined item type for unified list
-interface SidebarItem {
-  id: string;
-  title: string;
-  type: 'chat' | 'note' | 'excerpt';
-  updated_at: string;
-  isPinned: boolean;
-  // Chat-specific
-  isLobbyingChat?: boolean;
-  isContractChat?: boolean;
-  isSchoolFundingChat?: boolean;
 }
 
 const PINNED_NOTES_KEY = "goodable_pinned_notes";
@@ -132,7 +120,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const { user, signOut } = useAuth();
   const { subscription } = useSubscription();
   const { wordsUsed, dailyLimit, usagePercentage } = useAIUsage();
-  const { recentChats, deleteChat, togglePinChat, renameChat, refetch: refetchChats } = useRecentChats(10);
+  const { recentChats, deleteChat, togglePinChat, renameChat, refetch: refetchChats, loadMore, loadingMore, hasMore } = useRecentChats();
   const [recentExcerpts, setRecentExcerpts] = useState<Excerpt[]>([]);
   const [recentNotes, setRecentNotes] = useState<Note[]>([]);
   const [pinnedNoteIds, setPinnedNoteIds] = useState<Set<string>>(getPinnedNoteIds());
@@ -144,6 +132,25 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const [renameValue, setRenameValue] = useState("");
   const [inlineEditId, setInlineEditId] = useState<string | null>(null);
   const [inlineEditValue, setInlineEditValue] = useState("");
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // Infinite scroll - load more chats when scrolling to bottom
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loadMore]);
 
   // Check current theme
   useEffect(() => {
@@ -294,63 +301,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
     setPinnedNoteIds(newPinnedIds);
     savePinnedNoteIds(newPinnedIds);
   };
-
-  // Combine chats and notes into a single sorted list
-  const combinedItems: SidebarItem[] = useMemo(() => {
-    const items: SidebarItem[] = [];
-
-    // Add chats
-    recentChats.forEach(chat => {
-      const rawTitle = chat.title || "Untitled Chat";
-      const isLobbyingChat = rawTitle.startsWith("Tell me about") &&
-        (rawTitle.includes("LLC") || rawTitle.includes("LLP") ||
-         rawTitle.includes("INC") || rawTitle.includes("ADVISORS") ||
-         rawTitle.includes("ASSOCIATES") || rawTitle.includes("CONSULTING") ||
-         rawTitle.includes("GROUP") || rawTitle.includes("STRATEGIES") ||
-         rawTitle.includes("AFFAIRS") || rawTitle.includes("& "));
-
-      // Check both title and first user message content for contract/school funding chats
-      // (title prefix is stripped on rename, but first message content is preserved)
-      const messagesArr = Array.isArray(chat.messages) ? chat.messages as Array<{ role?: string; content?: string }> : [];
-      const firstUserContent = messagesArr.find(m => m.role === 'user')?.content || '';
-      const isContractChat = /^\[Contract:[^\]]+\]/.test(rawTitle) || /\[Contract:[^\]]+\]/.test(firstUserContent);
-      const isSchoolFundingChat = /^\[SchoolFunding:[^\]]+\]/.test(rawTitle) || /\[SchoolFunding:[^\]]+\]/.test(firstUserContent);
-
-      // Strip [Contract:...] and [SchoolFunding:...] prefixes from displayed title
-      const chatTitle = rawTitle.replace(/^\[Contract:[^\]]+\]\s*/, '').replace(/^\[SchoolFunding:[^\]]+\]\s*/, '');
-
-      items.push({
-        id: chat.id,
-        title: chatTitle,
-        type: 'chat',
-        updated_at: chat.updated_at || new Date().toISOString(),
-        isPinned: chat.isPinned,
-        isLobbyingChat,
-        isContractChat,
-        isSchoolFundingChat,
-      });
-    });
-
-    // Add notes
-    recentNotes.forEach(note => {
-      items.push({
-        id: note.id,
-        title: note.title || "Untitled Note",
-        type: 'note',
-        updated_at: note.updated_at || new Date().toISOString(),
-        isPinned: pinnedNoteIds.has(note.id),
-      });
-    });
-
-    // Sort: pinned first, then by updated_at descending
-    items.sort((a, b) => {
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
-      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-    });
-
-    return items;
-  }, [recentChats, recentNotes, pinnedNoteIds]);
 
   // Get user display name
   const displayName = user ? (user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User') : 'NYSgpt';
@@ -809,25 +759,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             <CollapsibleContent className="px-2 space-y-1">
               {recentChats.map((chat) => {
                 const rawTitle = chat.title || "Untitled Chat";
-                const messagesArr = Array.isArray(chat.messages) ? chat.messages as Array<{ role?: string; content?: string }> : [];
-                const firstUserContent = messagesArr.find(m => m.role === 'user')?.content || '';
-
-                // Detect chat types based on title or first user message
-                const isBillChat = /^Tell me about bill [A-Z]?\d+/i.test(rawTitle) ||
-                  /^Tell me about bill [A-Z]?\d+/i.test(firstUserContent);
-                const isMemberChat = /^Tell me about (Assembly [Mm]ember|Senator)/i.test(rawTitle) ||
-                  /^Tell me about (Assembly [Mm]ember|Senator)/i.test(firstUserContent);
-                const isCommitteeChat = /^Tell me about the (Assembly|Senate).*[Cc]ommittee/i.test(rawTitle) ||
-                  /^Tell me about the (Assembly|Senate).*[Cc]ommittee/i.test(firstUserContent);
-                const isLobbyingChat = !isBillChat && !isMemberChat && !isCommitteeChat &&
-                  rawTitle.startsWith("Tell me about") &&
-                  (rawTitle.includes("LLC") || rawTitle.includes("LLP") ||
-                   rawTitle.includes("INC") || rawTitle.includes("ADVISORS") ||
-                   rawTitle.includes("ASSOCIATES") || rawTitle.includes("CONSULTING") ||
-                   rawTitle.includes("GROUP") || rawTitle.includes("STRATEGIES") ||
-                   rawTitle.includes("AFFAIRS") || rawTitle.includes("& "));
-                const isContractChat = /^\[Contract:[^\]]+\]/.test(rawTitle) || /\[Contract:[^\]]+\]/.test(firstUserContent);
-                const isSchoolFundingChat = /^\[SchoolFunding:[^\]]+\]/.test(rawTitle) || /\[SchoolFunding:[^\]]+\]/.test(firstUserContent);
+                // Strip prefixes from displayed title
                 const chatTitle = rawTitle.replace(/^\[Contract:[^\]]+\]\s*/, '').replace(/^\[SchoolFunding:[^\]]+\]\s*/, '');
 
                 return (
@@ -836,18 +768,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                       <div className="flex items-center gap-3 px-3 py-2.5 md:py-2 pr-8 rounded-md text-[15px] md:text-sm bg-muted w-full">
                         {chat.isPinned ? (
                           <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
-                        ) : isBillChat ? (
-                          <ScrollText className="h-4 w-4 flex-shrink-0" />
-                        ) : isMemberChat ? (
-                          <Users className="h-4 w-4 flex-shrink-0" />
-                        ) : isCommitteeChat ? (
-                          <Landmark className="h-4 w-4 flex-shrink-0" />
-                        ) : isLobbyingChat ? (
-                          <HandCoins className="h-4 w-4 flex-shrink-0" />
-                        ) : isContractChat ? (
-                          <Wallet className="h-4 w-4 flex-shrink-0" />
-                        ) : isSchoolFundingChat ? (
-                          <GraduationCap className="h-4 w-4 flex-shrink-0" />
                         ) : (
                           <MessageSquare className="h-4 w-4 flex-shrink-0" />
                         )}
@@ -883,18 +803,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                       >
                         {chat.isPinned ? (
                           <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
-                        ) : isBillChat ? (
-                          <ScrollText className="h-4 w-4 flex-shrink-0" />
-                        ) : isMemberChat ? (
-                          <Users className="h-4 w-4 flex-shrink-0" />
-                        ) : isCommitteeChat ? (
-                          <Landmark className="h-4 w-4 flex-shrink-0" />
-                        ) : isLobbyingChat ? (
-                          <HandCoins className="h-4 w-4 flex-shrink-0" />
-                        ) : isContractChat ? (
-                          <Wallet className="h-4 w-4 flex-shrink-0" />
-                        ) : isSchoolFundingChat ? (
-                          <GraduationCap className="h-4 w-4 flex-shrink-0" />
                         ) : (
                           <MessageSquare className="h-4 w-4 flex-shrink-0" />
                         )}
@@ -933,6 +841,21 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   </div>
                 );
               })}
+              {/* Load more trigger & skeleton */}
+              {hasMore && (
+                <div ref={loadMoreRef} className="px-3 py-2">
+                  {loadingMore && (
+                    <div className="space-y-2">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="flex items-center gap-3">
+                          <Skeleton className="h-4 w-4 rounded" />
+                          <Skeleton className="h-4 flex-1" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </CollapsibleContent>
           </Collapsible>
         )}
