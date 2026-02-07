@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import confetti from "canvas-confetti";
 import {
@@ -16,6 +16,13 @@ interface ChatHeaderProps {
   onOpenSidebar?: () => void;
 }
 
+// Nav items configuration
+const NAV_ITEMS = [
+  { to: "/", label: "Chat" },
+  { to: "/prompts", label: "Prompts" },
+  { to: "/lists", label: "Lists" },
+];
+
 export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatHeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -23,6 +30,12 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
   const [internalSidebarOpen, setInternalSidebarOpen] = useState(false);
   const [sidebarMounted, setSidebarMounted] = useState(false);
   const manageOwnSidebar = !onOpenSidebar;
+
+  // Sliding indicator state
+  const navRef = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const [indicatorStyle, setIndicatorStyle] = useState({ width: 0, transform: "translateX(0px)" });
+  const [isHovering, setIsHovering] = useState(false);
 
   useEffect(() => {
     if (manageOwnSidebar) {
@@ -53,6 +66,49 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
 
     // Navigate to root with prompt to trigger "What is NYSgpt?" chat
     navigate('/?prompt=What%20is%20NYSgpt%3F');
+  };
+
+  // Calculate indicator position based on target element
+  const updateIndicator = useCallback((element: HTMLElement | null) => {
+    if (!element || !navRef.current) return;
+
+    const navRect = navRef.current.getBoundingClientRect();
+    const tabRect = element.getBoundingClientRect();
+
+    // Calculate position relative to nav container
+    const offsetX = tabRect.left - navRect.left;
+
+    setIndicatorStyle({
+      width: tabRect.width,
+      transform: `translateX(${offsetX}px)`,
+    });
+  }, []);
+
+  // Set initial indicator position on active tab
+  useEffect(() => {
+    const activeIndex = NAV_ITEMS.findIndex(item =>
+      item.to === "/" ? location.pathname === "/" : location.pathname.startsWith(item.to)
+    );
+    if (activeIndex !== -1 && tabRefs.current[activeIndex]) {
+      updateIndicator(tabRefs.current[activeIndex]);
+    }
+  }, [location.pathname, updateIndicator]);
+
+  // Handle mouse enter on a tab
+  const handleTabHover = (index: number) => {
+    setIsHovering(true);
+    updateIndicator(tabRefs.current[index]);
+  };
+
+  // Handle mouse leave from nav - return to active tab
+  const handleNavLeave = () => {
+    setIsHovering(false);
+    const activeIndex = NAV_ITEMS.findIndex(item =>
+      item.to === "/" ? location.pathname === "/" : location.pathname.startsWith(item.to)
+    );
+    if (activeIndex !== -1 && tabRefs.current[activeIndex]) {
+      updateIndicator(tabRefs.current[activeIndex]);
+    }
   };
 
   return (
@@ -95,30 +151,45 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
             </button>
           </div>
 
-          {/* Center - Navigation (desktop only) */}
-          <nav className="hidden md:flex items-center justify-center gap-1 absolute left-1/2 -translate-x-1/2">
-            <Link
-              to="/"
-              className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
-            >
-              Chat
-            </Link>
+          {/* Center - Navigation with sliding indicator (desktop only) */}
+          <div
+            ref={navRef}
+            className="hidden md:flex items-center justify-center absolute left-1/2 -translate-x-1/2 relative"
+            onMouseLeave={handleNavLeave}
+          >
+            {/* Sliding indicator - single element that moves between tabs */}
+            <div
+              className={cn(
+                "absolute top-0 left-0 h-full rounded-lg bg-muted pointer-events-none",
+                "transition-all duration-200 ease-out"
+              )}
+              style={{
+                width: indicatorStyle.width,
+                transform: indicatorStyle.transform,
+                opacity: indicatorStyle.width > 0 ? 1 : 0,
+              }}
+            />
 
-            <Link
-              to="/prompts"
-              className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
-            >
-              Prompts
-            </Link>
-
-            <Link
-              to="/lists"
-              className="text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-2 rounded-lg transition-colors"
-            >
-              Lists
-            </Link>
-
-          </nav>
+            {/* Tab links - no individual hover backgrounds */}
+            {NAV_ITEMS.map((item, index) => (
+              <Link
+                key={item.to}
+                ref={(el) => { tabRefs.current[index] = el; }}
+                to={item.to}
+                onMouseEnter={() => handleTabHover(index)}
+                onFocus={() => handleTabHover(index)}
+                className={cn(
+                  "relative z-10 text-sm font-normal px-3 py-2 rounded-lg transition-colors",
+                  // Active state based on current route
+                  (item.to === "/" ? location.pathname === "/" : location.pathname.startsWith(item.to))
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
 
           {/* Right side - Controls */}
           <div className="flex items-center gap-2">
