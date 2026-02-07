@@ -617,9 +617,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               </TooltipContent>
             </Tooltip>
 
-            {/* Separator */}
-            <div className="my-2 mx-3 border-t border-border/50" />
-
             {/* Pro Plan Section */}
             <Collapsible className="group/pro">
               <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal text-foreground hover:bg-muted transition-colors">
