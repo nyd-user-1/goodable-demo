@@ -133,16 +133,24 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const [inlineEditId, setInlineEditId] = useState<string | null>(null);
   const [inlineEditValue, setInlineEditValue] = useState("");
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Infinite scroll - load more chats when scrolling to bottom
   useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loadingMore) {
           loadMore();
         }
       },
-      { threshold: 0.1 }
+      {
+        root: scrollContainer,
+        threshold: 0.1,
+        rootMargin: '100px'
+      }
     );
 
     if (loadMoreRef.current) {
@@ -505,7 +513,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
       </div>
 
       {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-y-auto py-2">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto py-2">
         {/* Research Navigation - No collapsible */}
         <div className="px-2 space-y-1">
             <Tooltip>
@@ -1035,24 +1043,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             </CollapsibleContent>
           </div>
         </Collapsible>
-
-        {/* Features & Use Cases - hidden on mobile */}
-        <div className="hidden sm:block space-y-1 pt-1">
-          <button
-            onClick={() => { navigate('/features'); onClose?.(); }}
-            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-normal transition-colors hover:bg-muted w-full text-left text-muted-foreground"
-          >
-            <Sparkles className="h-4 w-4" />
-            <span>Features</span>
-          </button>
-          <button
-            onClick={() => { navigate('/use-cases'); onClose?.(); }}
-            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-normal transition-colors hover:bg-muted w-full text-left text-muted-foreground"
-          >
-            <Briefcase className="h-4 w-4" />
-            <span>Use Cases</span>
-          </button>
-        </div>
 
       </div>
 
