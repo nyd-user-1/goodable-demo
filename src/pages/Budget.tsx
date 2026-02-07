@@ -234,13 +234,13 @@ const Budget = () => {
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 overflow-x-auto pb-1 -mb-1 scrollbar-hide">
                   {tabs.map((tab) => (
                     <button
                       key={tab.id}
                       onClick={() => handleTabChange(tab.id)}
                       className={cn(
-                        'px-4 py-2 rounded-full text-sm font-medium transition-colors',
+                        'px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap',
                         activeTab === tab.id
                           ? 'bg-foreground text-background'
                           : 'bg-muted hover:bg-muted/80 text-foreground'
@@ -251,14 +251,14 @@ const Budget = () => {
                   ))}
                   <button
                     onClick={() => navigate('/budget-dashboard')}
-                    className="px-4 py-2 rounded-full text-sm font-medium transition-colors bg-muted hover:bg-muted/80 text-foreground"
+                    className="px-4 py-2 rounded-full text-sm font-medium transition-colors bg-muted hover:bg-muted/80 text-foreground whitespace-nowrap"
                   >
                     Dashboard
                   </button>
                 </div>
 
                 {/* Filters row */}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex gap-2 overflow-x-auto pb-1 -mb-1 scrollbar-hide">
                   <Select value={agencyFilter || 'all'} onValueChange={(v) => setAgencyFilter(v === 'all' ? '' : v)}>
                     <SelectTrigger className="w-auto border-0 bg-muted/40 hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted focus:ring-0 focus:ring-offset-0 [&>svg]:hidden">
                       <SelectValue placeholder="Agency" />
