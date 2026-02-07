@@ -36,9 +36,20 @@ BEGIN
       cs.id,
       'chat'::TEXT AS type,
       cs.title,
-      -- Extract first user message as preview
-      (SELECT msg->>'content' FROM jsonb_array_elements(cs.messages::jsonb) AS msg
-       WHERE msg->>'role' = 'user' LIMIT 1)::TEXT AS preview_text,
+      -- Extract snippet centered around the search term
+      (SELECT
+        CASE
+          WHEN position(LOWER(p_query) IN LOWER(msg->>'content')) > 0 THEN
+            SUBSTRING(
+              msg->>'content',
+              GREATEST(1, position(LOWER(p_query) IN LOWER(msg->>'content')) - 50),
+              200
+            )
+          ELSE LEFT(msg->>'content', 200)
+        END
+       FROM jsonb_array_elements(cs.messages::jsonb) AS msg
+       WHERE msg->>'content' ILIKE '%' || p_query || '%'
+       LIMIT 1)::TEXT AS preview_text,
       cs.created_at,
       cs.updated_at AS last_activity_at,
       ts_rank(cs.search_vector, search_query) AS relevance
@@ -55,8 +66,10 @@ BEGIN
       cs.id,
       'chat'::TEXT AS type,
       cs.title,
-      (SELECT msg->>'content' FROM jsonb_array_elements(cs.messages::jsonb) AS msg
-       WHERE msg->>'role' = 'user' LIMIT 1)::TEXT AS preview_text,
+      (SELECT LEFT(msg->>'content', 200)
+       FROM jsonb_array_elements(cs.messages::jsonb) AS msg
+       WHERE msg->>'role' = 'user'
+       LIMIT 1)::TEXT AS preview_text,
       cs.created_at,
       cs.updated_at AS last_activity_at,
       1.0::REAL AS relevance
