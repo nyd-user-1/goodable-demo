@@ -765,7 +765,11 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               </CollapsibleTrigger>
             </div>
             <CollapsibleContent>
-              <div ref={chatScrollRef} className="px-2 space-y-1 max-h-[60vh] overflow-y-auto">
+              <div
+                ref={chatScrollRef}
+                className="px-2 space-y-1 overflow-y-auto"
+                style={{ maxHeight: '400px' }}
+              >
               {recentChats.map((chat) => {
                 const rawTitle = chat.title || "Untitled Chat";
                 // Strip prefixes from displayed title
