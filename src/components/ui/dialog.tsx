@@ -53,7 +53,7 @@ const DialogContent = React.forwardRef<
 ))
 DialogContent.displayName = DialogPrimitive.Content.displayName
 
-// Variant without overlay - for command palette / search modal style
+// Variant without overlay - for command palette / search modal style (ChatGPT-like)
 const DialogContentNoOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
@@ -62,7 +62,7 @@ const DialogContentNoOverlay = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[20%] z-50 grid w-[calc(100%-2rem)] max-w-lg translate-x-[-50%] gap-4 border bg-background p-0 shadow-2xl duration-500 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 rounded-xl",
+        "fixed left-[50%] top-[20%] z-50 grid w-[calc(100%-2rem)] max-w-md md:max-w-[680px] md:min-w-[680px] translate-x-[-50%] border bg-background p-0 rounded-2xl shadow-[0_14px_62px_0_rgba(0,0,0,0.25)] focus:outline-hidden",
         className
       )}
       {...props}
