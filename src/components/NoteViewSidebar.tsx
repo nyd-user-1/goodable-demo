@@ -938,8 +938,8 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           </div>
         </Collapsible>
 
-        {/* Features & Use Cases */}
-        <div className="space-y-1 pt-1">
+        {/* Features & Use Cases - hidden on mobile */}
+        <div className="hidden sm:block space-y-1 pt-1">
           <button
             onClick={() => { navigate('/features'); onClose?.(); }}
             className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-normal transition-colors hover:bg-muted w-full text-left text-muted-foreground"
