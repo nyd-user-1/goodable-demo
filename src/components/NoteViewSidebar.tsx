@@ -133,12 +133,12 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const [inlineEditId, setInlineEditId] = useState<string | null>(null);
   const [inlineEditValue, setInlineEditValue] = useState("");
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const sidebarScrollRef = useRef<HTMLDivElement>(null);
 
-  // Infinite scroll - load more chats when scrolling within the chat list
+  // Infinite scroll - load more chats when scrolling sidebar to bottom
   useEffect(() => {
-    const chatScrollContainer = chatScrollRef.current;
-    if (!chatScrollContainer) return;
+    const scrollContainer = sidebarScrollRef.current;
+    if (!scrollContainer) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -147,9 +147,9 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
         }
       },
       {
-        root: chatScrollContainer,
+        root: scrollContainer,
         threshold: 0.1,
-        rootMargin: '50px'
+        rootMargin: '100px'
       }
     );
 
@@ -513,7 +513,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
       </div>
 
       {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-y-auto py-2">
+      <div ref={sidebarScrollRef} className="flex-1 overflow-y-auto py-2">
         {/* Research Navigation - No collapsible */}
         <div className="px-2 space-y-1">
             <Tooltip>
@@ -755,128 +755,9 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
 
         </div>
 
-        {/* Your Chats Section */}
-        {recentChats.length > 0 && (
-          <Collapsible className="group/chats mt-4">
-            <div className="px-2">
-              <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
-                Your Chats
-                <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/chats:rotate-90" />
-              </CollapsibleTrigger>
-            </div>
-            <CollapsibleContent>
-              <div
-                ref={chatScrollRef}
-                className="px-2 space-y-1 overflow-y-auto"
-                style={{ maxHeight: '400px' }}
-              >
-              {recentChats.map((chat) => {
-                const rawTitle = chat.title || "Untitled Chat";
-                // Strip prefixes from displayed title
-                const chatTitle = rawTitle.replace(/^\[Contract:[^\]]+\]\s*/, '').replace(/^\[SchoolFunding:[^\]]+\]\s*/, '');
-
-                return (
-                  <div key={`chat-${chat.id}`} className="group/item relative">
-                    {inlineEditId === chat.id ? (
-                      <div className="flex items-center gap-3 px-3 py-2.5 md:py-2 pr-8 rounded-md text-[15px] md:text-sm bg-muted w-full">
-                        {chat.isPinned ? (
-                          <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
-                        ) : (
-                          <MessageSquare className="h-4 w-4 flex-shrink-0" />
-                        )}
-                        <input
-                          autoFocus
-                          className="flex-1 bg-transparent outline-none text-[15px] md:text-sm min-w-0"
-                          value={inlineEditValue}
-                          onChange={(e) => setInlineEditValue(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              handleInlineRenameSubmit(chat.id, 'chat');
-                            } else if (e.key === 'Escape') {
-                              setInlineEditId(null);
-                            }
-                          }}
-                          onBlur={() => handleInlineRenameSubmit(chat.id, 'chat')}
-                        />
-                      </div>
-                    ) : (
-                      <NavLink
-                        to={`/c/${chat.id}`}
-                        onClick={onClose}
-                        onDoubleClick={(e) => {
-                          e.preventDefault();
-                          setInlineEditId(chat.id);
-                          setInlineEditValue(chatTitle);
-                        }}
-                        className={cn(
-                          "flex items-center gap-3 px-3 py-2.5 md:py-2 pr-8 rounded-md text-[15px] md:text-sm transition-colors",
-                          location.pathname === `/c/${chat.id}` ? "bg-muted" : "hover:bg-muted"
-                        )}
-                      >
-                        {chat.isPinned ? (
-                          <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
-                        ) : (
-                          <MessageSquare className="h-4 w-4 flex-shrink-0" />
-                        )}
-                        <span className="truncate">{chatTitle}</span>
-                      </NavLink>
-                    )}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover/item:opacity-100 transition-opacity"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" side="right">
-                        <DropdownMenuItem onClick={() => handleRenameClick(chat.id, chatTitle, 'chat')}>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Rename
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => togglePinChat(chat.id)}>
-                          <Pin className="h-4 w-4 mr-2" />
-                          {chat.isPinned ? "Unpin Chat" : "Pin Chat"}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => deleteChat(chat.id)}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                );
-              })}
-              {/* Load more trigger & skeleton */}
-              {hasMore && (
-                <div ref={loadMoreRef} className="px-3 py-2">
-                  {loadingMore && (
-                    <div className="space-y-2">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="flex items-center gap-3">
-                          <Skeleton className="h-4 w-4 rounded" />
-                          <Skeleton className="h-4 flex-1" />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        )}
-
-        {/* Your Notes Section */}
+        {/* Your Notes Section - ABOVE chats */}
         {recentNotes.length > 0 && (
-          <Collapsible className="group/notes mt-2">
+          <Collapsible className="group/notes mt-4">
             <div className="px-2">
               <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
                 Your Notes
@@ -966,7 +847,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           </Collapsible>
         )}
 
-        {/* Your Excerpts Section */}
+        {/* Your Excerpts Section - ABOVE chats */}
         {recentExcerpts.length > 0 && (
           <Collapsible className="group/excerpts mt-2">
             <div className="px-2">
@@ -990,6 +871,118 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   <span className="truncate">{excerpt.title}</span>
                 </NavLink>
               ))}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
+        {/* Your Chats Section - AT BOTTOM for infinite scroll */}
+        {recentChats.length > 0 && (
+          <Collapsible className="group/chats mt-2" defaultOpen>
+            <div className="px-2">
+              <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
+                Your Chats
+                <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/chats:rotate-90" />
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent className="px-2 space-y-1">
+              {recentChats.map((chat) => {
+                const rawTitle = chat.title || "Untitled Chat";
+                const chatTitle = rawTitle.replace(/^\[Contract:[^\]]+\]\s*/, '').replace(/^\[SchoolFunding:[^\]]+\]\s*/, '');
+
+                return (
+                  <div key={`chat-${chat.id}`} className="group/item relative">
+                    {inlineEditId === chat.id ? (
+                      <div className="flex items-center gap-3 px-3 py-2.5 md:py-2 pr-8 rounded-md text-[15px] md:text-sm bg-muted w-full">
+                        {chat.isPinned ? (
+                          <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
+                        ) : (
+                          <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                        )}
+                        <input
+                          autoFocus
+                          className="flex-1 bg-transparent outline-none text-[15px] md:text-sm min-w-0"
+                          value={inlineEditValue}
+                          onChange={(e) => setInlineEditValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleInlineRenameSubmit(chat.id, 'chat');
+                            } else if (e.key === 'Escape') {
+                              setInlineEditId(null);
+                            }
+                          }}
+                          onBlur={() => handleInlineRenameSubmit(chat.id, 'chat')}
+                        />
+                      </div>
+                    ) : (
+                      <NavLink
+                        to={`/c/${chat.id}`}
+                        onClick={onClose}
+                        onDoubleClick={(e) => {
+                          e.preventDefault();
+                          setInlineEditId(chat.id);
+                          setInlineEditValue(chatTitle);
+                        }}
+                        className={cn(
+                          "flex items-center gap-3 px-3 py-2.5 md:py-2 pr-8 rounded-md text-[15px] md:text-sm transition-colors",
+                          location.pathname === `/c/${chat.id}` ? "bg-muted" : "hover:bg-muted"
+                        )}
+                      >
+                        {chat.isPinned ? (
+                          <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
+                        ) : (
+                          <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                        )}
+                        <span className="truncate">{chatTitle}</span>
+                      </NavLink>
+                    )}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover/item:opacity-100 transition-opacity"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" side="right">
+                        <DropdownMenuItem onClick={() => handleRenameClick(chat.id, chatTitle, 'chat')}>
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => togglePinChat(chat.id)}>
+                          <Pin className="h-4 w-4 mr-2" />
+                          {chat.isPinned ? "Unpin Chat" : "Pin Chat"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => deleteChat(chat.id)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                );
+              })}
+              {/* Load more trigger & skeleton */}
+              {hasMore && (
+                <div ref={loadMoreRef} className="py-2">
+                  {loadingMore && (
+                    <div className="space-y-2">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="flex items-center gap-3 px-3">
+                          <Skeleton className="h-4 w-4 rounded" />
+                          <Skeleton className="h-4 flex-1" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </CollapsibleContent>
           </Collapsible>
         )}
