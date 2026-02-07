@@ -40,6 +40,7 @@ import {
   Flag,
   Sparkles,
   Briefcase,
+  ArrowUpRight,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -511,15 +512,15 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                 onClose?.();
               }}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors w-full text-left",
+                "group flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors w-full text-left",
                 "hover:bg-muted"
               )}
             >
               <Search className="h-4 w-4" />
               <span className="flex-1">Search</span>
-              <kbd className="hidden sm:inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-                <span className="text-xs">⌘</span>K
-              </kbd>
+              <span className="hidden sm:block text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                ⌘K
+              </span>
             </button>
           </TooltipTrigger>
           <TooltipContent side="right">
@@ -560,12 +561,13 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/bills"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
+                    "group flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
                     isActive("/bills") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
                   <ScrollText className="h-4 w-4" />
-                  <span>Bills</span>
+                  <span className="flex-1">Bills</span>
+                  <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                 </NavLink>
               </TooltipTrigger>
               <TooltipContent side="right">
@@ -579,12 +581,13 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/committees"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
+                    "group flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
                     isActive("/committees") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
                   <Landmark className="h-4 w-4" />
-                  <span>Committees</span>
+                  <span className="flex-1">Committees</span>
+                  <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                 </NavLink>
               </TooltipTrigger>
               <TooltipContent side="right">
@@ -598,12 +601,13 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/departments"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
+                    "group flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
                     isActive("/departments") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
                   <BookCheck className="h-4 w-4" />
-                  <span>Departments</span>
+                  <span className="flex-1">Departments</span>
+                  <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                 </NavLink>
               </TooltipTrigger>
               <TooltipContent side="right">
@@ -617,12 +621,13 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/members"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
+                    "group flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
                     isActive("/members") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
                   <Users className="h-4 w-4" />
-                  <span>Members</span>
+                  <span className="flex-1">Members</span>
+                  <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                 </NavLink>
               </TooltipTrigger>
               <TooltipContent side="right">
@@ -637,15 +642,15 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/new-note"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
+                    "group flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
                     isActive("/new-note") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
                   <NotebookPen className="h-4 w-4" />
                   <span className="flex-1">Notes</span>
-                  <kbd className="hidden sm:inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-                    <span className="text-xs">⇧⌘</span>O
-                  </kbd>
+                  <span className="hidden sm:block text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                    ⇧⌘O
+                  </span>
                 </NavLink>
               </TooltipTrigger>
               <TooltipContent side="right">
