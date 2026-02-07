@@ -37,7 +37,7 @@ BEGIN
       'chat'::TEXT AS type,
       cs.title,
       -- Extract first user message as preview
-      (SELECT content FROM jsonb_array_elements(cs.messages::jsonb) AS msg
+      (SELECT msg->>'content' FROM jsonb_array_elements(cs.messages::jsonb) AS msg
        WHERE msg->>'role' = 'user' LIMIT 1)::TEXT AS preview_text,
       cs.created_at,
       cs.updated_at AS last_activity_at,
@@ -55,7 +55,7 @@ BEGIN
       cs.id,
       'chat'::TEXT AS type,
       cs.title,
-      (SELECT content FROM jsonb_array_elements(cs.messages::jsonb) AS msg
+      (SELECT msg->>'content' FROM jsonb_array_elements(cs.messages::jsonb) AS msg
        WHERE msg->>'role' = 'user' LIMIT 1)::TEXT AS preview_text,
       cs.created_at,
       cs.updated_at AS last_activity_at,

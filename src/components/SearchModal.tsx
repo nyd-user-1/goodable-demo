@@ -180,6 +180,40 @@ function groupPromptsByCategory(prompts: Prompt[]): Record<string, Prompt[]> {
   return groups;
 }
 
+// Format date for display (e.g., "Feb 5", "Jan 24")
+function formatSearchDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+
+  if (date >= today) return "Today";
+  if (date >= yesterday) return "Yesterday";
+
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+// Extract snippet around search term with context
+function extractSnippet(text: string | null, searchTerm: string, maxLength: number = 100): { before: string; match: string; after: string } | null {
+  if (!text || !searchTerm) return null;
+
+  const lowerText = text.toLowerCase();
+  const lowerTerm = searchTerm.toLowerCase();
+  const index = lowerText.indexOf(lowerTerm);
+
+  if (index === -1) return null;
+
+  // Get context around the match
+  const contextStart = Math.max(0, index - 30);
+  const contextEnd = Math.min(text.length, index + searchTerm.length + 70);
+
+  const before = (contextStart > 0 ? "..." : "") + text.slice(contextStart, index);
+  const match = text.slice(index, index + searchTerm.length);
+  const after = text.slice(index + searchTerm.length, contextEnd) + (contextEnd < text.length ? "..." : "");
+
+  return { before, match, after };
+}
+
 export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOpenChange }: Partial<SearchModalProps>) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -390,20 +424,36 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
     return (
       <div key={label}>
         <p className="px-4 py-2 text-xs font-medium text-muted-foreground">{label}</p>
-        {items.map(item => (
-          <button
-            key={`${item.type}-${item.id}`}
-            onClick={() => handleItemClick(item.type, item.id)}
-            className="flex items-center gap-3 w-full px-4 py-2 text-sm hover:bg-muted transition-colors text-left"
-          >
-            {item.type === "chat" ? (
-              <MessageSquare className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            ) : (
-              <NotebookPen className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            )}
-            <span className="truncate">{item.title || "Untitled"}</span>
-          </button>
-        ))}
+        {items.map(item => {
+          const snippet = debouncedTerm ? extractSnippet(item.preview_text, debouncedTerm) : null;
+
+          return (
+            <button
+              key={`${item.type}-${item.id}`}
+              onClick={() => handleItemClick(item.type, item.id)}
+              className="flex items-start gap-3 w-full px-4 py-3 text-sm hover:bg-muted transition-colors text-left"
+            >
+              {item.type === "chat" ? (
+                <MessageSquare className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+              ) : (
+                <NotebookPen className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="font-medium truncate">{item.title || "Untitled"}</div>
+                {snippet && (
+                  <div className="text-muted-foreground text-xs mt-0.5 line-clamp-1">
+                    {snippet.before}
+                    <span className="font-semibold text-foreground">{snippet.match}</span>
+                    {snippet.after}
+                  </div>
+                )}
+              </div>
+              <span className="text-xs text-muted-foreground flex-shrink-0 ml-2">
+                {formatSearchDate(item.last_activity_at)}
+              </span>
+            </button>
+          );
+        })}
       </div>
     );
   };
@@ -446,8 +496,8 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
           ))}
         </div>
 
-        {/* Results */}
-        <div className="max-h-[400px] overflow-y-auto">
+        {/* Results - fixed height container */}
+        <div className="h-[400px] overflow-y-auto">
           {/* All Tab */}
           {activeTab === "all" && (
             <>
@@ -528,7 +578,7 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
 
           {/* Empty / No Results State */}
           {!hasResults && !isSearching && (
-            <div className="p-8 text-center text-muted-foreground">
+            <div className="flex items-center justify-center h-full text-muted-foreground">
               {debouncedTerm ? (
                 <p>No results found for "{debouncedTerm}"</p>
               ) : (
@@ -537,11 +587,18 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
             </div>
           )}
 
-          {/* Loading State */}
-          {isSearching && !hasResults && (
-            <div className="p-8 text-center text-muted-foreground">
-              <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
-              <p>Searching...</p>
+          {/* Skeleton Loading State */}
+          {isSearching && (
+            <div className="py-2">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="flex items-center gap-3 px-4 py-3">
+                  <div className="h-5 w-5 rounded-full bg-muted animate-pulse" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-3/5 bg-muted animate-pulse rounded" />
+                    <div className="h-3 w-4/5 bg-muted animate-pulse rounded" />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

@@ -19,11 +19,13 @@ RETURNS TRIGGER AS $$
 DECLARE
   first_user_message TEXT;
 BEGIN
-  -- Extract first user message from messages JSON array
-  SELECT content INTO first_user_message
-  FROM jsonb_array_elements(NEW.messages::jsonb) AS msg
-  WHERE msg->>'role' = 'user'
-  LIMIT 1;
+  -- Extract first user message from messages JSON array (only if messages is a valid array)
+  IF NEW.messages IS NOT NULL AND jsonb_typeof(NEW.messages::jsonb) = 'array' THEN
+    SELECT msg->>'content' INTO first_user_message
+    FROM jsonb_array_elements(NEW.messages::jsonb) AS msg
+    WHERE msg->>'role' = 'user'
+    LIMIT 1;
+  END IF;
 
   -- Combine title and first user message for search
   NEW.search_vector :=
