@@ -152,43 +152,45 @@ export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatH
           </div>
 
           {/* Center - Navigation with sliding indicator (desktop only) */}
-          <div
-            ref={navRef}
-            className="hidden md:flex items-center justify-center absolute left-1/2 -translate-x-1/2 relative"
-            onMouseLeave={handleNavLeave}
-          >
-            {/* Sliding indicator - single element that moves between tabs */}
+          <div className="hidden md:flex items-center justify-center absolute left-1/2 -translate-x-1/2">
             <div
-              className={cn(
-                "absolute top-0 left-0 h-full rounded-lg bg-muted pointer-events-none",
-                "transition-all duration-200 ease-out"
-              )}
-              style={{
-                width: indicatorStyle.width,
-                transform: indicatorStyle.transform,
-                opacity: indicatorStyle.width > 0 ? 1 : 0,
-              }}
-            />
-
-            {/* Tab links - no individual hover backgrounds */}
-            {NAV_ITEMS.map((item, index) => (
-              <Link
-                key={item.to}
-                ref={(el) => { tabRefs.current[index] = el; }}
-                to={item.to}
-                onMouseEnter={() => handleTabHover(index)}
-                onFocus={() => handleTabHover(index)}
+              ref={navRef}
+              className="relative flex items-center"
+              onMouseLeave={handleNavLeave}
+            >
+              {/* Sliding indicator - single element that moves between tabs */}
+              <div
                 className={cn(
-                  "relative z-10 text-sm font-normal px-3 py-2 rounded-lg transition-colors",
-                  // Active state based on current route
-                  (item.to === "/" ? location.pathname === "/" : location.pathname.startsWith(item.to))
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
+                  "absolute top-0 left-0 h-full rounded-lg bg-muted pointer-events-none",
+                  "transition-all duration-200 ease-out"
                 )}
-              >
-                {item.label}
-              </Link>
-            ))}
+                style={{
+                  width: indicatorStyle.width,
+                  transform: indicatorStyle.transform,
+                  opacity: indicatorStyle.width > 0 ? 1 : 0,
+                }}
+              />
+
+              {/* Tab links - no individual hover backgrounds */}
+              {NAV_ITEMS.map((item, index) => (
+                <Link
+                  key={item.to}
+                  ref={(el) => { tabRefs.current[index] = el; }}
+                  to={item.to}
+                  onMouseEnter={() => handleTabHover(index)}
+                  onFocus={() => handleTabHover(index)}
+                  className={cn(
+                    "relative z-10 text-sm font-normal px-3 py-2 rounded-lg transition-colors",
+                    // Active state based on current route
+                    (item.to === "/" ? location.pathname === "/" : location.pathname.startsWith(item.to))
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           </div>
 
           {/* Right side - Controls */}
