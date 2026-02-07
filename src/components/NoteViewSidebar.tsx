@@ -467,25 +467,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
 
       {/* Fixed Top Actions */}
       <div className="flex-shrink-0 px-2 py-2 space-y-1">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <NavLink
-              to="/prompts"
-              onClick={onClose}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                isActive("/prompts") ? "bg-muted" : "hover:bg-muted"
-              )}
-            >
-              <Flag className="h-4 w-4" />
-              <span>Prompts</span>
-            </NavLink>
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            <p>Browse prompts & lists</p>
-          </TooltipContent>
-        </Tooltip>
-
+        {/* #1 Chats */}
         <Tooltip>
           <TooltipTrigger asChild>
             <NavLink
@@ -520,22 +502,45 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           </TooltipContent>
         </Tooltip>
 
+        {/* #2 Search */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => {
+                document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true, bubbles: true }));
+                onClose?.();
+              }}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors w-full text-left",
+                "hover:bg-muted"
+              )}
+            >
+              <Search className="h-4 w-4" />
+              <span>Search</span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <p>Search everything</p>
+          </TooltipContent>
+        </Tooltip>
+
+        {/* #3 Prompts */}
         <Tooltip>
           <TooltipTrigger asChild>
             <NavLink
-              to="/new-note"
+              to="/prompts"
               onClick={onClose}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                isActive("/new-note") ? "bg-muted" : "hover:bg-muted"
+                isActive("/prompts") ? "bg-muted" : "hover:bg-muted"
               )}
             >
-              <NotebookPen className="h-4 w-4" />
-              <span>Notes</span>
+              <Flag className="h-4 w-4" />
+              <span>Prompts</span>
             </NavLink>
           </TooltipTrigger>
           <TooltipContent side="right">
-            <p>Create a new note</p>
+            <p>Browse prompts & lists</p>
           </TooltipContent>
         </Tooltip>
 
@@ -619,6 +624,26 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               </TooltipTrigger>
               <TooltipContent side="right">
                 <p>View elected officials</p>
+              </TooltipContent>
+            </Tooltip>
+
+            {/* Notes - after Members */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <NavLink
+                  to="/new-note"
+                  onClick={onClose}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
+                    isActive("/new-note") ? "bg-muted" : "hover:bg-muted"
+                  )}
+                >
+                  <NotebookPen className="h-4 w-4" />
+                  <span>Notes</span>
+                </NavLink>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Create a new note</p>
               </TooltipContent>
             </Tooltip>
 
