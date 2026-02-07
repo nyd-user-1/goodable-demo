@@ -439,7 +439,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           >
             <Search className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => navigate(user ? '/new-chat' : '/')}>
+          <Button variant="ghost" size="icon" className="hidden sm:inline-flex h-9 w-9" onClick={() => navigate(user ? '/new-chat' : '/')}>
             <Home className="h-5 w-5" />
           </Button>
 
