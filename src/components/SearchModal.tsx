@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Dialog,
-  DialogContent,
+  DialogContentNoOverlay,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
@@ -524,7 +524,7 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[724px] p-0 gap-0 overflow-hidden">
+      <DialogContentNoOverlay className="sm:max-w-[724px] p-0 gap-0 overflow-hidden">
         {/* Search Input */}
         <div className="flex items-center border-b px-3">
           <Search className="h-4 w-4 text-muted-foreground mr-2" />
@@ -919,7 +919,7 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
             Open
           </span>
         </div>
-      </DialogContent>
+      </DialogContentNoOverlay>
     </Dialog>
   );
 }

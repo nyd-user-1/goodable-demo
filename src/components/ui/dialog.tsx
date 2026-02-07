@@ -53,6 +53,26 @@ const DialogContent = React.forwardRef<
 ))
 DialogContent.displayName = DialogPrimitive.Content.displayName
 
+// Variant without overlay - for command palette / search modal style
+const DialogContentNoOverlay = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+  <DialogPortal>
+    <DialogPrimitive.Content
+      ref={ref}
+      className={cn(
+        "fixed left-[50%] top-[20%] z-50 grid w-[calc(100%-2rem)] max-w-lg translate-x-[-50%] gap-4 border bg-background p-0 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 rounded-xl",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </DialogPrimitive.Content>
+  </DialogPortal>
+))
+DialogContentNoOverlay.displayName = "DialogContentNoOverlay"
+
 const DialogHeader = ({
   className,
   ...props
@@ -115,6 +135,7 @@ export {
   DialogClose,
   DialogTrigger,
   DialogContent,
+  DialogContentNoOverlay,
   DialogHeader,
   DialogFooter,
   DialogTitle,
