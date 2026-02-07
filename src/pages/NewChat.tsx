@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChatPersistence } from "@/hooks/useChatPersistence";
-import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, PanelLeft, HandCoins, Lightbulb, Check } from "lucide-react";
+import { ArrowUp, ArrowDown, Square, Search as SearchIcon, FileText, Users, Building2, Wallet, Paperclip, X, PanelLeft, HandCoins, Lightbulb, Check, Plus, ChevronRight } from "lucide-react";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { Contract } from "@/types/contracts";
 import { Button } from "@/components/ui/button";
@@ -288,6 +288,7 @@ const NewChat = () => {
   });
   const [sidebarMounted, setSidebarMounted] = useState(false);
   const [mobileDrawerCategory, setMobileDrawerCategory] = useState<string | null>(null);
+  const [mobilePlusMenuOpen, setMobilePlusMenuOpen] = useState(false);
   const [isMobilePhone, setIsMobilePhone] = useState(false);
 
   // Detect phone viewport (< 640px)
@@ -2211,8 +2212,215 @@ const NewChat = () => {
                 <div className="flex items-center justify-between">
                   {/* Left Side - Sample prompts icon + Filter Buttons */}
                   <div className="flex items-center gap-1">
-                    {/* Sample prompts selector (lightbulb) */}
-                    <div className="relative">
+                    {/* Mobile-only "+" button with menu and drawer */}
+                    <div className="relative sm:hidden">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (mobileDrawerCategory) {
+                            setMobileDrawerCategory(null);
+                          } else {
+                            setMobilePlusMenuOpen(!mobilePlusMenuOpen);
+                          }
+                        }}
+                        className="h-9 w-9 rounded-lg flex items-center justify-center transition-colors text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+                      >
+                        <Plus className="h-5 w-5" />
+                      </button>
+
+                      {/* Click-outside backdrop for menu */}
+                      {mobilePlusMenuOpen && (
+                        <div className="fixed inset-0 z-40" onClick={() => setMobilePlusMenuOpen(false)} />
+                      )}
+
+                      {/* Click-outside backdrop for drawer */}
+                      {mobileDrawerCategory && !mobilePlusMenuOpen && (
+                        <div className="fixed inset-0 z-40" onClick={() => setMobileDrawerCategory(null)} />
+                      )}
+
+                      {/* Mobile plus menu */}
+                      {mobilePlusMenuOpen && (
+                        <div className="absolute bottom-full left-0 mb-2 w-56 rounded-2xl border border-border/60 bg-background shadow-lg overflow-hidden z-50">
+                          {[
+                            { key: 'prompts', label: 'Samples', icon: <Lightbulb className="h-4 w-4" /> },
+                            { key: 'bills', label: 'Bills', icon: <FileText className="h-4 w-4" /> },
+                            { key: 'committees', label: 'Committees', icon: <Building2 className="h-4 w-4" /> },
+                            { key: 'members', label: 'Members', icon: <Users className="h-4 w-4" /> },
+                          ].map((item, idx) => (
+                            <button
+                              key={item.key}
+                              type="button"
+                              onClick={() => {
+                                setMobilePlusMenuOpen(false);
+                                setMobileDrawerCategory(item.key);
+                              }}
+                              className={cn(
+                                "w-full flex items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-muted/50",
+                                idx > 0 && "border-t border-border/40"
+                              )}
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className="text-muted-foreground">{item.icon}</span>
+                                <span className="font-medium text-foreground">{item.label}</span>
+                              </div>
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Mobile drawer - shows after selecting from menu */}
+                      {mobileDrawerCategory && !mobilePlusMenuOpen && (
+                        <div className="absolute bottom-full left-0 mb-2 w-80 max-h-[400px] rounded-2xl border border-border/60 bg-background shadow-lg overflow-hidden z-50">
+                          {/* Header */}
+                          <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
+                            <span className="text-sm font-medium">
+                              {mobileDrawerCategory === 'prompts' ? 'Sample Prompts' : mobileDrawerCategory.charAt(0).toUpperCase() + mobileDrawerCategory.slice(1)}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setMobileDrawerCategory(null)}
+                              className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+
+                          {/* Content */}
+                          <div
+                            className="max-h-[320px] overflow-y-auto"
+                            onScroll={(e) => {
+                              if (mobileDrawerCategory === 'bills') handlePopoverScroll(e, () => fetchBillsForSelection(availableBills.length), billsHasMore, billsLoading);
+                              if (mobileDrawerCategory === 'members') handlePopoverScroll(e, () => fetchMembersForSelection(availableMembers.length), membersHasMore, membersLoading);
+                              if (mobileDrawerCategory === 'committees') handlePopoverScroll(e, () => fetchCommitteesForSelection(availableCommittees.length), committeesHasMore, committeesLoading);
+                            }}
+                          >
+                            {/* Sample Prompts */}
+                            {mobileDrawerCategory === 'prompts' && (
+                              samplePrompts.map((item, idx) => (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={() => {
+                                    setQuery(item.prompt);
+                                    setMobileDrawerCategory(null);
+                                    setTimeout(() => {
+                                      if (textareaRef.current) {
+                                        textareaRef.current.style.height = 'auto';
+                                        const maxHeight = 144;
+                                        textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, maxHeight) + 'px';
+                                        textareaRef.current.style.overflowY = textareaRef.current.scrollHeight > maxHeight ? 'auto' : 'hidden';
+                                        textareaRef.current.focus();
+                                      }
+                                    }, 0);
+                                  }}
+                                  className={cn(
+                                    "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted/50",
+                                    idx > 0 && "border-t border-border/40"
+                                  )}
+                                >
+                                  <span className="font-medium text-foreground">{item.title}</span>
+                                  <p className="text-muted-foreground text-xs mt-1 line-clamp-2">{item.prompt}</p>
+                                </button>
+                              ))
+                            )}
+
+                            {/* Bills */}
+                            {mobileDrawerCategory === 'bills' && (
+                              billsLoading && availableBills.length === 0 ? (
+                                <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading bills...</div>
+                              ) : (
+                                <>
+                                {availableBills.map((bill, idx) => (
+                                  <button
+                                    key={`${bill.bill_number}-${bill.session_id}`}
+                                    type="button"
+                                    onClick={() => {
+                                      setQuery(`Tell me about bill ${bill.bill_number}`);
+                                      setMobileDrawerCategory(null);
+                                      textareaRef.current?.focus();
+                                    }}
+                                    className={cn(
+                                      "w-full text-left px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors",
+                                      idx > 0 && "border-t border-border/40"
+                                    )}
+                                  >
+                                    <div className="flex items-center justify-between gap-2">
+                                      <span className="font-medium">{bill.bill_number}</span>
+                                      {bill.session_id && <span className="text-muted-foreground text-[11px] shrink-0">{bill.session_id}</span>}
+                                    </div>
+                                    <p className="text-muted-foreground text-xs mt-0.5 line-clamp-1">{bill.title}</p>
+                                  </button>
+                                ))}
+                                {billsLoading && <div className="px-4 py-3 text-center text-xs text-muted-foreground">Loading...</div>}
+                                </>
+                              )
+                            )}
+
+                            {/* Members */}
+                            {mobileDrawerCategory === 'members' && (
+                              membersLoading && availableMembers.length === 0 ? (
+                                <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading members...</div>
+                              ) : (
+                                <>
+                                {availableMembers.map((member, idx) => (
+                                  <button
+                                    key={member.people_id}
+                                    type="button"
+                                    onClick={() => {
+                                      setQuery(`Tell me about ${member.name}`);
+                                      setMobileDrawerCategory(null);
+                                      textareaRef.current?.focus();
+                                    }}
+                                    className={cn(
+                                      "w-full text-left px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors",
+                                      idx > 0 && "border-t border-border/40"
+                                    )}
+                                  >
+                                    <span className="font-medium">{member.name}</span>
+                                    <span className="text-muted-foreground ml-2">{member.party} - {member.chamber}</span>
+                                  </button>
+                                ))}
+                                {membersLoading && <div className="px-4 py-3 text-center text-xs text-muted-foreground">Loading...</div>}
+                                </>
+                              )
+                            )}
+
+                            {/* Committees */}
+                            {mobileDrawerCategory === 'committees' && (
+                              committeesLoading && availableCommittees.length === 0 ? (
+                                <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading committees...</div>
+                              ) : (
+                                <>
+                                {availableCommittees.map((committee, idx) => (
+                                  <button
+                                    key={committee.committee_id}
+                                    type="button"
+                                    onClick={() => {
+                                      setQuery(`Tell me about the ${committee.committee_name} committee`);
+                                      setMobileDrawerCategory(null);
+                                      textareaRef.current?.focus();
+                                    }}
+                                    className={cn(
+                                      "w-full text-left px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors",
+                                      idx > 0 && "border-t border-border/40"
+                                    )}
+                                  >
+                                    <span className="font-medium">{committee.committee_name}</span>
+                                    <span className="text-muted-foreground ml-2">{committee.chamber}</span>
+                                  </button>
+                                ))}
+                                {committeesLoading && <div className="px-4 py-3 text-center text-xs text-muted-foreground">Loading...</div>}
+                                </>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Sample prompts selector (lightbulb) - hidden on mobile */}
+                    <div className="relative hidden sm:block">
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
@@ -2290,8 +2498,8 @@ const NewChat = () => {
                       <div className="fixed inset-0 z-40" onClick={closeAllPopovers} />
                     )}
 
-                    {/* Members popover */}
-                    <div className="relative">
+                    {/* Members popover - hidden on mobile */}
+                    <div className="relative hidden sm:block">
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
@@ -2354,8 +2562,8 @@ const NewChat = () => {
                       )}
                     </div>
 
-                    {/* Committees popover */}
-                    <div className="relative">
+                    {/* Committees popover - hidden on mobile */}
+                    <div className="relative hidden sm:block">
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
@@ -2418,8 +2626,8 @@ const NewChat = () => {
                       )}
                     </div>
 
-                    {/* Bills popover */}
-                    <div className="relative">
+                    {/* Bills popover - hidden on mobile */}
+                    <div className="relative hidden sm:block">
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
@@ -2485,8 +2693,8 @@ const NewChat = () => {
                       )}
                     </div>
 
-                    {/* Contracts popover */}
-                    <div className="relative">
+                    {/* Contracts popover - hidden on mobile */}
+                    <div className="relative hidden sm:block">
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
@@ -2631,7 +2839,9 @@ const NewChat = () => {
                   <div className="absolute top-full left-0 right-0 mt-3 mx-1 rounded-2xl border border-border/60 bg-background shadow-lg overflow-hidden z-50">
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3">
-                      <span className="text-sm font-medium text-foreground capitalize">{mobileDrawerCategory}</span>
+                      <span className="text-sm font-medium text-foreground">
+                        {mobileDrawerCategory === 'prompts' ? 'Sample Prompts' : mobileDrawerCategory.charAt(0).toUpperCase() + mobileDrawerCategory.slice(1)}
+                      </span>
                       <button
                         type="button"
                         onClick={() => setMobileDrawerCategory(null)}
@@ -2651,6 +2861,36 @@ const NewChat = () => {
                         if (mobileDrawerCategory === 'contracts') handlePopoverScroll(e, () => fetchContractsForSelection(availableContracts.length), contractsHasMore, contractsLoading);
                       }}
                     >
+                      {/* Sample Prompts */}
+                      {mobileDrawerCategory === 'prompts' && (
+                        samplePrompts.map((item, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              setQuery(item.prompt);
+                              setMobileDrawerCategory(null);
+                              setTimeout(() => {
+                                if (textareaRef.current) {
+                                  textareaRef.current.style.height = 'auto';
+                                  const maxHeight = 144;
+                                  textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, maxHeight) + 'px';
+                                  textareaRef.current.style.overflowY = textareaRef.current.scrollHeight > maxHeight ? 'auto' : 'hidden';
+                                  textareaRef.current.focus();
+                                }
+                              }, 0);
+                            }}
+                            className={cn(
+                              "w-full text-left px-4 py-3 text-sm transition-colors hover:bg-muted/50",
+                              idx > 0 && "border-t border-border/40"
+                            )}
+                          >
+                            <span className="font-medium text-foreground">{item.title}</span>
+                            <p className="text-muted-foreground text-xs mt-1 line-clamp-2">{item.prompt}</p>
+                          </button>
+                        ))
+                      )}
+
                       {/* Bills */}
                       {mobileDrawerCategory === 'bills' && (
                         billsLoading && availableBills.length === 0 ? (
