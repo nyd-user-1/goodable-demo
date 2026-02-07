@@ -133,12 +133,12 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const [inlineEditId, setInlineEditId] = useState<string | null>(null);
   const [inlineEditValue, setInlineEditValue] = useState("");
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
 
-  // Infinite scroll - load more chats when scrolling to bottom
+  // Infinite scroll - load more chats when scrolling within the chat list
   useEffect(() => {
-    const scrollContainer = scrollContainerRef.current;
-    if (!scrollContainer) return;
+    const chatScrollContainer = chatScrollRef.current;
+    if (!chatScrollContainer) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -147,9 +147,9 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
         }
       },
       {
-        root: scrollContainer,
+        root: chatScrollContainer,
         threshold: 0.1,
-        rootMargin: '100px'
+        rootMargin: '50px'
       }
     );
 
@@ -513,7 +513,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
       </div>
 
       {/* Scrollable Content Area */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto py-2">
+      <div className="flex-1 overflow-y-auto py-2">
         {/* Research Navigation - No collapsible */}
         <div className="px-2 space-y-1">
             <Tooltip>
@@ -764,7 +764,8 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                 <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/chats:rotate-90" />
               </CollapsibleTrigger>
             </div>
-            <CollapsibleContent className="px-2 space-y-1">
+            <CollapsibleContent>
+              <div ref={chatScrollRef} className="px-2 space-y-1 max-h-[60vh] overflow-y-auto">
               {recentChats.map((chat) => {
                 const rawTitle = chat.title || "Untitled Chat";
                 // Strip prefixes from displayed title
@@ -864,6 +865,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   )}
                 </div>
               )}
+              </div>
             </CollapsibleContent>
           </Collapsible>
         )}
