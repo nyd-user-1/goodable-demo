@@ -892,15 +892,11 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                 return (
                   <div key={`chat-${chat.id}`} className="group/item relative">
                     {inlineEditId === chat.id ? (
-                      <div className="flex items-center gap-3 px-3 py-2.5 md:py-2 pr-8 rounded-md text-[15px] md:text-sm bg-muted w-full">
-                        {chat.isPinned ? (
-                          <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
-                        ) : (
-                          <MessageSquare className="h-4 w-4 flex-shrink-0" />
-                        )}
+                      <div className="flex items-center gap-2 px-3 py-2 pr-8 rounded-md text-sm font-normal bg-muted w-full">
+                        {chat.isPinned && <Pin className="h-4 w-4 flex-shrink-0 text-primary" />}
                         <input
                           autoFocus
-                          className="flex-1 bg-transparent outline-none text-[15px] md:text-sm min-w-0"
+                          className="flex-1 bg-transparent outline-none text-sm min-w-0"
                           value={inlineEditValue}
                           onChange={(e) => setInlineEditValue(e.target.value)}
                           onKeyDown={(e) => {
@@ -924,15 +920,11 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                           setInlineEditValue(chatTitle);
                         }}
                         className={cn(
-                          "flex items-center gap-3 px-3 py-2.5 md:py-2 pr-8 rounded-md text-[15px] md:text-sm transition-colors",
+                          "flex items-center gap-2 px-3 py-2 pr-8 rounded-md text-sm font-normal transition-colors",
                           location.pathname === `/c/${chat.id}` ? "bg-muted" : "hover:bg-muted"
                         )}
                       >
-                        {chat.isPinned ? (
-                          <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
-                        ) : (
-                          <MessageSquare className="h-4 w-4 flex-shrink-0" />
-                        )}
+                        {chat.isPinned && <Pin className="h-4 w-4 flex-shrink-0 text-primary" />}
                         <span className="truncate">{chatTitle}</span>
                       </NavLink>
                     )}
