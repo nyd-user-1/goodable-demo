@@ -1,11 +1,11 @@
 // New Branch version - deployed to Vercel
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Analytics } from '@vercel/analytics/react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ModelProvider } from "@/contexts/ModelContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -82,6 +82,26 @@ function HubSpotTracker() {
   return null;
 }
 
+// Global keyboard shortcuts - must be inside BrowserRouter to use navigate
+function KeyboardShortcuts() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Shift+Cmd+O (Mac) or Shift+Ctrl+O (Windows) - New Note
+      if (e.key.toLowerCase() === "o" && e.shiftKey && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        navigate("/new-note");
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [navigate]);
+
+  return null;
+}
+
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -95,6 +115,7 @@ const App = () => {
             <BrowserRouter>
               <HubSpotTracker />
               <ScrollToTop />
+              <KeyboardShortcuts />
               <SearchModal />
               <Suspense fallback={<LoadingFallback />}>
               <PageTransition>

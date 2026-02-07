@@ -516,7 +516,10 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               )}
             >
               <Search className="h-4 w-4" />
-              <span>Search</span>
+              <span className="flex-1">Search</span>
+              <kbd className="hidden sm:inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                <span className="text-xs">⌘</span>K
+              </kbd>
             </button>
           </TooltipTrigger>
           <TooltipContent side="right">
@@ -639,7 +642,10 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   )}
                 >
                   <NotebookPen className="h-4 w-4" />
-                  <span>Notes</span>
+                  <span className="flex-1">Notes</span>
+                  <kbd className="hidden sm:inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                    <span className="text-xs">⇧⌘</span>O
+                  </kbd>
                 </NavLink>
               </TooltipTrigger>
               <TooltipContent side="right">
