@@ -1,9 +1,15 @@
 /**
- * SearchModal - A command palette style search modal
- * Triggered by the search icon in the sidebar
+ * SearchModal - Server-side search with cursor-based pagination
+ *
+ * Architecture:
+ * - Server-side full-text search via Postgres tsvector
+ * - Cursor-based pagination for efficient loading
+ * - Debounced input (150ms) with request cancellation
+ * - Tab caching with 60s staleness
+ * - Lazy-loaded tab content
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Dialog,
@@ -13,221 +19,194 @@ import { Input } from "@/components/ui/input";
 import {
   Search,
   X,
-  MessagesSquare,
-  TextQuote,
-  NotebookPen,
   MessageSquare,
-  ScrollText,
-  Users,
-  Landmark,
-  Lightbulb,
+  NotebookPen,
   CornerDownLeft,
-  Building2,
-  Globe,
-  Shield,
-  FileText,
-  DollarSign,
-  GraduationCap,
-  Briefcase,
-  HandCoins,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { departmentPrompts, agencyPrompts, authorityPrompts } from "@/pages/Prompts";
-import { generateMemberSlug } from "@/utils/memberSlug";
-import { generateCommitteeSlug } from "@/utils/committeeSlug";
-import { normalizeBillNumber } from "@/utils/billNumberUtils";
 
 interface SearchModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-interface ChatSession {
+// Search result from server
+interface SearchResult {
   id: string;
+  type: "chat" | "note";
   title: string;
+  preview_text: string | null;
+  created_at: string;
+  last_activity_at: string;
+  relevance: number;
 }
 
-interface Excerpt {
-  id: string;
-  title: string;
-}
-
-interface Note {
-  id: string;
-  title: string;
-}
-
+// Prompt with category
 interface Prompt {
   title: string;
   prompt: string;
-  category: "bills" | "members" | "committees" | "policy";
+  category: string;
 }
 
-interface BillItem {
-  bill_number: string;
-  title: string;
+// Tab types
+type TabType = "all" | "chats" | "notes" | "prompts";
+
+// Cache entry with timestamp
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+  cursor: string | null;
 }
 
-interface MemberItem {
-  people_id: number;
-  name: string;
-  first_name: string;
-  last_name: string;
-  party: string;
-  chamber: string;
-}
-
-interface CommitteeItem {
-  committee_id: number;
-  committee_name: string;
-  chamber: string;
-  slug: string;
-}
-
-interface PageItem {
-  title: string;
-  slug: string;
-  category: "department" | "agency" | "authority";
-}
-
-interface LobbyistItem {
-  contractual_client: string;
-  compensation_and_expenses: number | null;
-}
-
-interface ContractItem {
-  contract_number: string;
-  vendor_name: string;
-  contract_description: string | null;
-  department_facility: string | null;
-}
-
-interface BudgetItem {
-  "Agency Name": string;
-  "Program Name": string | null;
-  "Appropriations Recommended 2026-27": number | null;
-}
-
-interface SchoolFundingItem {
-  id: number;
-  district: string;
-  county: string;
-  enacted_budget: string | null;
-  total_change: string | null;
-}
-
-// All prompts from Use Cases pages
-const allPrompts: Prompt[] = [
-  // Bills prompts
-  { title: "AI Consumer Protection", prompt: "What can you tell me about efforts to protect consumers from algorithmic discrimination in New York?", category: "bills" },
-  { title: "Childcare Affordability", prompt: "What legislative approaches have been proposed to make childcare more affordable for working families in New York?", category: "bills" },
-  { title: "Paid Family Leave", prompt: "What can you tell me about efforts to expand paid family leave in New York?", category: "bills" },
-  { title: "Affordable Housing", prompt: "What are legislators doing to address the affordable housing crisis in New York?", category: "bills" },
-  { title: "Volunteer Firefighter Recruitment", prompt: "What incentives are being considered to help recruit and retain volunteer firefighters and emergency responders?", category: "bills" },
-  { title: "Medicaid Access", prompt: "What efforts are underway to reduce barriers to Medicaid services for patients?", category: "bills" },
-  { title: "Minimum Wage", prompt: "What's the current state of minimum wage legislation in New York and what changes are being proposed?", category: "bills" },
-  { title: "School Safety", prompt: "What measures are being proposed to improve safety around school zones in New York?", category: "bills" },
-  { title: "Rental Assistance", prompt: "What programs exist or are being proposed to help New Yorkers facing housing instability?", category: "bills" },
-  { title: "Disability Benefits", prompt: "What efforts are underway to strengthen disability benefits for New York workers?", category: "bills" },
-  { title: "Veteran Services", prompt: "What initiatives are being considered to improve services and support for veterans in New York?", category: "bills" },
-  { title: "Clean Energy Incentives", prompt: "What tax incentives or programs are being proposed to accelerate clean energy adoption in New York?", category: "bills" },
-  // Members prompts
-  { title: "Find My Representative", prompt: "How can I find out who my state legislators are and how to contact them?", category: "members" },
-  { title: "Assembly Leadership", prompt: "Who are the current leaders of the New York State Assembly?", category: "members" },
-  { title: "Senate Leadership", prompt: "Who are the current leaders of the New York State Senate?", category: "members" },
-  { title: "Committee Chairs", prompt: "Who chairs the major committees in the New York legislature?", category: "members" },
-  { title: "Labor Advocates", prompt: "Which legislators are known for championing workers' rights and labor issues?", category: "members" },
-  { title: "Education Champions", prompt: "Which legislators are most active on education policy and school funding?", category: "members" },
-  { title: "Healthcare Policy Leaders", prompt: "Which legislators are leading on healthcare access and reform?", category: "members" },
-  { title: "Housing Advocates", prompt: "Which legislators are focused on affordable housing and tenant protections?", category: "members" },
-  { title: "Environmental Leaders", prompt: "Which legislators are championing climate and environmental legislation?", category: "members" },
-  { title: "Small Business Supporters", prompt: "Which legislators are focused on supporting small businesses and entrepreneurs?", category: "members" },
-  // Committees prompts
-  { title: "Labor Committee Overview", prompt: "What issues does the Labor Committee handle and what major legislation is it currently considering?", category: "committees" },
-  { title: "Education Committee Priorities", prompt: "What are the current priorities of the Education Committee in New York?", category: "committees" },
-  { title: "Health Committee Focus Areas", prompt: "What healthcare issues is the Health Committee currently focused on?", category: "committees" },
-  { title: "Housing Committee Activity", prompt: "What housing-related bills is the Housing Committee reviewing this session?", category: "committees" },
-  { title: "Environmental Conservation", prompt: "What role does the Environmental Conservation Committee play in climate policy?", category: "committees" },
-  { title: "Ways and Means", prompt: "How does the Ways and Means Committee influence the state budget process?", category: "committees" },
-  { title: "Judiciary Committee", prompt: "What types of legislation does the Judiciary Committee typically handle?", category: "committees" },
-  { title: "Children and Families", prompt: "What childcare and family support issues is the Children and Families Committee working on?", category: "committees" },
-  { title: "Transportation Committee", prompt: "What infrastructure and transit issues is the Transportation Committee addressing?", category: "committees" },
-  { title: "Economic Development", prompt: "How is the Economic Development Committee supporting job creation and workforce development?", category: "committees" },
-  // Policy prompts
-  { title: "Policy Analysis Framework", prompt: "What framework should I use to analyze the potential impact of a proposed policy change?", category: "policy" },
-  { title: "Stakeholder Mapping", prompt: "How do I identify and map stakeholders who would be affected by a new housing policy?", category: "policy" },
-  { title: "Evidence-Based Policy", prompt: "What does evidence-based policymaking look like and how can I apply it to education reform?", category: "policy" },
-  { title: "Policy Implementation", prompt: "What are the key factors that determine whether a policy will be successfully implemented?", category: "policy" },
-  { title: "Regulatory Impact Assessment", prompt: "How do I conduct a regulatory impact assessment for a proposed environmental regulation?", category: "policy" },
-  { title: "Cost-Benefit Analysis", prompt: "How do I perform a cost-benefit analysis for a proposed public health initiative?", category: "policy" },
-  { title: "Policy Evaluation Methods", prompt: "What methods can I use to evaluate whether a policy is achieving its intended outcomes?", category: "policy" },
-  { title: "Unintended Consequences", prompt: "How can I anticipate and mitigate unintended consequences when designing new policies?", category: "policy" },
-  { title: "Policy Memo Writing", prompt: "What's the best structure for writing a policy memo that will be read by busy decision-makers?", category: "policy" },
-  { title: "Building Coalition Support", prompt: "How do I build a coalition of support for a policy initiative across different interest groups?", category: "policy" },
+// Routes shown in All tab
+const APP_ROUTES = [
+  { path: "/lobbying-dashboard", label: "Lobbying Dashboard" },
+  { path: "/prompts", label: "Prompts" },
+  { path: "/lists", label: "Lists" },
+  { path: "/features", label: "Features" },
+  { path: "/use-cases", label: "Use Cases" },
+  { path: "/use-cases/bills", label: "Bills Use Cases" },
+  { path: "/use-cases/committees", label: "Committees Use Cases" },
+  { path: "/use-cases/members", label: "Members Use Cases" },
+  { path: "/use-cases/policy", label: "Policy Use Cases" },
+  { path: "/use-cases/departments", label: "Departments Use Cases" },
+  { path: "/nonprofits/directory", label: "Nonprofit Directory" },
+  { path: "/nonprofits/economic-advocacy", label: "Economic Advocacy" },
+  { path: "/nonprofits/environmental-advocacy", label: "Environmental Advocacy" },
+  { path: "/nonprofits/legal-advocacy", label: "Legal Advocacy" },
+  { path: "/nonprofits/social-advocacy", label: "Social Advocacy" },
+  { path: "/budget", label: "Budget" },
+  { path: "/school-funding", label: "School Funding" },
+  { path: "/lobbying", label: "Lobbying" },
+  { path: "/budget-dashboard", label: "Budget Dashboard" },
 ];
 
-// Static department/agency/authority pages (computed once at module level)
-const allPages: PageItem[] = [
-  ...departmentPrompts.map((p) => ({ title: p.title, slug: p.slug, category: "department" as const })),
-  ...agencyPrompts.map((p) => ({ title: p.title, slug: p.slug, category: "agency" as const })),
-  ...authorityPrompts.map((p) => ({ title: p.title, slug: p.slug, category: "authority" as const })),
+// Prompts with category mapping
+const ALL_PROMPTS: Prompt[] = [
+  // Bills
+  { title: "AI Consumer Protection", prompt: "What can you tell me about efforts to protect consumers from algorithmic discrimination in New York?", category: "Bills" },
+  { title: "Childcare Affordability", prompt: "What legislative approaches have been proposed to make childcare more affordable for working families in New York?", category: "Bills" },
+  { title: "Paid Family Leave", prompt: "What can you tell me about efforts to expand paid family leave in New York?", category: "Bills" },
+  { title: "Affordable Housing", prompt: "What are legislators doing to address the affordable housing crisis in New York?", category: "Bills" },
+  { title: "Volunteer Firefighter Recruitment", prompt: "What incentives are being considered to help recruit and retain volunteer firefighters and emergency responders?", category: "Bills" },
+  { title: "Medicaid Access", prompt: "What efforts are underway to reduce barriers to Medicaid services for patients?", category: "Bills" },
+  { title: "Minimum Wage", prompt: "What's the current state of minimum wage legislation in New York and what changes are being proposed?", category: "Bills" },
+  { title: "School Safety", prompt: "What measures are being proposed to improve safety around school zones in New York?", category: "Bills" },
+  { title: "Rental Assistance", prompt: "What programs exist or are being proposed to help New Yorkers facing housing instability?", category: "Bills" },
+  { title: "Disability Benefits", prompt: "What efforts are underway to strengthen disability benefits for New York workers?", category: "Bills" },
+  { title: "Veteran Services", prompt: "What initiatives are being considered to improve services and support for veterans in New York?", category: "Bills" },
+  { title: "Clean Energy Incentives", prompt: "What tax incentives or programs are being proposed to accelerate clean energy adoption in New York?", category: "Bills" },
+  // Members
+  { title: "Find My Representative", prompt: "How can I find out who my state legislators are and how to contact them?", category: "Members" },
+  { title: "Assembly Leadership", prompt: "Who are the current leaders of the New York State Assembly?", category: "Members" },
+  { title: "Senate Leadership", prompt: "Who are the current leaders of the New York State Senate?", category: "Members" },
+  { title: "Committee Chairs", prompt: "Who chairs the major committees in the New York legislature?", category: "Members" },
+  { title: "Labor Advocates", prompt: "Which legislators are known for championing workers' rights and labor issues?", category: "Members" },
+  { title: "Education Champions", prompt: "Which legislators are most active on education policy and school funding?", category: "Members" },
+  { title: "Healthcare Policy Leaders", prompt: "Which legislators are leading on healthcare access and reform?", category: "Members" },
+  { title: "Housing Advocates", prompt: "Which legislators are focused on affordable housing and tenant protections?", category: "Members" },
+  { title: "Environmental Leaders", prompt: "Which legislators are championing climate and environmental legislation?", category: "Members" },
+  { title: "Small Business Supporters", prompt: "Which legislators are focused on supporting small businesses and entrepreneurs?", category: "Members" },
+  // Committees
+  { title: "Labor Committee Overview", prompt: "What issues does the Labor Committee handle and what major legislation is it currently considering?", category: "Committees" },
+  { title: "Education Committee Priorities", prompt: "What are the current priorities of the Education Committee in New York?", category: "Committees" },
+  { title: "Health Committee Focus Areas", prompt: "What healthcare issues is the Health Committee currently focused on?", category: "Committees" },
+  { title: "Housing Committee Activity", prompt: "What housing-related bills is the Housing Committee reviewing this session?", category: "Committees" },
+  { title: "Environmental Conservation", prompt: "What role does the Environmental Conservation Committee play in climate policy?", category: "Committees" },
+  { title: "Ways and Means", prompt: "How does the Ways and Means Committee influence the state budget process?", category: "Committees" },
+  { title: "Judiciary Committee", prompt: "What types of legislation does the Judiciary Committee typically handle?", category: "Committees" },
+  { title: "Children and Families", prompt: "What childcare and family support issues is the Children and Families Committee working on?", category: "Committees" },
+  { title: "Transportation Committee", prompt: "What infrastructure and transit issues is the Transportation Committee addressing?", category: "Committees" },
+  { title: "Economic Development", prompt: "How is the Economic Development Committee supporting job creation and workforce development?", category: "Committees" },
+  // Policy
+  { title: "Policy Analysis Framework", prompt: "What framework should I use to analyze the potential impact of a proposed policy change?", category: "Policy" },
+  { title: "Stakeholder Mapping", prompt: "How do I identify and map stakeholders who would be affected by a new housing policy?", category: "Policy" },
+  { title: "Evidence-Based Policy", prompt: "What does evidence-based policymaking look like and how can I apply it to education reform?", category: "Policy" },
+  { title: "Policy Implementation", prompt: "What are the key factors that determine whether a policy will be successfully implemented?", category: "Policy" },
+  { title: "Regulatory Impact Assessment", prompt: "How do I conduct a regulatory impact assessment for a proposed environmental regulation?", category: "Policy" },
+  { title: "Cost-Benefit Analysis", prompt: "How do I perform a cost-benefit analysis for a proposed public health initiative?", category: "Policy" },
+  { title: "Policy Evaluation Methods", prompt: "What methods can I use to evaluate whether a policy is achieving its intended outcomes?", category: "Policy" },
+  { title: "Unintended Consequences", prompt: "How can I anticipate and mitigate unintended consequences when designing new policies?", category: "Policy" },
+  { title: "Policy Memo Writing", prompt: "What's the best structure for writing a policy memo that will be read by busy decision-makers?", category: "Policy" },
+  { title: "Building Coalition Support", prompt: "How do I build a coalition of support for a policy initiative across different interest groups?", category: "Policy" },
+  // Departments
+  { title: "Department Overview", prompt: "What are the major departments and agencies in New York State government?", category: "Departments" },
+  { title: "Agency Functions", prompt: "How do I find out what services a specific state agency provides?", category: "Departments" },
+  // Nonprofit categories
+  { title: "Economic Justice Initiatives", prompt: "What economic justice initiatives are nonprofits advocating for in New York?", category: "Economic" },
+  { title: "Environmental Protection", prompt: "What environmental protection efforts are being led by advocacy groups?", category: "Environmental" },
+  { title: "Legal Aid Resources", prompt: "What legal aid resources are available for New Yorkers?", category: "Legal" },
+  { title: "Social Services Advocacy", prompt: "What social services advocacy efforts are underway in New York?", category: "Social" },
 ];
 
-// Browse links for unauthenticated users
-const browseLinks = [
-  { title: "Bills", path: "/bills", icon: FileText },
-  { title: "Members", path: "/members", icon: Users },
-  { title: "Committees", path: "/committees", icon: Landmark },
-  { title: "Departments", path: "/prompts", icon: Building2 },
-  { title: "Lobbying", path: "/lobbying", icon: Briefcase },
-  { title: "Contracts", path: "/contracts", icon: HandCoins },
-  { title: "Budget", path: "/budget", icon: DollarSign },
-  { title: "School Funding", path: "/school-funding", icon: GraduationCap },
-];
+// Cache staleness threshold (60 seconds)
+const CACHE_STALENESS_MS = 60 * 1000;
 
-type TabType = "all" | "history" | "library" | "prompts";
+// Helper to group items by date
+function groupByDate(items: SearchResult[]): { today: SearchResult[]; yesterday: SearchResult[]; previous7Days: SearchResult[]; older: SearchResult[] } {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+  const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-// Empty arrays (stable references to avoid re-renders)
-const emptyBills: BillItem[] = [];
-const emptyMembers: MemberItem[] = [];
-const emptyCommittees: CommitteeItem[] = [];
-const emptyPages: PageItem[] = [];
-const emptyLobbyists: LobbyistItem[] = [];
-const emptyContracts: ContractItem[] = [];
-const emptyBudget: BudgetItem[] = [];
-const emptySchoolFunding: SchoolFundingItem[] = [];
+  const groups = { today: [] as SearchResult[], yesterday: [] as SearchResult[], previous7Days: [] as SearchResult[], older: [] as SearchResult[] };
+
+  items.forEach(item => {
+    const itemDate = new Date(item.last_activity_at);
+    if (itemDate >= today) {
+      groups.today.push(item);
+    } else if (itemDate >= yesterday) {
+      groups.yesterday.push(item);
+    } else if (itemDate >= weekAgo) {
+      groups.previous7Days.push(item);
+    } else {
+      groups.older.push(item);
+    }
+  });
+
+  return groups;
+}
+
+// Helper to group prompts by category
+function groupPromptsByCategory(prompts: Prompt[]): Record<string, Prompt[]> {
+  const groups: Record<string, Prompt[]> = {};
+  prompts.forEach(p => {
+    if (!groups[p.category]) groups[p.category] = [];
+    groups[p.category].push(p);
+  });
+  return groups;
+}
 
 export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOpenChange }: Partial<SearchModalProps>) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Self-managed state (used when no props are passed, e.g. App-level mount)
+  // Self-managed state for App-level mount
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const onOpenChange = controlledOnOpenChange ?? setInternalOpen;
 
+  // Search state
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedTerm, setDebouncedTerm] = useState("");
   const [activeTab, setActiveTab] = useState<TabType>("all");
-  const [recentChats, setRecentChats] = useState<ChatSession[]>([]);
-  const [recentExcerpts, setRecentExcerpts] = useState<Excerpt[]>([]);
-  const [recentNotes, setRecentNotes] = useState<Note[]>([]);
-  const [allChats, setAllChats] = useState<ChatSession[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [isSearching, setIsSearching] = useState(false);
 
-  // Public data state (fetched once, cached in state)
-  const [publicBills, setPublicBills] = useState<BillItem[]>([]);
-  const [publicMembers, setPublicMembers] = useState<MemberItem[]>([]);
-  const [publicCommittees, setPublicCommittees] = useState<CommitteeItem[]>([]);
-  const [publicLobbyists, setPublicLobbyists] = useState<LobbyistItem[]>([]);
-  const [publicContracts, setPublicContracts] = useState<ContractItem[]>([]);
-  const [publicBudget, setPublicBudget] = useState<BudgetItem[]>([]);
-  const [publicSchoolFunding, setPublicSchoolFunding] = useState<SchoolFundingItem[]>([]);
-  const [publicDataLoaded, setPublicDataLoaded] = useState(false);
+  // Results state
+  const [allResults, setAllResults] = useState<SearchResult[]>([]);
+  const [chatResults, setChatResults] = useState<SearchResult[]>([]);
+  const [noteResults, setNoteResults] = useState<SearchResult[]>([]);
 
-  // Cmd+K / Ctrl+K keyboard shortcut
+  // Cache state (tab -> cache entry)
+  const cacheRef = useRef<Record<string, CacheEntry<SearchResult[]>>>({});
+  const [tabsLoaded, setTabsLoaded] = useState<Record<TabType, boolean>>({ all: false, chats: false, notes: false, prompts: true });
+
+  // Cmd+K keyboard shortcut
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -239,246 +218,148 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
     return () => document.removeEventListener("keydown", down);
   }, [open, onOpenChange]);
 
-  // Fetch recent items (authenticated users only)
-  const fetchRecents = useCallback(async () => {
+  // Debounce search input (150ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedTerm(searchTerm);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Check if cache is stale
+  const isCacheStale = useCallback((key: string) => {
+    const entry = cacheRef.current[key];
+    if (!entry) return true;
+    return Date.now() - entry.timestamp > CACHE_STALENESS_MS;
+  }, []);
+
+  // Fetch data for a tab (with caching)
+  const fetchTabData = useCallback(async (tab: TabType, query: string) => {
     if (!user) return;
 
-    const [chatsResult, excerptsResult, notesResult] = await Promise.all([
-      supabase
-        .from("chat_sessions")
-        .select("id, title")
-        .eq("user_id", user.id)
-        .order("updated_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("chat_excerpts")
-        .select("id, title")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("chat_notes")
-        .select("id, title")
-        .eq("user_id", user.id)
-        .order("updated_at", { ascending: false })
-        .limit(5),
-    ]);
+    const cacheKey = `${tab}-${query}`;
 
-    if (chatsResult.data) setRecentChats(chatsResult.data);
-    if (excerptsResult.data) setRecentExcerpts(excerptsResult.data);
-    if (notesResult.data) setRecentNotes(notesResult.data);
+    // Return cached data if fresh
+    if (!isCacheStale(cacheKey)) {
+      const cached = cacheRef.current[cacheKey];
+      if (tab === "all") setAllResults(cached.data);
+      else if (tab === "chats") setChatResults(cached.data);
+      else if (tab === "notes") setNoteResults(cached.data);
+      return;
+    }
 
-    // Fetch all chats for the History tab (no limit)
-    const allChatsResult = await supabase
-      .from("chat_sessions")
-      .select("id, title")
-      .eq("user_id", user.id)
-      .order("updated_at", { ascending: false });
+    // Cancel any in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
 
-    if (allChatsResult.data) setAllChats(allChatsResult.data);
-  }, [user]);
-
-  // Fetch public data - runs once for all users
-  const fetchPublicData = useCallback(async () => {
-    if (publicDataLoaded) return;
+    setIsSearching(true);
 
     try {
-      const [billsResult, membersResult, committeesResult, lobbyistsResult, contractsResult, budgetResult, schoolFundingResult] = await Promise.all([
-        supabase
-          .from("Bills")
-          .select("bill_number, title"),
-        supabase
-          .from("People")
-          .select("people_id, name, first_name, last_name, party, chamber")
-          .not("chamber", "is", null)
-          .not("name", "is", null)
-          .order("first_name", { ascending: true }),
-        supabase
-          .from("Committees")
-          .select("committee_id, committee_name, chamber, slug")
-          .order("committee_name", { ascending: true }),
-        supabase
-          .from("lobbying_spend")
-          .select("contractual_client, compensation_and_expenses")
-          .not("contractual_client", "is", null)
-          .order("compensation_and_expenses", { ascending: false, nullsFirst: false })
-          .limit(500),
-        supabase
-          .from("Contracts")
-          .select("contract_number, vendor_name, contract_description, department_facility")
-          .not("vendor_name", "is", null)
-          .order("current_contract_amount", { ascending: false, nullsFirst: false })
-          .limit(500),
-        supabase
-          .from("budget_2027-aprops")
-          .select('"Agency Name", "Program Name", "Appropriations Recommended 2026-27"')
-          .not("Agency Name", "is", null)
-          .limit(500),
-        supabase
-          .from("school_funding_totals")
-          .select("id, district, county, enacted_budget, total_change")
-          .not("district", "is", null)
-          .order("district", { ascending: true })
-          .limit(500),
-      ]);
+      let results: SearchResult[] = [];
 
-      if (billsResult.data) {
-        const seen = new Set<string>();
-        const deduped = billsResult.data.filter(b => {
-          const key = normalizeBillNumber(b.bill_number);
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
+      if (tab === "all") {
+        // Call search_all RPC
+        const { data, error } = await supabase.rpc("search_all", {
+          p_user_id: user.id,
+          p_query: query || null,
+          p_cursor: null,
+          p_limit: 30,
         });
-        setPublicBills(deduped);
+        if (error) throw error;
+        results = data || [];
+        setAllResults(results);
+      } else if (tab === "chats") {
+        // Call search_chats RPC
+        const { data, error } = await supabase.rpc("search_chats", {
+          p_user_id: user.id,
+          p_query: query || null,
+          p_cursor: null,
+          p_limit: 50,
+        });
+        if (error) throw error;
+        results = data || [];
+        setChatResults(results);
+      } else if (tab === "notes") {
+        // Call search_notes RPC
+        const { data, error } = await supabase.rpc("search_notes", {
+          p_user_id: user.id,
+          p_query: query || null,
+          p_cursor: null,
+          p_limit: 50,
+        });
+        if (error) throw error;
+        results = data || [];
+        setNoteResults(results);
       }
-      if (membersResult.data) setPublicMembers(membersResult.data);
-      if (committeesResult.data) setPublicCommittees(committeesResult.data);
-      if (lobbyistsResult.data) setPublicLobbyists(lobbyistsResult.data as any);
-      if (contractsResult.data) setPublicContracts(contractsResult.data as any);
-      if (budgetResult.data) setPublicBudget(budgetResult.data as any);
-      if (schoolFundingResult.data) setPublicSchoolFunding(schoolFundingResult.data as any);
-      setPublicDataLoaded(true);
-    } catch (error) {
-      console.error("Error fetching public search data:", error);
-    }
-  }, [publicDataLoaded]);
 
+      // Cache results
+      cacheRef.current[cacheKey] = {
+        data: results,
+        timestamp: Date.now(),
+        cursor: results.length > 0 ? results[results.length - 1].last_activity_at : null,
+      };
+
+      setTabsLoaded(prev => ({ ...prev, [tab]: true }));
+    } catch (error: any) {
+      if (error.name !== "AbortError") {
+        console.error("Search error:", error);
+      }
+    } finally {
+      setIsSearching(false);
+    }
+  }, [user, isCacheStale]);
+
+  // Fetch data when tab changes or search term changes
+  useEffect(() => {
+    if (!open || !user) return;
+    if (activeTab === "prompts") return; // Prompts are client-side
+
+    fetchTabData(activeTab, debouncedTerm);
+  }, [open, activeTab, debouncedTerm, user, fetchTabData]);
+
+  // Reset state when modal opens
   useEffect(() => {
     if (open) {
-      fetchRecents();
-      fetchPublicData();
       setSearchTerm("");
-      setSelectedIndex(0);
-      // Focus input after a short delay to ensure dialog is mounted
+      setDebouncedTerm("");
+      setActiveTab("all");
+      setTabsLoaded({ all: false, chats: false, notes: false, prompts: true });
+      // Clear cache on open to ensure fresh data
+      cacheRef.current = {};
       setTimeout(() => inputRef.current?.focus(), 50);
     }
-  }, [open, fetchRecents, fetchPublicData]);
+  }, [open]);
 
-  // Filter items based on search term
-  const term = searchTerm.toLowerCase();
-
-  const filteredChats = recentChats.filter((c) =>
-    c.title.toLowerCase().includes(term)
-  );
-  const filteredExcerpts = recentExcerpts.filter((e) =>
-    e.title.toLowerCase().includes(term)
-  );
-  const filteredNotes = recentNotes.filter((n) =>
-    n.title.toLowerCase().includes(term)
-  );
-  const filteredAllChats = allChats.filter((c) =>
-    c.title.toLowerCase().includes(term)
-  );
-  const filteredPrompts = allPrompts.filter(
-    (p) =>
+  // Filter prompts client-side
+  const filteredPrompts = useMemo(() => {
+    if (!debouncedTerm) return ALL_PROMPTS;
+    const term = debouncedTerm.toLowerCase();
+    return ALL_PROMPTS.filter(p =>
       p.title.toLowerCase().includes(term) ||
-      p.prompt.toLowerCase().includes(term)
-  );
+      p.prompt.toLowerCase().includes(term) ||
+      p.category.toLowerCase().includes(term)
+    );
+  }, [debouncedTerm]);
 
-  // Filter public data
-  const filteredPages = allPages.filter((p) =>
-    p.title.toLowerCase().includes(term)
-  );
-  const filteredBills = publicBills.filter(
-    (b) =>
-      normalizeBillNumber(b.bill_number).toLowerCase().includes(term) ||
-      b.bill_number?.toLowerCase().includes(term) ||
-      b.title?.toLowerCase().includes(term)
-  );
-  const filteredMembers = publicMembers.filter((m) =>
-    m.name?.toLowerCase().includes(term)
-  );
-  const filteredCommittees = publicCommittees.filter((c) =>
-    c.committee_name?.toLowerCase().includes(term)
-  );
-  const filteredLobbyists = publicLobbyists.filter((l) =>
-    l.contractual_client?.toLowerCase().includes(term)
-  );
-  const filteredContracts = publicContracts.filter(
-    (c) =>
-      c.vendor_name?.toLowerCase().includes(term) ||
-      c.contract_number?.toLowerCase().includes(term) ||
-      c.contract_description?.toLowerCase().includes(term)
-  );
-  const filteredBudget = publicBudget.filter(
-    (b) =>
-      b["Agency Name"]?.toLowerCase().includes(term) ||
-      b["Program Name"]?.toLowerCase().includes(term)
-  );
-  const filteredSchoolFunding = publicSchoolFunding.filter(
-    (s) =>
-      s.district?.toLowerCase().includes(term) ||
-      s.county?.toLowerCase().includes(term)
-  );
+  // Filter routes for All tab
+  const filteredRoutes = useMemo(() => {
+    if (!debouncedTerm) return APP_ROUTES;
+    const term = debouncedTerm.toLowerCase();
+    return APP_ROUTES.filter(r => r.label.toLowerCase().includes(term));
+  }, [debouncedTerm]);
 
-  // Get items for current tab
-  const emptyHistoryChats: ChatSession[] = [];
-  const getDisplayItems = () => {
-    if (activeTab === "history") {
-      return {
-        recents: [], prompts: [], historyChats: filteredAllChats,
-        bills: emptyBills, members: emptyMembers, committees: emptyCommittees,
-        pages: emptyPages, lobbyists: emptyLobbyists, contracts: emptyContracts,
-        budget: emptyBudget, schoolFunding: emptySchoolFunding, showBrowseLinks: false,
-      };
-    }
-    if (activeTab === "library") {
-      if (user) {
-        return {
-          recents: [...filteredChats, ...filteredExcerpts, ...filteredNotes],
-          prompts: [], historyChats: emptyHistoryChats,
-          bills: emptyBills, members: emptyMembers, committees: emptyCommittees,
-          pages: emptyPages, lobbyists: emptyLobbyists, contracts: emptyContracts,
-          budget: emptyBudget, schoolFunding: emptySchoolFunding, showBrowseLinks: false,
-        };
-      }
-      if (!searchTerm) {
-        return {
-          recents: [], prompts: [], historyChats: emptyHistoryChats,
-          bills: emptyBills, members: emptyMembers, committees: emptyCommittees,
-          pages: emptyPages, lobbyists: emptyLobbyists, contracts: emptyContracts,
-          budget: emptyBudget, schoolFunding: emptySchoolFunding, showBrowseLinks: true,
-        };
-      }
-      return {
-        recents: [], prompts: [], historyChats: emptyHistoryChats,
-        bills: filteredBills, members: filteredMembers, committees: filteredCommittees,
-        pages: filteredPages, lobbyists: filteredLobbyists, contracts: filteredContracts,
-        budget: filteredBudget, schoolFunding: filteredSchoolFunding, showBrowseLinks: false,
-      };
-    }
-    if (activeTab === "prompts") {
-      return {
-        recents: [], prompts: filteredPrompts, historyChats: emptyHistoryChats,
-        bills: emptyBills, members: emptyMembers, committees: emptyCommittees,
-        pages: emptyPages, lobbyists: emptyLobbyists, contracts: emptyContracts,
-        budget: emptyBudget, schoolFunding: emptySchoolFunding, showBrowseLinks: false,
-      };
-    }
-    // "all" tab
-    return {
-      recents: [...filteredChats.slice(0, 3), ...filteredExcerpts.slice(0, 2), ...filteredNotes.slice(0, 2)],
-      prompts: filteredPrompts.slice(0, 5),
-      historyChats: emptyHistoryChats,
-      bills: filteredBills.slice(0, 3),
-      members: filteredMembers.slice(0, 3),
-      committees: filteredCommittees.slice(0, 3),
-      pages: filteredPages.slice(0, 3),
-      lobbyists: filteredLobbyists.slice(0, 3),
-      contracts: filteredContracts.slice(0, 3),
-      budget: filteredBudget.slice(0, 3),
-      schoolFunding: filteredSchoolFunding.slice(0, 3),
-      showBrowseLinks: false,
-    };
-  };
+  // Group results by date
+  const groupedAllResults = useMemo(() => groupByDate(allResults), [allResults]);
+  const groupedChatResults = useMemo(() => groupByDate(chatResults), [chatResults]);
+  const groupedNoteResults = useMemo(() => groupByDate(noteResults), [noteResults]);
+  const groupedPrompts = useMemo(() => groupPromptsByCategory(filteredPrompts), [filteredPrompts]);
 
-  const { recents, prompts, historyChats, bills, members, committees, pages, lobbyists, contracts, budget, schoolFunding, showBrowseLinks } = getDisplayItems();
-
+  // Navigation handlers
   const handleItemClick = (type: string, id: string) => {
     onOpenChange(false);
     if (type === "chat") navigate(`/c/${id}`);
-    else if (type === "excerpt") navigate(`/e/${id}`);
     else if (type === "note") navigate(`/n/${id}`);
   };
 
@@ -487,44 +368,49 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
     navigate(`/new-chat?prompt=${encodeURIComponent(prompt)}`);
   };
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case "bills":
-        return <ScrollText className="h-4 w-4" />;
-      case "members":
-        return <Users className="h-4 w-4" />;
-      case "committees":
-        return <Landmark className="h-4 w-4" />;
-      case "policy":
-        return <Lightbulb className="h-4 w-4" />;
-      default:
-        return <MessageSquare className="h-4 w-4" />;
+  const handleRouteClick = (path: string) => {
+    onOpenChange(false);
+    navigate(path);
+  };
+
+  // Check if we have any results
+  const hasResults = useMemo(() => {
+    if (activeTab === "all") {
+      return filteredRoutes.length > 0 || allResults.length > 0;
     }
-  };
+    if (activeTab === "chats") return chatResults.length > 0;
+    if (activeTab === "notes") return noteResults.length > 0;
+    if (activeTab === "prompts") return filteredPrompts.length > 0;
+    return false;
+  }, [activeTab, filteredRoutes, allResults, chatResults, noteResults, filteredPrompts]);
 
-  const getPageIcon = (category: string) => {
-    switch (category) {
-      case "department":
-        return <Building2 className="h-4 w-4" />;
-      case "agency":
-        return <Globe className="h-4 w-4" />;
-      case "authority":
-        return <Shield className="h-4 w-4" />;
-      default:
-        return <Building2 className="h-4 w-4" />;
-    }
+  // Render date group
+  const renderDateGroup = (label: string, items: SearchResult[]) => {
+    if (items.length === 0) return null;
+    return (
+      <div key={label}>
+        <p className="px-4 py-2 text-xs font-medium text-muted-foreground">{label}</p>
+        {items.map(item => (
+          <button
+            key={`${item.type}-${item.id}`}
+            onClick={() => handleItemClick(item.type, item.id)}
+            className="flex items-center gap-3 w-full px-4 py-2 text-sm hover:bg-muted transition-colors text-left"
+          >
+            {item.type === "chat" ? (
+              <MessageSquare className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            ) : (
+              <NotebookPen className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            )}
+            <span className="truncate">{item.title || "Untitled"}</span>
+          </button>
+        ))}
+      </div>
+    );
   };
-
-  const formatCurrency = (val: number | null) => {
-    if (val == null) return "";
-    return val.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
-  };
-
-  const hasResults = recents.length > 0 || historyChats.length > 0 || prompts.length > 0 || bills.length > 0 || members.length > 0 || committees.length > 0 || pages.length > 0 || lobbyists.length > 0 || contracts.length > 0 || budget.length > 0 || schoolFunding.length > 0 || showBrowseLinks;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContentNoOverlay className="sm:max-w-[724px] p-0 gap-0 overflow-hidden">
+      <DialogContentNoOverlay className="sm:max-w-[680px] p-0 gap-0 overflow-hidden">
         {/* Search Input */}
         <div className="flex items-center border-b px-3">
           <Search className="h-4 w-4 text-muted-foreground mr-2" />
@@ -536,11 +422,9 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
             className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-12"
           />
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            {isSearching && <Loader2 className="h-4 w-4 animate-spin" />}
             <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px]">tab</kbd>
-            <button
-              onClick={() => onOpenChange(false)}
-              className="p-1 hover:bg-muted rounded"
-            >
+            <button onClick={() => onOpenChange(false)} className="p-1 hover:bg-muted rounded">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -548,355 +432,116 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
 
         {/* Tabs */}
         <div className="flex items-center gap-1 px-3 py-2 border-b">
-          <button
-            onClick={() => setActiveTab("all")}
-            className={cn(
-              "px-3 py-1.5 text-sm rounded-md transition-colors",
-              activeTab === "all"
-                ? "bg-muted font-medium"
-                : "hover:bg-muted/50 text-muted-foreground"
-            )}
-          >
-            All
-          </button>
-          {user && (
+          {(["all", "chats", "notes", "prompts"] as TabType[]).map(tab => (
             <button
-              onClick={() => setActiveTab("history")}
+              key={tab}
+              onClick={() => setActiveTab(tab)}
               className={cn(
-                "px-3 py-1.5 text-sm rounded-md transition-colors",
-                activeTab === "history"
-                  ? "bg-muted font-medium"
-                  : "hover:bg-muted/50 text-muted-foreground"
+                "px-3 py-1.5 text-sm rounded-md transition-colors capitalize",
+                activeTab === tab ? "bg-muted font-medium" : "hover:bg-muted/50 text-muted-foreground"
               )}
             >
-              History
+              {tab === "all" ? "All" : tab === "chats" ? "Chats" : tab === "notes" ? "Notes" : "Prompts"}
             </button>
-          )}
-          <button
-            onClick={() => setActiveTab("library")}
-            className={cn(
-              "px-3 py-1.5 text-sm rounded-md transition-colors",
-              activeTab === "library"
-                ? "bg-muted font-medium"
-                : "hover:bg-muted/50 text-muted-foreground"
-            )}
-          >
-            {user ? "Library" : "Browse"}
-          </button>
-          <button
-            onClick={() => setActiveTab("prompts")}
-            className={cn(
-              "px-3 py-1.5 text-sm rounded-md transition-colors",
-              activeTab === "prompts"
-                ? "bg-muted font-medium"
-                : "hover:bg-muted/50 text-muted-foreground"
-            )}
-          >
-            Prompts
-          </button>
+          ))}
         </div>
 
         {/* Results */}
         <div className="max-h-[400px] overflow-y-auto">
-          {/* Browse Links Section (unauthenticated, no search) */}
-          {showBrowseLinks && (
-            <div className="p-2">
-              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
-                Browse
-              </p>
-              {browseLinks.map((link) => {
-                const Icon = link.icon;
-                return (
-                  <button
-                    key={link.path}
-                    onClick={() => {
-                      onOpenChange(false);
-                      navigate(link.path);
-                    }}
-                    className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
-                  >
-                    <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="truncate">{link.title}</span>
-                  </button>
-                );
-              })}
-            </div>
+          {/* All Tab */}
+          {activeTab === "all" && (
+            <>
+              {/* Routes Section */}
+              {filteredRoutes.length > 0 && !debouncedTerm && (
+                <div>
+                  <p className="px-4 py-2 text-xs font-medium text-muted-foreground">Pages</p>
+                  {filteredRoutes.slice(0, 5).map(route => (
+                    <button
+                      key={route.path}
+                      onClick={() => handleRouteClick(route.path)}
+                      className="flex items-center gap-3 w-full px-4 py-2 text-sm hover:bg-muted transition-colors text-left"
+                    >
+                      <span className="truncate">{route.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Activity grouped by date */}
+              {user && (
+                <>
+                  {renderDateGroup("Today", groupedAllResults.today)}
+                  {renderDateGroup("Yesterday", groupedAllResults.yesterday)}
+                  {renderDateGroup("Previous 7 Days", groupedAllResults.previous7Days)}
+                </>
+              )}
+
+              {/* Unauthenticated state */}
+              {!user && (
+                <div className="p-4 text-center text-muted-foreground">
+                  <p>Sign in to search your chats and notes</p>
+                </div>
+              )}
+            </>
           )}
 
-          {/* Recents Section */}
-          {recents.length > 0 && (
-            <div className="p-2">
-              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
-                {activeTab === "library" ? "Library" : "Recents"}
-              </p>
-              {recents.map((item, idx) => {
-                const isChat = "id" in item && recentChats.some((c) => c.id === (item as ChatSession).id);
-                const isExcerpt = "id" in item && recentExcerpts.some((e) => e.id === (item as Excerpt).id);
-                const isNote = "id" in item && recentNotes.some((n) => n.id === (item as Note).id);
-                const type = isChat ? "chat" : isExcerpt ? "excerpt" : "note";
-                const Icon = isChat ? MessagesSquare : isExcerpt ? TextQuote : NotebookPen;
-
-                return (
-                  <button
-                    key={`${type}-${(item as any).id}`}
-                    onClick={() => handleItemClick(type, (item as any).id)}
-                    className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
-                  >
-                    <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="truncate">{(item as any).title}</span>
-                  </button>
-                );
-              })}
-            </div>
+          {/* Chats Tab */}
+          {activeTab === "chats" && user && (
+            <>
+              {renderDateGroup("Today", groupedChatResults.today)}
+              {renderDateGroup("Yesterday", groupedChatResults.yesterday)}
+              {renderDateGroup("Previous 7 Days", groupedChatResults.previous7Days)}
+              {renderDateGroup("Older", groupedChatResults.older)}
+            </>
           )}
 
-          {/* History Section */}
-          {historyChats.length > 0 && (
-            <div className="p-2">
-              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
-                Chat History ({historyChats.length})
-              </p>
-              {historyChats.map((chat) => (
-                <button
-                  key={`history-${chat.id}`}
-                  onClick={() => handleItemClick("chat", chat.id)}
-                  className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
-                >
-                  <MessagesSquare className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <span className="truncate">{chat.title}</span>
-                </button>
+          {/* Notes Tab */}
+          {activeTab === "notes" && user && (
+            <>
+              {renderDateGroup("Today", groupedNoteResults.today)}
+              {renderDateGroup("Yesterday", groupedNoteResults.yesterday)}
+              {renderDateGroup("Previous 7 Days", groupedNoteResults.previous7Days)}
+              {renderDateGroup("Older", groupedNoteResults.older)}
+            </>
+          )}
+
+          {/* Prompts Tab */}
+          {activeTab === "prompts" && (
+            <>
+              {Object.entries(groupedPrompts).map(([category, prompts]) => (
+                <div key={category}>
+                  <p className="px-4 py-2 text-xs font-medium text-muted-foreground">{category}</p>
+                  {prompts.map((p, idx) => (
+                    <button
+                      key={`${category}-${idx}`}
+                      onClick={() => handlePromptClick(p.prompt)}
+                      className="flex flex-col items-start w-full px-4 py-2 text-sm hover:bg-muted transition-colors text-left"
+                    >
+                      <span className="font-medium">{p.title}</span>
+                      <span className="text-muted-foreground text-xs line-clamp-1">{p.prompt}</span>
+                    </button>
+                  ))}
+                </div>
               ))}
-            </div>
+            </>
           )}
 
-          {/* Prompts Section */}
-          {prompts.length > 0 && (
-            <div className="p-2">
-              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
-                Prompts
-              </p>
-              {prompts.map((item, idx) => (
-                <button
-                  key={`prompt-${idx}`}
-                  onClick={() => handlePromptClick(item.prompt)}
-                  className="flex items-start gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
-                >
-                  <span className="mt-0.5 flex-shrink-0">{getCategoryIcon(item.category)}</span>
-                  <span className="min-w-0">
-                    <span className="font-medium block truncate">{item.title}</span>
-                    <span className="text-muted-foreground text-xs line-clamp-1">{item.prompt}</span>
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Bills Section */}
-          {bills.length > 0 && (
-            <div className="p-2">
-              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
-                Bills
-              </p>
-              {bills.map((bill) => (
-                <button
-                  key={`bill-${bill.bill_number}`}
-                  onClick={() => {
-                    onOpenChange(false);
-                    navigate(`/bills/${normalizeBillNumber(bill.bill_number)}`);
-                  }}
-                  className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
-                >
-                  <ScrollText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <span className="truncate">
-                    <span className="font-medium">{normalizeBillNumber(bill.bill_number)}</span>
-                    {bill.title && <span className="text-muted-foreground"> — {bill.title}</span>}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Members Section */}
-          {members.length > 0 && (
-            <div className="p-2">
-              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
-                Members
-              </p>
-              {members.map((member) => (
-                <button
-                  key={`member-${member.people_id}`}
-                  onClick={() => {
-                    onOpenChange(false);
-                    navigate(`/members/${generateMemberSlug(member as any)}`);
-                  }}
-                  className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
-                >
-                  <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <span className="truncate">{member.name}</span>
-                  <span className="ml-auto text-xs text-muted-foreground flex-shrink-0">
-                    {member.party} · {member.chamber}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Committees Section */}
-          {committees.length > 0 && (
-            <div className="p-2">
-              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
-                Committees
-              </p>
-              {committees.map((committee) => (
-                <button
-                  key={`committee-${committee.committee_id}`}
-                  onClick={() => {
-                    onOpenChange(false);
-                    navigate(`/committees/${generateCommitteeSlug(committee as any)}`);
-                  }}
-                  className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
-                >
-                  <Landmark className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <span className="truncate">{committee.chamber} {committee.committee_name}</span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Lobbyists Section */}
-          {lobbyists.length > 0 && (
-            <div className="p-2">
-              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
-                Lobbying
-              </p>
-              {lobbyists.map((item, idx) => (
-                <button
-                  key={`lobby-${idx}`}
-                  onClick={() => {
-                    onOpenChange(false);
-                    navigate("/lobbying");
-                  }}
-                  className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
-                >
-                  <Briefcase className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <span className="truncate">
-                    <span className="font-medium">{item.contractual_client}</span>
-                    {item.compensation_and_expenses != null && (
-                      <span className="text-muted-foreground"> — {formatCurrency(item.compensation_and_expenses)}</span>
-                    )}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Contracts Section */}
-          {contracts.length > 0 && (
-            <div className="p-2">
-              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
-                Contracts
-              </p>
-              {contracts.map((item) => (
-                <button
-                  key={`contract-${item.contract_number}`}
-                  onClick={() => {
-                    onOpenChange(false);
-                    navigate(`/contracts/${item.contract_number}`);
-                  }}
-                  className="flex items-start gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
-                >
-                  <HandCoins className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-                  <span className="min-w-0">
-                    <span className="font-medium block truncate">{item.vendor_name}</span>
-                    {item.contract_description && (
-                      <span className="text-muted-foreground text-xs line-clamp-1">{item.contract_description}</span>
-                    )}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Budget Section */}
-          {budget.length > 0 && (
-            <div className="p-2">
-              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
-                Budget
-              </p>
-              {budget.map((item, idx) => (
-                <button
-                  key={`budget-${idx}`}
-                  onClick={() => {
-                    onOpenChange(false);
-                    navigate("/budget");
-                  }}
-                  className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
-                >
-                  <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <span className="truncate">
-                    <span className="font-medium">{item["Agency Name"]}</span>
-                    {item["Program Name"] && <span className="text-muted-foreground"> — {item["Program Name"]}</span>}
-                    {item["Appropriations Recommended 2026-27"] != null && (
-                      <span className="text-muted-foreground"> ({formatCurrency(item["Appropriations Recommended 2026-27"])})</span>
-                    )}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* School Funding Section */}
-          {schoolFunding.length > 0 && (
-            <div className="p-2">
-              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
-                School Funding
-              </p>
-              {schoolFunding.map((item) => (
-                <button
-                  key={`school-${item.id}`}
-                  onClick={() => {
-                    onOpenChange(false);
-                    navigate(`/school-funding/${item.id}`);
-                  }}
-                  className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
-                >
-                  <GraduationCap className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <span className="truncate">
-                    <span className="font-medium">{item.district}</span>
-                    <span className="text-muted-foreground"> — {item.county}</span>
-                    {item.total_change && <span className="text-muted-foreground"> ({item.total_change})</span>}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Pages Section (Departments/Agencies/Authorities) */}
-          {pages.length > 0 && (
-            <div className="p-2">
-              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
-                Departments & Agencies
-              </p>
-              {pages.map((page) => (
-                <button
-                  key={`page-${page.slug}`}
-                  onClick={() => {
-                    onOpenChange(false);
-                    navigate(`/departments/${page.slug}`);
-                  }}
-                  className="flex items-center gap-3 w-full px-2 py-2 text-sm rounded-md hover:bg-muted transition-colors text-left"
-                >
-                  {getPageIcon(page.category)}
-                  <span className="truncate">{page.title}</span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Empty State */}
-          {!hasResults && (
+          {/* Empty / No Results State */}
+          {!hasResults && !isSearching && (
             <div className="p-8 text-center text-muted-foreground">
-              <p>No results found</p>
+              {debouncedTerm ? (
+                <p>No results found for "{debouncedTerm}"</p>
+              ) : (
+                <p>No items yet</p>
+              )}
+            </div>
+          )}
+
+          {/* Loading State */}
+          {isSearching && !hasResults && (
+            <div className="p-8 text-center text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+              <p>Searching...</p>
             </div>
           )}
         </div>
