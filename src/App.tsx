@@ -88,10 +88,10 @@ function KeyboardShortcuts() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Shift+Cmd+O (Mac) or Shift+Ctrl+O (Windows) - New Note
+      // Shift+Cmd+O (Mac) or Shift+Ctrl+O (Windows) - New Chat
       if (e.key.toLowerCase() === "o" && e.shiftKey && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        navigate("/new-note");
+        navigate("/new-chat");
       }
     };
 

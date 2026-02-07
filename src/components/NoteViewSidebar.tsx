@@ -477,7 +477,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               onMouseEnter={() => setNewChatHover(true)}
               onMouseLeave={() => setNewChatHover(false)}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
+                "group flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
                 isActive("/new-chat") ? "bg-muted" : "hover:bg-muted"
               )}
             >
@@ -495,7 +495,10 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   )}
                 />
               </div>
-              <span>Chats</span>
+              <span className="flex-1">Chats</span>
+              <span className="hidden sm:block text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                ⇧⌘O
+              </span>
             </NavLink>
           </TooltipTrigger>
           <TooltipContent side="right">
@@ -642,15 +645,12 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   to="/new-note"
                   onClick={onClose}
                   className={cn(
-                    "group flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
                     isActive("/new-note") ? "bg-muted" : "hover:bg-muted"
                   )}
                 >
                   <NotebookPen className="h-4 w-4" />
-                  <span className="flex-1">Notes</span>
-                  <span className="hidden sm:block text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                    ⇧⌘O
-                  </span>
+                  <span>Notes</span>
                 </NavLink>
               </TooltipTrigger>
               <TooltipContent side="right">
