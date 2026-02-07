@@ -3053,13 +3053,13 @@ const NewChat = () => {
         </div>
       </div>
 
-      {/* Product Hunt Badge - only show on root, hide on /c/ session pages */}
+      {/* Product Hunt Badge - only show on root, hide on mobile and /c/ session pages */}
       {!chatStarted && query.length === 0 && !routeSessionId && (
         <a
           href="https://www.producthunt.com/products/nysgpt-govtech?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-nysgpt-govtech"
           target="_blank"
           rel="noopener noreferrer"
-          className="fixed bottom-4 right-4 z-50"
+          className="hidden sm:block fixed bottom-4 right-4 z-50"
         >
           <img
             src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1071469&theme=dark&t=1770014639842"
