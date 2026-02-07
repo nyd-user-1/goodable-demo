@@ -638,26 +638,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               </TooltipContent>
             </Tooltip>
 
-            {/* Notes - after Members */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <NavLink
-                  to="/new-note"
-                  onClick={onClose}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                    isActive("/new-note") ? "bg-muted" : "hover:bg-muted"
-                  )}
-                >
-                  <NotebookPen className="h-4 w-4" />
-                  <span>Notes</span>
-                </NavLink>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Create a new note</p>
-              </TooltipContent>
-            </Tooltip>
-
             {/* Pro Plan Section */}
             <Collapsible className="group/pro">
               <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal text-foreground hover:bg-muted transition-colors">
@@ -677,6 +657,29 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                 </div>
               </CollapsibleTrigger>
               <CollapsibleContent className="pl-4 space-y-1 mt-1">
+                {/* Notes */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <NavLink
+                      to="/new-note"
+                      onClick={onClose}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
+                        isActive("/new-note") ? "bg-muted" : "hover:bg-muted"
+                      )}
+                    >
+                      <NotebookPen className="h-4 w-4" />
+                      <span>Notes</span>
+                    </NavLink>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>Create a new note</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                {/* Divider */}
+                <div className="border-t my-1" />
+
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <NavLink
@@ -794,33 +797,143 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
 
         </div>
 
-        {/* Your Chats Section - Combined chats and notes, sorted chronologically */}
-        {(combinedItems.length > 0 || recentExcerpts.length > 0) && (
+        {/* Your Chats Section */}
+        {recentChats.length > 0 && (
           <Collapsible className="group/chats mt-4">
             <div className="px-2">
               <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
-                Chats
+                Your Chats
                 <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/chats:rotate-90" />
               </CollapsibleTrigger>
             </div>
             <CollapsibleContent className="px-2 space-y-1">
-              {/* Combined chats and notes, sorted by date */}
-              {combinedItems.map((item) => (
-                <div key={`${item.type}-${item.id}`} className="group/item relative">
-                  {inlineEditId === item.id ? (
+              {recentChats.map((chat) => {
+                const rawTitle = chat.title || "Untitled Chat";
+                const isLobbyingChat = rawTitle.startsWith("Tell me about") &&
+                  (rawTitle.includes("LLC") || rawTitle.includes("LLP") ||
+                   rawTitle.includes("INC") || rawTitle.includes("ADVISORS") ||
+                   rawTitle.includes("ASSOCIATES") || rawTitle.includes("CONSULTING") ||
+                   rawTitle.includes("GROUP") || rawTitle.includes("STRATEGIES") ||
+                   rawTitle.includes("AFFAIRS") || rawTitle.includes("& "));
+                const messagesArr = Array.isArray(chat.messages) ? chat.messages as Array<{ role?: string; content?: string }> : [];
+                const firstUserContent = messagesArr.find(m => m.role === 'user')?.content || '';
+                const isContractChat = /^\[Contract:[^\]]+\]/.test(rawTitle) || /\[Contract:[^\]]+\]/.test(firstUserContent);
+                const isSchoolFundingChat = /^\[SchoolFunding:[^\]]+\]/.test(rawTitle) || /\[SchoolFunding:[^\]]+\]/.test(firstUserContent);
+                const chatTitle = rawTitle.replace(/^\[Contract:[^\]]+\]\s*/, '').replace(/^\[SchoolFunding:[^\]]+\]\s*/, '');
+
+                return (
+                  <div key={`chat-${chat.id}`} className="group/item relative">
+                    {inlineEditId === chat.id ? (
+                      <div className="flex items-center gap-3 px-3 py-2.5 md:py-2 pr-8 rounded-md text-[15px] md:text-sm bg-muted w-full">
+                        {chat.isPinned ? (
+                          <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
+                        ) : isLobbyingChat ? (
+                          <HandCoins className="h-4 w-4 flex-shrink-0" />
+                        ) : isContractChat ? (
+                          <Wallet className="h-4 w-4 flex-shrink-0" />
+                        ) : isSchoolFundingChat ? (
+                          <GraduationCap className="h-4 w-4 flex-shrink-0" />
+                        ) : (
+                          <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                        )}
+                        <input
+                          autoFocus
+                          className="flex-1 bg-transparent outline-none text-[15px] md:text-sm min-w-0"
+                          value={inlineEditValue}
+                          onChange={(e) => setInlineEditValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleInlineRenameSubmit(chat.id, 'chat');
+                            } else if (e.key === 'Escape') {
+                              setInlineEditId(null);
+                            }
+                          }}
+                          onBlur={() => handleInlineRenameSubmit(chat.id, 'chat')}
+                        />
+                      </div>
+                    ) : (
+                      <NavLink
+                        to={`/c/${chat.id}`}
+                        onClick={onClose}
+                        onDoubleClick={(e) => {
+                          e.preventDefault();
+                          setInlineEditId(chat.id);
+                          setInlineEditValue(chatTitle);
+                        }}
+                        className={cn(
+                          "flex items-center gap-3 px-3 py-2.5 md:py-2 pr-8 rounded-md text-[15px] md:text-sm transition-colors",
+                          location.pathname === `/c/${chat.id}` ? "bg-muted" : "hover:bg-muted"
+                        )}
+                      >
+                        {chat.isPinned ? (
+                          <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
+                        ) : isLobbyingChat ? (
+                          <HandCoins className="h-4 w-4 flex-shrink-0" />
+                        ) : isContractChat ? (
+                          <Wallet className="h-4 w-4 flex-shrink-0" />
+                        ) : isSchoolFundingChat ? (
+                          <GraduationCap className="h-4 w-4 flex-shrink-0" />
+                        ) : (
+                          <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                        )}
+                        <span className="truncate">{chatTitle}</span>
+                      </NavLink>
+                    )}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover/item:opacity-100 transition-opacity"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" side="right">
+                        <DropdownMenuItem onClick={() => handleRenameClick(chat.id, chatTitle, 'chat')}>
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => togglePinChat(chat.id)}>
+                          <Pin className="h-4 w-4 mr-2" />
+                          {chat.isPinned ? "Unpin Chat" : "Pin Chat"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => deleteChat(chat.id)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                );
+              })}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
+        {/* Your Notes Section */}
+        {recentNotes.length > 0 && (
+          <Collapsible className="group/notes mt-2">
+            <div className="px-2">
+              <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
+                Your Notes
+                <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/notes:rotate-90" />
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent className="px-2 space-y-1">
+              {recentNotes.map((note) => (
+                <div key={`note-${note.id}`} className="group/item relative">
+                  {inlineEditId === note.id ? (
                     <div className="flex items-center gap-3 px-3 py-2.5 md:py-2 pr-8 rounded-md text-[15px] md:text-sm bg-muted w-full">
-                      {item.isPinned ? (
+                      {pinnedNoteIds.has(note.id) ? (
                         <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
-                      ) : item.type === 'note' ? (
-                        <NotebookPen className="h-4 w-4 flex-shrink-0" />
-                      ) : item.isLobbyingChat ? (
-                        <HandCoins className="h-4 w-4 flex-shrink-0" />
-                      ) : item.isContractChat ? (
-                        <Wallet className="h-4 w-4 flex-shrink-0" />
-                      ) : item.isSchoolFundingChat ? (
-                        <GraduationCap className="h-4 w-4 flex-shrink-0" />
                       ) : (
-                        <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                        <NotebookPen className="h-4 w-4 flex-shrink-0" />
                       )}
                       <input
                         autoFocus
@@ -830,45 +943,35 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
-                            handleInlineRenameSubmit(item.id, item.type);
+                            handleInlineRenameSubmit(note.id, 'note');
                           } else if (e.key === 'Escape') {
                             setInlineEditId(null);
                           }
                         }}
-                        onBlur={() => handleInlineRenameSubmit(item.id, item.type)}
+                        onBlur={() => handleInlineRenameSubmit(note.id, 'note')}
                       />
                     </div>
                   ) : (
-                  <NavLink
-                    to={item.type === 'chat' ? `/c/${item.id}` : `/n/${item.id}`}
-                    onClick={onClose}
-                    onDoubleClick={(e) => {
-                      e.preventDefault();
-                      setInlineEditId(item.id);
-                      setInlineEditValue(item.title);
-                    }}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 md:py-2 pr-8 rounded-md text-[15px] md:text-sm transition-colors",
-                      (item.type === 'chat' ? location.pathname === `/c/${item.id}` : location.pathname === `/n/${item.id}`)
-                        ? "bg-muted"
-                        : "hover:bg-muted"
-                    )}
-                  >
-                    {item.isPinned ? (
-                      <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
-                    ) : item.type === 'note' ? (
-                      <NotebookPen className="h-4 w-4 flex-shrink-0" />
-                    ) : item.isLobbyingChat ? (
-                      <HandCoins className="h-4 w-4 flex-shrink-0" />
-                    ) : item.isContractChat ? (
-                      <Wallet className="h-4 w-4 flex-shrink-0" />
-                    ) : item.isSchoolFundingChat ? (
-                      <GraduationCap className="h-4 w-4 flex-shrink-0" />
-                    ) : (
-                      <MessageSquare className="h-4 w-4 flex-shrink-0" />
-                    )}
-                    <span className="truncate">{item.title}</span>
-                  </NavLink>
+                    <NavLink
+                      to={`/n/${note.id}`}
+                      onClick={onClose}
+                      onDoubleClick={(e) => {
+                        e.preventDefault();
+                        setInlineEditId(note.id);
+                        setInlineEditValue(note.title || "Untitled Note");
+                      }}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2.5 md:py-2 pr-8 rounded-md text-[15px] md:text-sm transition-colors",
+                        location.pathname === `/n/${note.id}` ? "bg-muted" : "hover:bg-muted"
+                      )}
+                    >
+                      {pinnedNoteIds.has(note.id) ? (
+                        <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
+                      ) : (
+                        <NotebookPen className="h-4 w-4 flex-shrink-0" />
+                      )}
+                      <span className="truncate">{note.title || "Untitled Note"}</span>
+                    </NavLink>
                   )}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -882,16 +985,16 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" side="right">
-                      <DropdownMenuItem onClick={() => handleRenameClick(item.id, item.title, item.type)}>
+                      <DropdownMenuItem onClick={() => handleRenameClick(note.id, note.title || "Untitled Note", 'note')}>
                         <Pencil className="h-4 w-4 mr-2" />
                         Rename
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => item.type === 'chat' ? togglePinChat(item.id) : togglePinNote(item.id)}>
+                      <DropdownMenuItem onClick={() => togglePinNote(note.id)}>
                         <Pin className="h-4 w-4 mr-2" />
-                        {item.isPinned ? (item.type === 'chat' ? "Unpin Chat" : "Unpin Note") : (item.type === 'chat' ? "Pin Chat" : "Pin Note")}
+                        {pinnedNoteIds.has(note.id) ? "Unpin Note" : "Pin Note"}
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => item.type === 'chat' ? deleteChat(item.id) : deleteNote(item.id)}
+                        onClick={() => deleteNote(note.id)}
                         className="text-destructive focus:text-destructive"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
@@ -901,7 +1004,20 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   </DropdownMenu>
                 </div>
               ))}
-              {/* Excerpts */}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
+        {/* Your Excerpts Section */}
+        {recentExcerpts.length > 0 && (
+          <Collapsible className="group/excerpts mt-2">
+            <div className="px-2">
+              <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
+                Your Excerpts
+                <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/excerpts:rotate-90" />
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent className="px-2 space-y-1">
               {recentExcerpts.map((excerpt) => (
                 <NavLink
                   key={`excerpt-${excerpt.id}`}
