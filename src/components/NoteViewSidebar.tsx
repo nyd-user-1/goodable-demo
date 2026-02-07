@@ -809,14 +809,23 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             <CollapsibleContent className="px-2 space-y-1">
               {recentChats.map((chat) => {
                 const rawTitle = chat.title || "Untitled Chat";
-                const isLobbyingChat = rawTitle.startsWith("Tell me about") &&
+                const messagesArr = Array.isArray(chat.messages) ? chat.messages as Array<{ role?: string; content?: string }> : [];
+                const firstUserContent = messagesArr.find(m => m.role === 'user')?.content || '';
+
+                // Detect chat types based on title or first user message
+                const isBillChat = /^Tell me about bill [A-Z]?\d+/i.test(rawTitle) ||
+                  /^Tell me about bill [A-Z]?\d+/i.test(firstUserContent);
+                const isMemberChat = /^Tell me about (Assembly [Mm]ember|Senator)/i.test(rawTitle) ||
+                  /^Tell me about (Assembly [Mm]ember|Senator)/i.test(firstUserContent);
+                const isCommitteeChat = /^Tell me about the (Assembly|Senate).*[Cc]ommittee/i.test(rawTitle) ||
+                  /^Tell me about the (Assembly|Senate).*[Cc]ommittee/i.test(firstUserContent);
+                const isLobbyingChat = !isBillChat && !isMemberChat && !isCommitteeChat &&
+                  rawTitle.startsWith("Tell me about") &&
                   (rawTitle.includes("LLC") || rawTitle.includes("LLP") ||
                    rawTitle.includes("INC") || rawTitle.includes("ADVISORS") ||
                    rawTitle.includes("ASSOCIATES") || rawTitle.includes("CONSULTING") ||
                    rawTitle.includes("GROUP") || rawTitle.includes("STRATEGIES") ||
                    rawTitle.includes("AFFAIRS") || rawTitle.includes("& "));
-                const messagesArr = Array.isArray(chat.messages) ? chat.messages as Array<{ role?: string; content?: string }> : [];
-                const firstUserContent = messagesArr.find(m => m.role === 'user')?.content || '';
                 const isContractChat = /^\[Contract:[^\]]+\]/.test(rawTitle) || /\[Contract:[^\]]+\]/.test(firstUserContent);
                 const isSchoolFundingChat = /^\[SchoolFunding:[^\]]+\]/.test(rawTitle) || /\[SchoolFunding:[^\]]+\]/.test(firstUserContent);
                 const chatTitle = rawTitle.replace(/^\[Contract:[^\]]+\]\s*/, '').replace(/^\[SchoolFunding:[^\]]+\]\s*/, '');
@@ -827,6 +836,12 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                       <div className="flex items-center gap-3 px-3 py-2.5 md:py-2 pr-8 rounded-md text-[15px] md:text-sm bg-muted w-full">
                         {chat.isPinned ? (
                           <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
+                        ) : isBillChat ? (
+                          <ScrollText className="h-4 w-4 flex-shrink-0" />
+                        ) : isMemberChat ? (
+                          <Users className="h-4 w-4 flex-shrink-0" />
+                        ) : isCommitteeChat ? (
+                          <Landmark className="h-4 w-4 flex-shrink-0" />
                         ) : isLobbyingChat ? (
                           <HandCoins className="h-4 w-4 flex-shrink-0" />
                         ) : isContractChat ? (
@@ -868,6 +883,12 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                       >
                         {chat.isPinned ? (
                           <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
+                        ) : isBillChat ? (
+                          <ScrollText className="h-4 w-4 flex-shrink-0" />
+                        ) : isMemberChat ? (
+                          <Users className="h-4 w-4 flex-shrink-0" />
+                        ) : isCommitteeChat ? (
+                          <Landmark className="h-4 w-4 flex-shrink-0" />
                         ) : isLobbyingChat ? (
                           <HandCoins className="h-4 w-4 flex-shrink-0" />
                         ) : isContractChat ? (
