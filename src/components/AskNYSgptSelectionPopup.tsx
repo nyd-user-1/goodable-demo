@@ -123,4 +123,3 @@ export function AskNYSgptSelectionPopup({ onAsk }: AskNYSgptSelectionPopupProps)
   );
 }
 
-export { AskNYSgptSelectionPopup };
