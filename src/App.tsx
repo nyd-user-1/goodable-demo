@@ -70,6 +70,7 @@ const Advertise = React.lazy(() => import("./pages/Advertise"));
 const Terms = React.lazy(() => import("./pages/Terms"));
 const Privacy = React.lazy(() => import("./pages/Privacy"));
 const Contact = React.lazy(() => import("./pages/Contact"));
+const UserFeedback = React.lazy(() => import("./pages/UserFeedback"));
 
 const queryClient = new QueryClient();
 
@@ -142,6 +143,7 @@ const App = () => {
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/privacy" element={<Privacy />} />
                   <Route path="/contact" element={<Contact />} />
+                  <Route path="/user-feedback" element={<UserFeedback />} />
                   <Route path="/use-cases" element={<UseCases />} />
                   <Route path="/use-cases/bills" element={<UseCasesBills />} />
                   <Route path="/use-cases/committees" element={<UseCasesCommittees />} />
