@@ -184,7 +184,7 @@ export default function MultiStepCTAHero() {
       <div className="container mx-auto px-4 py-8 sm:py-24 md:px-6 md:py-28 lg:py-32 2xl:max-w-[1400px]">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           {/* Left Side - Value Proposition (hidden on mobile, visible on sm+) */}
-          <div className="space-y-8 hidden sm:block">
+          <div className="space-y-8 hidden lg:block">
             <div className="space-y-6">
               <Badge
                 variant="outline"
