@@ -1,12 +1,12 @@
 /**
- * SearchModal - Server-side search with cursor-based pagination
+ * SearchModal - Unified tabless search with member/committee/excerpt support
  *
  * Architecture:
+ * - Single unified view (no tabs)
+ * - Browse mode: Pages + recent chats/notes/excerpts chronologically
+ * - Search mode: Member Pages, Committee Pages, Pages, Prompts, then chronological results
  * - Server-side full-text search via Postgres tsvector
- * - Cursor-based pagination for efficient loading
  * - Debounced input (150ms) with request cancellation
- * - Tab caching with 60s staleness
- * - Lazy-loaded tab content
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
@@ -22,9 +22,9 @@ import {
   CornerDownLeft,
   Loader2,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { generateMemberSlug } from "@/utils/memberSlug";
 
 interface SearchModalProps {
   open: boolean;
@@ -34,12 +34,31 @@ interface SearchModalProps {
 // Search result from server
 interface SearchResult {
   id: string;
-  type: "chat" | "note";
+  type: "chat" | "note" | "excerpt";
   title: string;
   preview_text: string | null;
   created_at: string;
   last_activity_at: string;
   relevance: number;
+}
+
+// Member search result
+interface MemberSearchResult {
+  people_id: number;
+  name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  photo_url: string | null;
+  party: string | null;
+  chamber: string | null;
+}
+
+// Committee search result
+interface CommitteeSearchResult {
+  committee_id: number;
+  committee_name: string | null;
+  chamber: string | null;
+  slug: string | null;
 }
 
 // Prompt with category
@@ -49,17 +68,7 @@ interface Prompt {
   category: string;
 }
 
-// Tab types
-type TabType = "all" | "chats" | "notes" | "prompts";
-
-// Cache entry with timestamp
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-  cursor: string | null;
-}
-
-// Routes shown in All tab
+// Routes shown in Pages section
 const APP_ROUTES = [
   { path: "/lobbying-dashboard", label: "Lobbying Dashboard" },
   { path: "/prompts", label: "Prompts" },
@@ -82,7 +91,7 @@ const APP_ROUTES = [
   { path: "/budget-dashboard", label: "Budget Dashboard" },
 ];
 
-// Prompts with category mapping
+// Prompts
 const ALL_PROMPTS: Prompt[] = [
   // Bills
   { title: "AI Consumer Protection", prompt: "What can you tell me about efforts to protect consumers from algorithmic discrimination in New York?", category: "Bills" },
@@ -140,14 +149,11 @@ const ALL_PROMPTS: Prompt[] = [
   { title: "Social Services Advocacy", prompt: "What social services advocacy efforts are underway in New York?", category: "Social" },
 ];
 
-// Cache staleness threshold (60 seconds)
-const CACHE_STALENESS_MS = 60 * 1000;
-
 // Helper to group items by date
 function groupByDate(items: SearchResult[]): { today: SearchResult[]; yesterday: SearchResult[]; previous7Days: SearchResult[]; older: SearchResult[] } {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+  const yesterdayDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
   const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
   const groups = { today: [] as SearchResult[], yesterday: [] as SearchResult[], previous7Days: [] as SearchResult[], older: [] as SearchResult[] };
@@ -156,7 +162,7 @@ function groupByDate(items: SearchResult[]): { today: SearchResult[]; yesterday:
     const itemDate = new Date(item.last_activity_at);
     if (itemDate >= today) {
       groups.today.push(item);
-    } else if (itemDate >= yesterday) {
+    } else if (itemDate >= yesterdayDate) {
       groups.yesterday.push(item);
     } else if (itemDate >= weekAgo) {
       groups.previous7Days.push(item);
@@ -168,44 +174,21 @@ function groupByDate(items: SearchResult[]): { today: SearchResult[]; yesterday:
   return groups;
 }
 
-// Display labels for prompt categories
-const CATEGORY_LABELS: Record<string, string> = {
-  Bills: "Bill Prompts",
-  Members: "Member Prompts",
-  Committees: "Committee Prompts",
-  Policy: "Policy Prompts",
-  Departments: "Department Prompts",
-  Economic: "Economic Prompts",
-  Environmental: "Environmental Prompts",
-  Legal: "Legal Prompts",
-  Social: "Social Prompts",
-};
-
-// Helper to group prompts by category
-function groupPromptsByCategory(prompts: Prompt[]): Record<string, Prompt[]> {
-  const groups: Record<string, Prompt[]> = {};
-  prompts.forEach(p => {
-    if (!groups[p.category]) groups[p.category] = [];
-    groups[p.category].push(p);
-  });
-  return groups;
-}
-
 // Format date for display (e.g., "Feb 5", "Jan 24")
 function formatSearchDate(dateStr: string): string {
   const date = new Date(dateStr);
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+  const yesterdayDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
 
   if (date >= today) return "Today";
-  if (date >= yesterday) return "Yesterday";
+  if (date >= yesterdayDate) return "Yesterday";
 
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 // Extract snippet around search term with context
-function extractSnippet(text: string | null, searchTerm: string, maxLength: number = 100): { before: string; match: string; after: string } | null {
+function extractSnippet(text: string | null, searchTerm: string): { before: string; match: string; after: string } | null {
   if (!text || !searchTerm) return null;
 
   const lowerText = text.toLowerCase();
@@ -214,7 +197,6 @@ function extractSnippet(text: string | null, searchTerm: string, maxLength: numb
 
   if (index === -1) return null;
 
-  // Get context around the match
   const contextStart = Math.max(0, index - 30);
   const contextEnd = Math.min(text.length, index + searchTerm.length + 70);
 
@@ -239,17 +221,12 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
   // Search state
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedTerm, setDebouncedTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<TabType>("all");
   const [isSearching, setIsSearching] = useState(false);
 
-  // Results state
-  const [allResults, setAllResults] = useState<SearchResult[]>([]);
-  const [chatResults, setChatResults] = useState<SearchResult[]>([]);
-  const [noteResults, setNoteResults] = useState<SearchResult[]>([]);
-
-  // Cache state (tab -> cache entry)
-  const cacheRef = useRef<Record<string, CacheEntry<SearchResult[]>>>({});
-  const [tabsLoaded, setTabsLoaded] = useState<Record<TabType, boolean>>({ all: false, chats: false, notes: false, prompts: true });
+  // Unified results state
+  const [unifiedResults, setUnifiedResults] = useState<SearchResult[]>([]);
+  const [memberResults, setMemberResults] = useState<MemberSearchResult[]>([]);
+  const [committeeResults, setCommitteeResults] = useState<CommitteeSearchResult[]>([]);
 
   // Cmd+K keyboard shortcut
   useEffect(() => {
@@ -271,27 +248,9 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Check if cache is stale
-  const isCacheStale = useCallback((key: string) => {
-    const entry = cacheRef.current[key];
-    if (!entry) return true;
-    return Date.now() - entry.timestamp > CACHE_STALENESS_MS;
-  }, []);
-
-  // Fetch data for a tab (with caching)
-  const fetchTabData = useCallback(async (tab: TabType, query: string) => {
+  // Fetch results (unified)
+  const fetchResults = useCallback(async (query: string) => {
     if (!user) return;
-
-    const cacheKey = `${tab}-${query}`;
-
-    // Return cached data if fresh
-    if (!isCacheStale(cacheKey)) {
-      const cached = cacheRef.current[cacheKey];
-      if (tab === "all") setAllResults(cached.data);
-      else if (tab === "chats") setChatResults(cached.data);
-      else if (tab === "notes") setNoteResults(cached.data);
-      return;
-    }
 
     // Cancel any in-flight request
     if (abortControllerRef.current) {
@@ -302,71 +261,126 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
     setIsSearching(true);
 
     try {
-      let results: SearchResult[] = [];
-
-      if (tab === "all") {
-        // Call search_all RPC
-        const { data, error } = await supabase.rpc("search_all", {
-          p_user_id: user.id,
-          p_query: query || null,
-          p_cursor: null,
-          p_limit: 30,
-        });
-        if (error) throw error;
-        results = data || [];
-        setAllResults(results);
-      } else if (tab === "chats") {
-        if (query) {
-          // Search mode: use RPC for full-text search
-          const { data, error } = await supabase.rpc("search_chats", {
-            p_user_id: user.id,
-            p_query: query,
-            p_cursor: null,
-            p_limit: 50,
-          });
-          if (error) throw error;
-          results = data || [];
-        } else {
-          // Browse mode: direct query for recent chats
-          const { data, error } = await supabase
+      if (!query) {
+        // Browse mode: fetch recent chats, notes, excerpts
+        const [chatsRes, notesRes, excerptsRes] = await Promise.all([
+          supabase
             .from("chat_sessions")
             .select("id, title, updated_at, created_at")
             .eq("user_id", user.id)
             .order("updated_at", { ascending: false })
-            .limit(50);
-          if (error) throw error;
-          results = (data || []).map(chat => ({
-            id: chat.id,
-            type: "chat" as const,
-            title: chat.title || "Untitled Chat",
-            preview_text: null,
-            created_at: chat.created_at,
-            last_activity_at: chat.updated_at,
-            relevance: 1.0,
-          }));
-        }
-        setChatResults(results);
-      } else if (tab === "notes") {
-        // Call search_notes RPC
-        const { data, error } = await supabase.rpc("search_notes", {
-          p_user_id: user.id,
-          p_query: query || null,
-          p_cursor: null,
-          p_limit: 50,
+            .limit(30),
+          supabase.rpc("search_notes", {
+            p_user_id: user.id,
+            p_query: null,
+            p_cursor: null,
+            p_limit: 30,
+          }),
+          supabase
+            .from("chat_excerpts")
+            .select("id, title, user_message, updated_at, created_at")
+            .eq("user_id", user.id)
+            .order("updated_at", { ascending: false })
+            .limit(30),
+        ]);
+
+        const chats: SearchResult[] = (chatsRes.data || []).map(chat => ({
+          id: chat.id,
+          type: "chat" as const,
+          title: chat.title || "Untitled Chat",
+          preview_text: null,
+          created_at: chat.created_at,
+          last_activity_at: chat.updated_at,
+          relevance: 1.0,
+        }));
+
+        const notes: SearchResult[] = (notesRes.data || []).map((note: SearchResult) => ({
+          ...note,
+          type: "note" as const,
+        }));
+
+        const excerpts: SearchResult[] = (excerptsRes.data || []).map(exc => ({
+          id: exc.id,
+          type: "excerpt" as const,
+          title: exc.title || "Untitled Excerpt",
+          preview_text: exc.user_message || null,
+          created_at: exc.created_at,
+          last_activity_at: exc.updated_at,
+          relevance: 1.0,
+        }));
+
+        // Merge and sort by last_activity_at DESC
+        const merged = [...chats, ...notes, ...excerpts].sort(
+          (a, b) => new Date(b.last_activity_at).getTime() - new Date(a.last_activity_at).getTime()
+        );
+
+        setUnifiedResults(merged);
+        setMemberResults([]);
+        setCommitteeResults([]);
+      } else {
+        // Search mode: 5 parallel queries
+        const [chatsRes, notesRes, excerptsRes, membersRes, committeesRes] = await Promise.all([
+          supabase.rpc("search_chats", {
+            p_user_id: user.id,
+            p_query: query,
+            p_cursor: null,
+            p_limit: 30,
+          }),
+          supabase.rpc("search_notes", {
+            p_user_id: user.id,
+            p_query: query,
+            p_cursor: null,
+            p_limit: 30,
+          }),
+          supabase
+            .from("chat_excerpts")
+            .select("id, title, user_message, updated_at, created_at")
+            .eq("user_id", user.id)
+            .or(`title.ilike.%${query}%,user_message.ilike.%${query}%`)
+            .order("updated_at", { ascending: false })
+            .limit(30),
+          supabase
+            .from("People")
+            .select("people_id, name, first_name, last_name, photo_url, party, chamber")
+            .or(`name.ilike.%${query}%,first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
+            .limit(8),
+          supabase
+            .from("Committees")
+            .select("committee_id, committee_name, chamber, slug")
+            .ilike("committee_name", `%${query}%`)
+            .limit(8),
+        ]);
+
+        const chats: SearchResult[] = (chatsRes.data || []).map((chat: SearchResult) => ({
+          ...chat,
+          type: "chat" as const,
+        }));
+
+        const notes: SearchResult[] = (notesRes.data || []).map((note: SearchResult) => ({
+          ...note,
+          type: "note" as const,
+        }));
+
+        const excerpts: SearchResult[] = (excerptsRes.data || []).map(exc => ({
+          id: exc.id,
+          type: "excerpt" as const,
+          title: exc.title || "Untitled Excerpt",
+          preview_text: exc.user_message || null,
+          created_at: exc.created_at,
+          last_activity_at: exc.updated_at,
+          relevance: 0.5,
+        }));
+
+        // Merge and sort by relevance DESC, then last_activity_at DESC
+        const merged = [...chats, ...notes, ...excerpts].sort((a, b) => {
+          if (b.relevance !== a.relevance) return b.relevance - a.relevance;
+          return new Date(b.last_activity_at).getTime() - new Date(a.last_activity_at).getTime();
         });
-        if (error) throw error;
-        results = data || [];
-        setNoteResults(results);
+
+        setUnifiedResults(merged);
+        setMemberResults(membersRes.data || []);
+        setCommitteeResults(committeesRes.data || []);
       }
-
-      // Cache results
-      cacheRef.current[cacheKey] = {
-        data: results,
-        timestamp: Date.now(),
-        cursor: results.length > 0 ? results[results.length - 1].last_activity_at : null,
-      };
-
-      setTabsLoaded(prev => ({ ...prev, [tab]: true }));
     } catch (error: any) {
       if (error.name !== "AbortError") {
         console.error("Search error:", error);
@@ -374,58 +388,66 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
     } finally {
       setIsSearching(false);
     }
-  }, [user, isCacheStale]);
+  }, [user]);
 
-  // Fetch data when tab changes or search term changes
+  // Fetch when search term changes
   useEffect(() => {
     if (!open || !user) return;
-    if (activeTab === "prompts") return; // Prompts are client-side
-
-    fetchTabData(activeTab, debouncedTerm);
-  }, [open, activeTab, debouncedTerm, user, fetchTabData]);
+    fetchResults(debouncedTerm);
+  }, [open, debouncedTerm, user, fetchResults]);
 
   // Reset state when modal opens
   useEffect(() => {
     if (open) {
       setSearchTerm("");
       setDebouncedTerm("");
-      setActiveTab("all");
-      setTabsLoaded({ all: false, chats: false, notes: false, prompts: true });
-      // Clear cache on open to ensure fresh data
-      cacheRef.current = {};
+      setUnifiedResults([]);
+      setMemberResults([]);
+      setCommitteeResults([]);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [open]);
 
-  // Filter prompts client-side
+  // Filter prompts client-side (search mode only, max 8)
   const filteredPrompts = useMemo(() => {
-    if (!debouncedTerm) return ALL_PROMPTS;
+    if (!debouncedTerm) return [];
     const term = debouncedTerm.toLowerCase();
     return ALL_PROMPTS.filter(p =>
       p.title.toLowerCase().includes(term) ||
       p.prompt.toLowerCase().includes(term) ||
       p.category.toLowerCase().includes(term)
-    );
+    ).slice(0, 8);
   }, [debouncedTerm]);
 
-  // Filter routes for All tab
+  // Filter routes
   const filteredRoutes = useMemo(() => {
-    if (!debouncedTerm) return APP_ROUTES;
+    if (!debouncedTerm) return APP_ROUTES.slice(0, 5);
     const term = debouncedTerm.toLowerCase();
     return APP_ROUTES.filter(r => r.label.toLowerCase().includes(term));
   }, [debouncedTerm]);
 
   // Group results by date
-  const groupedAllResults = useMemo(() => groupByDate(allResults), [allResults]);
-  const groupedChatResults = useMemo(() => groupByDate(chatResults), [chatResults]);
-  const groupedNoteResults = useMemo(() => groupByDate(noteResults), [noteResults]);
-  const groupedPrompts = useMemo(() => groupPromptsByCategory(filteredPrompts), [filteredPrompts]);
+  const groupedResults = useMemo(() => groupByDate(unifiedResults), [unifiedResults]);
 
   // Navigation handlers
   const handleItemClick = (type: string, id: string) => {
     onOpenChange(false);
     if (type === "chat") navigate(`/c/${id}`);
     else if (type === "note") navigate(`/n/${id}`);
+    else if (type === "excerpt") navigate(`/e/${id}`);
+  };
+
+  const handleMemberClick = (member: MemberSearchResult) => {
+    onOpenChange(false);
+    const slug = generateMemberSlug(member as any);
+    navigate(`/members/${slug}`);
+  };
+
+  const handleCommitteeClick = (committee: CommitteeSearchResult) => {
+    onOpenChange(false);
+    if (committee.slug) {
+      navigate(`/committees/${committee.slug}`);
+    }
   };
 
   const handlePromptClick = (prompt: string) => {
@@ -438,16 +460,14 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
     navigate(path);
   };
 
-  // Check if we have any results
+  // Check if we have any results to show
   const hasResults = useMemo(() => {
-    if (activeTab === "all") {
-      return filteredRoutes.length > 0 || allResults.length > 0;
-    }
-    if (activeTab === "chats") return chatResults.length > 0;
-    if (activeTab === "notes") return noteResults.length > 0;
-    if (activeTab === "prompts") return filteredPrompts.length > 0;
-    return false;
-  }, [activeTab, filteredRoutes, allResults, chatResults, noteResults, filteredPrompts]);
+    return filteredRoutes.length > 0 ||
+      unifiedResults.length > 0 ||
+      memberResults.length > 0 ||
+      committeeResults.length > 0 ||
+      filteredPrompts.length > 0;
+  }, [filteredRoutes, unifiedResults, memberResults, committeeResults, filteredPrompts]);
 
   // Render date group
   const renderDateGroup = (label: string, items: SearchResult[]) => {
@@ -465,7 +485,11 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
               className="flex items-start gap-3 w-full px-4 py-3 text-sm hover:bg-muted transition-colors text-left"
             >
               <div className="flex-1 min-w-0">
-                <div className="truncate">{item.type === "note" ? `Note: ${item.title || "Untitled"}` : (item.title || "Untitled")}</div>
+                <div className="truncate">
+                  {item.type === "note" ? `Note: ${item.title || "Untitled"}` :
+                   item.type === "excerpt" ? `Excerpt: ${item.title || "Untitled"}` :
+                   (item.title || "Untitled")}
+                </div>
                 {snippet && (
                   <div className="text-muted-foreground text-xs mt-0.5 line-clamp-1">
                     {snippet.before}
@@ -499,107 +523,117 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
           />
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             {isSearching && <Loader2 className="h-4 w-4 animate-spin" />}
-            <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px]">tab</kbd>
             <button onClick={() => onOpenChange(false)} className="p-1 hover:bg-muted rounded">
               <X className="h-4 w-4" />
             </button>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex items-center gap-1 px-3 py-2 border-b">
-          {(["all", "chats", "notes", "prompts"] as TabType[]).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={cn(
-                "px-3 py-1.5 text-sm rounded-md transition-colors capitalize",
-                activeTab === tab ? "bg-muted font-medium" : "hover:bg-muted/50 text-muted-foreground"
-              )}
-            >
-              {tab === "all" ? "All" : tab === "chats" ? "Chats" : tab === "notes" ? "Notes" : "Prompts"}
-            </button>
-          ))}
-        </div>
-
         {/* Results - fixed height container */}
         <div className="h-[400px] overflow-y-auto">
-          {/* All Tab */}
-          {activeTab === "all" && (
-            <>
-              {/* Routes Section */}
-              {filteredRoutes.length > 0 && !debouncedTerm && (
-                <div>
-                  <p className="px-4 py-2 text-xs font-medium text-muted-foreground">Pages</p>
-                  {filteredRoutes.slice(0, 5).map(route => (
-                    <button
-                      key={route.path}
-                      onClick={() => handleRouteClick(route.path)}
-                      className="flex items-center gap-3 w-full px-4 py-2 text-sm hover:bg-muted transition-colors text-left"
-                    >
-                      <span className="truncate">{route.label}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Activity grouped by date */}
-              {user && (
-                <>
-                  {renderDateGroup("Today", groupedAllResults.today)}
-                  {renderDateGroup("Yesterday", groupedAllResults.yesterday)}
-                  {renderDateGroup("Previous 7 Days", groupedAllResults.previous7Days)}
-                </>
-              )}
-
-              {/* Unauthenticated state */}
-              {!user && (
-                <div className="p-4 text-center text-muted-foreground">
-                  <p>Sign in to search your chats and notes</p>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Chats Tab */}
-          {activeTab === "chats" && user && (
-            <>
-              {renderDateGroup("Today", groupedChatResults.today)}
-              {renderDateGroup("Yesterday", groupedChatResults.yesterday)}
-              {renderDateGroup("Previous 7 Days", groupedChatResults.previous7Days)}
-              {renderDateGroup("Older", groupedChatResults.older)}
-            </>
-          )}
-
-          {/* Notes Tab */}
-          {activeTab === "notes" && user && (
-            <>
-              {renderDateGroup("Today", groupedNoteResults.today)}
-              {renderDateGroup("Yesterday", groupedNoteResults.yesterday)}
-              {renderDateGroup("Previous 7 Days", groupedNoteResults.previous7Days)}
-              {renderDateGroup("Older", groupedNoteResults.older)}
-            </>
-          )}
-
-          {/* Prompts Tab */}
-          {activeTab === "prompts" && (
-            <>
-              {Object.entries(groupedPrompts).map(([category, prompts]) => (
-                <div key={category}>
-                  <p className="px-4 py-2 text-xs font-medium text-muted-foreground">{CATEGORY_LABELS[category] || category}</p>
-                  {prompts.map((p, idx) => (
-                    <button
-                      key={`${category}-${idx}`}
-                      onClick={() => handlePromptClick(p.prompt)}
-                      className="flex flex-col items-start w-full px-4 py-2 text-sm hover:bg-muted transition-colors text-left"
-                    >
-                      <span className="font-medium">{p.title}</span>
-                      <span className="text-muted-foreground text-xs line-clamp-1">{p.prompt}</span>
-                    </button>
-                  ))}
-                </div>
+          {/* Member Pages (search mode only) */}
+          {debouncedTerm && memberResults.length > 0 && (
+            <div>
+              <p className="px-4 py-2 text-xs font-medium text-muted-foreground">Member Pages</p>
+              {memberResults.map(member => (
+                <button
+                  key={member.people_id}
+                  onClick={() => handleMemberClick(member)}
+                  className="flex items-center gap-3 w-full px-4 py-2 text-sm hover:bg-muted transition-colors text-left"
+                >
+                  {member.photo_url ? (
+                    <img
+                      src={member.photo_url}
+                      alt=""
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0 text-xs font-medium text-muted-foreground">
+                      {(member.first_name?.[0] || member.name?.[0] || "?").toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="truncate font-medium">
+                      {member.name || `${member.first_name || ""} ${member.last_name || ""}`.trim()}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {[member.party, member.chamber].filter(Boolean).join(" - ")}
+                    </div>
+                  </div>
+                </button>
               ))}
+            </div>
+          )}
+
+          {/* Committee Pages (search mode only) */}
+          {debouncedTerm && committeeResults.length > 0 && (
+            <div>
+              <p className="px-4 py-2 text-xs font-medium text-muted-foreground">Committee Pages</p>
+              {committeeResults.map(committee => (
+                <button
+                  key={committee.committee_id}
+                  onClick={() => handleCommitteeClick(committee)}
+                  className="flex items-center gap-3 w-full px-4 py-2 text-sm hover:bg-muted transition-colors text-left"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="truncate">{committee.committee_name}</div>
+                    {committee.chamber && (
+                      <div className="text-xs text-muted-foreground">{committee.chamber}</div>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Pages section (both modes) */}
+          {filteredRoutes.length > 0 && (
+            <div>
+              <p className="px-4 py-2 text-xs font-medium text-muted-foreground">Pages</p>
+              {filteredRoutes.map(route => (
+                <button
+                  key={route.path}
+                  onClick={() => handleRouteClick(route.path)}
+                  className="flex items-center gap-3 w-full px-4 py-2 text-sm hover:bg-muted transition-colors text-left"
+                >
+                  <span className="truncate">{route.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Prompts section (search mode only, max 8) */}
+          {debouncedTerm && filteredPrompts.length > 0 && (
+            <div>
+              <p className="px-4 py-2 text-xs font-medium text-muted-foreground">Prompts</p>
+              {filteredPrompts.map((p, idx) => (
+                <button
+                  key={`prompt-${idx}`}
+                  onClick={() => handlePromptClick(p.prompt)}
+                  className="flex flex-col items-start w-full px-4 py-2 text-sm hover:bg-muted transition-colors text-left"
+                >
+                  <span className="font-medium">{p.title}</span>
+                  <span className="text-muted-foreground text-xs line-clamp-1">{p.prompt}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Chronological date groups (both modes) */}
+          {user && (
+            <>
+              {renderDateGroup("Today", groupedResults.today)}
+              {renderDateGroup("Yesterday", groupedResults.yesterday)}
+              {renderDateGroup("Previous 7 Days", groupedResults.previous7Days)}
+              {renderDateGroup("Older", groupedResults.older)}
             </>
+          )}
+
+          {/* Unauthenticated state */}
+          {!user && !debouncedTerm && (
+            <div className="p-4 text-center text-muted-foreground">
+              <p>Sign in to search your chats and notes</p>
+            </div>
           )}
 
           {/* Empty / No Results State */}
