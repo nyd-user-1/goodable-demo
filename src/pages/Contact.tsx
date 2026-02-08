@@ -21,7 +21,7 @@ export default function Contact() {
     setIsSubmitting(true);
 
     const portalId = '245035447';
-    const formGuid = '536281ae-0a9b-4288-9e1f-07ef0f4b4463';
+    const formGuid = '1449da75-857e-4ac5-b898-602d3c3f131f';
 
     try {
       await fetch(`https://api.hsforms.com/submissions/v3/integration/submit/${portalId}/${formGuid}`, {
