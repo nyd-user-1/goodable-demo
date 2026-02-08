@@ -391,12 +391,15 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               to="/prompts"
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
+                "group flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
                 isActive("/prompts") ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
               )}
             >
               <Sparkles className="h-4 w-4" />
-              <span>User Prompts</span>
+              <span className="flex-1">User Prompts</span>
+              <span className="hidden sm:block text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                New
+              </span>
             </NavLink>
           </TooltipTrigger>
           <TooltipContent side="right">
