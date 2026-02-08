@@ -316,15 +316,35 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
         results = data || [];
         setAllResults(results);
       } else if (tab === "chats") {
-        // Call search_chats RPC
-        const { data, error } = await supabase.rpc("search_chats", {
-          p_user_id: user.id,
-          p_query: query || null,
-          p_cursor: null,
-          p_limit: 50,
-        });
-        if (error) throw error;
-        results = data || [];
+        if (query) {
+          // Search mode: use RPC for full-text search
+          const { data, error } = await supabase.rpc("search_chats", {
+            p_user_id: user.id,
+            p_query: query,
+            p_cursor: null,
+            p_limit: 50,
+          });
+          if (error) throw error;
+          results = data || [];
+        } else {
+          // Browse mode: direct query for recent chats
+          const { data, error } = await supabase
+            .from("chat_sessions")
+            .select("id, title, updated_at, created_at")
+            .eq("user_id", user.id)
+            .order("updated_at", { ascending: false })
+            .limit(50);
+          if (error) throw error;
+          results = (data || []).map(chat => ({
+            id: chat.id,
+            type: "chat" as const,
+            title: chat.title || "Untitled Chat",
+            preview_text: null,
+            created_at: chat.created_at,
+            last_activity_at: chat.updated_at,
+            relevance: 1.0,
+          }));
+        }
         setChatResults(results);
       } else if (tab === "notes") {
         // Call search_notes RPC
