@@ -349,6 +349,9 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             >
               <PenSquare className="h-4 w-4" />
               <span className="flex-1">New Chat</span>
+              <span className="hidden sm:block text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                ⇧⌘O
+              </span>
             </NavLink>
           </TooltipTrigger>
           <TooltipContent side="right">
