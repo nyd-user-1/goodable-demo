@@ -316,9 +316,12 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
 
   return (
     <TooltipProvider delayDuration={300}>
-    <div className="flex flex-col h-full">
-      {/* Header with User Dropdown/Sign In, Search, and Add */}
-      <div className="flex items-center justify-between px-3 py-3 border-b">
+    {/* Single scroll container - ChatGPT architecture */}
+    <nav ref={sidebarScrollRef} className="relative flex h-full w-full flex-col overflow-y-auto">
+      {/* Sticky Header - stays at top while scrolling */}
+      <aside className="sticky top-0 z-40 bg-background">
+        {/* Header with User Dropdown/Sign In, Search, and Add */}
+        <div className="flex items-center justify-between px-3 py-3 border-b">
         {/* User Dropdown for authenticated, Sign In button for unauthenticated */}
         {user ? (
           <DropdownMenu>
@@ -422,10 +425,10 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             </svg>
           </Button>
         </div>
-      </div>
+        </div>
 
-      {/* Fixed Top Actions */}
-      <div className="flex-shrink-0 px-2 py-2 space-y-1">
+        {/* Fixed Top Actions */}
+        <div className="px-2 py-2 space-y-1 border-b">
         {/* #1 Chats */}
         <Tooltip>
           <TooltipTrigger asChild>
@@ -508,12 +511,11 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             <p>Browse prompts & lists</p>
           </TooltipContent>
         </Tooltip>
+        </div>
+      </aside>
 
-
-      </div>
-
-      {/* Scrollable Content Area */}
-      <div ref={sidebarScrollRef} className="flex-1 overflow-y-auto py-2">
+      {/* Scrollable Content Area - flows behind sticky header/footer */}
+      <div className="flex-1 py-2">
         {/* Research Navigation - No collapsible */}
         <div className="px-2 space-y-1">
             <Tooltip>
@@ -978,8 +980,8 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
         )}
       </div>
 
-      {/* Bottom Section */}
-      <div className="flex-shrink-0 p-3 pb-6 space-y-3 border-t">
+      {/* Sticky Bottom Section - stays at bottom while scrolling */}
+      <aside className="sticky bottom-0 z-30 bg-background border-t p-3 pb-6 space-y-3">
         {/* Plan Usage Card - Collapsible (only for authenticated users) */}
         <Collapsible open={planUsageOpen} onOpenChange={setPlanUsageOpen}>
           <div className="border rounded-lg overflow-hidden">
@@ -1032,8 +1034,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             </CollapsibleContent>
           </div>
         </Collapsible>
-
-      </div>
+      </aside>
 
       {/* Rename Chat Dialog */}
       <Dialog open={renameDialogOpen} onOpenChange={(open) => {
@@ -1066,7 +1067,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           </DialogFooter>
         </RenameDialogContent>
       </Dialog>
-    </div>
+    </nav>
     </TooltipProvider>
   );
 }
