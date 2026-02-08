@@ -164,6 +164,13 @@ export default function Advertise() {
       console.error('HubSpot submission error:', error);
     }
 
+    // Send email to info@nysgpt.com
+    const emailSubject = encodeURIComponent('Advertising Form');
+    const emailBody = encodeURIComponent(
+      `Name: ${name}\nEmail: ${email}\nCompany: ${company}\nIndustry: ${industry}\nCompany Size: ${companySize}\nInterests: ${interests.join(', ')}\nAd Option: ${selectedAdOption?.title || 'None'}`
+    );
+    window.open(`mailto:info@nysgpt.com?subject=${emailSubject}&body=${emailBody}`, '_blank');
+
     setSubmitted(true);
     // Fire confetti
     confetti({

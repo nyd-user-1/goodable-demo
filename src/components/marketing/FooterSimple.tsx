@@ -9,10 +9,16 @@ export default function FooterSimple() {
         </p>
         <nav className="flex gap-4 md:gap-6">
           <a
-            href="/terms"
+            href="/advertise"
             className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
           >
-            Terms
+            Advertise
+          </a>
+          <a
+            href="/contact"
+            className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
+          >
+            Contact
           </a>
           <a
             href="/privacy"
@@ -21,10 +27,10 @@ export default function FooterSimple() {
             Privacy
           </a>
           <a
-            href="/contact"
+            href="/terms"
             className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
           >
-            Contact
+            Terms
           </a>
         </nav>
       </div>
