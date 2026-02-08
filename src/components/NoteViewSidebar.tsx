@@ -6,15 +6,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
-  MessageSquare,
   ScrollText,
   Users,
   Landmark,
   DollarSign,
-  Clock,
   ChevronRight,
   ChevronDown,
-  ChevronUp,
   PenSquare,
   TextQuote,
   Wallet,
@@ -26,8 +23,6 @@ import {
   Moon,
   LogIn,
   LogOut,
-  HelpCircle,
-  FileText,
   HandCoins,
   MoreHorizontal,
   Pin,
@@ -36,16 +31,14 @@ import {
   BookCheck,
   BarChart3,
   CirclePlus,
-  Home,
-  Flag,
   Sparkles,
   Briefcase,
   ArrowUpRight,
+  Zap,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,7 +55,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-import { useAIUsage } from "@/hooks/useAIUsage";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useRecentChats } from "@/hooks/useRecentChats";
 import { trackEvent } from "@/utils/analytics";
@@ -119,13 +111,10 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { subscription } = useSubscription();
-  const { wordsUsed, dailyLimit, usagePercentage } = useAIUsage();
   const { recentChats, deleteChat, togglePinChat, renameChat, refetch: refetchChats, loadMore, loadingMore, hasMore } = useRecentChats();
   const [recentExcerpts, setRecentExcerpts] = useState<Excerpt[]>([]);
   const [recentNotes, setRecentNotes] = useState<Note[]>([]);
   const [pinnedNoteIds, setPinnedNoteIds] = useState<Set<string>>(getPinnedNoteIds());
-  const [newChatHover, setNewChatHover] = useState(false);
-  const [planUsageOpen, setPlanUsageOpen] = useState(!user);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [itemToRename, setItemToRename] = useState<{ id: string; title: string; type: 'chat' | 'note' } | null>(null);
@@ -311,106 +300,25 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
   };
 
   // Get user display name
-  const displayName = user ? (user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User') : 'NYSgpt';
-  const truncatedName = displayName.length > 14 ? displayName.slice(0, 14) + '...' : displayName;
+  const displayName = user ? (user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User') : 'Guest';
 
   return (
     <TooltipProvider delayDuration={300}>
     {/* Single scroll container - ChatGPT architecture */}
-    <nav ref={sidebarScrollRef} className="relative flex h-full w-full flex-col overflow-y-auto">
+    <nav ref={sidebarScrollRef} className="relative flex h-full w-full flex-col overflow-y-auto bg-[#f9f9f9] dark:bg-background">
       {/* Sticky Header - stays at top while scrolling */}
-      <aside className="sticky top-0 z-40 bg-background">
-        {/* Header with User Dropdown/Sign In, Search, and Add */}
-        <div className="flex items-center justify-between px-3 py-3 border-b">
-        {/* User Dropdown for authenticated, Sign In button for unauthenticated */}
-        {user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-9 px-2 gap-1 font-semibold max-w-[160px]">
-                <span className="truncate">{truncatedName}</span>
-                <ChevronDown className="h-4 w-4 flex-shrink-0 opacity-50" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-64">
-              {/* User Info */}
-              <div className="px-3 py-2 border-b">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{displayName}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
-                  </div>
-                  <span className="text-xs text-primary font-medium px-2 py-0.5 bg-primary/10 rounded">Free</span>
-                </div>
-              </div>
-
-              <DropdownMenuItem onClick={() => navigate('/profile')}>
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  {isDarkMode ? <Moon className="h-4 w-4 mr-2" /> : <Sun className="h-4 w-4 mr-2" />}
-                  Theme
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuItem onClick={() => { document.documentElement.classList.remove('dark'); setIsDarkMode(false); }}>
-                    <Sun className="h-4 w-4 mr-2" />
-                    Light
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => { document.documentElement.classList.add('dark'); setIsDarkMode(true); }}>
-                    <Moon className="h-4 w-4 mr-2" />
-                    Dark
-                  </DropdownMenuItem>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem onClick={() => { navigate('/features'); onClose?.(); }}>
-                <Sparkles className="h-4 w-4 mr-2" />
-                Features
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { navigate('/use-cases'); onClose?.(); }}>
-                <Briefcase className="h-4 w-4 mr-2" />
-                Use Cases
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <Button
-            variant="ghost"
-            className="h-9 px-3 font-semibold text-base hover:bg-muted"
-            onClick={() => navigate('/auth-4')}
+      <aside className="sticky top-0 z-40 bg-[#f9f9f9] dark:bg-background">
+        {/* Header with NYSgpt logo and close button */}
+        <div className="flex items-center justify-between px-3 py-3">
+          {/* NYSgpt Logo */}
+          <button
+            onClick={() => navigate(user ? '/new-chat' : '/')}
+            className="font-bold text-lg hover:opacity-80 transition-opacity"
           >
-            Sign Up
-          </Button>
-        )}
+            NYSgpt
+          </button>
 
-        {/* Action buttons */}
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9"
-            onClick={() => {
-              document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true, bubbles: true }));
-            }}
-            aria-label="Search"
-          >
-            <Search className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="hidden sm:inline-flex h-9 w-9" onClick={() => navigate(user ? '/new-chat' : '/')}>
-            <Home className="h-5 w-5" />
-          </Button>
-
-          {/* Log close icon - all screen sizes */}
+          {/* Close sidebar button */}
           <Button
             variant="ghost"
             size="icon"
@@ -425,41 +333,22 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
             </svg>
           </Button>
         </div>
-        </div>
 
         {/* Fixed Top Actions */}
-        <div className="px-2 py-2 space-y-1 border-b">
-        {/* #1 Chats */}
+        <div className="px-2 pb-2 space-y-1">
+        {/* #1 New Chat */}
         <Tooltip>
           <TooltipTrigger asChild>
             <NavLink
               to="/new-chat"
               onClick={onClose}
-              onMouseEnter={() => setNewChatHover(true)}
-              onMouseLeave={() => setNewChatHover(false)}
               className={cn(
                 "group flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                isActive("/new-chat") ? "bg-muted" : "hover:bg-muted"
+                isActive("/new-chat") ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
               )}
             >
-              <div className="relative w-4 h-4 flex-shrink-0">
-                <MessageSquare
-                  className={cn(
-                    "absolute inset-0 w-4 h-4 transition-opacity duration-200",
-                    newChatHover ? "opacity-0" : "opacity-100"
-                  )}
-                />
-                <PenSquare
-                  className={cn(
-                    "absolute inset-0 w-4 h-4 transition-opacity duration-200",
-                    newChatHover ? "opacity-100" : "opacity-0"
-                  )}
-                />
-              </div>
-              <span className="flex-1">Chats</span>
-              <span className="hidden sm:block text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                ⇧⌘O
-              </span>
+              <PenSquare className="h-4 w-4" />
+              <span className="flex-1">New Chat</span>
             </NavLink>
           </TooltipTrigger>
           <TooltipContent side="right">
@@ -467,7 +356,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
           </TooltipContent>
         </Tooltip>
 
-        {/* #2 Search */}
+        {/* #2 Search Chats */}
         <Tooltip>
           <TooltipTrigger asChild>
             <button
@@ -477,22 +366,22 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               }}
               className={cn(
                 "group flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors w-full text-left",
-                "hover:bg-muted"
+                "hover:bg-black/5 dark:hover:bg-white/10"
               )}
             >
               <Search className="h-4 w-4" />
-              <span className="flex-1">Search</span>
+              <span className="flex-1">Search Chats</span>
               <span className="hidden sm:block text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
                 ⌘K
               </span>
             </button>
           </TooltipTrigger>
           <TooltipContent side="right">
-            <p>Search everything</p>
+            <p>Search your chats</p>
           </TooltipContent>
         </Tooltip>
 
-        {/* #3 Prompts */}
+        {/* #3 User Prompts */}
         <Tooltip>
           <TooltipTrigger asChild>
             <NavLink
@@ -500,11 +389,11 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
               onClick={onClose}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                isActive("/prompts") ? "bg-muted" : "hover:bg-muted"
+                isActive("/prompts") ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
               )}
             >
-              <Flag className="h-4 w-4" />
-              <span>Prompts</span>
+              <Sparkles className="h-4 w-4" />
+              <span>User Prompts</span>
             </NavLink>
           </TooltipTrigger>
           <TooltipContent side="right">
@@ -525,7 +414,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   onClick={onClose}
                   className={cn(
                     "group flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                    isActive("/bills") ? "bg-muted" : "hover:bg-muted"
+                    isActive("/bills") ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
                   )}
                 >
                   <ScrollText className="h-4 w-4" />
@@ -545,7 +434,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   onClick={onClose}
                   className={cn(
                     "group flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                    isActive("/committees") ? "bg-muted" : "hover:bg-muted"
+                    isActive("/committees") ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
                   )}
                 >
                   <Landmark className="h-4 w-4" />
@@ -565,7 +454,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   onClick={onClose}
                   className={cn(
                     "group flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                    isActive("/departments") ? "bg-muted" : "hover:bg-muted"
+                    isActive("/departments") ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
                   )}
                 >
                   <BookCheck className="h-4 w-4" />
@@ -585,7 +474,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   onClick={onClose}
                   className={cn(
                     "group flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                    isActive("/members") ? "bg-muted" : "hover:bg-muted"
+                    isActive("/members") ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
                   )}
                 >
                   <Users className="h-4 w-4" />
@@ -600,7 +489,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
 
             {/* Pro Plan Section */}
             <Collapsible className="group/pro">
-              <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal text-foreground hover:bg-muted transition-colors">
+              <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal text-foreground hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
                 <div className="flex items-center gap-3">
                   <CirclePlus className="h-4 w-4" />
                   <span>Pro Plan</span>
@@ -625,7 +514,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                       onClick={onClose}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                        isActive("/new-note") ? "bg-muted" : "hover:bg-muted"
+                        isActive("/new-note") ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
                       )}
                     >
                       <NotebookPen className="h-4 w-4" />
@@ -637,8 +526,6 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   </TooltipContent>
                 </Tooltip>
 
-                {/* Divider */}
-                <div className="border-t my-1" />
 
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -647,7 +534,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                       onClick={onClose}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                        isActive("/budget") ? "bg-muted" : "hover:bg-muted"
+                        isActive("/budget") ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
                       )}
                     >
                       <DollarSign className="h-4 w-4" />
@@ -666,7 +553,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                       onClick={onClose}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                        isActive("/contracts") ? "bg-muted" : "hover:bg-muted"
+                        isActive("/contracts") ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
                       )}
                     >
                       <Wallet className="h-4 w-4" />
@@ -685,7 +572,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                       onClick={onClose}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                        isActive("/budget-dashboard") ? "bg-muted" : "hover:bg-muted"
+                        isActive("/budget-dashboard") ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
                       )}
                     >
                       <BarChart3 className="h-4 w-4" />
@@ -704,7 +591,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                       onClick={onClose}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                        isActive("/lobbying") ? "bg-muted" : "hover:bg-muted"
+                        isActive("/lobbying") ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
                       )}
                     >
                       <HandCoins className="h-4 w-4" />
@@ -723,7 +610,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                       onClick={onClose}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                        isActive("/school-funding") ? "bg-muted" : "hover:bg-muted"
+                        isActive("/school-funding") ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
                       )}
                     >
                       <GraduationCap className="h-4 w-4" />
@@ -803,7 +690,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                       }}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 md:py-2 pr-8 rounded-md text-[15px] md:text-sm transition-colors",
-                        location.pathname === `/n/${note.id}` ? "bg-muted" : "hover:bg-muted"
+                        location.pathname === `/n/${note.id}` ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
                       )}
                     >
                       {pinnedNoteIds.has(note.id) ? (
@@ -866,7 +753,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                   onClick={onClose}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-[15px] md:text-sm transition-colors",
-                    location.pathname === `/e/${excerpt.id}` ? "bg-muted" : "hover:bg-muted"
+                    location.pathname === `/e/${excerpt.id}` ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
                   )}
                 >
                   <TextQuote className="h-4 w-4 flex-shrink-0" />
@@ -923,7 +810,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                         }}
                         className={cn(
                           "flex items-center gap-2 px-3 py-2 pr-8 rounded-md text-sm font-normal transition-colors",
-                          location.pathname === `/c/${chat.id}` ? "bg-muted" : "hover:bg-muted"
+                          location.pathname === `/c/${chat.id}` ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
                         )}
                       >
                         {chat.isPinned && <Pin className="h-4 w-4 flex-shrink-0 text-primary" />}
@@ -980,60 +867,97 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
         )}
       </div>
 
-      {/* Sticky Bottom Section - stays at bottom while scrolling */}
-      <aside className="sticky bottom-0 z-30 bg-background border-t p-3 pb-6 space-y-3">
-        {/* Plan Usage Card - Collapsible (only for authenticated users) */}
-        <Collapsible open={planUsageOpen} onOpenChange={setPlanUsageOpen}>
-          <div className="border rounded-lg overflow-hidden">
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2 hover:bg-muted/50 transition-colors">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Plan usage</span>
-                <span className="text-xs text-primary font-medium px-1.5 py-0.5 bg-primary/10 rounded capitalize">
-                  {subscription?.subscription_tier || 'Free'}
-                </span>
-              </div>
-              {planUsageOpen ? (
-                <ChevronUp className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              )}
-            </CollapsibleTrigger>
-
-            <CollapsibleContent>
-              <div className="px-3 pb-3 space-y-3">
-                {/* AI Words Usage */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1">
-                      <span className="text-muted-foreground">AI words/day</span>
-                      <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                    </div>
-                    <span className="text-muted-foreground">
-                      {dailyLimit === Infinity ? (
-                        `${wordsUsed.toLocaleString()} (unlimited)`
-                      ) : (
-                        `${wordsUsed.toLocaleString()}/${dailyLimit.toLocaleString()}`
-                      )}
-                    </span>
-                  </div>
-                  {dailyLimit !== Infinity && (
-                    <Progress value={usagePercentage} className="h-1.5" />
-                  )}
+      {/* Sticky Bottom Section - Account button (ChatGPT style) */}
+      <aside className="sticky bottom-0 z-30 bg-[#f9f9f9] dark:bg-background p-2 pb-4">
+        {user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-3 w-full px-2 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                {/* Avatar with initials */}
+                <div className="h-8 w-8 rounded-full bg-purple-500 flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+                  {displayName.slice(0, 2).toUpperCase()}
                 </div>
-
-                {/* Upgrade Button - only show for free tier */}
-                {(subscription?.subscription_tier === 'free' || !subscription?.subscription_tier) && (
-                  <Button
-                    className="w-full bg-foreground hover:bg-foreground/90 text-background"
-                    onClick={() => { trackEvent('upgrade_prompt_clicked', { source: 'sidebar' }); navigate('/plans'); onClose?.(); }}
-                  >
-                    Upgrade
-                  </Button>
-                )}
+                <div className="flex-1 text-left min-w-0">
+                  <p className="text-sm font-medium truncate">{displayName}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{subscription?.subscription_tier || 'Free'}</p>
+                </div>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" side="top" className="w-64 mb-1">
+              {/* User Info Header */}
+              <div className="px-3 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-purple-500 flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+                    {displayName.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{displayName}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                  </div>
+                </div>
               </div>
-            </CollapsibleContent>
-          </div>
-        </Collapsible>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem onClick={() => { trackEvent('upgrade_prompt_clicked', { source: 'sidebar_account' }); navigate('/plans'); onClose?.(); }}>
+                <Zap className="h-4 w-4 mr-2" />
+                Upgrade plan
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => navigate('/profile')}>
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </DropdownMenuItem>
+
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  {isDarkMode ? <Moon className="h-4 w-4 mr-2" /> : <Sun className="h-4 w-4 mr-2" />}
+                  Theme
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem onClick={() => { document.documentElement.classList.remove('dark'); setIsDarkMode(false); }}>
+                    <Sun className="h-4 w-4 mr-2" />
+                    Light
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { document.documentElement.classList.add('dark'); setIsDarkMode(true); }}>
+                    <Moon className="h-4 w-4 mr-2" />
+                    Dark
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem onClick={() => { navigate('/features'); onClose?.(); }}>
+                <Sparkles className="h-4 w-4 mr-2" />
+                Features
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { navigate('/use-cases'); onClose?.(); }}>
+                <Briefcase className="h-4 w-4 mr-2" />
+                Use Cases
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                <LogOut className="h-4 w-4 mr-2" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <button
+            onClick={() => navigate('/auth-4')}
+            className="flex items-center gap-3 w-full px-2 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+          >
+            <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
+              <LogIn className="h-4 w-4 text-gray-600" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-medium">Sign up or log in</p>
+            </div>
+          </button>
+        )}
       </aside>
 
       {/* Rename Chat Dialog */}
