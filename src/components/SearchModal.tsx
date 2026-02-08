@@ -575,8 +575,13 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
                   onClick={() => handleCommitteeClick(committee)}
                   className="flex items-center gap-3 w-full px-4 py-2 text-sm hover:bg-muted transition-colors text-left"
                 >
+                  <img
+                    src={committee.chamber?.toLowerCase() === "senate" ? "/nys-senate-seal.avif" : "/nys-assembly-seal.avif"}
+                    alt=""
+                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                  />
                   <div className="flex-1 min-w-0">
-                    <div className="truncate">{committee.committee_name}</div>
+                    <div className="truncate font-medium">{committee.committee_name}</div>
                     {committee.chamber && (
                       <div className="text-xs text-muted-foreground">{committee.chamber}</div>
                     )}
