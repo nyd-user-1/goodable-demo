@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Mail, MapPin, Phone } from 'lucide-react';
 
 export default function Contact() {
   const [firstName, setFirstName] = useState('');
@@ -76,57 +75,14 @@ export default function Contact() {
               </CardContent>
             </Card>
 
-            <div className="divide-border divide-y">
-              <div className="flex gap-x-7 py-6">
-                <MapPin className="text-muted-foreground mt-1.5 size-6" />
-                <div>
-                  <h3 className="font-semibold">Our address</h3>
-                  <p className="text-muted-foreground mt-1 text-sm">
-                    We&apos;re here to help with any questions or code.
-                  </p>
-                  <address className="text-muted-foreground mt-2 text-sm not-italic">
-                    300 Bath Street, Tay House
-                    <br />
-                    Glasgow G2 4JR, United Kingdom
-                  </address>
-                </div>
-              </div>
-
-              <div className="flex gap-x-7 py-6">
-                <Mail className="text-muted-foreground mt-1.5 size-6" />
-                <div>
-                  <h3 className="font-semibold">Email us</h3>
-                  <p className="text-muted-foreground mt-1 text-sm">
-                    We&apos;ll get back to you as soon as possible.
-                  </p>
-                  <p className="mt-2">
-                    <a
-                      className="text-foreground text-sm font-medium hover:underline"
-                      href="mailto:info@nysgpt.com"
-                    >
-                      info@nysgpt.com
-                    </a>
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-x-7 py-6">
-                <Phone className="text-muted-foreground mt-1.5 size-6" />
-                <div>
-                  <h3 className="font-semibold">Call us</h3>
-                  <p className="text-muted-foreground mt-1 text-sm">
-                    Mon-Fri from 8am to 5pm.
-                  </p>
-                  <p className="mt-2">
-                    <a
-                      className="text-foreground text-sm font-medium hover:underline"
-                      href="tel:+1 (555) 000-0000"
-                    >
-                      +1 (555) 000-0000
-                    </a>
-                  </p>
-                </div>
-              </div>
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold">About NYSgpt</h2>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                NYSgpt is a specialized legislative policy platform designed to help users understand and analyze New York State legislation. It is powered by a comprehensive database that includes all New York State bills from the current and recent legislative sessions, as well as real-time data from the New York State Senate and Assembly. NYSgpt provides detailed information about bill texts, legislative sponsors, status updates, committee assignments, and more.
+              </p>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                The platform is equipped to assist users by making complex legislative information accessible and actionable. It supports informed civic participation by offering evidence-based analysis while maintaining professional objectivity. By using NYSgpt, users can gain insights into how legislation impacts working families, uphold digital rights, and understand the broader political and fiscal implications of proposed laws.
+              </p>
             </div>
           </div>
         </div>
