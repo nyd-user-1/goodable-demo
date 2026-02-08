@@ -435,11 +435,11 @@ export default function MultiStepCTAHero() {
                   <div className="text-center">
                     <p className="text-muted-foreground text-xs">
                       By continuing, you agree to our{' '}
-                      <a href="#" className="text-foreground underline">
+                      <a href="/terms" className="text-foreground underline">
                         Terms of Service
                       </a>{' '}
                       and{' '}
-                      <a href="#" className="text-foreground underline">
+                      <a href="/privacy" className="text-foreground underline">
                         Privacy Policy
                       </a>
                     </p>

@@ -9,19 +9,19 @@ export default function FooterSimple() {
         </p>
         <nav className="flex gap-4 md:gap-6">
           <a
-            href="#"
+            href="/terms"
             className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
           >
             Terms
           </a>
           <a
-            href="#"
+            href="/privacy"
             className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
           >
             Privacy
           </a>
           <a
-            href="#"
+            href="/contact"
             className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
           >
             Contact
