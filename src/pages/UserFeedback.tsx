@@ -112,30 +112,47 @@ export default function UserFeedback() {
     setAnswers({ ...answers, [currentQ.id]: value });
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
-      // Build email body from answers
-      const lines = questions.map((q) => {
+      // Build formatted answers
+      const formatAnswer = (q: Question) => {
         const answer = answers[q.id];
-        let answerText = '';
-        if (q.type === 'text') {
-          answerText = (answer as string) || 'No response';
-        } else if (q.type === 'multiple' && q.options) {
+        if (q.type === 'text') return (answer as string) || 'No response';
+        if (q.type === 'multiple' && q.options) {
           const selected = (answer as string[]) || [];
-          answerText = selected
-            .map((id) => q.options!.find((o) => o.id === id)?.text || id)
-            .join(', ') || 'No response';
-        } else if (q.type === 'single' && q.options) {
-          answerText = q.options.find((o) => o.id === answer)?.text || 'No response';
+          return selected.map((id) => q.options!.find((o) => o.id === id)?.text || id).join(', ') || 'No response';
         }
-        return `${q.text}\n${answerText}`;
-      });
+        if (q.type === 'single' && q.options) {
+          return q.options.find((o) => o.id === answer)?.text || 'No response';
+        }
+        return 'No response';
+      };
 
-      const subject = encodeURIComponent('User Feedback Form');
-      const body = encodeURIComponent(lines.join('\n\n'));
-      window.open(`mailto:info@nysgpt.com?subject=${subject}&body=${body}`, '_blank');
+      const message = questions.map((q) => `${q.text}\n${formatAnswer(q)}`).join('\n\n');
+
+      // Submit to HubSpot Forms API
+      const portalId = '245035447';
+      const formGuid = '536281ae-0a9b-4288-9e1f-07ef0f4b4463';
+
+      try {
+        await fetch(`https://api.hsforms.com/submissions/v3/integration/submit/${portalId}/${formGuid}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fields: [
+              { objectTypeId: '0-1', name: 'message', value: message },
+            ],
+            context: {
+              pageUri: window.location.href,
+              pageName: 'User Feedback Form',
+            },
+          }),
+        });
+      } catch (error) {
+        console.error('Feedback submission error:', error);
+      }
 
       setShowResults(true);
     }

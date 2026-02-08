@@ -1,4 +1,5 @@
 import { useState, FormEvent } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
 import { Button } from '@/components/ui/button';
@@ -7,19 +8,51 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
 export default function Contact() {
+  const { toast } = useToast();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [details, setDetails] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const subject = encodeURIComponent('Contact Us Form');
-    const body = encodeURIComponent(
-      `Name: ${firstName} ${lastName}\nEmail: ${email}\nPhone: ${phone}\n\nDetails:\n${details}`
-    );
-    window.location.href = `mailto:info@nysgpt.com?subject=${subject}&body=${body}`;
+    setIsSubmitting(true);
+
+    const portalId = '245035447';
+    const formGuid = '536281ae-0a9b-4288-9e1f-07ef0f4b4463';
+
+    try {
+      await fetch(`https://api.hsforms.com/submissions/v3/integration/submit/${portalId}/${formGuid}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fields: [
+            { objectTypeId: '0-1', name: 'firstname', value: firstName },
+            { objectTypeId: '0-1', name: 'lastname', value: lastName },
+            { objectTypeId: '0-1', name: 'email', value: email },
+            { objectTypeId: '0-1', name: 'phone', value: phone },
+            { objectTypeId: '0-1', name: 'message', value: details },
+          ],
+          context: {
+            pageUri: window.location.href,
+            pageName: 'Contact Us Form',
+          },
+        }),
+      });
+      toast({ title: 'Message sent', description: "We'll get back to you in 1-2 business days." });
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setPhone('');
+      setDetails('');
+    } catch (error) {
+      console.error('Contact submission error:', error);
+      toast({ title: 'Error', description: 'Something went wrong. Please try again.', variant: 'destructive' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -63,7 +96,9 @@ export default function Contact() {
                   </div>
 
                   <div className="mt-4 grid">
-                    <Button type="submit" className="bg-foreground text-background hover:bg-foreground/90">Send inquiry</Button>
+                    <Button type="submit" disabled={isSubmitting} className="bg-foreground text-background hover:bg-foreground/90">
+                      {isSubmitting ? 'Sending...' : 'Send inquiry'}
+                    </Button>
                   </div>
 
                   <div className="mt-3 text-center">
