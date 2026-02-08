@@ -170,6 +170,19 @@ function groupByDate(items: SearchResult[]): { today: SearchResult[]; yesterday:
   return groups;
 }
 
+// Display labels for prompt categories
+const CATEGORY_LABELS: Record<string, string> = {
+  Bills: "Bill Prompts",
+  Members: "Member Prompts",
+  Committees: "Committee Prompts",
+  Policy: "Policy Prompts",
+  Departments: "Department Prompts",
+  Economic: "Economic Prompts",
+  Environmental: "Environmental Prompts",
+  Legal: "Legal Prompts",
+  Social: "Social Prompts",
+};
+
 // Helper to group prompts by category
 function groupPromptsByCategory(prompts: Prompt[]): Record<string, Prompt[]> {
   const groups: Record<string, Prompt[]> = {};
@@ -560,7 +573,7 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
             <>
               {Object.entries(groupedPrompts).map(([category, prompts]) => (
                 <div key={category}>
-                  <p className="px-4 py-2 text-xs font-medium text-muted-foreground">{category}</p>
+                  <p className="px-4 py-2 text-xs font-medium text-muted-foreground">{CATEGORY_LABELS[category] || category}</p>
                   {prompts.map((p, idx) => (
                     <button
                       key={`${category}-${idx}`}
