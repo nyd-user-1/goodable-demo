@@ -2,6 +2,8 @@
 
 Guidance for Claude Code when working in this repository.
 
+**Repo:** github.com/nyd-user-1/nysgpt-demo | **Deploy:** vercel.com/nyd-user-1s-projects/nysgpt-demo
+
 ## Commands
 
 ```bash
