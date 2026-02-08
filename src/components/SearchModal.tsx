@@ -19,7 +19,6 @@ import { Input } from "@/components/ui/input";
 import {
   Search,
   X,
-  MessageSquare,
   NotebookPen,
   CornerDownLeft,
   Loader2,
@@ -446,9 +445,7 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
               onClick={() => handleItemClick(item.type, item.id)}
               className="flex items-start gap-3 w-full px-4 py-3 text-sm hover:bg-muted transition-colors text-left"
             >
-              {item.type === "chat" ? (
-                <MessageSquare className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-              ) : (
+              {item.type === "note" && (
                 <NotebookPen className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
               )}
               <div className="flex-1 min-w-0">
