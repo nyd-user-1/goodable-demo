@@ -48,7 +48,7 @@ export default function Contact() {
                   </div>
 
                   <div className="mt-4 grid">
-                    <Button type="submit">Send inquiry</Button>
+                    <Button type="submit" className="bg-foreground text-background hover:bg-foreground/90">Send inquiry</Button>
                   </div>
 
                   <div className="mt-3 text-center">
@@ -85,7 +85,7 @@ export default function Contact() {
                   </p>
                   <p className="mt-2">
                     <a
-                      className="text-primary text-sm font-medium hover:underline"
+                      className="text-foreground text-sm font-medium hover:underline"
                       href="mailto:hello@example.com"
                     >
                       hello@example.com
@@ -103,7 +103,7 @@ export default function Contact() {
                   </p>
                   <p className="mt-2">
                     <a
-                      className="text-primary text-sm font-medium hover:underline"
+                      className="text-foreground text-sm font-medium hover:underline"
                       href="tel:+1 (555) 000-0000"
                     >
                       +1 (555) 000-0000

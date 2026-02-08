@@ -572,20 +572,20 @@ export default function PromptHub() {
 
               return (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
-                    <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
+                    <div className="lg:border-r-2 lg:border-dotted lg:border-border/80 lg:pr-6 pb-8 lg:pb-0">
                       <div className="divide-y-2 divide-dotted divide-border/80">
                         {col1.map((p: any) => renderSubmittedRow(p, p.seedCount))}
                       </div>
                     </div>
 
-                    <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
+                    <div className="lg:border-r-2 lg:border-dotted lg:border-border/80 lg:px-6 border-t-2 border-dotted border-border/80 lg:border-t-0 pt-8 lg:pt-0 pb-8 lg:pb-0">
                       <div className="divide-y-2 divide-dotted divide-border/80">
                         {col2.map((p: any) => renderSubmittedRow(p, p.seedCount))}
                       </div>
                     </div>
 
-                    <div className="md:pl-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
+                    <div className="lg:pl-6 border-t-2 border-dotted border-border/80 lg:border-t-0 pt-8 lg:pt-0">
                       <div className="divide-y-2 divide-dotted divide-border/80">
                         {col3.map((p: any) => renderSubmittedRow(p, p.seedCount))}
                       </div>
