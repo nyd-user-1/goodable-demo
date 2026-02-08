@@ -2807,9 +2807,9 @@ const NewChat = () => {
                     </button>
                   )}
                   {[
-                    { key: 'bills', label: 'Bills', icon: <FileText className="h-3.5 w-3.5" />, mobileVisible: true },
-                    { key: 'committees', label: 'Committees', icon: <Building2 className="h-3.5 w-3.5" />, mobileVisible: true },
-                    { key: 'members', label: 'Members', icon: <Users className="h-3.5 w-3.5" />, mobileVisible: true },
+                    { key: 'bills', label: 'Bills', icon: <FileText className="h-3.5 w-3.5" />, mobileVisible: false },
+                    { key: 'committees', label: 'Committees', icon: <Building2 className="h-3.5 w-3.5" />, mobileVisible: false },
+                    { key: 'members', label: 'Members', icon: <Users className="h-3.5 w-3.5" />, mobileVisible: false },
                   ].map((cat) => (
                     <button
                       key={cat.key}
