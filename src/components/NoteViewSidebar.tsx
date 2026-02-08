@@ -815,7 +815,7 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                           setInlineEditValue(chatTitle);
                         }}
                         className={cn(
-                          "flex items-center gap-2 px-3 py-2 pr-8 rounded-md text-sm font-normal transition-colors",
+                          "flex items-center gap-2 px-3 py-2 pr-12 rounded-md text-sm font-normal transition-colors",
                           location.pathname === `/c/${chat.id}` ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
                         )}
                       >
