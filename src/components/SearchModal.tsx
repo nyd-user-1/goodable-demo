@@ -19,7 +19,6 @@ import { Input } from "@/components/ui/input";
 import {
   Search,
   X,
-  NotebookPen,
   CornerDownLeft,
   Loader2,
 } from "lucide-react";
@@ -445,11 +444,8 @@ export function SearchModal({ open: controlledOpen, onOpenChange: controlledOnOp
               onClick={() => handleItemClick(item.type, item.id)}
               className="flex items-start gap-3 w-full px-4 py-3 text-sm hover:bg-muted transition-colors text-left"
             >
-              {item.type === "note" && (
-                <NotebookPen className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-              )}
               <div className="flex-1 min-w-0">
-                <div className="truncate">{item.title || "Untitled"}</div>
+                <div className="truncate">{item.type === "note" ? `Note: ${item.title || "Untitled"}` : (item.title || "Untitled")}</div>
                 {snippet && (
                   <div className="text-muted-foreground text-xs mt-0.5 line-clamp-1">
                     {snippet.before}
