@@ -204,7 +204,7 @@ function formatNYSDataForContext(nysData: any) {
 function formatNYSgptBillsForContext(bills: any[]) {
   if (!bills || bills.length === 0) return '';
 
-  let contextText = '\n\nGOODABLE DATABASE - BILLS FROM SUPABASE:\n\n';
+  let contextText = '\n\nNYSGPT DATABASE - BILLS FROM SUPABASE:\n\n';
 
   bills.forEach((bill, index) => {
     contextText += `${index + 1}. BILL ${bill.bill_number}: ${bill.title || 'No title'}\n`;
@@ -374,7 +374,7 @@ serve(async (req) => {
     }
 
     // Search NYSgpt database AND conditionally search NYS API
-    let goodableBills: any[] = [];
+    let nysgptBills: any[] = [];
     let nysData: any = null;
 
     // Fast-path detection: skip NYS API for simple chat queries in fast mode
@@ -383,7 +383,7 @@ serve(async (req) => {
 
     // Start data searches in parallel (non-blocking)
     let nysDataPromise: Promise<any> | null = null;
-    const goodableDataPromise = searchNYSgptDatabase(prompt, getCurrentSessionYear());
+    const nysgptDataPromise = searchNYSgptDatabase(prompt, getCurrentSessionYear());
 
     // Start NYS API search if appropriate
     if (nysApiKey && !shouldSkipNYSData) {
@@ -392,8 +392,8 @@ serve(async (req) => {
 
     // IMPORTANT: Always wait for NYSgpt database search before generating response
     // This ensures AI has context even for streaming responses
-    goodableBills = await goodableDataPromise;
-    console.log(`NYSgpt database search found ${goodableBills?.length || 0} bills`);
+    nysgptBills = await nysgptDataPromise;
+    console.log(`NYSgpt database search found ${nysgptBills?.length || 0} bills`);
 
     // For non-streaming, also wait for NYS API data
     if (!stream && nysDataPromise) {
@@ -407,8 +407,8 @@ serve(async (req) => {
     let legislativeContext = '';
 
     // Add NYSgpt database results
-    if (goodableBills && goodableBills.length > 0) {
-      legislativeContext += formatNYSgptBillsForContext(goodableBills);
+    if (nysgptBills && nysgptBills.length > 0) {
+      legislativeContext += formatNYSgptBillsForContext(nysgptBills);
     }
 
     // Add NYS API results

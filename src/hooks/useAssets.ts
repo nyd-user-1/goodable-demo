@@ -88,7 +88,7 @@ export const useAssets = (filters?: {
 
       // Upload to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('goodable-assets')
+        .from('nysgpt-assets')
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false
@@ -98,7 +98,7 @@ export const useAssets = (filters?: {
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('goodable-assets')
+        .from('nysgpt-assets')
         .getPublicUrl(fileName);
 
       // Create database record

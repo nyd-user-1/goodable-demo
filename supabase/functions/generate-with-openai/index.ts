@@ -431,7 +431,7 @@ async function searchNYSgptDatabase(query: string, sessionYear?: number) {
 function formatNYSgptBillsForContext(bills: any[]) {
   if (!bills || bills.length === 0) return '';
 
-  let contextText = '\n\nGOODABLE DATABASE - BILLS FROM SUPABASE:\n\n';
+  let contextText = '\n\nNYSGPT DATABASE - BILLS FROM SUPABASE:\n\n';
 
   bills.forEach((bill, index) => {
     contextText += `${index + 1}. BILL ${bill.bill_number}: ${bill.title || 'No title'}\n`;
@@ -503,7 +503,7 @@ serve(async (req) => {
 
     // Enhanced search for relevant NYS legislative data and NYSgpt database
     let nysData = null;
-    let goodableBills = null;
+    let nysgptBills = null;
     let entityData = '';
 
     // Fast-path detection: skip NYS API for simple chat queries in fast mode
@@ -512,7 +512,7 @@ serve(async (req) => {
 
     // Start data searches in parallel (non-blocking)
     let nysDataPromise: Promise<any> | null = null;
-    let goodableDataPromise: Promise<any> | null = null;
+    let nysgptDataPromise: Promise<any> | null = null;
 
     // Build comprehensive search query based on entity context
     let searchQuery = prompt;
@@ -551,7 +551,7 @@ Member Count: ${entityContext.committee.member_count || 'Unknown'}`;
 
     // Always search NYSgpt database for chat queries (critical for answering questions about bills)
     if (type === 'chat' || type === 'default' || !shouldSkipNYSData) {
-      goodableDataPromise = searchNYSgptDatabase(searchQuery);
+      nysgptDataPromise = searchNYSgptDatabase(searchQuery);
     }
 
     // Start NYS API search if appropriate
@@ -561,9 +561,9 @@ Member Count: ${entityContext.committee.member_count || 'Unknown'}`;
 
     // IMPORTANT: Always wait for NYSgpt database search before generating response
     // This ensures AI has context even for streaming responses
-    if (goodableDataPromise) {
-      goodableBills = await goodableDataPromise;
-      console.log(`NYSgpt database search found ${goodableBills?.length || 0} bills`);
+    if (nysgptDataPromise) {
+      nysgptBills = await nysgptDataPromise;
+      console.log(`NYSgpt database search found ${nysgptBills?.length || 0} bills`);
     }
 
     // For non-streaming, also wait for NYS API data
@@ -575,7 +575,7 @@ Member Count: ${entityContext.committee.member_count || 'Unknown'}`;
     // Build enhanced context with all available information
     const contextObj = {
       nysData: nysData ? formatNYSDataForContext(nysData) : null,
-      goodableData: goodableBills ? formatNYSgptBillsForContext(goodableBills) : null
+      nysgptData: nysgptBills ? formatNYSgptBillsForContext(nysgptBills) : null
     };
 
     // Combine all context data
@@ -583,8 +583,8 @@ Member Count: ${entityContext.committee.member_count || 'Unknown'}`;
     if (contextObj.nysData) {
       combinedContext += `\n\n${contextObj.nysData}`;
     }
-    if (contextObj.goodableData) {
-      combinedContext += `\n\n${contextObj.goodableData}`;
+    if (contextObj.nysgptData) {
+      combinedContext += `\n\n${contextObj.nysgptData}`;
     }
 
     let systemPrompt = getSystemPrompt(type, combinedContext ? { nysData: combinedContext } : context, entityData);

@@ -90,7 +90,7 @@ interface Note {
   isPinned?: boolean;
 }
 
-const PINNED_NOTES_KEY = "goodable_pinned_notes";
+const PINNED_NOTES_KEY = "nysgpt_pinned_notes";
 
 // Helper to get pinned note IDs from localStorage
 const getPinnedNoteIds = (): Set<string> => {

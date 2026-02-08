@@ -12,7 +12,7 @@ import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 
 interface ChatHeaderProps {
   onNewChat?: () => void;
-  onWhatIsGoodable?: () => void;
+  onWhatIsNYSgpt?: () => void;
   onOpenSidebar?: () => void;
 }
 
@@ -23,7 +23,7 @@ const NAV_ITEMS = [
   { to: "/lists", label: "Lists" },
 ];
 
-export function ChatHeader({ onNewChat, onWhatIsGoodable, onOpenSidebar }: ChatHeaderProps) {
+export function ChatHeader({ onNewChat, onWhatIsNYSgpt, onOpenSidebar }: ChatHeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
   // Self-managed sidebar (used when no onOpenSidebar prop is provided)

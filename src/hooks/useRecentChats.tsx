@@ -10,7 +10,7 @@ export interface ChatWithPinned extends ChatSession {
   isPinned: boolean;
 }
 
-const PINNED_CHATS_KEY = "goodable_pinned_chats";
+const PINNED_CHATS_KEY = "nysgpt_pinned_chats";
 const PAGE_SIZE = 15;
 
 const getPinnedChatIds = (): Set<string> => {

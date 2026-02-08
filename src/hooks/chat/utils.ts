@@ -109,7 +109,7 @@ export const extractCitationsFromResponse = (content: string): {
   const urls = content.match(urlRegex) || [];
   
   // Extract mentions of known sources
-  const sourceRegex = /(goodable\.dev|congress\.gov|nysenate\.gov|brookings\.edu|urban\.org|cbo\.gov|gao\.gov|kff\.org|pewresearch\.org)/gi;
+  const sourceRegex = /(nysgpt\.com|congress\.gov|nysenate\.gov|brookings\.edu|urban\.org|cbo\.gov|gao\.gov|kff\.org|pewresearch\.org)/gi;
   const mentionedSources = content.match(sourceRegex) || [];
   
   // Combine URLs and mentions
@@ -174,7 +174,7 @@ export const validateResponseQuality = (content: string): {
     score -= 30;
   }
   
-  if (validation.goodablePercentage > 40) {
+  if (validation.nysgptPercentage > 40) {
     issues.push('Too much reliance on NYSgpt data');
     suggestions.push('Add more external authoritative sources');
     score -= 20;

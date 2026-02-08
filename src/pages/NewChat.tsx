@@ -44,7 +44,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { EngineSelection } from "@/components/EngineSelection";
-import { AskGoodableSelectionPopup } from "@/components/AskGoodableSelectionPopup";
+import { AskNYSgptSelectionPopup } from "@/components/AskNYSgptSelectionPopup";
 import { useAIUsage, countWords } from "@/hooks/useAIUsage";
 import { useToast } from "@/hooks/use-toast";
 import { Shimmer } from "@/components/ai-elements/shimmer";
@@ -215,7 +215,7 @@ const StreamingReasoningText = ({
 };
 
 // Context for the "What is NYSgpt?" prompt
-const GOODABLE_CONTEXT = `You are answering "What is NYSgpt?" for a new user. NYSgpt is a civic engagement platform focused on New York State legislation. Describe it naturally and highlight these unique features:
+const NYSGPT_CONTEXT = `You are answering "What is NYSgpt?" for a new user. NYSgpt is a civic engagement platform focused on New York State legislation. Describe it naturally and highlight these unique features:
 
 - Research any bill and get AI-powered analysis with stakeholder impact, political context, and likelihood of passage
 - Email legislators directly - send letters to bill sponsors and CC all co-sponsors with one click
@@ -481,8 +481,8 @@ const NewChat = () => {
   };
 
 
-  // Handle "Ask Goodable" popup click - inject selected text into query
-  const handleAskGoodable = (selectedText: string) => {
+  // Handle "Ask NYSgpt" popup click - inject selected text into query
+  const handleAskNYSgpt = (selectedText: string) => {
     if (selectedText) {
       // Inject as a quoted reference
       const newQuery = query
@@ -501,8 +501,8 @@ const NewChat = () => {
   const hasAutoSubmittedRef = useRef(false);
   const [autoSubmitPending, setAutoSubmitPending] = useState(false);
 
-  // Track if the current message is a "What is Goodable.dev?" prompt (for disclaimer)
-  const isGoodablePromptRef = useRef(false);
+  // Track if the current message is a "What is NYSgpt?" prompt (for disclaimer)
+  const isNYSgptPromptRef = useRef(false);
 
   // Track previous session ID to detect navigation to /new-chat
   const prevSessionIdRef = useRef<string | undefined>(routeSessionId);
@@ -672,15 +672,15 @@ const NewChat = () => {
     clearSession();
   };
 
-  // Handle "What is Goodable.dev?" prompt from heart icon click
-  const handleWhatIsGoodable = () => {
+  // Handle "What is NYSgpt?" prompt from heart icon click
+  const handleWhatIsNYSgpt = () => {
     // Reset state first (like starting a new chat)
     handleNewChat();
-    // Mark this as a special Goodable prompt so we can append the disclaimer
-    isGoodablePromptRef.current = true;
-    // Small delay to ensure state is reset, then submit the prompt with Goodable context
+    // Mark this as a special NYSgpt prompt so we can append the disclaimer
+    isNYSgptPromptRef.current = true;
+    // Small delay to ensure state is reset, then submit the prompt with NYSgpt context
     setTimeout(() => {
-      handleSubmit(null, "What is NYSgpt?", GOODABLE_CONTEXT);
+      handleSubmit(null, "What is NYSgpt?", NYSGPT_CONTEXT);
     }, 100);
   };
 
@@ -1324,10 +1324,10 @@ const NewChat = () => {
         aiResponse = 'I apologize, but I encountered an error. Please try again.';
       }
 
-      // Append disclaimer for "What is Goodable.dev?" prompt
-      if (isGoodablePromptRef.current && aiResponse) {
+      // Append disclaimer for "What is NYSgpt?" prompt
+      if (isNYSgptPromptRef.current && aiResponse) {
         aiResponse += '\n\nEvery bill analysis includes tools to email sponsors, generate letters, view official documents, and track your positions.\n\n*Answers will vary by user. 😉';
-        isGoodablePromptRef.current = false; // Reset for next message
+        isNYSgptPromptRef.current = false; // Reset for next message
       }
 
       // Extract Perplexity citations if this is a Perplexity response
@@ -1512,7 +1512,7 @@ const NewChat = () => {
         )}>
           {/* Header - ChatHeader for public, sidebar toggle + engine for authenticated */}
           {isPublicPage ? (
-            <ChatHeader onNewChat={handleNewChat} onWhatIsGoodable={handleWhatIsGoodable} onOpenSidebar={() => setLeftSidebarOpen(true)} />
+            <ChatHeader onNewChat={handleNewChat} onWhatIsNYSgpt={handleWhatIsNYSgpt} onOpenSidebar={() => setLeftSidebarOpen(true)} />
           ) : (
             <div className="flex items-center justify-between px-4 py-3 bg-background flex-shrink-0">
               {/* Left side: Logs button */}
@@ -3070,8 +3070,8 @@ const NewChat = () => {
         </a>
       )}
 
-      {/* "Ask Goodable" Text Selection Popup - rendered via portal */}
-      <AskGoodableSelectionPopup onAsk={handleAskGoodable} />
+      {/* "Ask NYSgpt" Text Selection Popup - rendered via portal */}
+      <AskNYSgptSelectionPopup onAsk={handleAskNYSgpt} />
 
     </div>
   );
