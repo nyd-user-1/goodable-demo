@@ -1,12 +1,21 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronDown, ArrowUp, MessageSquare, X } from 'lucide-react';
+import { ChevronRight, ChevronDown, ArrowUp, MessageSquare, X, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { LobbyingChatDrawer } from '@/components/LobbyingChatDrawer';
+import {
+  Drawer,
+  DrawerTrigger,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerClose,
+} from '@/components/ui/drawer';
 import {
   useLobbyingDashboard,
   formatCompactCurrency,
@@ -322,7 +331,7 @@ const LobbyingDashboard = () => {
                 </div>
               )}
 
-              {/* Title + Tabs */}
+              {/* Title + Tabs + Dashboards button */}
               <div className="flex items-center gap-3">
                 <h2 className="text-lg font-semibold mr-1">Lobbying Dashboard</h2>
                 {TABS.map((tab) => (
@@ -339,6 +348,46 @@ const LobbyingDashboard = () => {
                     {TAB_LABELS[tab]}
                   </button>
                 ))}
+                <div className="ml-auto">
+                  <Drawer>
+                    <DrawerTrigger asChild>
+                      <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+                        <LayoutGrid className="h-4 w-4" />
+                        <span className="hidden sm:inline">Dashboards</span>
+                      </button>
+                    </DrawerTrigger>
+                    <DrawerContent>
+                      <DrawerHeader>
+                        <DrawerTitle>Dashboards</DrawerTitle>
+                        <DrawerDescription>Explore NYS data dashboards</DrawerDescription>
+                      </DrawerHeader>
+                      <div className="grid grid-cols-3 gap-4 px-4 pb-8">
+                        <DrawerClose asChild>
+                          <button onClick={() => navigate('/budget-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border p-4 hover:bg-muted/50 transition-colors">
+                            <div className="w-full aspect-[4/3] rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-800/40 flex items-center justify-center">
+                              <span className="text-3xl">$</span>
+                            </div>
+                            <span className="text-sm font-medium">Budget</span>
+                          </button>
+                        </DrawerClose>
+                        <DrawerClose asChild>
+                          <button onClick={() => navigate('/lobbying-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border p-4 hover:bg-muted/50 transition-colors">
+                            <div className="w-full aspect-[4/3] rounded-lg bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/40 dark:to-purple-800/40 flex items-center justify-center">
+                              <span className="text-3xl">K</span>
+                            </div>
+                            <span className="text-sm font-medium">Lobbying</span>
+                          </button>
+                        </DrawerClose>
+                        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed p-4 opacity-50">
+                          <div className="w-full aspect-[4/3] rounded-lg bg-muted flex items-center justify-center">
+                            <span className="text-2xl text-muted-foreground">+</span>
+                          </div>
+                          <span className="text-sm text-muted-foreground">Coming Soon</span>
+                        </div>
+                      </div>
+                    </DrawerContent>
+                  </Drawer>
+                </div>
               </div>
             </div>
           </div>
