@@ -364,26 +364,22 @@ const LobbyingDashboard = () => {
                       <div className="grid grid-cols-3 gap-4 px-4 pb-8">
                         <DrawerClose asChild>
                           <button onClick={() => navigate('/budget-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border p-4 hover:bg-muted/50 transition-colors">
-                            <div className="w-full aspect-[4/3] rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-800/40 flex items-center justify-center">
-                              <span className="text-3xl">$</span>
-                            </div>
+                            <img src="/dashboard-budget.avif" alt="Budget Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
                             <span className="text-sm font-medium">Budget</span>
                           </button>
                         </DrawerClose>
                         <DrawerClose asChild>
                           <button onClick={() => navigate('/lobbying-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border p-4 hover:bg-muted/50 transition-colors">
-                            <div className="w-full aspect-[4/3] rounded-lg bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/40 dark:to-purple-800/40 flex items-center justify-center">
-                              <span className="text-3xl">K</span>
-                            </div>
+                            <img src="/dashboard-lobbying-line.avif" alt="Lobbying Line Chart" className="w-full aspect-[4/3] rounded-lg object-cover" />
                             <span className="text-sm font-medium">Lobbying</span>
                           </button>
                         </DrawerClose>
-                        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed p-4 opacity-50">
-                          <div className="w-full aspect-[4/3] rounded-lg bg-muted flex items-center justify-center">
-                            <span className="text-2xl text-muted-foreground">+</span>
-                          </div>
-                          <span className="text-sm text-muted-foreground">Coming Soon</span>
-                        </div>
+                        <DrawerClose asChild>
+                          <button onClick={() => navigate('/lobbying-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border p-4 hover:bg-muted/50 transition-colors">
+                            <img src="/dashboard-lobbying-bar.avif" alt="Lobbying Bar Chart" className="w-full aspect-[4/3] rounded-lg object-cover" />
+                            <span className="text-sm font-medium">Lobbying</span>
+                          </button>
+                        </DrawerClose>
                       </div>
                     </DrawerContent>
                   </Drawer>
