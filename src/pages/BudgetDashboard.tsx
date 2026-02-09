@@ -256,11 +256,9 @@ const BudgetDashboard = () => {
                 </div>
               )}
 
-              {/* Title */}
-              <h2 className="text-lg font-semibold mb-3">Budget Dashboard</h2>
-
-              {/* Tabs */}
-              <div className="flex items-center gap-2">
+              {/* Title + Tabs */}
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg font-semibold mr-1">Budget Dashboard</h2>
                 {TABS.map((tab) => (
                   <button
                     key={tab}
