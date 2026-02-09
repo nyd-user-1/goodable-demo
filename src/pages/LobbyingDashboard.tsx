@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronDown, ArrowUp, MessageSquare, Users, X } from 'lucide-react';
+import { ChevronRight, ChevronDown, ArrowUp, MessageSquare, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
@@ -51,8 +51,6 @@ const LobbyingDashboard = () => {
     error,
     byLobbyist,
     lobbyistGrandTotal,
-    totalLobbyists,
-    totalClients,
     getClientsForLobbyist,
   } = useLobbyingDashboard();
 
@@ -221,7 +219,13 @@ const LobbyingDashboard = () => {
                 {/* Amount — top right */}
                 {!isLoading && !error && (
                   <div className="text-right flex-shrink-0">
-                    <div className="flex items-baseline gap-2 justify-end">
+                    <div className="flex items-center gap-2 justify-end">
+                      <button
+                        onClick={() => openChat()}
+                        className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors flex-shrink-0"
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </button>
                       <span className="text-3xl md:text-4xl font-bold tracking-tight transition-all duration-300">
                         {formatCompactCurrency(headerAmount)}
                       </span>
@@ -318,20 +322,10 @@ const LobbyingDashboard = () => {
                 </div>
               )}
 
-              {/* Stats row */}
-              {!isLoading && (
-                <div className="flex items-center gap-6 text-sm text-muted-foreground mb-4">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    <span>{totalLobbyists.toLocaleString()} Lobbyists</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>{totalClients.toLocaleString()} Clients</span>
-                  </div>
-                </div>
-              )}
+              {/* Title */}
+              <h2 className="text-lg font-semibold mb-3">Lobbying Dashboard</h2>
 
-              {/* Tabs + Chat button */}
+              {/* Tabs */}
               <div className="flex items-center gap-2">
                 {TABS.map((tab) => (
                   <button
@@ -347,12 +341,6 @@ const LobbyingDashboard = () => {
                     {TAB_LABELS[tab]}
                   </button>
                 ))}
-                <button
-                  onClick={() => openChat()}
-                  className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center ml-1 hover:bg-foreground/80 transition-colors flex-shrink-0"
-                >
-                  <ArrowUp className="h-4 w-4" />
-                </button>
               </div>
             </div>
           </div>
