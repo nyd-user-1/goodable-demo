@@ -1,12 +1,11 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronDown, ArrowUp, MessageSquare, X, LayoutGrid } from 'lucide-react';
+import { ChevronRight, ChevronDown, ArrowUp, X, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { LobbyingChatDrawer } from '@/components/LobbyingChatDrawer';
 import {
   Drawer,
   DrawerTrigger,
@@ -17,38 +16,26 @@ import {
   DrawerClose,
 } from '@/components/ui/drawer';
 import {
-  useLobbyingDashboard,
+  useContractsDashboard,
   formatCompactCurrency,
   formatFullCurrency,
-  type LobbyingDashboardTab,
-  type LobbyingDashboardRow,
-  type LobbyingDrillDownRow,
+  type ContractsDashboardTab,
+  type ContractsDashboardRow,
+  type ContractsDrillDownRow,
   TAB_LABELS,
-} from '@/hooks/useLobbyingDashboard';
-import {
-  XAxis,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-} from 'recharts';
+} from '@/hooks/useContractsDashboard';
 
-const TABS: LobbyingDashboardTab[] = ['lobbyist', 'lobbyist3'];
+const TABS: ContractsDashboardTab[] = ['department', 'type'];
 
-const LobbyingDashboard = () => {
+const ContractsDashboard = () => {
   const navigate = useNavigate();
   const { session } = useAuth();
   const isAuthenticated = !!session;
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [sidebarMounted, setSidebarMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState<LobbyingDashboardTab>('lobbyist');
+  const [activeTab, setActiveTab] = useState<ContractsDashboardTab>('department');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [selectedRow, setSelectedRow] = useState<string | null>(null);
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatLobbyistName, setChatLobbyistName] = useState<string | null>(null);
-  const [chatClientName, setChatClientName] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
@@ -58,19 +45,27 @@ const LobbyingDashboard = () => {
   const {
     isLoading,
     error,
-    byLobbyist,
-    lobbyistGrandTotal,
-    getClientsForLobbyist,
-  } = useLobbyingDashboard();
+    byDepartment,
+    byType,
+    grandTotal,
+    totalContracts,
+    getDrillDown,
+  } = useContractsDashboard();
 
-  // Get rows for the active tab (both tabs use lobbyist data)
-  const rows: LobbyingDashboardRow[] = useMemo(() => {
-    return byLobbyist;
-  }, [byLobbyist]);
+  // Get rows for the active tab
+  const rows: ContractsDashboardRow[] = useMemo(() => {
+    switch (activeTab) {
+      case 'department': return byDepartment;
+      case 'type': return byType;
+    }
+  }, [activeTab, byDepartment, byType]);
 
-  const grandTotal = lobbyistGrandTotal;
+  // Total contract count for displayed rows
+  const displayedTotalContracts = useMemo(() => {
+    return rows.reduce((sum, row) => sum + row.contractCount, 0);
+  }, [rows]);
 
-  // Toggle row expansion
+  // Toggle row: expand drill-down AND select
   const toggleRow = (name: string) => {
     setExpandedRows((prev) => {
       const next = new Set(prev);
@@ -96,91 +91,8 @@ const LobbyingDashboard = () => {
     return rows.find((r) => r.name === selectedRow) || null;
   }, [selectedRow, rows]);
 
-  // Header values: show selected row's values when selected, otherwise grand totals
+  // Header values
   const headerAmount = selectedRowData ? selectedRowData.amount : grandTotal;
-
-  // Chart data: cumulative distribution showing concentration of lobbying spend
-  // When a lobbyist is selected, show their clients' distribution instead
-  const chartData = useMemo(() => {
-    // Determine which data to use
-    let dataRows: { amount: number }[] = rows;
-    let total = grandTotal;
-
-    // If a lobbyist is selected (not client tab), show their clients
-    if (selectedRow && activeTab !== 'client') {
-      const clients = getClientsForLobbyist(selectedRow);
-      if (clients.length > 0) {
-        dataRows = clients;
-        total = clients.reduce((sum, c) => sum + c.amount, 0);
-      }
-    }
-
-    if (dataRows.length === 0) return [];
-
-    // Create cumulative distribution data points
-    let cumulative = 0;
-    const points: { rank: number; label: string; cumulative: number; pct: number }[] = [];
-
-    // Sample at key percentiles to create smooth curve
-    const samplePoints = [1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-
-    for (const targetPct of samplePoints) {
-      const targetIdx = Math.min(Math.floor((targetPct / 100) * dataRows.length), dataRows.length - 1);
-      cumulative = 0;
-      for (let i = 0; i <= targetIdx; i++) {
-        cumulative += dataRows[i].amount;
-      }
-      const pct = total > 0 ? (cumulative / total) * 100 : 0;
-      points.push({
-        rank: targetPct,
-        label: `Top ${targetPct}%`,
-        cumulative,
-        pct,
-      });
-    }
-
-    return points;
-  }, [rows, grandTotal, selectedRow, activeTab, getClientsForLobbyist]);
-
-  // Bar chart data for lobbyist3 tab: top 40 lobbyists OR clients when a lobbyist is selected
-  const barChartData = useMemo(() => {
-    // If a lobbyist row is selected, show their clients
-    if (selectedRow && activeTab === 'lobbyist3') {
-      const clients = getClientsForLobbyist(selectedRow);
-      return clients.slice(0, 40).map((client, idx) => ({
-        idx: idx + 1,
-        name: client.name,
-        amount: client.amount,
-      }));
-    }
-    // Otherwise show top lobbyists
-    return byLobbyist.slice(0, 40).map((row, idx) => ({
-      idx: idx + 1,
-      name: row.name,
-      amount: row.amount,
-    }));
-  }, [byLobbyist, selectedRow, activeTab, getClientsForLobbyist]);
-
-  // Open chat drawer
-  const openChat = (lobbyistName?: string | null, clientName?: string | null) => {
-    setChatLobbyistName(lobbyistName || null);
-    setChatClientName(clientName || null);
-    setChatOpen(true);
-  };
-
-  // Chat click for main row
-  const handleChatClick = (row: LobbyingDashboardRow) => {
-    if (activeTab === 'lobbyist') {
-      openChat(row.name, null);
-    } else {
-      openChat(null, row.name);
-    }
-  };
-
-  // Chat click for drill-down row
-  const handleDrillDownChatClick = (drillRow: LobbyingDrillDownRow) => {
-    openChat(null, drillRow.name);
-  };
 
   return (
     <div className="fixed inset-0 overflow-hidden">
@@ -230,7 +142,7 @@ const LobbyingDashboard = () => {
                   <div className="text-right flex-shrink-0">
                     <div className="flex items-center gap-2 justify-end">
                       <button
-                        onClick={() => openChat()}
+                        onClick={() => navigate('/contracts')}
                         className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors flex-shrink-0"
                       >
                         <ArrowUp className="h-4 w-4" />
@@ -250,7 +162,7 @@ const LobbyingDashboard = () => {
                     <span className="text-sm text-muted-foreground">
                       {selectedRow
                         ? `${selectedRowData?.pctOfTotal.toFixed(1)}% of total`
-                        : 'Total Lobbyist Earnings'}
+                        : 'Total Contract Value'}
                     </span>
                   </div>
                 )}
@@ -258,82 +170,9 @@ const LobbyingDashboard = () => {
                 <MobileNYSgpt />
               </div>
 
-              {/* Chart - Bar chart for lobbyist3, Area chart for others */}
-              {!isLoading && activeTab === 'lobbyist3' && barChartData.length > 0 && (
-                <div className="h-28 md:h-32 mb-4 -mx-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={barChartData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
-                      <Bar
-                        dataKey="amount"
-                        fill="hsl(217 91% 60%)"
-                        radius={[2, 2, 0, 0]}
-                      />
-                      <XAxis
-                        dataKey="idx"
-                        tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
-                        tickLine={false}
-                        axisLine={false}
-                        interval={4}
-                      />
-                      <RechartsTooltip
-                        contentStyle={{
-                          backgroundColor: 'hsl(var(--background))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                        }}
-                        formatter={(value: number) => [formatFullCurrency(value), 'Earnings']}
-                        labelFormatter={(_, payload) => payload?.[0]?.payload?.name || ''}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-              {!isLoading && activeTab !== 'lobbyist3' && chartData.length > 1 && (
-                <div className="h-24 md:h-28 mb-4 -mx-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
-                      <defs>
-                        <linearGradient id="lobbyingGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(217 91% 60%)" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="hsl(217 91% 60%)" stopOpacity={0.05} />
-                        </linearGradient>
-                      </defs>
-                      <Area
-                        type="monotone"
-                        dataKey="cumulative"
-                        stroke="hsl(217 91% 60%)"
-                        strokeWidth={1.5}
-                        fill="url(#lobbyingGradient)"
-                        dot={false}
-                        animationDuration={500}
-                      />
-                      <XAxis
-                        dataKey="rank"
-                        tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                        tickLine={false}
-                        axisLine={false}
-                        interval="preserveStartEnd"
-                        tickFormatter={(value) => `${value}%`}
-                      />
-                      <RechartsTooltip
-                        contentStyle={{
-                          backgroundColor: 'hsl(var(--background))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                        }}
-                        formatter={(value: number) => [formatFullCurrency(value), 'Cumulative']}
-                        labelFormatter={(label) => `Top ${label}% of Lobbyists`}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-
               {/* Title + Tabs + Dashboards button */}
               <div className="flex items-center gap-3">
-                <h2 className="text-lg font-semibold mr-1">Lobbying Dashboard</h2>
+                <h2 className="text-lg font-semibold mr-1">Contracts Dashboard</h2>
                 {TABS.map((tab) => (
                   <button
                     key={tab}
@@ -370,7 +209,7 @@ const LobbyingDashboard = () => {
                         </DrawerClose>
                         <DrawerClose asChild>
                           <button onClick={() => navigate('/lobbying-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border p-4 hover:bg-muted/50 transition-colors">
-                            <img src="/dashboard-lobbying-line.avif" alt="Lobbying Line Chart" className="w-full aspect-[4/3] rounded-lg object-cover" />
+                            <img src="/dashboard-lobbying-line.avif" alt="Lobbying Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
                             <span className="text-sm font-medium">Lobbying</span>
                           </button>
                         </DrawerClose>
@@ -394,7 +233,7 @@ const LobbyingDashboard = () => {
           <div className="flex-1 overflow-y-auto">
             {error ? (
               <div className="text-center py-12 px-4">
-                <p className="text-destructive">Error loading lobbying data: {String(error)}</p>
+                <p className="text-destructive">Error loading contracts data: {String(error)}</p>
               </div>
             ) : isLoading ? (
               <div className="px-4 md:px-6 py-4 space-y-2">
@@ -404,50 +243,44 @@ const LobbyingDashboard = () => {
               </div>
             ) : rows.length === 0 ? (
               <div className="text-center py-12 px-4">
-                <p className="text-muted-foreground">No lobbying records found.</p>
+                <p className="text-muted-foreground">No contract records found.</p>
               </div>
             ) : (
               <>
                 <div className="divide-y">
                   {/* Column headers */}
-                  <div className="hidden md:grid grid-cols-[1fr_44px_100px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                  <div className="hidden md:grid grid-cols-[1fr_120px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
                     <span>Name</span>
-                    <span className="flex items-center justify-center">
-                      <MessageSquare className="h-3.5 w-3.5" />
-                    </span>
-                    <span className="text-right">'25</span>
-                    <span className="text-right">Change</span>
+                    <span className="text-right">Amount</span>
+                    <span className="text-right">Contracts</span>
                     <span className="text-right">Share</span>
                   </div>
 
-                  {(isAuthenticated ? rows : rows.slice(0, 10)).map((row) => (
-                    <DashboardRowItem
+                  {(isAuthenticated ? rows : rows.slice(0, 6)).map((row) => (
+                    <ContractRowItem
                       key={row.name}
                       row={row}
                       isExpanded={expandedRows.has(row.name)}
                       isSelected={selectedRow === row.name}
                       hasSelection={selectedRow !== null}
                       onToggle={() => toggleRow(row.name)}
-                      onChatClick={() => handleChatClick(row)}
                       tab={activeTab}
-                      getClientsForLobbyist={getClientsForLobbyist}
-                      onDrillDownChatClick={handleDrillDownChatClick}
+                      getDrillDown={getDrillDown}
                     />
                   ))}
 
                   {/* Grand total row */}
-                  <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_100px_80px_80px] gap-4 px-4 md:px-6 py-4 bg-muted/30 font-semibold">
+                  <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_120px_80px_80px] gap-4 px-4 md:px-6 py-4 bg-muted/30 font-semibold">
                     <span>Total</span>
-                    <span className="hidden md:block" />
                     <span className="text-right">{formatCompactCurrency(grandTotal)}</span>
-                    <span className="hidden md:block text-right">—</span>
+                    <span className="hidden md:block text-right">{displayedTotalContracts.toLocaleString()}</span>
                     <span className="hidden md:block text-right">100%</span>
                   </div>
                 </div>
                 {!isAuthenticated && (
                   <div className="text-center py-12">
                     <p className="text-muted-foreground">
-                      Please log in to view all lobbying records.
+                      Please log in to view all contract records.
                     </p>
                     <Button variant="ghost" onClick={() => navigate('/auth-4')}
                       className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">
@@ -460,49 +293,32 @@ const LobbyingDashboard = () => {
           </div>
         </div>
       </div>
-
-      {/* Lobbying Chat Drawer */}
-      <LobbyingChatDrawer
-        open={chatOpen}
-        onOpenChange={setChatOpen}
-        lobbyistName={chatLobbyistName}
-        clientName={chatClientName}
-      />
     </div>
   );
 };
 
-// ── Dashboard Row Component ───────────────────────────────────────
+// ── Contract Row Component ───────────────────────────────────────
 
-interface DashboardRowItemProps {
-  row: LobbyingDashboardRow;
+interface ContractRowItemProps {
+  row: ContractsDashboardRow;
   isExpanded: boolean;
   isSelected: boolean;
   hasSelection: boolean;
   onToggle: () => void;
-  onChatClick: () => void;
-  tab: LobbyingDashboardTab;
-  getClientsForLobbyist: (name: string) => LobbyingDrillDownRow[];
-  onDrillDownChatClick: (row: LobbyingDrillDownRow) => void;
+  tab: ContractsDashboardTab;
+  getDrillDown: (tab: ContractsDashboardTab, groupValue: string) => ContractsDrillDownRow[];
 }
 
-function DashboardRowItem({
+function ContractRowItem({
   row,
   isExpanded,
   isSelected,
   hasSelection,
   onToggle,
-  onChatClick,
   tab,
-  getClientsForLobbyist,
-  onDrillDownChatClick,
-}: DashboardRowItemProps) {
-  const drillDownRows = isExpanded && (tab === 'lobbyist' || tab === 'lobbyist3') ? getClientsForLobbyist(row.name) : [];
-
-  const handleChatClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onChatClick();
-  };
+  getDrillDown,
+}: ContractRowItemProps) {
+  const drillDownRows = isExpanded ? getDrillDown(tab, row.name) : [];
 
   return (
     <div>
@@ -510,7 +326,7 @@ function DashboardRowItem({
       <div
         onClick={onToggle}
         className={cn(
-          "group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_100px_80px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer transition-all duration-200 items-center",
+          "group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_120px_80px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer transition-all duration-200 items-center",
           isSelected
             ? "bg-muted/50"
             : hasSelection
@@ -524,14 +340,10 @@ function DashboardRowItem({
             "flex-shrink-0 transition-colors",
             isSelected ? "text-foreground" : "text-muted-foreground"
           )}>
-            {(tab === 'lobbyist' || tab === 'lobbyist3') ? (
-              isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4" />
             ) : (
-              <div className="w-4" />
+              <ChevronRight className="h-4 w-4" />
             )}
           </span>
           <span className={cn(
@@ -543,52 +355,25 @@ function DashboardRowItem({
           {isSelected && (
             <span className="hidden md:inline-flex h-1.5 w-1.5 rounded-full bg-foreground flex-shrink-0" />
           )}
-          {/* Client count badge for lobbyists */}
-          {(tab === 'lobbyist' || tab === 'lobbyist3') && row.clientCount !== undefined && row.clientCount > 0 && (
-            <span className="hidden md:inline-flex text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-              {row.clientCount} clients
-            </span>
-          )}
+          {/* Contract count badge */}
+          <span className="hidden md:inline-flex text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+            {row.contractCount} contracts
+          </span>
           {/* Mobile: show amount inline */}
           <span className="md:hidden text-sm text-muted-foreground ml-auto pl-2 whitespace-nowrap">
             {formatCompactCurrency(row.amount)}
           </span>
         </div>
 
-        {/* Chat button column (desktop) */}
-        <div className="hidden md:flex justify-center">
-          <button
-            onClick={handleChatClick}
-            className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/80"
-          >
-            <ArrowUp className="h-4 w-4" />
-          </button>
-        </div>
-
         {/* Desktop columns */}
         <span className="hidden md:block text-right font-medium tabular-nums">
           {formatCompactCurrency(row.amount)}
         </span>
-
-        {/* Change column */}
-        <span className={cn(
-          "hidden md:block text-right text-sm tabular-nums",
-          row.pctChange === null || row.pctChange === undefined
-            ? "text-muted-foreground"
-            : row.pctChange > 0
-              ? "text-green-600"
-              : row.pctChange < 0
-                ? "text-red-600"
-                : "text-muted-foreground"
-        )}>
-          {row.pctChange === null || row.pctChange === undefined
-            ? "—"
-            : row.pctChange > 0
-              ? `+${row.pctChange.toFixed(1)}%`
-              : `${row.pctChange.toFixed(1)}%`}
+        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">
+          {row.contractCount.toLocaleString()}
         </span>
 
-        {/* Share bar */}
+        {/* Percentage bar */}
         <div className="hidden md:flex items-center gap-2">
           <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
             <div
@@ -607,9 +392,7 @@ function DashboardRowItem({
         "md:hidden px-4 pb-3 -mt-2 flex items-center gap-3 text-xs text-muted-foreground pl-10 transition-opacity duration-200",
         hasSelection && !isSelected && "opacity-50"
       )}>
-        {(tab === 'lobbyist' || tab === 'lobbyist3') && row.clientCount !== undefined && row.clientCount > 0 && (
-          <span>{row.clientCount} clients</span>
-        )}
+        <span>{row.contractCount} contracts</span>
         <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden max-w-[120px]">
           <div
             className="h-full bg-foreground/60 rounded-full"
@@ -617,27 +400,20 @@ function DashboardRowItem({
           />
         </div>
         <span>{row.pctOfTotal.toFixed(0)}%</span>
-        <button
-          onClick={handleChatClick}
-          className="ml-auto w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center"
-        >
-          <ArrowUp className="h-3.5 w-3.5" />
-        </button>
       </div>
 
-      {/* Drill-down rows (clients for a lobbyist) */}
+      {/* Drill-down rows */}
       {isExpanded && drillDownRows.length > 0 && (
         <div className="bg-muted/10 border-t border-b">
-          {drillDownRows.slice(0, 20).map((client) => (
-            <ClientRow
-              key={client.name}
-              client={client}
-              onChatClick={() => onDrillDownChatClick(client)}
+          {drillDownRows.slice(0, 20).map((contract, idx) => (
+            <ContractDrillRow
+              key={`${contract.contractNumber}-${idx}`}
+              contract={contract}
             />
           ))}
           {drillDownRows.length > 20 && (
             <div className="px-6 py-2 text-xs text-muted-foreground text-center">
-              + {drillDownRows.length - 20} more clients
+              + {drillDownRows.length - 20} more contracts
             </div>
           )}
         </div>
@@ -646,74 +422,89 @@ function DashboardRowItem({
   );
 }
 
-// ── Client Drill-Down Row ─────────────────────────────────────────
+// ── Contract Drill-Down Row ─────────────────────────────────────────
 
-interface ClientRowProps {
-  client: LobbyingDrillDownRow;
-  onChatClick: () => void;
+interface ContractDrillRowProps {
+  contract: ContractsDrillDownRow;
 }
 
-function ClientRow({ client, onChatClick }: ClientRowProps) {
-  const handleChatClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onChatClick();
+function ContractDrillRow({ contract }: ContractDrillRowProps) {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (contract.contractNumber) {
+      navigate(`/contracts/${contract.contractNumber}`);
+    }
   };
 
   return (
     <>
       {/* Desktop */}
-      <div className="hidden md:grid grid-cols-[1fr_44px_100px_80px_80px] gap-4 px-6 py-3 pl-14 hover:bg-muted/20 transition-colors items-center group">
-        <span className="text-sm truncate">{client.name}</span>
-        <div className="flex justify-center">
-          <button
-            onClick={handleChatClick}
-            className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/80"
-          >
-            <ArrowUp className="h-3.5 w-3.5" />
-          </button>
+      <div
+        onClick={handleClick}
+        className={cn(
+          "hidden md:grid grid-cols-[1fr_120px_80px_80px] gap-4 px-6 py-3 pl-14 hover:bg-muted/20 transition-colors items-center group",
+          contract.contractNumber && "cursor-pointer"
+        )}
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-sm truncate">{contract.name}</span>
+          {contract.contractNumber && (
+            <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
+              {contract.contractNumber}
+            </span>
+          )}
         </div>
         <span className="text-right text-sm tabular-nums">
-          {client.amount > 0 ? formatCompactCurrency(client.amount) : '—'}
+          {formatCompactCurrency(contract.amount)}
         </span>
         <span className="text-right text-sm text-muted-foreground">—</span>
         <div className="flex items-center gap-2">
           <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full bg-foreground/40 rounded-full"
-              style={{ width: `${Math.min(client.pctOfParent, 100)}%` }}
+              style={{ width: `${Math.min(contract.pctOfParent, 100)}%` }}
             />
           </div>
           <span className="text-xs text-muted-foreground tabular-nums w-8 text-right">
-            {client.pctOfParent.toFixed(0)}%
+            {contract.pctOfParent.toFixed(0)}%
           </span>
         </div>
       </div>
 
       {/* Mobile */}
-      <div className="md:hidden px-4 py-3 pl-10">
+      <div
+        onClick={handleClick}
+        className={cn(
+          "md:hidden px-4 py-3 pl-10",
+          contract.contractNumber && "cursor-pointer"
+        )}
+      >
         <div className="flex items-center justify-between mb-1">
-          <span className="text-sm truncate flex-1 min-w-0">{client.name}</span>
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span className="text-sm truncate">{contract.name}</span>
+            {contract.contractNumber && (
+              <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
+                {contract.contractNumber}
+              </span>
+            )}
+          </div>
           <span className="text-sm text-muted-foreground ml-2 whitespace-nowrap">
-            {client.amount > 0 ? formatCompactCurrency(client.amount) : '—'}
+            {formatCompactCurrency(contract.amount)}
           </span>
         </div>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden max-w-[100px]">
             <div
               className="h-full bg-foreground/40 rounded-full"
-              style={{ width: `${Math.min(client.pctOfParent, 100)}%` }}
+              style={{ width: `${Math.min(contract.pctOfParent, 100)}%` }}
             />
           </div>
-          <button
-            onClick={handleChatClick}
-            className="ml-auto w-6 h-6 bg-foreground text-background rounded-full flex items-center justify-center"
-          >
-            <ArrowUp className="h-3 w-3" />
-          </button>
+          <span>{contract.pctOfParent.toFixed(0)}%</span>
         </div>
       </div>
     </>
   );
 }
 
-export default LobbyingDashboard;
+export default ContractsDashboard;

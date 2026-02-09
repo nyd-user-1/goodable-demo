@@ -309,9 +309,11 @@ const BudgetDashboard = () => {
                           </button>
                         </DrawerClose>
                         <DrawerClose asChild>
-                          <button onClick={() => navigate('/lobbying-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border p-4 hover:bg-muted/50 transition-colors">
-                            <img src="/dashboard-lobbying-bar.avif" alt="Lobbying Bar Chart" className="w-full aspect-[4/3] rounded-lg object-cover" />
-                            <span className="text-sm font-medium">Lobbying</span>
+                          <button onClick={() => navigate('/contracts-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border p-4 hover:bg-muted/50 transition-colors">
+                            <div className="w-full aspect-[4/3] rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center">
+                              <span className="text-2xl font-bold text-muted-foreground/40">$</span>
+                            </div>
+                            <span className="text-sm font-medium">Contracts</span>
                           </button>
                         </DrawerClose>
                       </div>
