@@ -176,7 +176,13 @@ const BudgetDashboard = () => {
                 {/* Amount + YoY — top right */}
                 {!isLoading && !error && (
                   <div className="text-right flex-shrink-0">
-                    <div className="flex items-baseline gap-2 justify-end">
+                    <div className="flex items-center gap-2 justify-end">
+                      <button
+                        onClick={() => openChat()}
+                        className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors flex-shrink-0"
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </button>
                       <span className="text-3xl md:text-4xl font-bold tracking-tight transition-all duration-300">
                         {formatCompactCurrency(headerAmount)}
                       </span>
@@ -250,7 +256,10 @@ const BudgetDashboard = () => {
                 </div>
               )}
 
-              {/* Tabs + Chat button */}
+              {/* Title */}
+              <h2 className="text-lg font-semibold mb-3">Budget Dashboard</h2>
+
+              {/* Tabs */}
               <div className="flex items-center gap-2">
                 {TABS.map((tab) => (
                   <button
@@ -266,12 +275,6 @@ const BudgetDashboard = () => {
                     {TAB_LABELS[tab]}
                   </button>
                 ))}
-                <button
-                  onClick={() => openChat()}
-                  className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center ml-1 hover:bg-foreground/80 transition-colors flex-shrink-0"
-                >
-                  <ArrowUp className="h-4 w-4" />
-                </button>
               </div>
             </div>
           </div>
