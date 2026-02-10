@@ -17,8 +17,10 @@ export function useBillsSearch() {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  // Helper to apply search/filter criteria to a query
-  const buildFilteredQuery = async (query: any) => {
+  // Helper to apply search/filter criteria to a query.
+  // Returns { query } wrapped in an object to prevent the async function from
+  // resolving the Supabase query builder's thenable, or null for empty results.
+  const buildFilteredQuery = async (query: any): Promise<{ query: any } | null> => {
     // Normalize search term if it looks like a bill number
     const normalizedSearchTerm = /^[ASKask]\d+$/i.test(searchTerm)
       ? normalizeBillNumber(searchTerm)
@@ -87,7 +89,7 @@ export function useBillsSearch() {
       query = query.in('bill_id', sponsorBillIds);
     }
 
-    return query;
+    return { query };
   };
 
   // Helper to fetch sponsor names for a set of bills
@@ -128,12 +130,13 @@ export function useBillsSearch() {
         .from('Bills')
         .select('*', { count: 'exact' });
 
-      query = await buildFilteredQuery(query);
+      const filtered = await buildFilteredQuery(query);
 
       // buildFilteredQuery returns null when sponsor filter yields no bills
-      if (query === null) {
+      if (filtered === null) {
         return { bills: [], totalCount: 0 };
       }
+      query = filtered.query;
 
       query = query
         .order('last_action_date', { ascending: false, nullsFirst: false })
@@ -166,12 +169,13 @@ export function useBillsSearch() {
     try {
       let query = supabase.from('Bills').select('*');
 
-      query = await buildFilteredQuery(query);
+      const filtered = await buildFilteredQuery(query);
 
-      if (query === null) {
+      if (filtered === null) {
         setHasMore(false);
         return;
       }
+      query = filtered.query;
 
       query = query
         .order('last_action_date', { ascending: false, nullsFirst: false })
