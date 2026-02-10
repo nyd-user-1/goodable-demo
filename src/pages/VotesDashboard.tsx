@@ -1,24 +1,17 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronDown, LayoutGrid } from 'lucide-react';
+import { ChevronRight, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-  Drawer,
-  DrawerTrigger,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-  DrawerClose,
-} from '@/components/ui/drawer';
-import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -227,51 +220,22 @@ const VotesDashboard = () => {
                 </div>
               )}
 
-              {/* Title row + Dashboards button */}
+              {/* Dashboard selector */}
               <div className="flex items-center gap-3">
-                <h2 className="text-lg font-semibold mr-1">Votes Dashboard</h2>
-                <div className="ml-auto">
-                  <Drawer>
-                    <DrawerTrigger asChild>
-                      <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-                        <LayoutGrid className="h-4 w-4" />
-                        <span className="hidden sm:inline">Dashboards</span>
-                      </button>
-                    </DrawerTrigger>
-                    <DrawerContent>
-                      <DrawerHeader>
-                        <DrawerTitle>Dashboards</DrawerTitle>
-                        <DrawerDescription>Explore NYS data dashboards</DrawerDescription>
-                      </DrawerHeader>
-                      <div className="flex gap-4 overflow-x-auto px-4 pb-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                        <DrawerClose asChild>
-                          <button onClick={() => navigate('/budget-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
-                            <img src="/dashboard-budget.avif" alt="Budget Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
-                            <span className="text-sm font-medium">Budget</span>
-                          </button>
-                        </DrawerClose>
-                        <DrawerClose asChild>
-                          <button onClick={() => navigate('/lobbying-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
-                            <img src="/dashboard-lobbying-line.avif" alt="Lobbying Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
-                            <span className="text-sm font-medium">Lobbying</span>
-                          </button>
-                        </DrawerClose>
-                        <DrawerClose asChild>
-                          <button onClick={() => navigate('/contracts-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
-                            <img src="/dashboard-contracts.avif" alt="Contracts Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
-                            <span className="text-sm font-medium">Contracts</span>
-                          </button>
-                        </DrawerClose>
-                        <DrawerClose asChild>
-                          <button onClick={() => navigate('/votes-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
-                            <img src="/dashboard-votes.png" alt="Votes Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
-                            <span className="text-sm font-medium">Votes</span>
-                          </button>
-                        </DrawerClose>
-                      </div>
-                    </DrawerContent>
-                  </Drawer>
-                </div>
+                <Select value="votes" onValueChange={(v) => navigate(`/${v}-dashboard`)}>
+                  <SelectTrigger className="w-full max-w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Dashboards</SelectLabel>
+                      <SelectItem value="budget">Budget</SelectItem>
+                      <SelectItem value="lobbying">Lobbying</SelectItem>
+                      <SelectItem value="contracts">Contracts</SelectItem>
+                      <SelectItem value="votes">Votes</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
