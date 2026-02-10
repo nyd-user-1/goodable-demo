@@ -1,7 +1,6 @@
-import { useMemo } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Contract } from '@/types/contracts';
 
 export type ContractsDashboardTab = 'department' | 'type';
 
@@ -52,196 +51,154 @@ export function formatFullCurrency(value: number): string {
 }
 
 export function useContractsDashboard() {
-  // Batch-fetch all rows from Contracts table
-  const { data: rawData, isLoading, error } = useQuery({
-    queryKey: ['contracts-dashboard-all'],
+  // ── RPC: contracts by department ────────────────────────────
+  const { data: byDepartmentRaw, isLoading: deptLoading, error: deptError } = useQuery({
+    queryKey: ['contracts-rpc-by-department'],
     queryFn: async () => {
-      let allRows: Contract[] = [];
-      let offset = 0;
-      const batchSize = 1000;
-      let hasMore = true;
-
-      while (hasMore) {
-        const { data, error } = await supabase
-          .from('Contracts')
-          .select('vendor_name, department_facility, contract_number, current_contract_amount, contract_type, contract_start_date')
-          .range(offset, offset + batchSize - 1);
-
-        if (error) throw error;
-        if (!data || data.length === 0) {
-          hasMore = false;
-        } else {
-          allRows = allRows.concat(data as Contract[]);
-          if (data.length < batchSize) {
-            hasMore = false;
-          } else {
-            offset += batchSize;
-          }
-        }
-      }
-
-      return allRows;
+      const { data, error } = await (supabase as any).rpc('get_contracts_by_group', {
+        p_group_by: 'department',
+      });
+      if (error) throw error;
+      return (data as any[]).map((r: any): ContractsDashboardRow => ({
+        name: r.name,
+        amount: Number(r.amount),
+        contractCount: Number(r.contract_count),
+        pctOfTotal: Number(r.pct_of_total),
+      }));
     },
     staleTime: 10 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
   });
 
-  // Aggregate by department_facility
-  const byDepartment = useMemo(() => {
-    if (!rawData || rawData.length === 0) return [];
-
-    const groups = new Map<string, { amount: number; count: number }>();
-    let grandTotal = 0;
-
-    rawData.forEach((row) => {
-      const key = row.department_facility || 'Unknown';
-      const amount = row.current_contract_amount ?? 0;
-      grandTotal += amount;
-      const existing = groups.get(key);
-      if (existing) {
-        existing.amount += amount;
-        existing.count += 1;
-      } else {
-        groups.set(key, { amount, count: 1 });
-      }
-    });
-
-    const rows: ContractsDashboardRow[] = [];
-    groups.forEach((value, key) => {
-      rows.push({
-        name: key,
-        amount: value.amount,
-        contractCount: value.count,
-        pctOfTotal: grandTotal > 0 ? (value.amount / grandTotal) * 100 : 0,
+  // ── RPC: contracts by type ──────────────────────────────────
+  const { data: byTypeRaw, isLoading: typeLoading, error: typeError } = useQuery({
+    queryKey: ['contracts-rpc-by-type'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_contracts_by_group', {
+        p_group_by: 'type',
       });
-    });
+      if (error) throw error;
+      return (data as any[]).map((r: any): ContractsDashboardRow => ({
+        name: r.name,
+        amount: Number(r.amount),
+        contractCount: Number(r.contract_count),
+        pctOfTotal: Number(r.pct_of_total),
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
 
-    rows.sort((a, b) => b.amount - a.amount);
-    return rows;
-  }, [rawData]);
+  // ── RPC: historical totals ──────────────────────────────────
+  const { data: historicalRaw, isLoading: histLoading, error: histError } = useQuery({
+    queryKey: ['contracts-rpc-historical'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_contracts_historical');
+      if (error) throw error;
+      return (data as any[]).map((r: any) => ({
+        year: r.year as string,
+        total: Number(r.total),
+        annual: Number(r.annual),
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
 
-  // Aggregate by contract_type
-  const byType = useMemo(() => {
-    if (!rawData || rawData.length === 0) return [];
+  // ── RPC: grand totals ──────────────────────────────────────
+  const { data: totalsRaw, isLoading: totalsLoading, error: totalsError } = useQuery({
+    queryKey: ['contracts-rpc-totals'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_contracts_totals');
+      if (error) throw error;
+      const row = (data as any[])[0];
+      return {
+        grandTotal: Number(row.grand_total),
+        totalContracts: Number(row.total_contracts),
+      };
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
 
-    const groups = new Map<string, { amount: number; count: number }>();
-    let grandTotal = 0;
+  const isLoading = deptLoading || typeLoading || histLoading || totalsLoading;
+  const error = deptError || typeError || histError || totalsError;
 
-    rawData.forEach((row) => {
-      const key = row.contract_type || 'Unknown';
-      const amount = row.current_contract_amount ?? 0;
-      grandTotal += amount;
-      const existing = groups.get(key);
-      if (existing) {
-        existing.amount += amount;
-        existing.count += 1;
-      } else {
-        groups.set(key, { amount, count: 1 });
-      }
-    });
+  // ── Drill-down: lazy RPC with cache ────────────────────────
+  const [drillCache, setDrillCache] = useState<Record<string, ContractsDrillDownRow[]>>({});
+  const fetchingDrillRef = useRef<Set<string>>(new Set());
 
-    const rows: ContractsDashboardRow[] = [];
-    groups.forEach((value, key) => {
-      rows.push({
-        name: key,
-        amount: value.amount,
-        contractCount: value.count,
-        pctOfTotal: grandTotal > 0 ? (value.amount / grandTotal) * 100 : 0,
-      });
-    });
+  const getDrillDown = (tab: ContractsDashboardTab, groupValue: string): ContractsDrillDownRow[] => {
+    const key = `${tab}:${groupValue}`;
+    if (drillCache[key]) return drillCache[key];
 
-    rows.sort((a, b) => b.amount - a.amount);
-    return rows;
-  }, [rawData]);
+    if (!fetchingDrillRef.current.has(key)) {
+      fetchingDrillRef.current.add(key);
+      (supabase as any)
+        .rpc('get_contracts_drilldown', { p_group_by: tab, p_group_value: groupValue })
+        .then(({ data }: any) => {
+          if (data) {
+            setDrillCache((prev) => ({
+              ...prev,
+              [key]: (data as any[]).map((d: any) => ({
+                name: d.name,
+                amount: Number(d.amount),
+                contractNumber: d.contract_number,
+                pctOfParent: Number(d.pct_of_parent),
+              })),
+            }));
+          }
+          fetchingDrillRef.current.delete(key);
+        });
+    }
 
-  // Grand total
-  const grandTotal = useMemo(() => {
-    if (!rawData || rawData.length === 0) return 0;
-    return rawData.reduce((sum, row) => sum + (row.current_contract_amount ?? 0), 0);
-  }, [rawData]);
-
-  // Total contract count
-  const totalContracts = rawData?.length ?? 0;
-
-  // Historical totals by year (from contract_start_date)
-  const historicalTotals = useMemo(() => {
-    if (!rawData || rawData.length === 0) return [];
-
-    const byYear = new Map<number, number>();
-    rawData.forEach((row) => {
-      if (!row.contract_start_date) return;
-      const year = new Date(row.contract_start_date).getFullYear();
-      if (isNaN(year) || year < 1990 || year > 2030) return;
-      byYear.set(year, (byYear.get(year) || 0) + (row.current_contract_amount ?? 0));
-    });
-
-    const years = Array.from(byYear.keys()).sort((a, b) => a - b);
-    let cumulative = 0;
-    return years.map((year) => {
-      cumulative += byYear.get(year)!;
-      return { year: String(year), total: cumulative, annual: byYear.get(year)! };
-    });
-  }, [rawData]);
-
-  // Historical for a specific group (department or type)
-  const getHistoricalForGroup = (tab: ContractsDashboardTab, groupValue: string) => {
-    if (!rawData) return [];
-
-    const column = tab === 'department' ? 'department_facility' : 'contract_type';
-    const filtered = rawData.filter((row) => (row[column] || 'Unknown') === groupValue);
-
-    const byYear = new Map<number, number>();
-    filtered.forEach((row) => {
-      if (!row.contract_start_date) return;
-      const year = new Date(row.contract_start_date).getFullYear();
-      if (isNaN(year) || year < 1990 || year > 2030) return;
-      byYear.set(year, (byYear.get(year) || 0) + (row.current_contract_amount ?? 0));
-    });
-
-    const years = Array.from(byYear.keys()).sort((a, b) => a - b);
-    let cumulative = 0;
-    return years.map((year) => {
-      cumulative += byYear.get(year)!;
-      return { year: String(year), total: cumulative, annual: byYear.get(year)! };
-    });
+    return [];
   };
 
-  // Drill-down: get individual contracts for a given group value
-  const getDrillDown = (tab: ContractsDashboardTab, groupValue: string): ContractsDrillDownRow[] => {
-    if (!rawData) return [];
+  // ── Historical for group: lazy RPC with cache ──────────────
+  const [histGroupCache, setHistGroupCache] = useState<
+    Record<string, { year: string; total: number; annual: number }[]>
+  >({});
+  const fetchingHistRef = useRef<Set<string>>(new Set());
 
-    const column = tab === 'department' ? 'department_facility' : 'contract_type';
-    const filtered = rawData.filter((row) => (row[column] || 'Unknown') === groupValue);
+  const getHistoricalForGroup = (tab: ContractsDashboardTab, groupValue: string) => {
+    const key = `${tab}:${groupValue}`;
+    if (histGroupCache[key]) return histGroupCache[key];
 
-    let parentTotal = 0;
-    const rows: ContractsDrillDownRow[] = filtered.map((row) => {
-      const amount = row.current_contract_amount ?? 0;
-      parentTotal += amount;
-      return {
-        name: row.vendor_name || 'Unknown Vendor',
-        amount,
-        contractNumber: row.contract_number,
-        pctOfParent: 0,
-      };
-    });
+    if (!fetchingHistRef.current.has(key)) {
+      fetchingHistRef.current.add(key);
+      (supabase as any)
+        .rpc('get_contracts_historical_for_group', {
+          p_group_by: tab,
+          p_group_value: groupValue,
+        })
+        .then(({ data }: any) => {
+          if (data) {
+            setHistGroupCache((prev) => ({
+              ...prev,
+              [key]: (data as any[]).map((d: any) => ({
+                year: d.year as string,
+                total: Number(d.total),
+                annual: Number(d.annual),
+              })),
+            }));
+          }
+          fetchingHistRef.current.delete(key);
+        });
+    }
 
-    rows.forEach((row) => {
-      row.pctOfParent = parentTotal > 0 ? (row.amount / parentTotal) * 100 : 0;
-    });
-    rows.sort((a, b) => b.amount - a.amount);
-
-    return rows;
+    return [];
   };
 
   return {
     isLoading,
     error,
-    byDepartment,
-    byType,
-    grandTotal,
-    totalContracts,
+    byDepartment: byDepartmentRaw ?? [],
+    byType: byTypeRaw ?? [],
+    grandTotal: totalsRaw?.grandTotal ?? 0,
+    totalContracts: totalsRaw?.totalContracts ?? 0,
     getDrillDown,
-    historicalTotals,
+    historicalTotals: historicalRaw ?? [],
     getHistoricalForGroup,
   };
 }

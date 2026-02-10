@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -45,11 +45,130 @@ function parseDollar(value: string | null | undefined): number {
 }
 
 export function useBudgetDashboard() {
-  // Fetch all spending rows (budget_2027_spending)
-  const { data: rawData, isLoading, error } = useQuery({
-    queryKey: ['budget-dashboard-spending'],
+  const primaryYear = '2026-27 Estimates';
+  const priorYear = '2025-26 Estimates';
+
+  // ── RPC: by Function ────────────────────────────────────────
+  const { data: byFunctionRaw, isLoading: funcLoading, error: funcError } = useQuery({
+    queryKey: ['budget-rpc-by-function'],
     queryFn: async () => {
-      // Fetch in batches since PostgREST limits to 1000 by default
+      const { data, error } = await (supabase as any).rpc('get_budget_by_group', {
+        p_group_by: 'Function',
+      });
+      if (error) throw error;
+      return (data as any[]).map((r: any): DashboardRow => ({
+        name: r.name,
+        amount: Number(r.amount),
+        priorAmount: Number(r.prior_amount),
+        yoyChange: Number(r.yoy_change),
+        pctOfTotal: Number(r.pct_of_total),
+        rowCount: Number(r.row_count),
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
+  // ── RPC: by Fund Type ───────────────────────────────────────
+  const { data: byFundTypeRaw, isLoading: fundLoading, error: fundError } = useQuery({
+    queryKey: ['budget-rpc-by-fund-type'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_budget_by_group', {
+        p_group_by: 'Fund Type',
+      });
+      if (error) throw error;
+      return (data as any[]).map((r: any): DashboardRow => ({
+        name: r.name,
+        amount: Number(r.amount),
+        priorAmount: Number(r.prior_amount),
+        yoyChange: Number(r.yoy_change),
+        pctOfTotal: Number(r.pct_of_total),
+        rowCount: Number(r.row_count),
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
+  // ── RPC: by FP Category ─────────────────────────────────────
+  const { data: byFpCategoryRaw, isLoading: fpLoading, error: fpError } = useQuery({
+    queryKey: ['budget-rpc-by-fp-category'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_budget_by_group', {
+        p_group_by: 'FP Category',
+      });
+      if (error) throw error;
+      return (data as any[]).map((r: any): DashboardRow => ({
+        name: r.name,
+        amount: Number(r.amount),
+        priorAmount: Number(r.prior_amount),
+        yoyChange: Number(r.yoy_change),
+        pctOfTotal: Number(r.pct_of_total),
+        rowCount: Number(r.row_count),
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
+  // ── RPC: grand totals ──────────────────────────────────────
+  const { data: totalsRaw, isLoading: totalsLoading, error: totalsError } = useQuery({
+    queryKey: ['budget-rpc-totals'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_budget_totals');
+      if (error) throw error;
+      const row = (data as any[])[0];
+      return {
+        grandTotal: Number(row.grand_total),
+        priorGrandTotal: Number(row.prior_grand_total),
+      };
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
+  const isLoading = funcLoading || fundLoading || fpLoading || totalsLoading;
+  const error = funcError || fundError || fpError || totalsError;
+
+  // ── Drill-down: lazy RPC with cache ────────────────────────
+  const [drillCache, setDrillCache] = useState<Record<string, DrillDownRow[]>>({});
+  const fetchingDrillRef = useRef<Set<string>>(new Set());
+
+  const getDrillDown = (tab: DashboardTab, groupValue: string): DrillDownRow[] => {
+    const colName = TAB_COLUMN[tab];
+    const key = `${tab}:${groupValue}`;
+    if (drillCache[key]) return drillCache[key];
+
+    if (!fetchingDrillRef.current.has(key)) {
+      fetchingDrillRef.current.add(key);
+      (supabase as any)
+        .rpc('get_budget_drilldown', { p_group_by: colName, p_group_value: groupValue })
+        .then(({ data }: any) => {
+          if (data) {
+            setDrillCache((prev) => ({
+              ...prev,
+              [key]: (data as any[]).map((d: any) => ({
+                name: d.name,
+                amount: Number(d.amount),
+                priorAmount: Number(d.prior_amount),
+                yoyChange: Number(d.yoy_change),
+                pctOfParent: Number(d.pct_of_parent),
+              })),
+            }));
+          }
+          fetchingDrillRef.current.delete(key);
+        });
+    }
+
+    return [];
+  };
+
+  // ── Historical chart data (lightweight batch fetch) ────────
+  // Budget table is small, so this runs in parallel with RPC
+  // and doesn't block the main table loading.
+  const { data: rawData } = useQuery({
+    queryKey: ['budget-raw-for-chart'],
+    queryFn: async () => {
       let allRows: any[] = [];
       let offset = 0;
       const batchSize = 1000;
@@ -80,85 +199,17 @@ export function useBudgetDashboard() {
     gcTime: 15 * 60 * 1000,
   });
 
-  // Discover fiscal year columns from sample row
+  // Discover fiscal year columns from data
   const yearColumns = useMemo(() => {
     if (!rawData || rawData.length === 0) return [];
     const cols = Object.keys(rawData[0]);
     return cols
       .filter((col) => /^\d{4}-\d{2}\s/.test(col))
       .sort()
-      .reverse(); // Most recent first
+      .reverse();
   }, [rawData]);
 
-  // The primary and prior fiscal year columns
-  const primaryYear = yearColumns.find((c) => c.includes('2026-27')) || yearColumns[0] || '2026-27 Estimates';
-  const priorYear = yearColumns.find((c) => c.includes('2025-26')) || yearColumns[1] || '2025-26 Estimates';
-
-  // Aggregate rows by a given column (Function, Fund Type, FP Category)
-  const aggregate = useMemo(() => {
-    if (!rawData || rawData.length === 0) return { byFunction: [], byFundType: [], byFpCategory: [], grandTotal: 0, priorGrandTotal: 0 };
-
-    const aggregateByCol = (colName: string): DashboardRow[] => {
-      const map = new Map<string, { amount: number; priorAmount: number; count: number }>();
-
-      for (const row of rawData) {
-        const key = (row[colName] as string) || 'Unclassified';
-        const amount = parseDollar(row[primaryYear]);
-        const priorAmount = parseDollar(row[priorYear]);
-
-        const existing = map.get(key);
-        if (existing) {
-          existing.amount += amount;
-          existing.priorAmount += priorAmount;
-          existing.count += 1;
-        } else {
-          map.set(key, { amount, priorAmount, count: 1 });
-        }
-      }
-
-      // Calculate grand total for pctOfTotal
-      let total = 0;
-      for (const v of map.values()) {
-        total += v.amount;
-      }
-
-      const rows: DashboardRow[] = [];
-      for (const [name, v] of map.entries()) {
-        const yoyChange = v.priorAmount !== 0
-          ? ((v.amount - v.priorAmount) / Math.abs(v.priorAmount)) * 100
-          : v.amount > 0 ? 100 : 0;
-
-        rows.push({
-          name,
-          amount: v.amount,
-          priorAmount: v.priorAmount,
-          yoyChange,
-          pctOfTotal: total > 0 ? (v.amount / total) * 100 : 0,
-          rowCount: v.count,
-        });
-      }
-
-      // Sort by amount descending
-      rows.sort((a, b) => b.amount - a.amount);
-      return rows;
-    };
-
-    const byFunction = aggregateByCol('Function');
-    const byFundType = aggregateByCol('Fund Type');
-    const byFpCategory = aggregateByCol('FP Category');
-
-    // Grand totals
-    let grandTotal = 0;
-    let priorGrandTotal = 0;
-    for (const row of rawData) {
-      grandTotal += parseDollar(row[primaryYear]);
-      priorGrandTotal += parseDollar(row[priorYear]);
-    }
-
-    return { byFunction, byFundType, byFpCategory, grandTotal, priorGrandTotal };
-  }, [rawData, primaryYear, priorYear]);
-
-  // Historical data for all year columns (for potential chart use)
+  // Historical totals per fiscal year (for chart)
   const historicalTotals = useMemo(() => {
     if (!rawData || rawData.length === 0 || yearColumns.length === 0) return [];
 
@@ -167,63 +218,17 @@ export function useBudgetDashboard() {
       for (const row of rawData) {
         total += parseDollar(row[col]);
       }
-      // Extract the year label like "2026-27"
       const yearLabel = col.replace(/\s+(Actuals|Estimates)$/i, '');
       const isEstimate = col.toLowerCase().includes('estimate');
       return { year: yearLabel, total, column: col, isEstimate };
-    }).reverse(); // Chronological order (oldest first)
+    }).reverse();
   }, [rawData, yearColumns]);
 
-  // Drill-down: get agencies within a specific grouping value
-  const getDrillDown = (tab: DashboardTab, groupValue: string): DrillDownRow[] => {
-    if (!rawData) return [];
-
-    const groupCol = TAB_COLUMN[tab];
-    const filtered = rawData.filter((row: any) => (row[groupCol] || 'Unclassified') === groupValue);
-
-    // Aggregate by Agency
-    const map = new Map<string, { amount: number; priorAmount: number }>();
-    for (const row of filtered) {
-      const agency = (row['Agency'] as string) || 'Unknown Agency';
-      const amount = parseDollar(row[primaryYear]);
-      const priorAmount = parseDollar(row[priorYear]);
-
-      const existing = map.get(agency);
-      if (existing) {
-        existing.amount += amount;
-        existing.priorAmount += priorAmount;
-      } else {
-        map.set(agency, { amount, priorAmount });
-      }
-    }
-
-    // Calculate parent total for pctOfParent
-    let parentTotal = 0;
-    for (const v of map.values()) {
-      parentTotal += v.amount;
-    }
-
-    const rows: DrillDownRow[] = [];
-    for (const [name, v] of map.entries()) {
-      const yoyChange = v.priorAmount !== 0
-        ? ((v.amount - v.priorAmount) / Math.abs(v.priorAmount)) * 100
-        : v.amount > 0 ? 100 : 0;
-
-      rows.push({
-        name,
-        amount: v.amount,
-        priorAmount: v.priorAmount,
-        yoyChange,
-        pctOfParent: parentTotal > 0 ? (v.amount / parentTotal) * 100 : 0,
-      });
-    }
-
-    rows.sort((a, b) => b.amount - a.amount);
-    return rows;
-  };
-
   // Historical data filtered by a specific group value (for interactive chart)
-  const getHistoricalForGroup = (tab: DashboardTab, groupValue: string): { year: string; total: number; column: string; isEstimate: boolean }[] => {
+  const getHistoricalForGroup = (
+    tab: DashboardTab,
+    groupValue: string
+  ): { year: string; total: number; column: string; isEstimate: boolean }[] => {
     if (!rawData || rawData.length === 0 || yearColumns.length === 0) return [];
 
     const groupCol = TAB_COLUMN[tab];
@@ -243,11 +248,11 @@ export function useBudgetDashboard() {
   return {
     isLoading,
     error,
-    byFunction: aggregate.byFunction,
-    byFundType: aggregate.byFundType,
-    byFpCategory: aggregate.byFpCategory,
-    grandTotal: aggregate.grandTotal,
-    priorGrandTotal: aggregate.priorGrandTotal,
+    byFunction: byFunctionRaw ?? [],
+    byFundType: byFundTypeRaw ?? [],
+    byFpCategory: byFpCategoryRaw ?? [],
+    grandTotal: totalsRaw?.grandTotal ?? 0,
+    priorGrandTotal: totalsRaw?.priorGrandTotal ?? 0,
     historicalTotals,
     yearColumns,
     primaryYear,

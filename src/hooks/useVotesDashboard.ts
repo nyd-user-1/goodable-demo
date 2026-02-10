@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -24,227 +24,101 @@ export interface VotesChartPoint {
   no: number;
 }
 
-interface VoteRow {
-  people_id: number;
-  roll_call_id: number;
-  vote_desc: string | null;
-}
-
-interface RollCallRow {
-  roll_call_id: number;
-  bill_id: number | null;
-  date: string | null;
-  chamber: string | null;
-}
-
-interface PeopleRow {
-  people_id: number;
-  name: string | null;
-  party: string | null;
-  chamber: string | null;
-}
-
-interface BillRow {
-  bill_id: number;
-  bill_number: string | null;
-  title: string | null;
-}
-
-function normalizeVote(vote_desc: string | null): string {
-  if (!vote_desc) return 'Other';
-  const v = vote_desc.trim();
-  if (v.startsWith('Y')) return 'Yes';
-  if (v.startsWith('N') && !v.startsWith('NV')) return 'No';
-  return 'Other';
-}
-
-async function batchFetch<T>(table: string, select: string, maxRows?: number): Promise<T[]> {
-  let allRows: T[] = [];
-  let offset = 0;
-  const batchSize = 1000;
-  let hasMore = true;
-
-  while (hasMore) {
-    const { data, error } = await supabase
-      .from(table)
-      .select(select)
-      .range(offset, offset + batchSize - 1);
-
-    if (error) throw error;
-    if (!data || data.length === 0) {
-      hasMore = false;
-    } else {
-      allRows = allRows.concat(data as T[]);
-      if (data.length < batchSize) {
-        hasMore = false;
-      } else if (maxRows && allRows.length >= maxRows) {
-        allRows = allRows.slice(0, maxRows);
-        hasMore = false;
-      } else {
-        offset += batchSize;
-      }
-    }
-  }
-
-  return allRows;
-}
-
 export function useVotesDashboard() {
-  const { data: votesData, isLoading: votesLoading, error: votesError } = useQuery({
-    queryKey: ['votes-dashboard-votes'],
-    queryFn: () => batchFetch<VoteRow>('Votes', 'people_id, roll_call_id, vote_desc', 10000),
+  // ── RPC: votes aggregated by member ─────────────────────────
+  const { data: byMemberRaw, isLoading: memberLoading, error: memberError } = useQuery({
+    queryKey: ['votes-rpc-by-member'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_votes_by_member');
+      if (error) throw error;
+      return (data as any[]).map((r: any): VotesDashboardRow => ({
+        name: r.name,
+        people_id: r.people_id,
+        totalVotes: Number(r.total_votes),
+        yesCount: Number(r.yes_count),
+        noCount: Number(r.no_count),
+        pctYes: Number(r.total_votes) > 0
+          ? (Number(r.yes_count) / Number(r.total_votes)) * 100
+          : 0,
+      }));
+    },
     staleTime: 10 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
   });
 
-  const { data: rollCallData, isLoading: rollCallLoading, error: rollCallError } = useQuery({
-    queryKey: ['votes-dashboard-rollcall'],
-    queryFn: () => batchFetch<RollCallRow>('Roll Call', 'roll_call_id, bill_id, date, chamber'),
+  // ── RPC: chart data (yes/no per day) ────────────────────────
+  const { data: chartDataRaw, isLoading: chartLoading, error: chartError } = useQuery({
+    queryKey: ['votes-rpc-chart-data'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_votes_chart_data');
+      if (error) throw error;
+      return (data as any[]).map((r: any): VotesChartPoint => ({
+        date: r.date,
+        yes: Number(r.yes),
+        no: Number(r.no),
+      }));
+    },
     staleTime: 10 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
   });
 
-  const { data: peopleData, isLoading: peopleLoading, error: peopleError } = useQuery({
-    queryKey: ['votes-dashboard-people'],
-    queryFn: () => batchFetch<PeopleRow>('People', 'people_id, name, party, chamber'),
-    staleTime: 10 * 60 * 1000,
-    gcTime: 15 * 60 * 1000,
-  });
-
-  const { data: billsData, isLoading: billsLoading, error: billsError } = useQuery({
-    queryKey: ['votes-dashboard-bills'],
-    queryFn: () => batchFetch<BillRow>('Bills', 'bill_id, bill_number, title'),
-    staleTime: 10 * 60 * 1000,
-    gcTime: 15 * 60 * 1000,
-  });
-
-  const isLoading = votesLoading || rollCallLoading || peopleLoading || billsLoading;
-  const error = votesError || rollCallError || peopleError || billsError;
-
-  // Build lookup maps
-  const peopleMap = useMemo(() => {
-    if (!peopleData) return new Map<number, PeopleRow>();
-    const map = new Map<number, PeopleRow>();
-    peopleData.forEach((p) => map.set(p.people_id, p));
-    return map;
-  }, [peopleData]);
-
-  const rollCallMap = useMemo(() => {
-    if (!rollCallData) return new Map<number, RollCallRow>();
-    const map = new Map<number, RollCallRow>();
-    rollCallData.forEach((rc) => map.set(rc.roll_call_id, rc));
-    return map;
-  }, [rollCallData]);
-
-  const billsMap = useMemo(() => {
-    if (!billsData) return new Map<number, BillRow>();
-    const map = new Map<number, BillRow>();
-    billsData.forEach((b) => map.set(b.bill_id, b));
-    return map;
-  }, [billsData]);
-
-  // Aggregate by member
-  const byMember = useMemo((): VotesDashboardRow[] => {
-    if (!votesData || votesData.length === 0) return [];
-
-    const groups = new Map<number, { yesCount: number; noCount: number; total: number }>();
-
-    votesData.forEach((v) => {
-      const normalized = normalizeVote(v.vote_desc);
-      const existing = groups.get(v.people_id);
-      if (existing) {
-        existing.total += 1;
-        if (normalized === 'Yes') existing.yesCount += 1;
-        if (normalized === 'No') existing.noCount += 1;
-      } else {
-        groups.set(v.people_id, {
-          total: 1,
-          yesCount: normalized === 'Yes' ? 1 : 0,
-          noCount: normalized === 'No' ? 1 : 0,
-        });
-      }
-    });
-
-    const rows: VotesDashboardRow[] = [];
-    groups.forEach((value, peopleId) => {
-      const person = peopleMap.get(peopleId);
-      rows.push({
-        name: person?.name || 'Unknown',
-        people_id: peopleId,
-        totalVotes: value.total,
-        yesCount: value.yesCount,
-        noCount: value.noCount,
-        pctYes: value.total > 0 ? (value.yesCount / value.total) * 100 : 0,
-      });
-    });
-
-    rows.sort((a, b) => b.totalVotes - a.totalVotes);
-    return rows;
-  }, [votesData, peopleMap]);
-
-  // Chart data: yes/no counts per day
-  const chartData = useMemo((): VotesChartPoint[] => {
-    if (!votesData || votesData.length === 0) return [];
-
-    const byDate = new Map<string, { yes: number; no: number }>();
-
-    votesData.forEach((v) => {
-      const rc = rollCallMap.get(v.roll_call_id);
-      if (!rc || !rc.date) return;
-      const date = rc.date;
-      const normalized = normalizeVote(v.vote_desc);
-      const existing = byDate.get(date);
-      if (existing) {
-        if (normalized === 'Yes') existing.yes += 1;
-        if (normalized === 'No') existing.no += 1;
-      } else {
-        byDate.set(date, {
-          yes: normalized === 'Yes' ? 1 : 0,
-          no: normalized === 'No' ? 1 : 0,
-        });
-      }
-    });
-
-    const points: VotesChartPoint[] = [];
-    byDate.forEach((value, date) => {
-      points.push({ date, yes: value.yes, no: value.no });
-    });
-
-    points.sort((a, b) => a.date.localeCompare(b.date));
-    return points;
-  }, [votesData, rollCallMap]);
-
-  // Drill-down for a specific member
-  const getDrillDown = (peopleId: number): VotesDrillDownRow[] => {
-    if (!votesData) return [];
-
-    const memberVotes = votesData.filter((v) => v.people_id === peopleId);
-    const rows: VotesDrillDownRow[] = memberVotes.map((v) => {
-      const rc = rollCallMap.get(v.roll_call_id);
-      const bill = rc?.bill_id ? billsMap.get(rc.bill_id) : null;
+  // ── RPC: grand totals ──────────────────────────────────────
+  const { data: totalsRaw, isLoading: totalsLoading, error: totalsError } = useQuery({
+    queryKey: ['votes-rpc-totals'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_votes_totals');
+      if (error) throw error;
+      const row = (data as any[])[0];
       return {
-        billNumber: bill?.bill_number || null,
-        billTitle: bill?.title || null,
-        date: rc?.date || '',
-        vote: normalizeVote(v.vote_desc),
+        totalVotes: Number(row.total_votes),
+        totalMembers: Number(row.total_members),
       };
-    });
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
 
-    rows.sort((a, b) => b.date.localeCompare(a.date));
-    return rows.slice(0, 10);
+  const isLoading = memberLoading || chartLoading || totalsLoading;
+  const error = memberError || chartError || totalsError;
+
+  // ── Drill-down: lazy RPC with cache ────────────────────────
+  const [drillCache, setDrillCache] = useState<Record<string, VotesDrillDownRow[]>>({});
+  const fetchingRef = useRef<Set<string>>(new Set());
+
+  const getDrillDown = (peopleId: number): VotesDrillDownRow[] => {
+    const key = String(peopleId);
+    if (drillCache[key]) return drillCache[key];
+
+    if (!fetchingRef.current.has(key)) {
+      fetchingRef.current.add(key);
+      (supabase as any)
+        .rpc('get_votes_drilldown', { p_people_id: peopleId })
+        .then(({ data }: any) => {
+          if (data) {
+            setDrillCache((prev) => ({
+              ...prev,
+              [key]: (data as any[]).map((d: any) => ({
+                billNumber: d.bill_number,
+                billTitle: d.bill_title,
+                date: d.date || '',
+                vote: d.vote,
+              })),
+            }));
+          }
+          fetchingRef.current.delete(key);
+        });
+    }
+
+    return [];
   };
-
-  // Grand totals
-  const totalVotes = votesData?.length ?? 0;
-  const totalMembers = byMember.length;
 
   return {
     isLoading,
     error,
-    byMember,
-    chartData,
+    byMember: byMemberRaw ?? [],
+    chartData: chartDataRaw ?? [],
     getDrillDown,
-    totalVotes,
-    totalMembers,
+    totalVotes: totalsRaw?.totalVotes ?? 0,
+    totalMembers: totalsRaw?.totalMembers ?? 0,
   };
 }

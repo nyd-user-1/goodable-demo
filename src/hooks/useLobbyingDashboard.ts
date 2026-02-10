@@ -1,7 +1,6 @@
-import { useMemo } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { LobbyistCompensation, LobbyingSpend, LobbyistClient } from '@/types/lobbying';
 
 export type LobbyingDashboardTab = 'lobbyist' | 'lobbyist3' | 'client';
 
@@ -28,265 +27,103 @@ export interface LobbyingDrillDownRow {
   pctOfParent: number;
 }
 
-// Parse currency values (handles both numeric and string formats)
-function parseCurrency(value: string | number | null | undefined): number {
-  if (value === null || value === undefined || value === '') return 0;
-  if (typeof value === 'number') return isNaN(value) ? 0 : value;
-  const cleaned = value.replace(/[$,\s]/g, '');
-  const num = parseFloat(cleaned);
-  return isNaN(num) ? 0 : num;
-}
-
-// YoY data row from the view
-interface LobbyistYoY {
-  principal_lobbyist: string;
-  total_2024: string | number | null;
-  total_2025: string | number | null;
-  diff: number | null;
-  pct_change: number | null;
-}
-
 export function useLobbyingDashboard() {
-  // Fetch compensation records for 2025 (lobbyists)
-  const { data: compensationData, isLoading: compLoading, error: compError } = useQuery({
-    queryKey: ['lobbying-dashboard-compensation-2025'],
+  // ── RPC: lobbyists aggregated ───────────────────────────────
+  const { data: byLobbyistRaw, isLoading: lobbyistLoading, error: lobbyistError } = useQuery({
+    queryKey: ['lobbying-rpc-by-lobbyist'],
     queryFn: async () => {
-      let allRows: LobbyistCompensation[] = [];
-      let offset = 0;
-      const batchSize = 1000;
-      let hasMore = true;
-
-      while (hasMore) {
-        const { data, error } = await supabase
-          .from('lobbyist_compensation')
-          .select('*')
-          .eq('year', 2025)
-          .range(offset, offset + batchSize - 1);
-
-        if (error) throw error;
-        if (!data || data.length === 0) {
-          hasMore = false;
-        } else {
-          allRows = allRows.concat(data as LobbyistCompensation[]);
-          if (data.length < batchSize) {
-            hasMore = false;
-          } else {
-            offset += batchSize;
-          }
-        }
-      }
-
-      return allRows;
-    },
-    staleTime: 10 * 60 * 1000,
-    gcTime: 15 * 60 * 1000,
-  });
-
-  // Fetch all spend records (clients)
-  const { data: spendData, isLoading: spendLoading, error: spendError } = useQuery({
-    queryKey: ['lobbying-dashboard-spend'],
-    queryFn: async () => {
-      let allRows: LobbyingSpend[] = [];
-      let offset = 0;
-      const batchSize = 1000;
-      let hasMore = true;
-
-      while (hasMore) {
-        const { data, error } = await supabase
-          .from('lobbying_spend')
-          .select('*')
-          .range(offset, offset + batchSize - 1);
-
-        if (error) throw error;
-        if (!data || data.length === 0) {
-          hasMore = false;
-        } else {
-          allRows = allRows.concat(data as LobbyingSpend[]);
-          if (data.length < batchSize) {
-            hasMore = false;
-          } else {
-            offset += batchSize;
-          }
-        }
-      }
-
-      return allRows;
-    },
-    staleTime: 10 * 60 * 1000,
-    gcTime: 15 * 60 * 1000,
-  });
-
-  // Fetch all client relationships
-  const { data: clientsData } = useQuery({
-    queryKey: ['lobbying-dashboard-clients'],
-    queryFn: async () => {
-      let allClients: LobbyistClient[] = [];
-      let offset = 0;
-      const batchSize = 1000;
-      let hasMore = true;
-
-      while (hasMore) {
-        const { data, error } = await supabase
-          .from('lobbyists_clients')
-          .select('*')
-          .range(offset, offset + batchSize - 1);
-
-        if (error) throw error;
-        if (!data || data.length === 0) {
-          hasMore = false;
-        } else {
-          allClients = allClients.concat(data as LobbyistClient[]);
-          if (data.length < batchSize) {
-            hasMore = false;
-          } else {
-            offset += batchSize;
-          }
-        }
-      }
-
-      return allClients;
-    },
-    staleTime: 10 * 60 * 1000,
-    gcTime: 15 * 60 * 1000,
-  });
-
-  // Fetch YoY data for percentage change column
-  const { data: yoyData } = useQuery({
-    queryKey: ['lobbying-dashboard-yoy'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('lobbyist_compensation_yoy')
-        .select('principal_lobbyist, pct_change');
-
+      const { data, error } = await (supabase as any).rpc('get_lobbying_by_lobbyist');
       if (error) throw error;
-      return data as LobbyistYoY[];
+      return (data as any[]).map((r: any): LobbyingDashboardRow => ({
+        name: r.name,
+        amount: Number(r.amount),
+        clientCount: Number(r.client_count),
+        pctOfTotal: Number(r.pct_of_total),
+        rowCount: 1,
+        pctChange: r.pct_change != null ? Number(r.pct_change) : null,
+      }));
     },
     staleTime: 10 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
   });
 
-  // Aggregate lobbyist data
-  const byLobbyist = useMemo(() => {
-    if (!compensationData || compensationData.length === 0) return [];
-
-    // Group clients by lobbyist
-    const clientCounts = new Map<string, number>();
-    if (clientsData) {
-      clientsData.forEach(client => {
-        const lobbyist = client.principal_lobbyist || 'Unknown';
-        clientCounts.set(lobbyist, (clientCounts.get(lobbyist) || 0) + 1);
-      });
-    }
-
-    // Build YoY lookup map
-    const yoyMap = new Map<string, number | null>();
-    if (yoyData) {
-      yoyData.forEach(row => {
-        if (row.principal_lobbyist) {
-          yoyMap.set(row.principal_lobbyist, row.pct_change);
-        }
-      });
-    }
-
-    let grandTotal = 0;
-    const rows: LobbyingDashboardRow[] = compensationData.map(record => {
-      const amount = parseCurrency(record.grand_total_compensation_expenses);
-      grandTotal += amount;
-      const lobbyistName = record.principal_lobbyist || 'Unknown Lobbyist';
-      return {
-        name: lobbyistName,
-        amount,
-        clientCount: clientCounts.get(record.principal_lobbyist || 'Unknown') || 0,
-        pctOfTotal: 0,
+  // ── RPC: clients aggregated ─────────────────────────────────
+  const { data: byClientRaw, isLoading: clientLoading, error: clientError } = useQuery({
+    queryKey: ['lobbying-rpc-by-client'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_lobbying_by_client');
+      if (error) throw error;
+      return (data as any[]).map((r: any): LobbyingDashboardRow => ({
+        name: r.name,
+        amount: Number(r.amount),
+        pctOfTotal: Number(r.pct_of_total),
         rowCount: 1,
-        pctChange: yoyMap.get(lobbyistName) ?? null,
-      };
-    });
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
 
-    // Calculate percentages and sort
-    rows.forEach(row => {
-      row.pctOfTotal = grandTotal > 0 ? (row.amount / grandTotal) * 100 : 0;
-    });
-    rows.sort((a, b) => b.amount - a.amount);
-
-    return rows;
-  }, [compensationData, clientsData, yoyData]);
-
-  // Aggregate client data
-  const byClient = useMemo(() => {
-    if (!spendData || spendData.length === 0) return [];
-
-    let grandTotal = 0;
-    const rows: LobbyingDashboardRow[] = spendData.map(record => {
-      const amount = parseCurrency(record.compensation_and_expenses);
-      grandTotal += amount;
+  // ── RPC: grand totals ──────────────────────────────────────
+  const { data: totalsRaw, isLoading: totalsLoading, error: totalsError } = useQuery({
+    queryKey: ['lobbying-rpc-totals'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_lobbying_totals');
+      if (error) throw error;
+      const row = (data as any[])[0];
       return {
-        name: record.contractual_client || 'Unknown Client',
-        amount,
-        pctOfTotal: 0,
-        rowCount: 1,
+        lobbyistGrandTotal: Number(row.lobbyist_grand_total),
+        clientGrandTotal: Number(row.client_grand_total),
+        totalLobbyists: Number(row.total_lobbyists),
+        totalClients: Number(row.total_clients),
       };
-    });
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
 
-    // Calculate percentages and sort
-    rows.forEach(row => {
-      row.pctOfTotal = grandTotal > 0 ? (row.amount / grandTotal) * 100 : 0;
-    });
-    rows.sort((a, b) => b.amount - a.amount);
+  const isLoading = lobbyistLoading || clientLoading || totalsLoading;
+  const error = lobbyistError || clientError || totalsError;
 
-    return rows;
-  }, [spendData]);
+  // ── Drill-down: lazy RPC with cache ────────────────────────
+  const [drillCache, setDrillCache] = useState<Record<string, LobbyingDrillDownRow[]>>({});
+  const fetchingRef = useRef<Set<string>>(new Set());
 
-  // Grand totals
-  const lobbyistGrandTotal = useMemo(() => {
-    return byLobbyist.reduce((sum, row) => sum + row.amount, 0);
-  }, [byLobbyist]);
-
-  const clientGrandTotal = useMemo(() => {
-    return byClient.reduce((sum, row) => sum + row.amount, 0);
-  }, [byClient]);
-
-  // Get drill-down: clients for a lobbyist
   const getClientsForLobbyist = (lobbyistName: string): LobbyingDrillDownRow[] => {
-    if (!clientsData) return [];
+    const key = lobbyistName;
+    if (drillCache[key]) return drillCache[key];
 
-    const clients = clientsData.filter(c => c.principal_lobbyist === lobbyistName);
-
-    // For each client, try to find their spending amount
-    const clientAmounts = new Map<string, number>();
-    if (spendData) {
-      spendData.forEach(spend => {
-        const name = spend.contractual_client || 'Unknown';
-        clientAmounts.set(name, parseCurrency(spend.compensation_and_expenses));
-      });
+    if (!fetchingRef.current.has(key)) {
+      fetchingRef.current.add(key);
+      (supabase as any)
+        .rpc('get_lobbying_clients_for_lobbyist', { p_lobbyist: lobbyistName })
+        .then(({ data }: any) => {
+          if (data) {
+            setDrillCache((prev) => ({
+              ...prev,
+              [key]: (data as any[]).map((d: any) => ({
+                name: d.name,
+                amount: Number(d.amount),
+                pctOfParent: Number(d.pct_of_parent),
+              })),
+            }));
+          }
+          fetchingRef.current.delete(key);
+        });
     }
 
-    let parentTotal = 0;
-    const rows: LobbyingDrillDownRow[] = clients.map(client => {
-      const name = client.contractual_client || 'Unknown Client';
-      const amount = clientAmounts.get(name) || 0;
-      parentTotal += amount;
-      return { name, amount, pctOfParent: 0 };
-    });
-
-    // Calculate percentages
-    rows.forEach(row => {
-      row.pctOfParent = parentTotal > 0 ? (row.amount / parentTotal) * 100 : 0;
-    });
-    rows.sort((a, b) => b.amount - a.amount);
-
-    return rows;
+    return [];
   };
 
   return {
-    isLoading: compLoading || spendLoading,
-    error: compError || spendError,
-    byLobbyist,
-    byClient,
-    lobbyistGrandTotal,
-    clientGrandTotal,
-    totalLobbyists: byLobbyist.length,
-    totalClients: byClient.length,
+    isLoading,
+    error,
+    byLobbyist: byLobbyistRaw ?? [],
+    byClient: byClientRaw ?? [],
+    lobbyistGrandTotal: totalsRaw?.lobbyistGrandTotal ?? 0,
+    clientGrandTotal: totalsRaw?.clientGrandTotal ?? 0,
+    totalLobbyists: totalsRaw?.totalLobbyists ?? 0,
+    totalClients: totalsRaw?.totalClients ?? 0,
     getClientsForLobbyist,
   };
 }
