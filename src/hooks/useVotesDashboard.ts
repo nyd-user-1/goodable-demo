@@ -136,7 +136,7 @@ export function useVotesDashboard() {
   });
 
   // ── RPC: bills with pass/fail results ─────────────────────
-  const { data: billsPassFailRaw } = useQuery({
+  const { data: billsPassFailRaw, error: billsError } = useQuery({
     queryKey: ['votes-rpc-bills-pass-fail'],
     queryFn: async () => {
       const { data, error } = await (supabase as any).rpc('get_votes_bills_pass_fail');
@@ -156,7 +156,7 @@ export function useVotesDashboard() {
   });
 
   const isLoading = memberLoading || chartLoading || totalsLoading;
-  const error = memberError || chartError || totalsError;
+  const error = memberError || chartError || totalsError || billsError;
 
   // ── Drill-down: lazy RPC with cache ────────────────────────
   const [drillCache, setDrillCache] = useState<Record<string, VotesDrillDownRow[]>>({});
