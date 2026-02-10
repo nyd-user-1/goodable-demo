@@ -425,7 +425,7 @@ RETURNS TABLE (
     SELECT
       COALESCE(principal_lobbyist, 'Unknown Lobbyist') AS name,
       CASE
-        WHEN grand_total_compensation_expenses ~ '^[$]?[\d,.\s]+$'
+        WHEN grand_total_compensation_expenses::text ~ '^[$]?[\d,.\s]+$'
         THEN REPLACE(REPLACE(REPLACE(grand_total_compensation_expenses::text, '$', ''), ',', ''), ' ', '')::numeric
         ELSE 0
       END AS amount
@@ -470,7 +470,7 @@ RETURNS TABLE (
     SELECT
       COALESCE(contractual_client, 'Unknown Client') AS name,
       CASE
-        WHEN compensation_and_expenses ~ '^[$]?[\d,.\s]+$'
+        WHEN compensation_and_expenses::text ~ '^[$]?[\d,.\s]+$'
         THEN REPLACE(REPLACE(REPLACE(compensation_and_expenses::text, '$', ''), ',', ''), ' ', '')::numeric
         ELSE 0
       END AS amount
@@ -504,7 +504,7 @@ RETURNS TABLE (
     SELECT
       COALESCE(contractual_client, 'Unknown') AS client_name,
       CASE
-        WHEN compensation_and_expenses ~ '^[$]?[\d,.\s]+$'
+        WHEN compensation_and_expenses::text ~ '^[$]?[\d,.\s]+$'
         THEN REPLACE(REPLACE(REPLACE(compensation_and_expenses::text, '$', ''), ',', ''), ' ', '')::numeric
         ELSE 0
       END AS amount
@@ -538,14 +538,14 @@ RETURNS TABLE (
   SELECT
     COALESCE((
       SELECT SUM(
-        CASE WHEN grand_total_compensation_expenses ~ '^[$]?[\d,.\s]+$'
+        CASE WHEN grand_total_compensation_expenses::text ~ '^[$]?[\d,.\s]+$'
         THEN REPLACE(REPLACE(REPLACE(grand_total_compensation_expenses::text, '$', ''), ',', ''), ' ', '')::numeric
         ELSE 0 END
       ) FROM lobbyist_compensation WHERE year = 2025
     ), 0)::numeric AS lobbyist_grand_total,
     COALESCE((
       SELECT SUM(
-        CASE WHEN compensation_and_expenses ~ '^[$]?[\d,.\s]+$'
+        CASE WHEN compensation_and_expenses::text ~ '^[$]?[\d,.\s]+$'
         THEN REPLACE(REPLACE(REPLACE(compensation_and_expenses::text, '$', ''), ',', ''), ' ', '')::numeric
         ELSE 0 END
       ) FROM lobbying_spend
