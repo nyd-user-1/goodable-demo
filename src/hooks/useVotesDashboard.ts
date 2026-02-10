@@ -24,6 +24,17 @@ export interface VotesChartPoint {
   no: number;
 }
 
+export interface RollCallsChartPoint {
+  date: string;
+  rollCalls: number;
+}
+
+export interface PassFailChartPoint {
+  date: string;
+  passed: number;
+  failed: number;
+}
+
 export function useVotesDashboard() {
   // ── RPC: votes aggregated by member ─────────────────────────
   const { data: byMemberRaw, isLoading: memberLoading, error: memberError } = useQuery({
@@ -78,6 +89,37 @@ export function useVotesDashboard() {
     gcTime: 15 * 60 * 1000,
   });
 
+  // ── RPC: roll calls per day ─────────────────────────────────
+  const { data: rollCallsRaw } = useQuery({
+    queryKey: ['votes-rpc-rollcalls-per-day'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_votes_rollcalls_per_day');
+      if (error) throw error;
+      return (data as any[]).map((r: any): RollCallsChartPoint => ({
+        date: r.date,
+        rollCalls: Number(r.roll_calls),
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
+  // ── RPC: passed vs failed per day ─────────────────────────
+  const { data: passFailRaw } = useQuery({
+    queryKey: ['votes-rpc-pass-fail-per-day'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_votes_pass_fail_per_day');
+      if (error) throw error;
+      return (data as any[]).map((r: any): PassFailChartPoint => ({
+        date: r.date,
+        passed: Number(r.passed),
+        failed: Number(r.failed),
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
   const isLoading = memberLoading || chartLoading || totalsLoading;
   const error = memberError || chartError || totalsError;
 
@@ -117,6 +159,8 @@ export function useVotesDashboard() {
     error,
     byMember: byMemberRaw ?? [],
     chartData: chartDataRaw ?? [],
+    rollCallsPerDay: rollCallsRaw ?? [],
+    passFailPerDay: passFailRaw ?? [],
     getDrillDown,
     totalVotes: totalsRaw?.totalVotes ?? 0,
     totalMembers: totalsRaw?.totalMembers ?? 0,

@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronDown, LayoutGrid } from 'lucide-react';
+import { ChevronRight, ChevronLeft, ChevronDown, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
@@ -26,6 +26,8 @@ import {
   useVotesDashboard,
   type VotesDashboardRow,
   type VotesDrillDownRow,
+  type RollCallsChartPoint,
+  type PassFailChartPoint,
 } from '@/hooks/useVotesDashboard';
 import {
   XAxis,
@@ -44,6 +46,9 @@ const VotesDashboard = () => {
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   const [displayCount, setDisplayCount] = useState(20);
   const [timeRange, setTimeRange] = useState('90');
+  const [chartMode, setChartMode] = useState(0);
+
+  const CHART_LABELS = ['Votes by Day', 'Roll Calls', 'Passed vs. Failed'];
 
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
@@ -55,6 +60,8 @@ const VotesDashboard = () => {
     error,
     byMember,
     chartData,
+    rollCallsPerDay,
+    passFailPerDay,
     getDrillDown,
     totalVotes,
     totalMembers,
@@ -69,6 +76,31 @@ const VotesDashboard = () => {
     const cutoffStr = cutoff.toISOString().split('T')[0];
     return chartData.filter((p) => p.date >= cutoffStr);
   }, [chartData, timeRange]);
+
+  const filteredRollCallData = useMemo(() => {
+    if (!rollCallsPerDay || rollCallsPerDay.length === 0) return [];
+    const days = parseInt(timeRange);
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const cutoffStr = cutoff.toISOString().split('T')[0];
+    return rollCallsPerDay.filter((p) => p.date >= cutoffStr);
+  }, [rollCallsPerDay, timeRange]);
+
+  const filteredPassFailData = useMemo(() => {
+    if (!passFailPerDay || passFailPerDay.length === 0) return [];
+    const days = parseInt(timeRange);
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const cutoffStr = cutoff.toISOString().split('T')[0];
+    return passFailPerDay.filter((p) => p.date >= cutoffStr);
+  }, [passFailPerDay, timeRange]);
+
+  // Active chart data for show/hide logic
+  const activeChartHasData = chartMode === 0
+    ? filteredChartData.length > 1
+    : chartMode === 1
+      ? filteredRollCallData.length > 1
+      : filteredPassFailData.length > 1;
 
   // Toggle row expand
   const toggleRow = (peopleId: number) => {
@@ -142,7 +174,7 @@ const VotesDashboard = () => {
               </div>
 
               {/* Chart with time range filter */}
-              {!isLoading && filteredChartData.length > 1 && (
+              {!isLoading && activeChartHasData && (
                 <div className="mb-4">
                   <div className="flex items-center justify-end mb-2">
                     <Select value={timeRange} onValueChange={setTimeRange}>
@@ -157,77 +189,104 @@ const VotesDashboard = () => {
                     </Select>
                   </div>
                   <div className="h-24 md:h-28 -mx-2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={filteredChartData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
-                        <defs>
-                          <linearGradient id="votesYesGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(142 76% 36%)" stopOpacity={0.4} />
-                            <stop offset="95%" stopColor="hsl(142 76% 36%)" stopOpacity={0.05} />
-                          </linearGradient>
-                          <linearGradient id="votesNoGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(0 84% 60%)" stopOpacity={0.4} />
-                            <stop offset="95%" stopColor="hsl(0 84% 60%)" stopOpacity={0.05} />
-                          </linearGradient>
-                        </defs>
-                        <Area
-                          type="monotone"
-                          dataKey="yes"
-                          stroke="hsl(142 76% 36%)"
-                          strokeWidth={1.5}
-                          fill="url(#votesYesGradient)"
-                          dot={false}
-                          animationDuration={500}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="no"
-                          stroke="hsl(0 84% 60%)"
-                          strokeWidth={1.5}
-                          fill="url(#votesNoGradient)"
-                          dot={false}
-                          animationDuration={500}
-                        />
-                        <XAxis
-                          dataKey="date"
-                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                          tickLine={false}
-                          axisLine={false}
-                          interval="preserveStartEnd"
-                          tickFormatter={(value: string) => {
-                            const d = new Date(value + 'T00:00:00');
-                            return `${d.getMonth() + 1}/${d.getDate()}`;
-                          }}
-                        />
-                        <RechartsTooltip
-                          contentStyle={{
-                            backgroundColor: 'hsl(var(--background))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px',
-                            fontSize: '12px',
-                          }}
-                          labelFormatter={(label: string) => {
-                            const d = new Date(label + 'T00:00:00');
-                            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                          }}
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
+                    {/* Mode 0: Yes/No votes per day */}
+                    {chartMode === 0 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={filteredChartData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                          <defs>
+                            <linearGradient id="votesYesGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="hsl(142 76% 36%)" stopOpacity={0.4} />
+                              <stop offset="95%" stopColor="hsl(142 76% 36%)" stopOpacity={0.05} />
+                            </linearGradient>
+                            <linearGradient id="votesNoGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="hsl(0 84% 60%)" stopOpacity={0.4} />
+                              <stop offset="95%" stopColor="hsl(0 84% 60%)" stopOpacity={0.05} />
+                            </linearGradient>
+                          </defs>
+                          <Area type="monotone" dataKey="yes" stroke="hsl(142 76% 36%)" strokeWidth={1.5} fill="url(#votesYesGradient)" dot={false} animationDuration={500} />
+                          <Area type="monotone" dataKey="no" stroke="hsl(0 84% 60%)" strokeWidth={1.5} fill="url(#votesNoGradient)" dot={false} animationDuration={500} />
+                          <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} interval="preserveStartEnd" tickFormatter={(value: string) => { const d = new Date(value + 'T00:00:00'); return `${d.getMonth() + 1}/${d.getDate()}`; }} />
+                          <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} labelFormatter={(label: string) => { const d = new Date(label + 'T00:00:00'); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    )}
+
+                    {/* Mode 1: Roll calls per day */}
+                    {chartMode === 1 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={filteredRollCallData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                          <defs>
+                            <linearGradient id="rollCallGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="hsl(217 91% 60%)" stopOpacity={0.4} />
+                              <stop offset="95%" stopColor="hsl(217 91% 60%)" stopOpacity={0.05} />
+                            </linearGradient>
+                          </defs>
+                          <Area type="monotone" dataKey="rollCalls" stroke="hsl(217 91% 60%)" strokeWidth={1.5} fill="url(#rollCallGradient)" dot={false} animationDuration={500} />
+                          <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} interval="preserveStartEnd" tickFormatter={(value: string) => { const d = new Date(value + 'T00:00:00'); return `${d.getMonth() + 1}/${d.getDate()}`; }} />
+                          <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} labelFormatter={(label: string) => { const d = new Date(label + 'T00:00:00'); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }} formatter={(value: number) => [value, 'Roll Calls']} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    )}
+
+                    {/* Mode 2: Passed vs Failed per day */}
+                    {chartMode === 2 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={filteredPassFailData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                          <defs>
+                            <linearGradient id="passedGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="hsl(142 76% 36%)" stopOpacity={0.4} />
+                              <stop offset="95%" stopColor="hsl(142 76% 36%)" stopOpacity={0.05} />
+                            </linearGradient>
+                            <linearGradient id="failedGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="hsl(0 84% 60%)" stopOpacity={0.4} />
+                              <stop offset="95%" stopColor="hsl(0 84% 60%)" stopOpacity={0.05} />
+                            </linearGradient>
+                          </defs>
+                          <Area type="monotone" dataKey="passed" stroke="hsl(142 76% 36%)" strokeWidth={1.5} fill="url(#passedGradient)" dot={false} animationDuration={500} />
+                          <Area type="monotone" dataKey="failed" stroke="hsl(0 84% 60%)" strokeWidth={1.5} fill="url(#failedGradient)" dot={false} animationDuration={500} />
+                          <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} interval="preserveStartEnd" tickFormatter={(value: string) => { const d = new Date(value + 'T00:00:00'); return `${d.getMonth() + 1}/${d.getDate()}`; }} />
+                          <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} labelFormatter={(label: string) => { const d = new Date(label + 'T00:00:00'); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                   {/* Legend */}
                   <div className="flex items-center gap-4 mt-2 px-2">
-                    <div className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: 'hsl(142 76% 36%)' }} />
-                      <span className="text-xs text-muted-foreground">Yes</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: 'hsl(0 84% 60%)' }} />
-                      <span className="text-xs text-muted-foreground">No</span>
-                    </div>
+                    {chartMode === 0 && (
+                      <>
+                        <div className="flex items-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: 'hsl(142 76% 36%)' }} />
+                          <span className="text-xs text-muted-foreground">Yes</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: 'hsl(0 84% 60%)' }} />
+                          <span className="text-xs text-muted-foreground">No</span>
+                        </div>
+                      </>
+                    )}
+                    {chartMode === 1 && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: 'hsl(217 91% 60%)' }} />
+                        <span className="text-xs text-muted-foreground">Roll Calls</span>
+                      </div>
+                    )}
+                    {chartMode === 2 && (
+                      <>
+                        <div className="flex items-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: 'hsl(142 76% 36%)' }} />
+                          <span className="text-xs text-muted-foreground">Passed</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: 'hsl(0 84% 60%)' }} />
+                          <span className="text-xs text-muted-foreground">Failed</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
 
-              {/* Dashboards picker */}
+              {/* Dashboards picker + chart toggle */}
               <div className="flex items-center gap-3">
                 <Drawer>
                     <DrawerTrigger asChild>
@@ -269,6 +328,25 @@ const VotesDashboard = () => {
                       </div>
                     </DrawerContent>
                   </Drawer>
+
+                {/* Chart mode toggle */}
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setChartMode((prev) => (prev - 1 + 3) % 3)}
+                    className="p-1 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap min-w-[100px] text-center">
+                    {CHART_LABELS[chartMode]}
+                  </span>
+                  <button
+                    onClick={() => setChartMode((prev) => (prev + 1) % 3)}
+                    className="p-1 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>

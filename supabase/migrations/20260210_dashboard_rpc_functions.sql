@@ -553,3 +553,50 @@ RETURNS TABLE (
     (SELECT COUNT(DISTINCT principal_lobbyist) FROM lobbyist_compensation WHERE year = 2025)::bigint AS total_lobbyists,
     (SELECT COUNT(DISTINCT contractual_client) FROM lobbying_spend)::bigint AS total_clients;
 $$;
+
+
+-- ────────────────────────────────────────────────────────────
+-- 1e. VOTES: Roll calls per day
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION get_votes_rollcalls_per_day()
+RETURNS TABLE (
+  date text,
+  roll_calls bigint
+) LANGUAGE sql STABLE AS $$
+  SELECT
+    rc.date,
+    COUNT(*)::bigint AS roll_calls
+  FROM "Roll Call" rc
+  WHERE rc.date IS NOT NULL
+  GROUP BY rc.date
+  ORDER BY rc.date;
+$$;
+
+-- ────────────────────────────────────────────────────────────
+-- 1f. VOTES: Bills passed vs failed per day
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION get_votes_pass_fail_per_day()
+RETURNS TABLE (
+  date text,
+  passed bigint,
+  failed bigint
+) LANGUAGE sql STABLE AS $$
+  WITH roll_call_results AS (
+    SELECT
+      rc.date,
+      v.roll_call_id,
+      COUNT(*) FILTER (WHERE v.vote_desc LIKE 'Y%') AS yes_count,
+      COUNT(*) FILTER (WHERE v.vote_desc LIKE 'N%' AND v.vote_desc NOT LIKE 'NV%') AS no_count
+    FROM "Votes" v
+    JOIN "Roll Call" rc ON rc.roll_call_id = v.roll_call_id
+    WHERE rc.date IS NOT NULL
+    GROUP BY rc.date, v.roll_call_id
+  )
+  SELECT
+    date,
+    COUNT(*) FILTER (WHERE yes_count > no_count)::bigint AS passed,
+    COUNT(*) FILTER (WHERE no_count >= yes_count)::bigint AS failed
+  FROM roll_call_results
+  GROUP BY date
+  ORDER BY date;
+$$;
