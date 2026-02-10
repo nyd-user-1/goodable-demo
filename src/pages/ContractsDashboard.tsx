@@ -262,28 +262,28 @@ const ContractsDashboard = () => {
                         <DrawerTitle>Dashboards</DrawerTitle>
                         <DrawerDescription>Explore NYS data dashboards</DrawerDescription>
                       </DrawerHeader>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 px-4 pb-8">
+                      <div className="flex gap-4 overflow-x-auto px-4 pb-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                         <DrawerClose asChild>
-                          <button onClick={() => navigate('/budget-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200">
+                          <button onClick={() => navigate('/budget-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
                             <img src="/dashboard-budget.avif" alt="Budget Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
                             <span className="text-sm font-medium">Budget</span>
                           </button>
                         </DrawerClose>
                         <DrawerClose asChild>
-                          <button onClick={() => navigate('/lobbying-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200">
+                          <button onClick={() => navigate('/lobbying-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
                             <img src="/dashboard-lobbying-line.avif" alt="Lobbying Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
                             <span className="text-sm font-medium">Lobbying</span>
                           </button>
                         </DrawerClose>
                         <DrawerClose asChild>
-                          <button onClick={() => navigate('/contracts-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200">
+                          <button onClick={() => navigate('/contracts-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
                             <img src="/dashboard-contracts.avif" alt="Contracts Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
                             <span className="text-sm font-medium">Contracts</span>
                           </button>
                         </DrawerClose>
                         <DrawerClose asChild>
-                          <button onClick={() => navigate('/votes-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200">
-                            <div className="w-full aspect-[4/3] rounded-lg bg-gradient-to-br from-violet-500/20 to-purple-500/20" />
+                          <button onClick={() => navigate('/votes-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
+                            <img src="/dashboard-votes.png" alt="Votes Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
                             <span className="text-sm font-medium">Votes</span>
                           </button>
                         </DrawerClose>
