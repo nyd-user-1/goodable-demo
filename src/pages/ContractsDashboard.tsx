@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronDown, ArrowUp, X, LayoutGrid } from 'lucide-react';
+import { ChevronRight, ChevronDown, ArrowUp, X, LayoutGrid, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
@@ -24,6 +24,13 @@ import {
   type ContractsDrillDownRow,
   TAB_LABELS,
 } from '@/hooks/useContractsDashboard';
+import {
+  XAxis,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  Area,
+  AreaChart,
+} from 'recharts';
 
 const TABS: ContractsDashboardTab[] = ['department', 'type'];
 
@@ -36,6 +43,7 @@ const ContractsDashboard = () => {
   const [activeTab, setActiveTab] = useState<ContractsDashboardTab>('department');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [selectedRow, setSelectedRow] = useState<string | null>(null);
+  const [displayCount, setDisplayCount] = useState(50);
 
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
@@ -50,6 +58,8 @@ const ContractsDashboard = () => {
     grandTotal,
     totalContracts,
     getDrillDown,
+    historicalTotals,
+    getHistoricalForGroup,
   } = useContractsDashboard();
 
   // Get rows for the active tab
@@ -79,10 +89,11 @@ const ContractsDashboard = () => {
     setSelectedRow((prev) => (prev === name ? null : name));
   };
 
-  // Reset expanded rows when tab changes
+  // Reset expanded rows and display count when tab changes
   useEffect(() => {
     setExpandedRows(new Set());
     setSelectedRow(null);
+    setDisplayCount(50);
   }, [activeTab]);
 
   // Selected row data for header display
@@ -90,6 +101,14 @@ const ContractsDashboard = () => {
     if (!selectedRow) return null;
     return rows.find((r) => r.name === selectedRow) || null;
   }, [selectedRow, rows]);
+
+  // Chart data: either filtered for selected row or grand totals
+  const chartData = useMemo(() => {
+    if (selectedRow) {
+      return getHistoricalForGroup(activeTab, selectedRow);
+    }
+    return historicalTotals;
+  }, [selectedRow, activeTab, getHistoricalForGroup, historicalTotals]);
 
   // Header values
   const headerAmount = selectedRowData ? selectedRowData.amount : grandTotal;
@@ -169,6 +188,49 @@ const ContractsDashboard = () => {
 
                 <MobileNYSgpt />
               </div>
+
+              {/* Mini Historical Chart */}
+              {!isLoading && chartData.length > 1 && (
+                <div className="h-24 md:h-28 mb-4 -mx-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                      <defs>
+                        <linearGradient id="contractsGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="hsl(217 91% 60%)" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="hsl(217 91% 60%)" stopOpacity={0.05} />
+                        </linearGradient>
+                      </defs>
+                      <Area
+                        type="monotone"
+                        dataKey="total"
+                        stroke="hsl(217 91% 60%)"
+                        strokeWidth={1.5}
+                        fill="url(#contractsGradient)"
+                        dot={false}
+                        animationDuration={500}
+                      />
+                      <XAxis
+                        dataKey="year"
+                        tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                        tickLine={false}
+                        axisLine={false}
+                        interval="preserveStartEnd"
+                        tickFormatter={(value) => `'${value.slice(-2)}`}
+                      />
+                      <RechartsTooltip
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--background))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                        }}
+                        formatter={(value: number) => [formatFullCurrency(value), selectedRow || 'Cumulative']}
+                        labelFormatter={(label) => `Contracts starting ${label}`}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
 
               {/* Title + Tabs + Dashboards button */}
               <div className="flex items-center gap-3">
@@ -256,7 +318,7 @@ const ContractsDashboard = () => {
                     <span className="text-right">Share</span>
                   </div>
 
-                  {(isAuthenticated ? rows : rows.slice(0, 6)).map((row) => (
+                  {(isAuthenticated ? rows.slice(0, displayCount) : rows.slice(0, 6)).map((row) => (
                     <ContractRowItem
                       key={row.name}
                       row={row}
@@ -286,6 +348,16 @@ const ContractsDashboard = () => {
                       className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">
                       Sign Up
                     </Button>
+                  </div>
+                )}
+                {isAuthenticated && displayCount < rows.length && (
+                  <div className="flex justify-center py-6">
+                    <button
+                      onClick={() => setDisplayCount((prev) => prev + 50)}
+                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                    >
+                      Load More ({Math.min(displayCount, rows.length)} of {rows.length})
+                    </button>
                   </div>
                 )}
               </>

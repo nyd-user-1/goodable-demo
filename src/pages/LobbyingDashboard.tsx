@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronDown, ArrowUp, MessageSquare, X, LayoutGrid } from 'lucide-react';
+import { ChevronRight, ChevronDown, ArrowUp, MessageSquare, X, LayoutGrid, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
@@ -49,6 +49,7 @@ const LobbyingDashboard = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatLobbyistName, setChatLobbyistName] = useState<string | null>(null);
   const [chatClientName, setChatClientName] = useState<string | null>(null);
+  const [displayCount, setDisplayCount] = useState(50);
 
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
@@ -84,10 +85,11 @@ const LobbyingDashboard = () => {
     setSelectedRow((prev) => (prev === name ? null : name));
   };
 
-  // Reset expanded rows when tab changes
+  // Reset expanded rows and display count when tab changes
   useEffect(() => {
     setExpandedRows(new Set());
     setSelectedRow(null);
+    setDisplayCount(50);
   }, [activeTab]);
 
   // Selected row data for header display
@@ -420,7 +422,7 @@ const LobbyingDashboard = () => {
                     <span className="text-right">Share</span>
                   </div>
 
-                  {(isAuthenticated ? rows : rows.slice(0, 10)).map((row) => (
+                  {(isAuthenticated ? rows.slice(0, displayCount) : rows.slice(0, 10)).map((row) => (
                     <DashboardRowItem
                       key={row.name}
                       row={row}
@@ -453,6 +455,16 @@ const LobbyingDashboard = () => {
                       className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">
                       Sign Up
                     </Button>
+                  </div>
+                )}
+                {isAuthenticated && displayCount < rows.length && (
+                  <div className="flex justify-center py-6">
+                    <button
+                      onClick={() => setDisplayCount((prev) => prev + 50)}
+                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                    >
+                      Load More ({Math.min(displayCount, rows.length)} of {rows.length})
+                    </button>
                   </div>
                 )}
               </>

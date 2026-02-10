@@ -64,7 +64,7 @@ export function useContractsDashboard() {
       while (hasMore) {
         const { data, error } = await supabase
           .from('Contracts')
-          .select('vendor_name, department_facility, contract_number, current_contract_amount, contract_type')
+          .select('vendor_name, department_facility, contract_number, current_contract_amount, contract_type, contract_start_date')
           .range(offset, offset + batchSize - 1);
 
         if (error) throw error;
@@ -163,6 +163,49 @@ export function useContractsDashboard() {
   // Total contract count
   const totalContracts = rawData?.length ?? 0;
 
+  // Historical totals by year (from contract_start_date)
+  const historicalTotals = useMemo(() => {
+    if (!rawData || rawData.length === 0) return [];
+
+    const byYear = new Map<number, number>();
+    rawData.forEach((row) => {
+      if (!row.contract_start_date) return;
+      const year = new Date(row.contract_start_date).getFullYear();
+      if (isNaN(year) || year < 1990 || year > 2030) return;
+      byYear.set(year, (byYear.get(year) || 0) + (row.current_contract_amount ?? 0));
+    });
+
+    const years = Array.from(byYear.keys()).sort((a, b) => a - b);
+    let cumulative = 0;
+    return years.map((year) => {
+      cumulative += byYear.get(year)!;
+      return { year: String(year), total: cumulative, annual: byYear.get(year)! };
+    });
+  }, [rawData]);
+
+  // Historical for a specific group (department or type)
+  const getHistoricalForGroup = (tab: ContractsDashboardTab, groupValue: string) => {
+    if (!rawData) return [];
+
+    const column = tab === 'department' ? 'department_facility' : 'contract_type';
+    const filtered = rawData.filter((row) => (row[column] || 'Unknown') === groupValue);
+
+    const byYear = new Map<number, number>();
+    filtered.forEach((row) => {
+      if (!row.contract_start_date) return;
+      const year = new Date(row.contract_start_date).getFullYear();
+      if (isNaN(year) || year < 1990 || year > 2030) return;
+      byYear.set(year, (byYear.get(year) || 0) + (row.current_contract_amount ?? 0));
+    });
+
+    const years = Array.from(byYear.keys()).sort((a, b) => a - b);
+    let cumulative = 0;
+    return years.map((year) => {
+      cumulative += byYear.get(year)!;
+      return { year: String(year), total: cumulative, annual: byYear.get(year)! };
+    });
+  };
+
   // Drill-down: get individual contracts for a given group value
   const getDrillDown = (tab: ContractsDashboardTab, groupValue: string): ContractsDrillDownRow[] => {
     if (!rawData) return [];
@@ -198,5 +241,7 @@ export function useContractsDashboard() {
     grandTotal,
     totalContracts,
     getDrillDown,
+    historicalTotals,
+    getHistoricalForGroup,
   };
 }
