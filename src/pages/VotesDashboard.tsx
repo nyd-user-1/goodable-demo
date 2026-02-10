@@ -390,8 +390,9 @@ const VotesDashboard = () => {
               ) : (
                 <>
                   <div className="divide-y">
-                    <div className="hidden md:grid grid-cols-[1fr_80px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                    <div className="hidden md:grid grid-cols-[1fr_90px_60px_60px_70px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
                       <span>Bill</span>
+                      <span className="text-right">Date</span>
                       <span className="text-right">Yes</span>
                       <span className="text-right">No</span>
                       <span className="text-right">Result</span>
@@ -633,7 +634,7 @@ function BillPassFailRowItem({ row, isExpanded, onToggle, getBillMemberVotes }: 
       {/* Main row */}
       <div
         onClick={onToggle}
-        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_80px_80px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer hover:bg-muted/30 transition-all duration-200 items-center"
+        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_90px_60px_60px_70px] gap-4 px-4 md:px-6 py-4 cursor-pointer hover:bg-muted/30 transition-all duration-200 items-center"
       >
         {/* Bill info with expand chevron */}
         <div className="flex items-center gap-2 min-w-0">
@@ -644,7 +645,7 @@ function BillPassFailRowItem({ row, isExpanded, onToggle, getBillMemberVotes }: 
               <ChevronRight className="h-4 w-4" />
             )}
           </span>
-          <span className="font-medium truncate">{row.billTitle || 'No title'}</span>
+          <span className="font-medium truncate" title={row.billTitle || 'No title'}>{row.billTitle || 'No title'}</span>
           {row.billNumber && (
             <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
               {row.billNumber}
@@ -661,6 +662,9 @@ function BillPassFailRowItem({ row, isExpanded, onToggle, getBillMemberVotes }: 
         </div>
 
         {/* Desktop columns */}
+        <span className="hidden md:block text-right text-sm text-muted-foreground whitespace-nowrap">
+          {row.date ? new Date(row.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
+        </span>
         <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">
           {row.yesCount.toLocaleString()}
         </span>
