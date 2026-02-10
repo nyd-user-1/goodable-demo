@@ -227,11 +227,9 @@ const VotesDashboard = () => {
                 </div>
               )}
 
-              {/* Title row + Dashboards button */}
+              {/* Dashboards picker */}
               <div className="flex items-center gap-3">
-                <h2 className="text-lg font-semibold mr-1">Votes Dashboard</h2>
-                <div className="ml-auto">
-                  <Drawer>
+                <Drawer>
                     <DrawerTrigger asChild>
                       <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
                         <LayoutGrid className="h-4 w-4" />
@@ -271,7 +269,6 @@ const VotesDashboard = () => {
                       </div>
                     </DrawerContent>
                   </Drawer>
-                </div>
               </div>
             </div>
           </div>

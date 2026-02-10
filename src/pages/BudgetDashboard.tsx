@@ -265,25 +265,9 @@ const BudgetDashboard = () => {
                 </div>
               )}
 
-              {/* Title + Tabs + Dashboards button */}
+              {/* Dashboards picker + Tabs */}
               <div className="flex items-center gap-3">
-                <h2 className="text-lg font-semibold mr-1">Budget Dashboard</h2>
-                {TABS.map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={cn(
-                      'px-3 py-2 rounded-lg text-sm transition-colors',
-                      activeTab === tab
-                        ? 'bg-muted text-foreground font-medium'
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                    )}
-                  >
-                    {TAB_LABELS[tab]}
-                  </button>
-                ))}
-                <div className="ml-auto">
-                  <Drawer>
+                <Drawer>
                     <DrawerTrigger asChild>
                       <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
                         <LayoutGrid className="h-4 w-4" />
@@ -323,7 +307,20 @@ const BudgetDashboard = () => {
                       </div>
                     </DrawerContent>
                   </Drawer>
-                </div>
+                {TABS.map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={cn(
+                      'px-3 py-2 rounded-lg text-sm transition-colors',
+                      activeTab === tab
+                        ? 'bg-muted text-foreground font-medium'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    )}
+                  >
+                    {TAB_LABELS[tab]}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
