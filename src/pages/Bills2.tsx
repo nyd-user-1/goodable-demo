@@ -77,6 +77,36 @@ const Bills2 = () => {
     enabled: bills.length > 0,
   });
 
+  // Seed chat counts for demo — runs once per session when bills first load
+  const seededRef = useRef(false);
+  useEffect(() => {
+    if (seededRef.current || bills.length === 0 || !chatCounts) return;
+    // Only seed if most bills have no counts yet
+    const existingCount = Object.keys(chatCounts).length;
+    if (existingCount > bills.length * 0.5) {
+      seededRef.current = true;
+      return;
+    }
+    seededRef.current = true;
+
+    // Seed varied counts: higher for first bills (more recent), tapering down
+    const unseeded = bills.filter(b => !chatCounts[`bill-${b.bill_id}`]);
+    unseeded.forEach((bill, i) => {
+      // Range from ~45 down to ~3, with some randomness
+      const base = Math.max(3, Math.round(48 - (i / unseeded.length) * 45));
+      const jitter = Math.floor(Math.random() * 7) - 3; // -3 to +3
+      const seedCount = Math.max(1, base + jitter);
+      supabase.rpc('increment_prompt_chat_count', {
+        p_prompt_id: `bill-${bill.bill_id}`,
+        p_seed_count: seedCount,
+      });
+    });
+    // Refresh counts after seeding
+    setTimeout(() => {
+      queryClient.invalidateQueries({ queryKey: ['bill-chat-counts'] });
+    }, 2000);
+  }, [bills, chatCounts, queryClient]);
+
   // Keyboard shortcut to focus search
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
