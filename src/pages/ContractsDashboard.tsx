@@ -43,7 +43,7 @@ const ContractsDashboard = () => {
   const [activeTab, setActiveTab] = useState<ContractsDashboardTab>('department');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [selectedRow, setSelectedRow] = useState<string | null>(null);
-  const [displayCount, setDisplayCount] = useState(50);
+  const [displayCount, setDisplayCount] = useState(25);
 
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
@@ -93,7 +93,7 @@ const ContractsDashboard = () => {
   useEffect(() => {
     setExpandedRows(new Set());
     setSelectedRow(null);
-    setDisplayCount(50);
+    setDisplayCount(25);
   }, [activeTab]);
 
   // Selected row data for header display
@@ -477,15 +477,15 @@ function ContractRowItem({
       {/* Drill-down rows */}
       {isExpanded && drillDownRows.length > 0 && (
         <div className="bg-muted/10 border-t border-b">
-          {drillDownRows.slice(0, 20).map((contract, idx) => (
+          {drillDownRows.slice(0, 10).map((contract, idx) => (
             <ContractDrillRow
               key={`${contract.contractNumber}-${idx}`}
               contract={contract}
             />
           ))}
-          {drillDownRows.length > 20 && (
+          {drillDownRows.length > 10 && (
             <div className="px-6 py-2 text-xs text-muted-foreground text-center">
-              + {drillDownRows.length - 20} more contracts
+              + {drillDownRows.length - 10} more contracts
             </div>
           )}
         </div>
