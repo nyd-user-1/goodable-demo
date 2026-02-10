@@ -42,7 +42,7 @@ const VotesDashboard = () => {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [sidebarMounted, setSidebarMounted] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
-  const [displayCount, setDisplayCount] = useState(25);
+  const [displayCount, setDisplayCount] = useState(20);
   const [timeRange, setTimeRange] = useState('90');
 
   useEffect(() => {
@@ -328,7 +328,7 @@ const VotesDashboard = () => {
                 {isAuthenticated && displayCount < byMember.length && (
                   <div className="flex justify-center py-6">
                     <button
-                      onClick={() => setDisplayCount((prev) => prev + 25)}
+                      onClick={() => setDisplayCount((prev) => prev + 20)}
                       className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
                     >
                       Load More ({Math.min(displayCount, byMember.length)} of {byMember.length})

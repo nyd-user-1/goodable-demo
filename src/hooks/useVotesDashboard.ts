@@ -58,7 +58,7 @@ function normalizeVote(vote_desc: string | null): string {
   return 'Other';
 }
 
-async function batchFetch<T>(table: string, select: string): Promise<T[]> {
+async function batchFetch<T>(table: string, select: string, maxRows?: number): Promise<T[]> {
   let allRows: T[] = [];
   let offset = 0;
   const batchSize = 1000;
@@ -77,6 +77,9 @@ async function batchFetch<T>(table: string, select: string): Promise<T[]> {
       allRows = allRows.concat(data as T[]);
       if (data.length < batchSize) {
         hasMore = false;
+      } else if (maxRows && allRows.length >= maxRows) {
+        allRows = allRows.slice(0, maxRows);
+        hasMore = false;
       } else {
         offset += batchSize;
       }
@@ -89,7 +92,7 @@ async function batchFetch<T>(table: string, select: string): Promise<T[]> {
 export function useVotesDashboard() {
   const { data: votesData, isLoading: votesLoading, error: votesError } = useQuery({
     queryKey: ['votes-dashboard-votes'],
-    queryFn: () => batchFetch<VoteRow>('Votes', 'people_id, roll_call_id, vote_desc'),
+    queryFn: () => batchFetch<VoteRow>('Votes', 'people_id, roll_call_id, vote_desc', 10000),
     staleTime: 10 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
   });
