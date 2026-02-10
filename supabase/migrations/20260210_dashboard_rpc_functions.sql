@@ -606,7 +606,7 @@ $$;
 -- ────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION get_votes_bills_pass_fail()
 RETURNS TABLE (
-  roll_call_id int,
+  roll_call_id bigint,
   bill_number text,
   bill_title text,
   date text,
@@ -615,7 +615,7 @@ RETURNS TABLE (
   result text
 ) LANGUAGE sql STABLE AS $$
   SELECT
-    rc.roll_call_id,
+    rc.roll_call_id::bigint,
     b.bill_number,
     b.title AS bill_title,
     rc.date,
@@ -637,7 +637,7 @@ $$;
 -- ────────────────────────────────────────────────────────────
 -- 1h. VOTES: Member votes for a specific roll call (drill-down)
 -- ────────────────────────────────────────────────────────────
-CREATE OR REPLACE FUNCTION get_votes_bill_member_votes(p_roll_call_id int)
+CREATE OR REPLACE FUNCTION get_votes_bill_member_votes(p_roll_call_id bigint)
 RETURNS TABLE (
   name text,
   vote text
