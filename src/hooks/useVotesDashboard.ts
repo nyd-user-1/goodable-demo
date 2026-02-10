@@ -35,6 +35,21 @@ export interface PassFailChartPoint {
   failed: number;
 }
 
+export interface BillPassFailRow {
+  rollCallId: number;
+  billNumber: string | null;
+  billTitle: string | null;
+  date: string;
+  yesCount: number;
+  noCount: number;
+  result: string; // "Passed" | "Failed"
+}
+
+export interface BillMemberVoteRow {
+  name: string;
+  vote: string; // "Yes" | "No" | "Other"
+}
+
 export function useVotesDashboard() {
   // ── RPC: votes aggregated by member ─────────────────────────
   const { data: byMemberRaw, isLoading: memberLoading, error: memberError } = useQuery({
@@ -120,6 +135,26 @@ export function useVotesDashboard() {
     gcTime: 15 * 60 * 1000,
   });
 
+  // ── RPC: bills with pass/fail results ─────────────────────
+  const { data: billsPassFailRaw } = useQuery({
+    queryKey: ['votes-rpc-bills-pass-fail'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_votes_bills_pass_fail');
+      if (error) throw error;
+      return (data as any[]).map((r: any): BillPassFailRow => ({
+        rollCallId: Number(r.roll_call_id),
+        billNumber: r.bill_number,
+        billTitle: r.bill_title,
+        date: r.date || '',
+        yesCount: Number(r.yes_count),
+        noCount: Number(r.no_count),
+        result: r.result,
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
   const isLoading = memberLoading || chartLoading || totalsLoading;
   const error = memberError || chartError || totalsError;
 
@@ -154,6 +189,35 @@ export function useVotesDashboard() {
     return [];
   };
 
+  // ── Bill member votes drill-down: lazy RPC with cache ────
+  const [billDrillCache, setBillDrillCache] = useState<Record<string, BillMemberVoteRow[]>>({});
+  const billFetchingRef = useRef<Set<string>>(new Set());
+
+  const getBillMemberVotes = (rollCallId: number): BillMemberVoteRow[] => {
+    const key = String(rollCallId);
+    if (billDrillCache[key]) return billDrillCache[key];
+
+    if (!billFetchingRef.current.has(key)) {
+      billFetchingRef.current.add(key);
+      (supabase as any)
+        .rpc('get_votes_bill_member_votes', { p_roll_call_id: rollCallId })
+        .then(({ data }: any) => {
+          if (data) {
+            setBillDrillCache((prev) => ({
+              ...prev,
+              [key]: (data as any[]).map((d: any) => ({
+                name: d.name,
+                vote: d.vote,
+              })),
+            }));
+          }
+          billFetchingRef.current.delete(key);
+        });
+    }
+
+    return [];
+  };
+
   return {
     isLoading,
     error,
@@ -161,7 +225,9 @@ export function useVotesDashboard() {
     chartData: chartDataRaw ?? [],
     rollCallsPerDay: rollCallsRaw ?? [],
     passFailPerDay: passFailRaw ?? [],
+    billsPassFail: billsPassFailRaw ?? [],
     getDrillDown,
+    getBillMemberVotes,
     totalVotes: totalsRaw?.totalVotes ?? 0,
     totalMembers: totalsRaw?.totalMembers ?? 0,
   };

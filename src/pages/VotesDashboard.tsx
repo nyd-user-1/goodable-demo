@@ -26,6 +26,8 @@ import {
   useVotesDashboard,
   type VotesDashboardRow,
   type VotesDrillDownRow,
+  type BillPassFailRow,
+  type BillMemberVoteRow,
   type RollCallsChartPoint,
   type PassFailChartPoint,
 } from '@/hooks/useVotesDashboard';
@@ -44,7 +46,9 @@ const VotesDashboard = () => {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [sidebarMounted, setSidebarMounted] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  const [expandedBillRows, setExpandedBillRows] = useState<Set<number>>(new Set());
   const [displayCount, setDisplayCount] = useState(20);
+  const [billDisplayCount, setBillDisplayCount] = useState(20);
   const [timeRange, setTimeRange] = useState('90');
   const [chartMode, setChartMode] = useState(0);
 
@@ -62,7 +66,9 @@ const VotesDashboard = () => {
     chartData,
     rollCallsPerDay,
     passFailPerDay,
+    billsPassFail,
     getDrillDown,
+    getBillMemberVotes,
     totalVotes,
     totalMembers,
   } = useVotesDashboard();
@@ -110,6 +116,18 @@ const VotesDashboard = () => {
         next.delete(peopleId);
       } else {
         next.add(peopleId);
+      }
+      return next;
+    });
+  };
+
+  const toggleBillRow = (rollCallId: number) => {
+    setExpandedBillRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(rollCallId)) {
+        next.delete(rollCallId);
+      } else {
+        next.add(rollCallId);
       }
       return next;
     });
@@ -363,11 +381,61 @@ const VotesDashboard = () => {
                   <div key={i} className="h-14 bg-muted/30 rounded-lg animate-pulse" />
                 ))}
               </div>
+            ) : chartMode === 2 ? (
+              /* ── Bills Pass/Fail Table ─────────────────────── */
+              billsPassFail.length === 0 ? (
+                <div className="text-center py-12 px-4">
+                  <p className="text-muted-foreground">No bill vote records found.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="divide-y">
+                    <div className="hidden md:grid grid-cols-[1fr_80px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                      <span>Bill</span>
+                      <span className="text-right">Yes</span>
+                      <span className="text-right">No</span>
+                      <span className="text-right">Result</span>
+                    </div>
+
+                    {(isAuthenticated ? billsPassFail.slice(0, billDisplayCount) : billsPassFail.slice(0, 6)).map((row) => (
+                      <BillPassFailRowItem
+                        key={row.rollCallId}
+                        row={row}
+                        isExpanded={expandedBillRows.has(row.rollCallId)}
+                        onToggle={() => toggleBillRow(row.rollCallId)}
+                        getBillMemberVotes={getBillMemberVotes}
+                      />
+                    ))}
+                  </div>
+                  {!isAuthenticated && (
+                    <div className="text-center py-12">
+                      <p className="text-muted-foreground">
+                        Please log in to view all bill records.
+                      </p>
+                      <Button variant="ghost" onClick={() => navigate('/auth-4')}
+                        className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">
+                        Sign Up
+                      </Button>
+                    </div>
+                  )}
+                  {isAuthenticated && billDisplayCount < billsPassFail.length && (
+                    <div className="flex justify-center py-6">
+                      <button
+                        onClick={() => setBillDisplayCount((prev) => prev + 20)}
+                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                      >
+                        Load More ({Math.min(billDisplayCount, billsPassFail.length)} of {billsPassFail.length})
+                      </button>
+                    </div>
+                  )}
+                </>
+              )
             ) : byMember.length === 0 ? (
               <div className="text-center py-12 px-4">
                 <p className="text-muted-foreground">No vote records found.</p>
               </div>
             ) : (
+              /* ── Members Table (mode 0 & 1) ────────────────── */
               <>
                 <div className="divide-y">
                   {/* Column headers */}
@@ -542,6 +610,125 @@ function VoteDrillRow({ vote }: VoteDrillRowProps) {
         </div>
         <span className="text-xs text-muted-foreground">
           {vote.date ? new Date(vote.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+        </span>
+      </div>
+    </>
+  );
+}
+
+// ── Bill Pass/Fail Row Component ──────────────────────────────
+
+interface BillPassFailRowItemProps {
+  row: BillPassFailRow;
+  isExpanded: boolean;
+  onToggle: () => void;
+  getBillMemberVotes: (rollCallId: number) => BillMemberVoteRow[];
+}
+
+function BillPassFailRowItem({ row, isExpanded, onToggle, getBillMemberVotes }: BillPassFailRowItemProps) {
+  const memberVotes = isExpanded ? getBillMemberVotes(row.rollCallId) : [];
+
+  return (
+    <div>
+      {/* Main row */}
+      <div
+        onClick={onToggle}
+        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_80px_80px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer hover:bg-muted/30 transition-all duration-200 items-center"
+      >
+        {/* Bill info with expand chevron */}
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="flex-shrink-0 text-muted-foreground">
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </span>
+          <span className="font-medium truncate">{row.billTitle || 'No title'}</span>
+          {row.billNumber && (
+            <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
+              {row.billNumber}
+            </span>
+          )}
+          {/* Mobile: show result inline */}
+          <span className={cn(
+            "md:hidden text-sm font-medium ml-auto pl-2 whitespace-nowrap",
+            row.result === 'Passed' && "text-green-600",
+            row.result === 'Failed' && "text-red-500"
+          )}>
+            {row.result}
+          </span>
+        </div>
+
+        {/* Desktop columns */}
+        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">
+          {row.yesCount.toLocaleString()}
+        </span>
+        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">
+          {row.noCount.toLocaleString()}
+        </span>
+        <span className={cn(
+          "hidden md:block text-right text-sm font-medium",
+          row.result === 'Passed' && "text-green-600",
+          row.result === 'Failed' && "text-red-500"
+        )}>
+          {row.result}
+        </span>
+      </div>
+
+      {/* Mobile supplementary info */}
+      <div className="md:hidden px-4 pb-3 -mt-2 flex items-center gap-3 text-xs text-muted-foreground pl-10">
+        <span>{row.yesCount} yes</span>
+        <span>{row.noCount} no</span>
+        {row.date && (
+          <span>{new Date(row.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+        )}
+      </div>
+
+      {/* Drill-down: member votes */}
+      {isExpanded && memberVotes.length > 0 && (
+        <div className="bg-muted/10 border-t border-b">
+          {memberVotes.map((mv, idx) => (
+            <BillMemberVoteDrillRow key={`${mv.name}-${idx}`} memberVote={mv} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Bill Member Vote Drill-Down Row ──────────────────────────
+
+interface BillMemberVoteDrillRowProps {
+  memberVote: BillMemberVoteRow;
+}
+
+function BillMemberVoteDrillRow({ memberVote }: BillMemberVoteDrillRowProps) {
+  return (
+    <>
+      {/* Desktop */}
+      <div className="hidden md:grid grid-cols-[1fr_80px] gap-4 px-6 py-3 pl-14 hover:bg-muted/20 transition-colors items-center">
+        <span className="text-sm truncate">{memberVote.name}</span>
+        <span className={cn(
+          "text-right text-sm font-medium",
+          memberVote.vote === 'Yes' && "text-green-600",
+          memberVote.vote === 'No' && "text-red-500",
+          memberVote.vote === 'Other' && "text-muted-foreground"
+        )}>
+          {memberVote.vote}
+        </span>
+      </div>
+
+      {/* Mobile */}
+      <div className="md:hidden px-4 py-3 pl-10 flex items-center justify-between">
+        <span className="text-sm truncate">{memberVote.name}</span>
+        <span className={cn(
+          "text-sm font-medium ml-2 whitespace-nowrap",
+          memberVote.vote === 'Yes' && "text-green-600",
+          memberVote.vote === 'No' && "text-red-500",
+          memberVote.vote === 'Other' && "text-muted-foreground"
+        )}>
+          {memberVote.vote}
         </span>
       </div>
     </>

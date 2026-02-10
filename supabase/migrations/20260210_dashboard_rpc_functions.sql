@@ -600,3 +600,57 @@ RETURNS TABLE (
   GROUP BY date
   ORDER BY date;
 $$;
+
+-- ────────────────────────────────────────────────────────────
+-- 1g. VOTES: Bills with pass/fail results (for table mode)
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION get_votes_bills_pass_fail()
+RETURNS TABLE (
+  roll_call_id int,
+  bill_number text,
+  bill_title text,
+  date text,
+  yes_count bigint,
+  no_count bigint,
+  result text
+) LANGUAGE sql STABLE AS $$
+  SELECT
+    rc.roll_call_id,
+    b.bill_number,
+    b.title AS bill_title,
+    rc.date,
+    COUNT(*) FILTER (WHERE v.vote_desc LIKE 'Y%')::bigint AS yes_count,
+    COUNT(*) FILTER (WHERE v.vote_desc LIKE 'N%' AND v.vote_desc NOT LIKE 'NV%')::bigint AS no_count,
+    CASE
+      WHEN COUNT(*) FILTER (WHERE v.vote_desc LIKE 'Y%') > COUNT(*) FILTER (WHERE v.vote_desc LIKE 'N%' AND v.vote_desc NOT LIKE 'NV%')
+      THEN 'Passed'
+      ELSE 'Failed'
+    END AS result
+  FROM "Votes" v
+  JOIN "Roll Call" rc ON rc.roll_call_id = v.roll_call_id
+  LEFT JOIN "Bills" b ON b.bill_id = rc.bill_id
+  WHERE rc.date IS NOT NULL
+  GROUP BY rc.roll_call_id, b.bill_number, b.title, rc.date
+  ORDER BY rc.date DESC;
+$$;
+
+-- ────────────────────────────────────────────────────────────
+-- 1h. VOTES: Member votes for a specific roll call (drill-down)
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION get_votes_bill_member_votes(p_roll_call_id int)
+RETURNS TABLE (
+  name text,
+  vote text
+) LANGUAGE sql STABLE AS $$
+  SELECT
+    COALESCE(p.name, 'Unknown') AS name,
+    CASE
+      WHEN v.vote_desc LIKE 'Y%' THEN 'Yes'
+      WHEN v.vote_desc LIKE 'N%' AND v.vote_desc NOT LIKE 'NV%' THEN 'No'
+      ELSE 'Other'
+    END AS vote
+  FROM "Votes" v
+  LEFT JOIN "People" p ON p.people_id = v.people_id
+  WHERE v.roll_call_id = p_roll_call_id
+  ORDER BY p.name;
+$$;
