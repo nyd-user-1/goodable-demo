@@ -191,21 +191,9 @@ const VotesDashboard = () => {
                 <MobileNYSgpt />
               </div>
 
-              {/* Chart with time range filter */}
+              {/* Chart */}
               {!isLoading && activeChartHasData && (
                 <div className="mb-4">
-                  <div className="flex items-center justify-end mb-2">
-                    <Select value={timeRange} onValueChange={setTimeRange}>
-                      <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="90" className="focus:bg-muted focus:text-foreground">90 days</SelectItem>
-                        <SelectItem value="30" className="focus:bg-muted focus:text-foreground">30 days</SelectItem>
-                        <SelectItem value="7" className="focus:bg-muted focus:text-foreground">7 days</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                   <div className="h-24 md:h-28 -mx-2">
                     {/* Mode 0: Yes/No votes per day */}
                     {chartMode === 0 && (
@@ -346,6 +334,18 @@ const VotesDashboard = () => {
                       </div>
                     </DrawerContent>
                   </Drawer>
+
+                {/* Time range filter */}
+                <Select value={timeRange} onValueChange={setTimeRange}>
+                  <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-muted rounded-lg px-3 py-2 h-auto text-muted-foreground data-[state=open]:bg-muted [&>svg]:hidden focus:ring-0 focus:ring-offset-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="90" className="focus:bg-muted focus:text-foreground">90 days</SelectItem>
+                    <SelectItem value="30" className="focus:bg-muted focus:text-foreground">30 days</SelectItem>
+                    <SelectItem value="7" className="focus:bg-muted focus:text-foreground">7 days</SelectItem>
+                  </SelectContent>
+                </Select>
 
                 {/* Chart mode toggle */}
                 <div className="flex items-center gap-1">
