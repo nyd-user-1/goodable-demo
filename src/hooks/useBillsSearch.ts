@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Bill } from '@/types/bill';
 import { normalizeBillNumber } from '@/utils/billNumberUtils';
+
+const PAGE_SIZE = 200;
 
 export function useBillsSearch() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -10,134 +12,186 @@ export function useBillsSearch() {
   const [committeeFilter, setCommitteeFilter] = useState('');
   const [sessionFilter, setSessionFilter] = useState('');
   const [sponsorFilter, setSponsorFilter] = useState('');
+  const [allBills, setAllBills] = useState<Bill[]>([]);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  // Fetch bills - server-side search when there's a search term
+  // Helper to apply search/filter criteria to a query
+  const buildFilteredQuery = async (query: any) => {
+    // Normalize search term if it looks like a bill number
+    const normalizedSearchTerm = /^[ASKask]\d+$/i.test(searchTerm)
+      ? normalizeBillNumber(searchTerm)
+      : searchTerm;
+
+    // If searching, also search by sponsor name
+    let sponsorSearchBillIds: number[] = [];
+    if (normalizedSearchTerm && normalizedSearchTerm.length >= 2) {
+      const { data: matchingPeople } = await supabase
+        .from('People')
+        .select('people_id')
+        .or(`name.ilike.%${normalizedSearchTerm}%,first_name.ilike.%${normalizedSearchTerm}%,last_name.ilike.%${normalizedSearchTerm}%`);
+
+      if (matchingPeople && matchingPeople.length > 0) {
+        const peopleIds = matchingPeople.map(p => p.people_id);
+        const { data: sponsorBills } = await supabase
+          .from('Sponsors')
+          .select('bill_id')
+          .in('people_id', peopleIds)
+          .eq('position', 1);
+        sponsorSearchBillIds = (sponsorBills || []).map(s => s.bill_id).filter(Boolean) as number[];
+      }
+    }
+
+    // Server-side search across bill number, title, description, OR bills by matching sponsors
+    if (normalizedSearchTerm && normalizedSearchTerm.length >= 2) {
+      if (sponsorSearchBillIds.length > 0) {
+        query = query.or(
+          `bill_number.ilike.%${normalizedSearchTerm}%,title.ilike.%${normalizedSearchTerm}%,description.ilike.%${normalizedSearchTerm}%,bill_id.in.(${sponsorSearchBillIds.join(',')})`
+        );
+      } else {
+        query = query.or(
+          `bill_number.ilike.%${normalizedSearchTerm}%,title.ilike.%${normalizedSearchTerm}%,description.ilike.%${normalizedSearchTerm}%`
+        );
+      }
+    }
+
+    // Server-side status filter
+    if (statusFilter) {
+      query = query.eq('status_desc', statusFilter);
+    }
+
+    // Server-side committee filter
+    if (committeeFilter) {
+      query = query.eq('committee', committeeFilter);
+    }
+
+    // Server-side session filter
+    if (sessionFilter) {
+      query = query.eq('session_id', parseInt(sessionFilter));
+    }
+
+    // If filtering by sponsor, get bill IDs for that sponsor first
+    if (sponsorFilter) {
+      const { data: sponsorBills } = await supabase
+        .from('Sponsors')
+        .select('bill_id')
+        .eq('people_id', parseInt(sponsorFilter))
+        .eq('position', 1);
+      const sponsorBillIds = (sponsorBills || []).map(s => s.bill_id).filter(Boolean) as number[];
+
+      if (sponsorBillIds.length === 0) {
+        return null; // Signal empty result
+      }
+
+      query = query.in('bill_id', sponsorBillIds);
+    }
+
+    return query;
+  };
+
+  // Helper to fetch sponsor names for a set of bills
+  const fetchSponsors = async (billsData: any[]): Promise<Bill[]> => {
+    const billIds = billsData.map(b => b.bill_id);
+    if (billIds.length === 0) return [];
+
+    const { data: sponsorsData } = await supabase
+      .from('Sponsors')
+      .select('bill_id, people_id, position')
+      .in('bill_id', billIds)
+      .eq('position', 1);
+
+    const peopleIds = [...new Set((sponsorsData || []).map(s => s.people_id).filter(Boolean))];
+    const { data: peopleData } = await supabase
+      .from('People')
+      .select('people_id, name, first_name, last_name')
+      .in('people_id', peopleIds);
+
+    const peopleMap = new Map((peopleData || []).map(p => [p.people_id, p]));
+    const sponsorMap = new Map((sponsorsData || []).map(s => {
+      const person = peopleMap.get(s.people_id);
+      const name = person?.name || (person ? `${person.first_name || ''} ${person.last_name || ''}`.trim() : null);
+      return [s.bill_id, name];
+    }));
+
+    return billsData.map(bill => ({
+      ...bill,
+      sponsor_name: sponsorMap.get(bill.bill_id) || null,
+    })) as Bill[];
+  };
+
+  // Fetch initial page of bills
   const { data, isLoading, error } = useQuery({
     queryKey: ['bills-search', searchTerm, statusFilter, committeeFilter, sessionFilter, sponsorFilter],
     queryFn: async () => {
-      // Normalize search term if it looks like a bill number
-      const normalizedSearchTerm = /^[ASKask]\d+$/i.test(searchTerm)
-        ? normalizeBillNumber(searchTerm)
-        : searchTerm;
-
-      // If searching, also search by sponsor name
-      let sponsorSearchBillIds: number[] = [];
-      if (normalizedSearchTerm && normalizedSearchTerm.length >= 2) {
-        // Search for people matching the search term
-        const { data: matchingPeople } = await supabase
-          .from('People')
-          .select('people_id')
-          .or(`name.ilike.%${normalizedSearchTerm}%,first_name.ilike.%${normalizedSearchTerm}%,last_name.ilike.%${normalizedSearchTerm}%`);
-
-        if (matchingPeople && matchingPeople.length > 0) {
-          const peopleIds = matchingPeople.map(p => p.people_id);
-          // Get bills sponsored by matching people
-          const { data: sponsorBills } = await supabase
-            .from('Sponsors')
-            .select('bill_id')
-            .in('people_id', peopleIds)
-            .eq('position', 1);
-          sponsorSearchBillIds = (sponsorBills || []).map(s => s.bill_id).filter(Boolean) as number[];
-        }
-      }
-
       let query = supabase
         .from('Bills')
         .select('*', { count: 'exact' });
 
-      // Server-side search across bill number, title, description, OR bills by matching sponsors
-      if (normalizedSearchTerm && normalizedSearchTerm.length >= 2) {
-        if (sponsorSearchBillIds.length > 0) {
-          // Search bill fields OR include bills from matching sponsors
-          query = query.or(
-            `bill_number.ilike.%${normalizedSearchTerm}%,title.ilike.%${normalizedSearchTerm}%,description.ilike.%${normalizedSearchTerm}%,bill_id.in.(${sponsorSearchBillIds.join(',')})`
-          );
-        } else {
-          query = query.or(
-            `bill_number.ilike.%${normalizedSearchTerm}%,title.ilike.%${normalizedSearchTerm}%,description.ilike.%${normalizedSearchTerm}%`
-          );
-        }
+      query = await buildFilteredQuery(query);
+
+      // buildFilteredQuery returns null when sponsor filter yields no bills
+      if (query === null) {
+        return { bills: [], totalCount: 0 };
       }
 
-      // Server-side status filter
-      if (statusFilter) {
-        query = query.eq('status_desc', statusFilter);
-      }
-
-      // Server-side committee filter
-      if (committeeFilter) {
-        query = query.eq('committee', committeeFilter);
-      }
-
-      // Server-side session filter
-      if (sessionFilter) {
-        query = query.eq('session_id', parseInt(sessionFilter));
-      }
-
-      // If filtering by sponsor, get bill IDs for that sponsor first
-      if (sponsorFilter) {
-        const { data: sponsorBills } = await supabase
-          .from('Sponsors')
-          .select('bill_id')
-          .eq('people_id', parseInt(sponsorFilter))
-          .eq('position', 1);
-        const sponsorBillIds = (sponsorBills || []).map(s => s.bill_id).filter(Boolean) as number[];
-
-        // If no bills for this sponsor, return empty
-        if (sponsorBillIds.length === 0) {
-          return { bills: [], totalCount: 0 };
-        }
-
-        query = query.in('bill_id', sponsorBillIds);
-      }
-
-      // Order by last action date (most recent first) and limit results
       query = query
         .order('last_action_date', { ascending: false, nullsFirst: false })
-        .limit(500);
+        .limit(PAGE_SIZE);
 
       const { data: billsData, error, count } = await query;
 
       if (error) throw error;
 
-      // Fetch primary sponsors for all bills (position = 1 is typically primary sponsor)
-      const billIds = (billsData || []).map(b => b.bill_id);
-
-      // Get sponsors with people info
-      const { data: sponsorsData } = await supabase
-        .from('Sponsors')
-        .select('bill_id, people_id, position')
-        .in('bill_id', billIds)
-        .eq('position', 1);
-
-      // Get people names for sponsors
-      const peopleIds = [...new Set((sponsorsData || []).map(s => s.people_id).filter(Boolean))];
-      const { data: peopleData } = await supabase
-        .from('People')
-        .select('people_id, name, first_name, last_name')
-        .in('people_id', peopleIds);
-
-      // Create lookup maps
-      const peopleMap = new Map((peopleData || []).map(p => [p.people_id, p]));
-      const sponsorMap = new Map((sponsorsData || []).map(s => {
-        const person = peopleMap.get(s.people_id);
-        const name = person?.name || (person ? `${person.first_name || ''} ${person.last_name || ''}`.trim() : null);
-        return [s.bill_id, name];
-      }));
-
-      // Merge sponsor names into bills
-      const bills = (billsData || []).map(bill => ({
-        ...bill,
-        sponsor_name: sponsorMap.get(bill.bill_id) || null,
-      })) as Bill[];
+      const bills = await fetchSponsors(billsData || []);
 
       return { bills, totalCount: count || 0 };
     },
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
 
-  const bills = data?.bills || [];
+  // Reset accumulated data when initial query changes (filters changed)
+  useEffect(() => {
+    if (data) {
+      setAllBills(data.bills);
+      setOffset(PAGE_SIZE);
+      setHasMore(data.bills.length === PAGE_SIZE);
+    }
+  }, [data]);
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      let query = supabase.from('Bills').select('*');
+
+      query = await buildFilteredQuery(query);
+
+      if (query === null) {
+        setHasMore(false);
+        return;
+      }
+
+      query = query
+        .order('last_action_date', { ascending: false, nullsFirst: false })
+        .range(offset, offset + PAGE_SIZE - 1);
+
+      const { data: moreData, error: err } = await query;
+      if (err) throw err;
+
+      const bills = await fetchSponsors(moreData || []);
+      setAllBills(prev => [...prev, ...bills]);
+      setOffset(prev => prev + PAGE_SIZE);
+      setHasMore(bills.length === PAGE_SIZE);
+    } catch (err) {
+      console.error("Load more bills error:", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const bills = allBills;
   const totalCount = data?.totalCount || 0;
 
   // Get filter options (statuses, committees, sessions, sponsors) from a separate query
@@ -199,6 +253,9 @@ export function useBillsSearch() {
     bills,
     totalCount,
     isLoading,
+    loadingMore,
+    hasMore,
+    loadMore,
     error,
     statuses: filterOptions?.statuses || [],
     committees: filterOptions?.committees || [],

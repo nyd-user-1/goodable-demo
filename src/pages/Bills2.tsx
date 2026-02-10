@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, FileText, ArrowUp } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Search, X, FileText, ArrowUp, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Input } from '@/components/ui/input';
@@ -20,9 +21,11 @@ import {
 } from '@/components/ui/tooltip';
 import { useBillsSearch, formatBillDate } from '@/hooks/useBillsSearch';
 import { Bill } from '@/types/bill';
+import { supabase } from '@/integrations/supabase/client';
 
 const Bills2 = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [sidebarMounted, setSidebarMounted] = useState(false);
@@ -37,6 +40,9 @@ const Bills2 = () => {
     bills,
     totalCount,
     isLoading,
+    loadingMore,
+    hasMore,
+    loadMore,
     error,
     statuses,
     committees,
@@ -53,6 +59,23 @@ const Bills2 = () => {
     sponsorFilter,
     setSponsorFilter,
   } = useBillsSearch();
+
+  // Fetch chat counts for bills on page
+  const billChatKeys = bills.map(b => `bill-${b.bill_id}`);
+  const { data: chatCounts } = useQuery({
+    queryKey: ['bill-chat-counts', billChatKeys],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('prompt_chat_counts')
+        .select('prompt_id, chat_count')
+        .in('prompt_id', billChatKeys);
+      const map: Record<string, number> = {};
+      (data || []).forEach(row => { map[row.prompt_id] = row.chat_count; });
+      return map;
+    },
+    staleTime: 30_000,
+    enabled: bills.length > 0,
+  });
 
   // Keyboard shortcut to focus search
   useEffect(() => {
@@ -89,10 +112,19 @@ const Bills2 = () => {
     navigate(`/bills/${bill.bill_number}`);
   };
 
-  // Navigate to new chat with prompt and bill_id
+  // Navigate to new chat with prompt and bill_id, and increment chat count
   const handleChatClick = (bill: Bill, e: React.MouseEvent) => {
     e.stopPropagation();
     const prompt = generatePrompt(bill);
+
+    // Increment chat count (fire and forget)
+    supabase.rpc('increment_prompt_chat_count', {
+      p_prompt_id: `bill-${bill.bill_id}`,
+      p_seed_count: 0,
+    }).then(() => {
+      queryClient.invalidateQueries({ queryKey: ['bill-chat-counts'] });
+    });
+
     navigate(`/new-chat?prompt=${encodeURIComponent(prompt)}&billId=${bill.bill_id}`);
   };
 
@@ -271,16 +303,39 @@ const Bills2 = () => {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {bills.map((bill) => (
-                  <BillCard
-                    key={bill.bill_id}
-                    bill={bill}
-                    onClick={() => handleBillClick(bill)}
-                    onChatClick={(e) => handleChatClick(bill, e)}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {bills.map((bill) => (
+                    <BillCard
+                      key={bill.bill_id}
+                      bill={bill}
+                      chatCount={chatCounts?.[`bill-${bill.bill_id}`] || 0}
+                      onClick={() => handleBillClick(bill)}
+                      onChatClick={(e) => handleChatClick(bill, e)}
+                    />
+                  ))}
+                </div>
+
+                {/* Load More button */}
+                {hasMore && (
+                  <div className="flex justify-center mt-8">
+                    <button
+                      onClick={loadMore}
+                      disabled={loadingMore}
+                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+                    >
+                      {loadingMore ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        `Load More (${bills.length} of ${totalCount})`
+                      )}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -289,18 +344,29 @@ const Bills2 = () => {
   );
 };
 
+// Determine chamber from bill number
+function getChamber(billNumber: string | null): 'senate' | 'assembly' | null {
+  if (!billNumber) return null;
+  const firstChar = billNumber.charAt(0).toUpperCase();
+  if (firstChar === 'S') return 'senate';
+  if (firstChar === 'A') return 'assembly';
+  return null;
+}
+
 // Bill card component
 interface BillCardProps {
   bill: Bill;
+  chatCount: number;
   onClick: () => void;
   onChatClick: (e: React.MouseEvent) => void;
 }
 
-function BillCard({ bill, onClick, onChatClick }: BillCardProps) {
+function BillCard({ bill, chatCount, onClick, onChatClick }: BillCardProps) {
+  const chamber = getChamber(bill.bill_number);
+
   // Build varied preview text based on available data
   let previewText: string;
   if (bill.title) {
-    // Truncate title if too long
     previewText = bill.title.length > 120
       ? bill.title.substring(0, 120) + '...'
       : bill.title;
@@ -319,11 +385,19 @@ function BillCard({ bill, onClick, onChatClick }: BillCardProps) {
       className="group bg-muted/30 rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg"
     >
       <div className="flex items-start justify-between mb-3">
-        <h3 className="font-semibold text-base">
-          {bill.bill_number || 'Unknown Bill'}
-        </h3>
-        {bill.session_id && (
-          <span className="text-sm text-muted-foreground">{bill.session_id}</span>
+        <div className="flex items-center gap-2">
+          {chamber === 'senate' && (
+            <img src="/nys-senate-seal.avif" alt="Senate" className="h-5 w-5 object-contain" />
+          )}
+          {chamber === 'assembly' && (
+            <img src="/nys-assembly-seal.avif" alt="Assembly" className="h-5 w-5 object-contain" />
+          )}
+          <h3 className="font-semibold text-base">
+            {bill.bill_number || 'Unknown Bill'}
+          </h3>
+        </div>
+        {chatCount > 0 && (
+          <span className="text-blue-500 text-xs font-medium">{chatCount} chats</span>
         )}
       </div>
       <p className="text-sm text-muted-foreground leading-relaxed">
@@ -348,6 +422,10 @@ function BillCard({ bill, onClick, onChatClick }: BillCardProps) {
           <div>
             <span className="text-muted-foreground">Last Action</span>
             <p className="font-medium">{bill.last_action || '—'}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Session</span>
+            <p className="font-medium">{bill.session_id || '—'}</p>
           </div>
         </div>
 
