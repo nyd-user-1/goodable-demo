@@ -1,20 +1,20 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronDown, ArrowUp, X } from 'lucide-react';
+import { ChevronRight, ChevronDown, ArrowUp, X, LayoutGrid, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  Drawer,
+  DrawerTrigger,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerClose,
+} from '@/components/ui/drawer';
 import {
   useContractsDashboard,
   formatCompactCurrency,
@@ -232,22 +232,9 @@ const ContractsDashboard = () => {
                 </div>
               )}
 
-              {/* Dashboard selector + Tabs */}
+              {/* Title + Tabs + Dashboards button */}
               <div className="flex items-center gap-3">
-                <Select value="contracts" onValueChange={(v) => navigate(`/${v}-dashboard`)}>
-                  <SelectTrigger className="w-full max-w-48">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Dashboards</SelectLabel>
-                      <SelectItem value="budget">Budget</SelectItem>
-                      <SelectItem value="lobbying">Lobbying</SelectItem>
-                      <SelectItem value="contracts">Contracts</SelectItem>
-                      <SelectItem value="votes">Votes</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                <h2 className="text-lg font-semibold mr-1">Contracts Dashboard</h2>
                 {TABS.map((tab) => (
                   <button
                     key={tab}
@@ -262,6 +249,48 @@ const ContractsDashboard = () => {
                     {TAB_LABELS[tab]}
                   </button>
                 ))}
+                <div className="ml-auto">
+                  <Drawer>
+                    <DrawerTrigger asChild>
+                      <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+                        <LayoutGrid className="h-4 w-4" />
+                        <span className="hidden sm:inline">Dashboards</span>
+                      </button>
+                    </DrawerTrigger>
+                    <DrawerContent>
+                      <DrawerHeader>
+                        <DrawerTitle>Dashboards</DrawerTitle>
+                        <DrawerDescription>Explore NYS data dashboards</DrawerDescription>
+                      </DrawerHeader>
+                      <div className="flex gap-4 overflow-x-auto px-4 pb-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        <DrawerClose asChild>
+                          <button onClick={() => navigate('/budget-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
+                            <img src="/dashboard-budget.avif" alt="Budget Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
+                            <span className="text-sm font-medium">Budget</span>
+                          </button>
+                        </DrawerClose>
+                        <DrawerClose asChild>
+                          <button onClick={() => navigate('/lobbying-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
+                            <img src="/dashboard-lobbying-line.avif" alt="Lobbying Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
+                            <span className="text-sm font-medium">Lobbying</span>
+                          </button>
+                        </DrawerClose>
+                        <DrawerClose asChild>
+                          <button onClick={() => navigate('/contracts-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
+                            <img src="/dashboard-contracts.avif" alt="Contracts Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
+                            <span className="text-sm font-medium">Contracts</span>
+                          </button>
+                        </DrawerClose>
+                        <DrawerClose asChild>
+                          <button onClick={() => navigate('/votes-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
+                            <img src="/dashboard-votes.png" alt="Votes Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
+                            <span className="text-sm font-medium">Votes</span>
+                          </button>
+                        </DrawerClose>
+                      </div>
+                    </DrawerContent>
+                  </Drawer>
+                </div>
               </div>
             </div>
           </div>
