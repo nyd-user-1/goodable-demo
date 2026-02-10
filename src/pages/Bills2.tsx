@@ -89,22 +89,26 @@ const Bills2 = () => {
     }
     seededRef.current = true;
 
-    // Seed varied counts: higher for first bills (more recent), tapering down
+    // Build rows for bulk upsert — higher counts for recent bills, tapering down
     const unseeded = bills.filter(b => !chatCounts[`bill-${b.bill_id}`]);
-    unseeded.forEach((bill, i) => {
-      // Range from ~45 down to ~3, with some randomness
+    const rows = unseeded.map((bill, i) => {
       const base = Math.max(3, Math.round(48 - (i / unseeded.length) * 45));
-      const jitter = Math.floor(Math.random() * 7) - 3; // -3 to +3
-      const seedCount = Math.max(1, base + jitter);
-      supabase.rpc('increment_prompt_chat_count', {
-        p_prompt_id: `bill-${bill.bill_id}`,
-        p_seed_count: seedCount,
-      });
+      const jitter = Math.floor(Math.random() * 7) - 3;
+      return {
+        prompt_id: `bill-${bill.bill_id}`,
+        chat_count: Math.max(1, base + jitter),
+      };
     });
-    // Refresh counts after seeding
-    setTimeout(() => {
-      queryClient.invalidateQueries({ queryKey: ['bill-chat-counts'] });
-    }, 2000);
+
+    // Single bulk upsert instead of 200 individual RPCs
+    if (rows.length > 0) {
+      supabase
+        .from('prompt_chat_counts')
+        .upsert(rows, { onConflict: 'prompt_id', ignoreDuplicates: true })
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: ['bill-chat-counts'] });
+        });
+    }
   }, [bills, chatCounts, queryClient]);
 
   // Keyboard shortcut to focus search
