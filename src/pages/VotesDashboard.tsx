@@ -433,15 +433,28 @@ const VotesDashboard = () => {
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 px-4 pb-8">
                         {/* Dashboard navigation cards */}
                         {[
-                          { path: '/budget-dashboard', label: 'Budget', desc: 'NYS budget spending', gradient: 'from-emerald-500/20 to-teal-500/10', stroke: 'hsl(160 60% 45%)', d: 'M0,28 C8,26 12,18 20,16 S32,22 40,20 S52,10 60,12 S72,18 80,14 S92,8 100,10' },
-                          { path: '/lobbying-dashboard', label: 'Lobbying', desc: 'Lobbyist compensation', gradient: 'from-blue-500/20 to-indigo-500/10', stroke: 'hsl(217 91% 60%)', d: 'M0,22 C10,24 15,30 25,28 S35,14 45,16 S55,22 65,18 S80,12 90,14 S95,10 100,12' },
-                          { path: '/contracts-dashboard', label: 'Contracts', desc: 'State contracts', gradient: 'from-amber-500/20 to-orange-500/10', stroke: 'hsl(32 95% 50%)', d: 'M0,18 C10,16 18,24 28,22 S38,28 48,26 S58,16 68,18 S78,24 88,20 S95,14 100,16' },
+                          { path: '/budget-dashboard', label: 'Budget', desc: 'NYS budget spending', color: 'hsl(160 60% 45%)', id: 'dBudget',
+                            line: 'M0,32 C10,30 15,20 25,18 S38,24 48,22 S58,12 68,14 S80,20 88,16 S95,10 100,12',
+                            area: 'M0,32 C10,30 15,20 25,18 S38,24 48,22 S58,12 68,14 S80,20 88,16 S95,10 100,12 L100,40 L0,40 Z' },
+                          { path: '/lobbying-dashboard', label: 'Lobbying', desc: 'Lobbyist compensation', color: 'hsl(217 91% 60%)', id: 'dLobby',
+                            line: 'M0,24 C10,26 18,32 28,28 S40,16 50,18 S60,24 70,20 S82,14 92,16 S97,12 100,14',
+                            area: 'M0,24 C10,26 18,32 28,28 S40,16 50,18 S60,24 70,20 S82,14 92,16 S97,12 100,14 L100,40 L0,40 Z' },
+                          { path: '/contracts-dashboard', label: 'Contracts', desc: 'State contracts', color: 'hsl(32 95% 50%)', id: 'dContract',
+                            line: 'M0,20 C12,18 18,26 30,24 S42,30 52,28 S62,18 72,20 S82,26 90,22 S96,16 100,18',
+                            area: 'M0,20 C12,18 18,26 30,24 S42,30 52,28 S62,18 72,20 S82,26 90,22 S96,16 100,18 L100,40 L0,40 Z' },
                         ].map((d) => (
                           <DrawerClose asChild key={d.path}>
                             <button onClick={() => navigate(d.path)} className="text-left rounded-xl border border-border bg-muted/30 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 overflow-hidden">
-                              <div className={cn("h-24 bg-gradient-to-br relative", d.gradient)}>
+                              <div className="h-24 relative">
                                 <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 40">
-                                  <path d={d.d} fill="none" stroke={d.stroke} strokeWidth="1.5" opacity="0.6" />
+                                  <defs>
+                                    <linearGradient id={d.id} x1="0" y1="0" x2="0" y2="1">
+                                      <stop offset="5%" stopColor={d.color} stopOpacity={0.3} />
+                                      <stop offset="95%" stopColor={d.color} stopOpacity={0.02} />
+                                    </linearGradient>
+                                  </defs>
+                                  <path d={d.area} fill={`url(#${d.id})`} />
+                                  <path d={d.line} fill="none" stroke={d.color} strokeWidth="1.5" />
                                 </svg>
                               </div>
                               <div className="px-3 pb-3 pt-2">
