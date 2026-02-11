@@ -57,7 +57,7 @@ serve(async (req) => {
     } else if (action === 'get-progress') {
       return await getProgress();
     } else if (action === 'get-bill-detail' && billNumber) {
-      return await getBillDetail(billNumber, sessionYear);
+      return await getBillDetail(billNumber, sessionYear, requestBody.view);
     } else {
       // Default to search functionality
       return await handleSearch(searchType, query, sessionYear, limit);
@@ -414,11 +414,12 @@ async function getProgress() {
   }
 }
 
-async function getBillDetail(billNumber: string, sessionYear: number = 2025) {
-  console.log(`Fetching full bill detail for ${billNumber} (${sessionYear})`);
+async function getBillDetail(billNumber: string, sessionYear: number = 2025, view: string = 'no_fulltext') {
+  // Normalize session year
+  sessionYear = sessionYear % 2 === 1 ? sessionYear : sessionYear - 1;
+  console.log(`Fetching bill detail for ${billNumber} (${sessionYear}) view=${view}`);
 
-  // Format: https://legislation.nysenate.gov/api/3/bills/2025/A405?view=info&key=API_KEY
-  const apiUrl = `https://legislation.nysenate.gov/api/3/bills/${sessionYear}/${billNumber}?view=info&key=${nysApiKey}`;
+  const apiUrl = `https://legislation.nysenate.gov/api/3/bills/${sessionYear}/${billNumber}?view=${view}&key=${nysApiKey}`;
 
   console.log('Calling NYS API:', apiUrl.replace(nysApiKey, 'REDACTED'));
 

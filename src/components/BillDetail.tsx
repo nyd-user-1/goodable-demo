@@ -19,7 +19,9 @@ import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { BillSummary, BillKeyInformation, QuickReviewNoteDialog } from "./features/bills";
+import { BillRelatedBills } from "./features/bills/BillRelatedBills";
 import { useBillReviews, ReviewStatus, BillNote } from "@/hooks/useBillReviews";
+import { useBillExtendedData } from "@/hooks/useBillExtendedData";
 
 type Bill = Tables<"Bills">;
 type HistoryEntry = Tables<"History Table">;
@@ -157,6 +159,9 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [sidebarMounted, setSidebarMounted] = useState(false);
   const [voteSearchQuery, setVoteSearchQuery] = useState("");
+
+  // Fetch extended data from NYS API (previous versions, same-as, milestones, etc.)
+  const { data: extendedData } = useBillExtendedData(bill.bill_number, bill.session_id);
 
   // Enable sidebar transitions after mount to prevent flash
   useEffect(() => {
@@ -495,6 +500,17 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
               <TabsContent value="overview" className="mt-6 space-y-6">
                 {/* Bill Key Information Section */}
                 <BillKeyInformation bill={bill} />
+
+                {/* Related Bills (Same-As, Previous Versions, Law Section) */}
+                {extendedData && (
+                  <BillRelatedBills
+                    sameAs={extendedData.sameAs}
+                    previousVersions={extendedData.previousVersions}
+                    substitutedBy={extendedData.substitutedBy}
+                    lawSection={extendedData.lawSection}
+                    lawCode={extendedData.lawCode}
+                  />
+                )}
               </TabsContent>
 
               <TabsContent value="sponsors" className="mt-6">
