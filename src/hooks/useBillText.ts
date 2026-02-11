@@ -4,21 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 function extractFullText(obj: any): string | null {
   if (!obj || typeof obj !== "object") return null;
 
-  // Direct fullText field
-  if (typeof obj.fullText === "string" && obj.fullText.length > 0) {
-    return obj.fullText;
-  }
-
-  // Check amendments.items (NYS API nests versions here)
   const items = obj.amendments?.items;
   if (items && typeof items === "object") {
-    // Try activeVersion key first
     const ver = obj.activeVersion ?? "";
-    if (items[ver]?.fullText) return items[ver].fullText;
-
-    // Try every key
-    for (const key of Object.keys(items)) {
-      if (items[key]?.fullText) return items[key].fullText;
+    // Try activeVersion key first, then all keys
+    const keysToTry = [ver, ...Object.keys(items).filter((k) => k !== ver)];
+    for (const key of keysToTry) {
+      const amendment = items[key];
+      if (!amendment) continue;
+      // fullTextHtml is populated when fullTextFormat=html is requested
+      if (amendment.fullTextHtml) return amendment.fullTextHtml;
+      if (amendment.fullText) return amendment.fullText;
     }
   }
 
