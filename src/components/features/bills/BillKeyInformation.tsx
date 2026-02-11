@@ -91,77 +91,82 @@ export const BillKeyInformation = ({
           </div>
         </div>
 
-        {/* Related Bills Section */}
+        {/* Related Bills Section — 3-column row */}
         {hasRelatedContent && (
           <>
             <div className="border-t my-5" />
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Same-As / Companion Bills */}
-              {sameAs.length > 0 && (
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-2">
-                    Same-As Bill{sameAs.length > 1 ? "s" : ""}
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {sameAs.map((b) => (
-                      <Link
-                        key={`${b.basePrintNo}-${b.session}`}
-                        to={`/bills/${b.basePrintNo}?session=${b.session}`}
-                        className="text-sm text-primary hover:underline"
-                      >
-                        {b.basePrintNo}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Substituted By */}
-              {substitutedBy && (
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-2">
-                    Substituted By
-                  </h4>
-                  <Link
-                    to={`/bills/${substitutedBy.basePrintNo}?session=${substitutedBy.session}`}
-                    className="text-sm text-primary hover:underline"
-                  >
-                    {substitutedBy.basePrintNo}
-                  </Link>
-                </div>
-              )}
+              <div>
+                {(sameAs.length > 0 || substitutedBy) ? (
+                  <>
+                    <h4 className="font-medium text-sm text-muted-foreground mb-2">
+                      {substitutedBy ? "Substituted By" : `Same-As Bill${sameAs.length > 1 ? "s" : ""}`}
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {substitutedBy ? (
+                        <Link
+                          to={`/bills/${substitutedBy.basePrintNo}?session=${substitutedBy.session}`}
+                          className="text-sm text-primary hover:underline"
+                        >
+                          {substitutedBy.basePrintNo}
+                        </Link>
+                      ) : (
+                        sameAs.map((b) => (
+                          <Link
+                            key={`${b.basePrintNo}-${b.session}`}
+                            to={`/bills/${b.basePrintNo}?session=${b.session}`}
+                            className="text-sm text-primary hover:underline"
+                          >
+                            {b.basePrintNo}
+                          </Link>
+                        ))
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h4 className="font-medium text-sm text-muted-foreground mb-2">Same-As Bill</h4>
+                    <p className="text-sm text-muted-foreground">—</p>
+                  </>
+                )}
+              </div>
 
               {/* Law Section */}
-              {lawSection && (
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Law Section</h4>
-                  <p className="text-sm">{lawSection}</p>
-                  {lawCode && (
-                    <p className="text-xs text-muted-foreground mt-1">{lawCode}</p>
-                  )}
-                </div>
-              )}
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground mb-1">Law Section</h4>
+                {lawSection ? (
+                  <>
+                    <p className="text-sm">{lawSection}</p>
+                    {lawCode && (
+                      <p className="text-xs text-muted-foreground mt-1">{lawCode}</p>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">—</p>
+                )}
+              </div>
 
               {/* Prior Sessions */}
-              {previousVersions.length > 0 && (
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-2">
-                    Prior Sessions
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground mb-2">Prior Sessions</h4>
+                {previousVersions.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-2">
                     {previousVersions.map((b) => (
                       <Link
                         key={`${b.basePrintNo}-${b.session}`}
                         to={`/bills/${b.basePrintNo}?session=${b.session}`}
                       >
-                        <Badge variant="outline" className="hover:bg-muted transition-colors">
+                        <Badge variant="outline" className="hover:bg-muted transition-colors w-full justify-center">
                           {formatSession(b.session)}: {b.basePrintNo}
                         </Badge>
                       </Link>
                     ))}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <p className="text-sm text-muted-foreground">—</p>
+                )}
+              </div>
             </div>
           </>
         )}

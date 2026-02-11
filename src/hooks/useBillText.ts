@@ -1,6 +1,30 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+function extractFullText(obj: any): string | null {
+  if (!obj || typeof obj !== "object") return null;
+
+  // Direct fullText field
+  if (typeof obj.fullText === "string" && obj.fullText.length > 0) {
+    return obj.fullText;
+  }
+
+  // Check amendments.items (NYS API nests versions here)
+  const items = obj.amendments?.items;
+  if (items && typeof items === "object") {
+    // Try activeVersion key first
+    const ver = obj.activeVersion ?? "";
+    if (items[ver]?.fullText) return items[ver].fullText;
+
+    // Try every key
+    for (const key of Object.keys(items)) {
+      if (items[key]?.fullText) return items[key].fullText;
+    }
+  }
+
+  return null;
+}
+
 export function useBillText(billNumber: string | null, sessionId: number | null, enabled: boolean) {
   return useQuery<string | null>({
     queryKey: ["bill-text", billNumber, sessionId],
@@ -21,28 +45,27 @@ export function useBillText(billNumber: string | null, sessionId: number | null,
       );
 
       if (error) {
-        console.error("Error fetching bill text:", error);
+        console.error("[BillText] Edge function error:", error);
         return null;
       }
 
+      // Log the response shape for debugging
+      console.log("[BillText] Response keys:", data ? Object.keys(data) : "null");
+
+      // The edge function proxies the raw NYS API response: { success, result, ... }
       const result = data?.result;
-      if (!result) return null;
-
-      // Try active amendment version first
-      const activeVersion = result.activeVersion ?? "";
-      const items = result.amendments?.items;
-      if (items) {
-        const amendment = items[activeVersion];
-        if (amendment?.fullText) return amendment.fullText;
-
-        // Fallback: try any amendment that has fullText
-        for (const key of Object.keys(items)) {
-          if (items[key]?.fullText) return items[key].fullText;
-        }
+      if (!result) {
+        console.warn("[BillText] No result in response. Full data:", JSON.stringify(data)?.substring(0, 500));
+        return null;
       }
 
-      // Last fallback: direct fullText on result
-      return result.fullText || null;
+      console.log("[BillText] activeVersion:", result.activeVersion, "amendment keys:", result.amendments?.items ? Object.keys(result.amendments.items) : "none");
+
+      const text = extractFullText(result);
+      if (!text) {
+        console.warn("[BillText] No fullText found in amendments");
+      }
+      return text;
     },
     enabled: enabled && !!billNumber && !!sessionId,
     staleTime: 30 * 60 * 1000,
