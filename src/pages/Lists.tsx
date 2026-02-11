@@ -752,14 +752,50 @@ export default function Lists() {
               <div className="pt-0 pb-12">
                 <div className="mb-8">
                   <h2 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-                    Charts
+                    Dashboards
                   </h2>
                   <p className="text-muted-foreground mt-2">
-                    Legislative voting activity visualized
+                    Explore NYS data dashboards
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {/* Dashboard navigation cards */}
+                  {[
+                    { path: '/budget-dashboard', label: 'Budget', desc: 'NYS budget spending', color: 'hsl(160 60% 45%)', id: 'lBudget',
+                      data: [{x:0,y:8},{x:1,y:10},{x:2,y:14},{x:3,y:18},{x:4,y:16},{x:5,y:20},{x:6,y:22},{x:7,y:19},{x:8,y:24},{x:9,y:28}] },
+                    { path: '/lobbying-dashboard', label: 'Lobbying', desc: 'Lobbyist compensation', color: 'hsl(217 91% 60%)', id: 'lLobby',
+                      data: [{x:0,y:6},{x:1,y:8},{x:2,y:10},{x:3,y:12},{x:4,y:14},{x:5,y:16},{x:6,y:18},{x:7,y:22},{x:8,y:24},{x:9,y:28}] },
+                    { path: '/contracts-dashboard', label: 'Contracts', desc: 'State contracts', color: 'hsl(32 95% 50%)', id: 'lContract',
+                      data: [{x:0,y:14},{x:1,y:12},{x:2,y:16},{x:3,y:14},{x:4,y:18},{x:5,y:16},{x:6,y:20},{x:7,y:18},{x:8,y:22},{x:9,y:24}] },
+                  ].map((d) => (
+                    <button
+                      key={d.path}
+                      onClick={() => navigate(d.path)}
+                      className="group text-left rounded-xl border border-border bg-muted/30 hover:bg-muted/50 hover:shadow-lg hover:border-border/80 transition-all duration-200 overflow-hidden"
+                    >
+                      <div className="h-32 px-2 pt-3">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={d.data} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
+                            <defs>
+                              <linearGradient id={d.id} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor={d.color} stopOpacity={0.3} />
+                                <stop offset="95%" stopColor={d.color} stopOpacity={0.02} />
+                              </linearGradient>
+                            </defs>
+                            <Area type="monotone" dataKey="y" stroke={d.color} strokeWidth={1.5} fill={`url(#${d.id})`} dot={false} animationDuration={500} />
+                            <XAxis dataKey="x" hide />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="px-4 pb-4 pt-2">
+                        <p className="font-semibold text-sm group-hover:text-foreground transition-colors">{d.label}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{d.desc}</p>
+                      </div>
+                    </button>
+                  ))}
+
+                  {/* Vote chart cards */}
                   {chartPreviews.map((chart, idx) => (
                     <button
                       key={idx}
