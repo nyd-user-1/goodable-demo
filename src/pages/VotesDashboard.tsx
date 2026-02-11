@@ -23,6 +23,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  HoverCard,
+  HoverCardTrigger,
+  HoverCardContent,
+} from '@/components/ui/hover-card';
+import {
   useVotesDashboard,
   type VotesDashboardRow,
   type VotesDrillDownRow,
@@ -39,6 +44,13 @@ import {
 
 const CHART_LABELS = ['Votes by Day', 'Roll Calls', 'Passed vs. Failed', 'By Party', 'Closest Votes'];
 const CHART_DESCS = ['Yes vs No votes per day', 'Roll call votes per day', 'Bills passed or failed per day', 'D vs R yes votes per day', 'Average vote margin per day'];
+const CHART_EXPLAINERS = [
+  'Chart shows the number of Yes and No votes cast each day. The table below lists every member with their total vote count, yes/no breakdown, and yes-vote percentage.',
+  'Chart shows how many roll call votes took place each day. The table lists every bill that went to a roll call with total votes, yes count, and no count.',
+  'Chart shows how many bills passed or failed each day. The table lists each bill with its yes/no counts and final result.',
+  'Chart compares daily yes-vote totals by party — Democrat vs Republican. The table lists members with their party affiliation and vote breakdown.',
+  'Chart shows the average margin (difference between yes and no votes) per day. The table lists bills ranked by the narrowest margins — the most contested votes.',
+];
 const NUM_MODES = CHART_LABELS.length;
 
 const VotesDashboard = () => {
@@ -534,6 +546,19 @@ const VotesDashboard = () => {
                     <ChevronRight className="h-4 w-4" />
                   </button>
                 </div>
+
+                {/* Explainer hover card */}
+                <HoverCard openDelay={10} closeDelay={100}>
+                  <HoverCardTrigger asChild>
+                    <button className="text-xs text-muted-foreground hover:text-foreground hover:bg-muted px-2 py-1 rounded transition-colors">
+                      Explainer
+                    </button>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="flex w-72 flex-col gap-1">
+                    <div className="font-semibold text-sm">{CHART_LABELS[chartMode]}</div>
+                    <div className="text-sm text-muted-foreground">{CHART_EXPLAINERS[chartMode]}</div>
+                  </HoverCardContent>
+                </HoverCard>
               </div>
             </div>
           </div>
