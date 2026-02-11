@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tables } from "@/integrations/supabase/types";
+import { BillPDFSheet } from "./BillPDFSheet";
 
 type Bill = Tables<"Bills">;
 
@@ -8,6 +10,7 @@ interface BillKeyInformationProps {
 }
 
 export const BillKeyInformation = ({ bill }: BillKeyInformationProps) => {
+  const [pdfSheetOpen, setPdfSheetOpen] = useState(false);
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "No date";
     try {
@@ -27,7 +30,7 @@ export const BillKeyInformation = ({ bill }: BillKeyInformationProps) => {
         <CardTitle className="text-lg font-semibold">Key Information</CardTitle>
       </CardHeader>
       <CardContent className="card-body p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div>
             <h4 className="font-medium text-sm text-muted-foreground mb-1">Last Action</h4>
             <p className="text-sm leading-relaxed">
@@ -38,6 +41,16 @@ export const BillKeyInformation = ({ bill }: BillKeyInformationProps) => {
           <div>
             <h4 className="font-medium text-sm text-muted-foreground mb-1">Last Action Date</h4>
             <p className="text-sm">{formatDate(bill.last_action_date)}</p>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-sm text-muted-foreground mb-1">View PDF</h4>
+            <button
+              onClick={() => setPdfSheetOpen(true)}
+              className="text-sm text-primary hover:text-primary/80 underline cursor-pointer"
+            >
+              {bill.bill_number || "View"}
+            </button>
           </div>
 
           <div>
@@ -56,6 +69,14 @@ export const BillKeyInformation = ({ bill }: BillKeyInformationProps) => {
             )}
           </div>
         </div>
+
+        <BillPDFSheet
+          isOpen={pdfSheetOpen}
+          onClose={() => setPdfSheetOpen(false)}
+          billNumber={bill.bill_number || ""}
+          billTitle={bill.title || ""}
+          bill={bill}
+        />
       </CardContent>
     </Card>
   );
