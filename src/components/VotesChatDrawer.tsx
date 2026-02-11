@@ -20,6 +20,7 @@ interface VotesChatDrawerProps {
   billTitle?: string | null;
   billNumber?: string | null;
   billResult?: string | null;
+  billVoteDetails?: string | null;
 }
 
 interface ChatMessage {
@@ -83,6 +84,7 @@ export function VotesChatDrawer({
   billTitle,
   billNumber,
   billResult,
+  billVoteDetails,
 }: VotesChatDrawerProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -97,7 +99,7 @@ export function VotesChatDrawer({
   const systemPrompt = memberName
     ? `${VOTES_SYSTEM_PROMPT}\n\nThe user is asking about ${memberName} (${memberParty || 'unknown party'})'s voting record. Provide specific information about their voting patterns, party alignment, and notable votes.`
     : billTitle
-      ? `${VOTES_SYSTEM_PROMPT}\n\nThe user is asking about ${billNumber}: ${billTitle}${billResult ? `, which ${billResult}` : ''}. Provide specific information about how members voted, whether it was party-line, and what the bill does.`
+      ? `${VOTES_SYSTEM_PROMPT}\n\nThe user is asking about ${billNumber}: ${billTitle}${billResult ? `, which ${billResult}` : ''}.${billVoteDetails ? `\n\nHere are the actual roll call votes for this bill:\n${billVoteDetails}` : ''}\n\nProvide specific information about how members voted, whether it was party-line, and what the bill does. Use the vote data above when answering questions about who voted yes or no.`
       : VOTES_SYSTEM_PROMPT;
 
   const suggestions = memberName

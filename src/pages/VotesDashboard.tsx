@@ -79,6 +79,7 @@ const VotesDashboard = () => {
   const [chatBillTitle, setChatBillTitle] = useState<string | null>(null);
   const [chatBillNumber, setChatBillNumber] = useState<string | null>(null);
   const [chatBillResult, setChatBillResult] = useState<string | null>(null);
+  const [chatBillVoteDetails, setChatBillVoteDetails] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
@@ -222,6 +223,7 @@ const VotesDashboard = () => {
     setChatBillTitle(null);
     setChatBillNumber(null);
     setChatBillResult(null);
+    setChatBillVoteDetails(null);
     setChatOpen(true);
   };
 
@@ -231,15 +233,21 @@ const VotesDashboard = () => {
     setChatBillTitle(null);
     setChatBillNumber(null);
     setChatBillResult(null);
+    setChatBillVoteDetails(null);
     setChatOpen(true);
   };
 
   const handleBillChatClick = (row: BillPassFailRow) => {
+    const memberVotes = getBillMemberVotes(row.rollCallId);
+    const details = memberVotes.length > 0
+      ? memberVotes.map((mv) => `- ${mv.name}: ${mv.vote}`).join('\n')
+      : null;
     setChatMemberName(null);
     setChatMemberParty(null);
     setChatBillTitle(row.billTitle || null);
     setChatBillNumber(row.billNumber || null);
     setChatBillResult(row.result || null);
+    setChatBillVoteDetails(details);
     setChatOpen(true);
   };
 
@@ -810,6 +818,7 @@ const VotesDashboard = () => {
         billTitle={chatBillTitle}
         billNumber={chatBillNumber}
         billResult={chatBillResult}
+        billVoteDetails={chatBillVoteDetails}
       />
     </div>
   );
