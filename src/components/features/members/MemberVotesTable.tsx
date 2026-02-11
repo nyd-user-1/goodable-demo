@@ -8,7 +8,6 @@ import { ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tables } from "@/integrations/supabase/types";
 import { useMemberVotes, type MemberVoteRow } from "@/hooks/useMemberVotes";
-import { VotesPagination } from "./votes/VotesPagination";
 
 type Member = Tables<"People">;
 
@@ -19,13 +18,10 @@ interface MemberVotesTableProps {
 type SortField = 'billNumber' | 'billTitle' | 'date' | 'vote';
 type SortDirection = 'asc' | 'desc' | null;
 
-const VOTES_PER_PAGE = 25;
-
 export const MemberVotesTable = ({ member }: MemberVotesTableProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
-  const [currentPage, setCurrentPage] = useState(1);
 
   const { votes, loading, error } = useMemberVotes(member.people_id);
 
@@ -84,15 +80,6 @@ export const MemberVotesTable = ({ member }: MemberVotesTableProps) => {
     return filtered;
   }, [votes, searchQuery, sortField, sortDirection]);
 
-  const totalPages = Math.ceil(filteredAndSorted.length / VOTES_PER_PAGE);
-  const startIndex = (currentPage - 1) * VOTES_PER_PAGE;
-  const currentPageVotes = filteredAndSorted.slice(startIndex, startIndex + VOTES_PER_PAGE);
-
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
-    setCurrentPage(1);
-  };
-
   return (
     <Card>
       <CardHeader className="space-y-4">
@@ -104,7 +91,7 @@ export const MemberVotesTable = ({ member }: MemberVotesTableProps) => {
           <Input
             placeholder="Search votes by bill number, description, vote type, or date..."
             value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
           />
         </div>
@@ -130,7 +117,7 @@ export const MemberVotesTable = ({ member }: MemberVotesTableProps) => {
             <Table className="table-fixed w-full">
               <TableHeader className="bg-background border-b">
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[70px] px-3 text-left">
+                  <TableHead className="w-[60px] px-3 text-left">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -140,7 +127,7 @@ export const MemberVotesTable = ({ member }: MemberVotesTableProps) => {
                       Bill {getSortIcon('billNumber')}
                     </Button>
                   </TableHead>
-                  <TableHead className="px-3 text-left">
+                  <TableHead className="w-[200px] px-3 text-left">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -150,7 +137,7 @@ export const MemberVotesTable = ({ member }: MemberVotesTableProps) => {
                       Description {getSortIcon('billTitle')}
                     </Button>
                   </TableHead>
-                  <TableHead className="w-[100px] px-3 text-left">
+                  <TableHead className="w-[90px] px-3 text-left">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -178,20 +165,20 @@ export const MemberVotesTable = ({ member }: MemberVotesTableProps) => {
             <ScrollArea className="h-[500px] w-full">
               <Table className="table-fixed w-full">
                 <TableBody>
-                  {currentPageVotes.map((vote, idx) => (
+                  {filteredAndSorted.map((vote, idx) => (
                     <TableRow
                       key={`${vote.billNumber}-${vote.date}-${idx}`}
                       className="hover:bg-muted/50 transition-colors"
                     >
-                      <TableCell className="w-[70px] px-3 font-medium text-left">
+                      <TableCell className="w-[60px] px-3 font-medium text-left">
                         {vote.billNumber || "—"}
                       </TableCell>
-                      <TableCell className="px-3 text-left">
+                      <TableCell className="w-[200px] px-3 text-left">
                         <div className="text-sm truncate" title={vote.billTitle || ""}>
                           {vote.billTitle || "No title"}
                         </div>
                       </TableCell>
-                      <TableCell className="w-[100px] px-3 text-sm text-muted-foreground text-left whitespace-nowrap">
+                      <TableCell className="w-[90px] px-3 text-sm text-muted-foreground text-left whitespace-nowrap">
                         {vote.date ? new Date(vote.date + 'T00:00:00').toLocaleDateString() : "—"}
                       </TableCell>
                       <TableCell className="w-[70px] px-3 text-left">
@@ -211,18 +198,6 @@ export const MemberVotesTable = ({ member }: MemberVotesTableProps) => {
                 </TableBody>
               </Table>
             </ScrollArea>
-          </div>
-        )}
-
-        {filteredAndSorted.length > VOTES_PER_PAGE && (
-          <div className="p-4">
-            <VotesPagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              totalVotes={filteredAndSorted.length}
-              votesPerPage={VOTES_PER_PAGE}
-            />
           </div>
         )}
       </CardContent>
