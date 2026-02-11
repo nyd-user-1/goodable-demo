@@ -36,8 +36,10 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
   const cleanBillNumber = billNumber.toLowerCase().replace(/[^a-z0-9]/g, '');
   const sessionYear = bill?.session_id || 2025;
   const pdfUrl = `https://legislation.nysenate.gov/pdf/bills/${sessionYear}/${cleanBillNumber}`;
+  const gviewUrl = `https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [useGoogleViewer, setUseGoogleViewer] = useState(false);
   const [error, setError] = useState<string>('');
   const [quickReviewOpen, setQuickReviewOpen] = useState(false);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
@@ -59,13 +61,14 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
   }, [isOpen, bill]);
 
 
-  // Fetch PDF through CORS proxy when sheet opens
+  // Fetch PDF through CORS proxy when sheet opens, fall back to Google Docs Viewer
   useEffect(() => {
     if (!isOpen || !cleanBillNumber) return;
 
     const fetchPDF = async () => {
       setLoading(true);
       setError('');
+      setUseGoogleViewer(false);
 
       // Try each CORS proxy
       for (const proxy of CORS_PROXIES) {
@@ -73,18 +76,21 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
           const response = await fetch(proxy + encodeURIComponent(pdfUrl));
           if (response.ok) {
             const blob = await response.blob();
-            const blobUrl = URL.createObjectURL(blob);
-            setPdfBlobUrl(blobUrl);
-            setLoading(false);
-            return;
+            if (blob.size > 0) {
+              const blobUrl = URL.createObjectURL(blob);
+              setPdfBlobUrl(blobUrl);
+              setLoading(false);
+              return;
+            }
           }
         } catch (err) {
           console.warn(`Failed to fetch with proxy ${proxy}:`, err);
         }
       }
 
-      // If all proxies fail, set error
-      setError('Unable to load PDF. Click Download to view in a new tab.');
+      // If all proxies fail, use Google Docs Viewer as fallback
+      console.log('CORS proxies failed, falling back to Google Docs Viewer');
+      setUseGoogleViewer(true);
       setLoading(false);
     };
 
@@ -256,7 +262,18 @@ export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: B
             </div>
           )}
 
-          {pdfBlobUrl && !loading && !error && (
+          {useGoogleViewer && !loading && !error && (
+            <div className="w-full h-full flex items-start justify-center">
+              <iframe
+                src={gviewUrl}
+                className="w-full h-full max-w-full"
+                title={`${billNumber} PDF`}
+                style={{ border: 'none', minHeight: '100%' }}
+              />
+            </div>
+          )}
+
+          {pdfBlobUrl && !useGoogleViewer && !loading && !error && (
             <div className="w-full h-full flex items-start justify-center">
               <iframe
                 id="pdf-iframe"
