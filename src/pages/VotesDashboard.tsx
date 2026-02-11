@@ -407,8 +407,8 @@ const VotesDashboard = () => {
                     )}
                     {chartMode === 3 && (
                       <>
-                        <LegendDot color="hsl(217 91% 60%)" label="Democrat Yes" />
-                        <LegendDot color="hsl(0 84% 60%)" label="Republican Yes" />
+                        <LegendDot color="hsl(217 91% 60%)" label="Democrat" />
+                        <LegendDot color="hsl(0 84% 60%)" label="Republican" />
                       </>
                     )}
                     {chartMode === 4 && <LegendDot color="hsl(280 67% 55%)" label="Avg Margin" />}
