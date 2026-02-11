@@ -49,10 +49,13 @@ export const BillText = ({ billNumber, sessionId }: BillTextProps) => {
             </div>
           ) : fullText ? (
             <div
-              className="bill-text-content prose prose-sm max-w-none text-foreground overflow-x-auto
+              className="bill-text-content prose prose-sm max-w-3xl mx-auto text-foreground overflow-x-auto
                 [&_pre]:whitespace-pre-wrap [&_pre]:font-mono [&_pre]:text-sm [&_pre]:leading-relaxed
+                [&_pre]:bg-white [&_pre]:text-black [&_pre]:p-6 [&_pre]:rounded-lg
                 [&_p]:leading-relaxed [&_p]:my-2
-                [&_u]:underline [&_b]:font-bold"
+                [&_u]:underline [&_b]:font-bold
+                [&_u]:!text-green-600 [&_s]:!text-red-600
+                [&_i]:!text-green-600 [&_i]:!bg-transparent"
               dangerouslySetInnerHTML={{ __html: fullText }}
             />
           ) : (

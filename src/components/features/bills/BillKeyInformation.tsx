@@ -132,21 +132,6 @@ export const BillKeyInformation = ({
                 )}
               </div>
 
-              {/* Law Section */}
-              <div>
-                <h4 className="font-medium text-sm text-muted-foreground mb-1">Law Section</h4>
-                {lawSection ? (
-                  <>
-                    <p className="text-sm">{lawSection}</p>
-                    {lawCode && (
-                      <p className="text-xs text-muted-foreground mt-1">{lawCode}</p>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">—</p>
-                )}
-              </div>
-
               {/* Prior Sessions */}
               <div>
                 <h4 className="font-medium text-sm text-muted-foreground mb-2">Prior Sessions</h4>
@@ -163,6 +148,21 @@ export const BillKeyInformation = ({
                       </Link>
                     ))}
                   </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">—</p>
+                )}
+              </div>
+
+              {/* Law Section */}
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground mb-1">Law Section</h4>
+                {lawSection ? (
+                  <>
+                    <p className="text-sm">{lawSection}</p>
+                    {lawCode && (
+                      <p className="text-xs text-muted-foreground mt-1">{lawCode}</p>
+                    )}
+                  </>
                 ) : (
                   <p className="text-sm text-muted-foreground">—</p>
                 )}
