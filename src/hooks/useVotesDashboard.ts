@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface VotesDashboardRow {
   name: string;
   people_id: number;
+  party: string;
   totalVotes: number;
   yesCount: number;
   noCount: number;
@@ -50,6 +51,17 @@ export interface BillMemberVoteRow {
   vote: string; // "Yes" | "No" | "Other"
 }
 
+export interface PartyChartPoint {
+  date: string;
+  demYes: number;
+  repYes: number;
+}
+
+export interface MarginChartPoint {
+  date: string;
+  avgMargin: number;
+}
+
 export function useVotesDashboard() {
   // ── RPC: votes aggregated by member ─────────────────────────
   const { data: byMemberRaw, isLoading: memberLoading, error: memberError } = useQuery({
@@ -60,6 +72,7 @@ export function useVotesDashboard() {
       return (data as any[]).map((r: any): VotesDashboardRow => ({
         name: r.name,
         people_id: r.people_id,
+        party: r.party || 'Unknown',
         totalVotes: Number(r.total_votes),
         yesCount: Number(r.yes_count),
         noCount: Number(r.no_count),
@@ -129,6 +142,37 @@ export function useVotesDashboard() {
         date: r.date,
         passed: Number(r.passed),
         failed: Number(r.failed),
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
+  // ── RPC: party breakdown per day ──────────────────────────
+  const { data: partyChartRaw } = useQuery({
+    queryKey: ['votes-rpc-party-per-day'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_votes_by_party_per_day');
+      if (error) throw error;
+      return (data as any[]).map((r: any): PartyChartPoint => ({
+        date: r.date,
+        demYes: Number(r.dem_yes),
+        repYes: Number(r.rep_yes),
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
+  // ── RPC: average margin per day ─────────────────────────
+  const { data: marginChartRaw } = useQuery({
+    queryKey: ['votes-rpc-avg-margin-per-day'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_votes_avg_margin_per_day');
+      if (error) throw error;
+      return (data as any[]).map((r: any): MarginChartPoint => ({
+        date: r.date,
+        avgMargin: Number(r.avg_margin),
       }));
     },
     staleTime: 10 * 60 * 1000,
@@ -225,6 +269,8 @@ export function useVotesDashboard() {
     chartData: chartDataRaw ?? [],
     rollCallsPerDay: rollCallsRaw ?? [],
     passFailPerDay: passFailRaw ?? [],
+    partyPerDay: partyChartRaw ?? [],
+    marginPerDay: marginChartRaw ?? [],
     billsPassFail: billsPassFailRaw ?? [],
     getDrillDown,
     getBillMemberVotes,

@@ -28,8 +28,6 @@ import {
   type VotesDrillDownRow,
   type BillPassFailRow,
   type BillMemberVoteRow,
-  type RollCallsChartPoint,
-  type PassFailChartPoint,
 } from '@/hooks/useVotesDashboard';
 import {
   XAxis,
@@ -38,6 +36,9 @@ import {
   Area,
   AreaChart,
 } from 'recharts';
+
+const CHART_LABELS = ['Votes by Day', 'Roll Calls', 'Passed vs. Failed', 'By Party', 'Closest Votes'];
+const NUM_MODES = CHART_LABELS.length;
 
 const VotesDashboard = () => {
   const navigate = useNavigate();
@@ -52,8 +53,6 @@ const VotesDashboard = () => {
   const [timeRange, setTimeRange] = useState('90');
   const [chartMode, setChartMode] = useState(0);
 
-  const CHART_LABELS = ['Votes by Day', 'Roll Calls', 'Passed vs. Failed'];
-
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
     return () => clearTimeout(timer);
@@ -66,6 +65,8 @@ const VotesDashboard = () => {
     chartData,
     rollCallsPerDay,
     passFailPerDay,
+    partyPerDay,
+    marginPerDay,
     billsPassFail,
     getDrillDown,
     getBillMemberVotes,
@@ -73,50 +74,40 @@ const VotesDashboard = () => {
     totalMembers,
   } = useVotesDashboard();
 
-  // Filter chart data by time range
-  const filteredChartData = useMemo(() => {
-    if (!chartData || chartData.length === 0) return [];
+  // ── Time-range filtered chart data ──────────────────────────
+  const cutoffStr = useMemo(() => {
     const days = parseInt(timeRange);
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
-    const cutoffStr = cutoff.toISOString().split('T')[0];
-    return chartData.filter((p) => p.date >= cutoffStr);
-  }, [chartData, timeRange]);
+    return cutoff.toISOString().split('T')[0];
+  }, [timeRange]);
 
-  const filteredRollCallData = useMemo(() => {
-    if (!rollCallsPerDay || rollCallsPerDay.length === 0) return [];
-    const days = parseInt(timeRange);
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - days);
-    const cutoffStr = cutoff.toISOString().split('T')[0];
-    return rollCallsPerDay.filter((p) => p.date >= cutoffStr);
-  }, [rollCallsPerDay, timeRange]);
+  const filteredChartData = useMemo(() =>
+    chartData.filter((p) => p.date >= cutoffStr), [chartData, cutoffStr]);
+  const filteredRollCallData = useMemo(() =>
+    rollCallsPerDay.filter((p) => p.date >= cutoffStr), [rollCallsPerDay, cutoffStr]);
+  const filteredPassFailData = useMemo(() =>
+    passFailPerDay.filter((p) => p.date >= cutoffStr), [passFailPerDay, cutoffStr]);
+  const filteredPartyData = useMemo(() =>
+    partyPerDay.filter((p) => p.date >= cutoffStr), [partyPerDay, cutoffStr]);
+  const filteredMarginData = useMemo(() =>
+    marginPerDay.filter((p) => p.date >= cutoffStr), [marginPerDay, cutoffStr]);
 
-  const filteredPassFailData = useMemo(() => {
-    if (!passFailPerDay || passFailPerDay.length === 0) return [];
-    const days = parseInt(timeRange);
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - days);
-    const cutoffStr = cutoff.toISOString().split('T')[0];
-    return passFailPerDay.filter((p) => p.date >= cutoffStr);
-  }, [passFailPerDay, timeRange]);
+  // ── Bills sorted by closest margin (for mode 4) ────────────
+  const billsByMargin = useMemo(() =>
+    [...billsPassFail].sort((a, b) =>
+      Math.abs(a.yesCount - a.noCount) - Math.abs(b.yesCount - b.noCount)
+    ), [billsPassFail]);
 
   // Active chart data for show/hide logic
-  const activeChartHasData = chartMode === 0
-    ? filteredChartData.length > 1
-    : chartMode === 1
-      ? filteredRollCallData.length > 1
-      : filteredPassFailData.length > 1;
+  const chartDataSets = [filteredChartData, filteredRollCallData, filteredPassFailData, filteredPartyData, filteredMarginData];
+  const activeChartHasData = (chartDataSets[chartMode]?.length ?? 0) > 1;
 
-  // Toggle row expand
+  // Toggle helpers
   const toggleRow = (peopleId: number) => {
     setExpandedRows((prev) => {
       const next = new Set(prev);
-      if (next.has(peopleId)) {
-        next.delete(peopleId);
-      } else {
-        next.add(peopleId);
-      }
+      next.has(peopleId) ? next.delete(peopleId) : next.add(peopleId);
       return next;
     });
   };
@@ -124,13 +115,30 @@ const VotesDashboard = () => {
   const toggleBillRow = (rollCallId: number) => {
     setExpandedBillRows((prev) => {
       const next = new Set(prev);
-      if (next.has(rollCallId)) {
-        next.delete(rollCallId);
-      } else {
-        next.add(rollCallId);
-      }
+      next.has(rollCallId) ? next.delete(rollCallId) : next.add(rollCallId);
       return next;
     });
+  };
+
+  // Which table type does this mode use?
+  const isBillsTable = chartMode === 1 || chartMode === 2 || chartMode === 4;
+  const isMembersTable = chartMode === 0 || chartMode === 3;
+
+  // Get the bill rows for the current mode
+  const activeBillRows = chartMode === 4 ? billsByMargin : billsPassFail;
+
+  // Shared tooltip/axis styling
+  const xAxisProps = {
+    dataKey: 'date' as const,
+    tick: { fontSize: 10, fill: 'hsl(var(--muted-foreground))' },
+    tickLine: false,
+    axisLine: false,
+    interval: 'preserveStartEnd' as const,
+    tickFormatter: (value: string) => { const d = new Date(value + 'T00:00:00'); return `${d.getMonth() + 1}/${d.getDate()}`; },
+  };
+  const tooltipProps = {
+    contentStyle: { backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' },
+    labelFormatter: (label: string) => { const d = new Date(label + 'T00:00:00'); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); },
   };
 
   return (
@@ -211,8 +219,8 @@ const VotesDashboard = () => {
                           </defs>
                           <Area type="monotone" dataKey="yes" stroke="hsl(142 76% 36%)" strokeWidth={1.5} fill="url(#votesYesGradient)" dot={false} animationDuration={500} />
                           <Area type="monotone" dataKey="no" stroke="hsl(0 84% 60%)" strokeWidth={1.5} fill="url(#votesNoGradient)" dot={false} animationDuration={500} />
-                          <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} interval="preserveStartEnd" tickFormatter={(value: string) => { const d = new Date(value + 'T00:00:00'); return `${d.getMonth() + 1}/${d.getDate()}`; }} />
-                          <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} labelFormatter={(label: string) => { const d = new Date(label + 'T00:00:00'); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }} />
+                          <XAxis {...xAxisProps} />
+                          <RechartsTooltip {...tooltipProps} />
                         </AreaChart>
                       </ResponsiveContainer>
                     )}
@@ -228,8 +236,8 @@ const VotesDashboard = () => {
                             </linearGradient>
                           </defs>
                           <Area type="monotone" dataKey="rollCalls" stroke="hsl(217 91% 60%)" strokeWidth={1.5} fill="url(#rollCallGradient)" dot={false} animationDuration={500} />
-                          <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} interval="preserveStartEnd" tickFormatter={(value: string) => { const d = new Date(value + 'T00:00:00'); return `${d.getMonth() + 1}/${d.getDate()}`; }} />
-                          <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} labelFormatter={(label: string) => { const d = new Date(label + 'T00:00:00'); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }} formatter={(value: number) => [value, 'Roll Calls']} />
+                          <XAxis {...xAxisProps} />
+                          <RechartsTooltip {...tooltipProps} formatter={(value: number) => [value, 'Roll Calls']} />
                         </AreaChart>
                       </ResponsiveContainer>
                     )}
@@ -250,49 +258,79 @@ const VotesDashboard = () => {
                           </defs>
                           <Area type="monotone" dataKey="passed" stroke="hsl(142 76% 36%)" strokeWidth={1.5} fill="url(#passedGradient)" dot={false} animationDuration={500} />
                           <Area type="monotone" dataKey="failed" stroke="hsl(0 84% 60%)" strokeWidth={1.5} fill="url(#failedGradient)" dot={false} animationDuration={500} />
-                          <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} interval="preserveStartEnd" tickFormatter={(value: string) => { const d = new Date(value + 'T00:00:00'); return `${d.getMonth() + 1}/${d.getDate()}`; }} />
-                          <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} labelFormatter={(label: string) => { const d = new Date(label + 'T00:00:00'); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }} />
+                          <XAxis {...xAxisProps} />
+                          <RechartsTooltip {...tooltipProps} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    )}
+
+                    {/* Mode 3: Party breakdown — D vs R yes votes */}
+                    {chartMode === 3 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={filteredPartyData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                          <defs>
+                            <linearGradient id="demGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="hsl(217 91% 60%)" stopOpacity={0.4} />
+                              <stop offset="95%" stopColor="hsl(217 91% 60%)" stopOpacity={0.05} />
+                            </linearGradient>
+                            <linearGradient id="repGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="hsl(0 84% 60%)" stopOpacity={0.4} />
+                              <stop offset="95%" stopColor="hsl(0 84% 60%)" stopOpacity={0.05} />
+                            </linearGradient>
+                          </defs>
+                          <Area type="monotone" dataKey="demYes" stroke="hsl(217 91% 60%)" strokeWidth={1.5} fill="url(#demGradient)" dot={false} animationDuration={500} />
+                          <Area type="monotone" dataKey="repYes" stroke="hsl(0 84% 60%)" strokeWidth={1.5} fill="url(#repGradient)" dot={false} animationDuration={500} />
+                          <XAxis {...xAxisProps} />
+                          <RechartsTooltip {...tooltipProps} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    )}
+
+                    {/* Mode 4: Average margin per day */}
+                    {chartMode === 4 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={filteredMarginData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                          <defs>
+                            <linearGradient id="marginGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="hsl(280 67% 55%)" stopOpacity={0.4} />
+                              <stop offset="95%" stopColor="hsl(280 67% 55%)" stopOpacity={0.05} />
+                            </linearGradient>
+                          </defs>
+                          <Area type="monotone" dataKey="avgMargin" stroke="hsl(280 67% 55%)" strokeWidth={1.5} fill="url(#marginGradient)" dot={false} animationDuration={500} />
+                          <XAxis {...xAxisProps} />
+                          <RechartsTooltip {...tooltipProps} formatter={(value: number) => [value, 'Avg Margin']} />
                         </AreaChart>
                       </ResponsiveContainer>
                     )}
                   </div>
+
                   {/* Legend */}
                   <div className="flex items-center gap-4 mt-2 px-2">
                     {chartMode === 0 && (
                       <>
-                        <div className="flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: 'hsl(142 76% 36%)' }} />
-                          <span className="text-xs text-muted-foreground">Yes</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: 'hsl(0 84% 60%)' }} />
-                          <span className="text-xs text-muted-foreground">No</span>
-                        </div>
+                        <LegendDot color="hsl(142 76% 36%)" label="Yes" />
+                        <LegendDot color="hsl(0 84% 60%)" label="No" />
                       </>
                     )}
-                    {chartMode === 1 && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: 'hsl(217 91% 60%)' }} />
-                        <span className="text-xs text-muted-foreground">Roll Calls</span>
-                      </div>
-                    )}
+                    {chartMode === 1 && <LegendDot color="hsl(217 91% 60%)" label="Roll Calls" />}
                     {chartMode === 2 && (
                       <>
-                        <div className="flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: 'hsl(142 76% 36%)' }} />
-                          <span className="text-xs text-muted-foreground">Passed</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: 'hsl(0 84% 60%)' }} />
-                          <span className="text-xs text-muted-foreground">Failed</span>
-                        </div>
+                        <LegendDot color="hsl(142 76% 36%)" label="Passed" />
+                        <LegendDot color="hsl(0 84% 60%)" label="Failed" />
                       </>
                     )}
+                    {chartMode === 3 && (
+                      <>
+                        <LegendDot color="hsl(217 91% 60%)" label="Democrat Yes" />
+                        <LegendDot color="hsl(0 84% 60%)" label="Republican Yes" />
+                      </>
+                    )}
+                    {chartMode === 4 && <LegendDot color="hsl(280 67% 55%)" label="Avg Margin" />}
                   </div>
                 </div>
               )}
 
-              {/* Dashboards picker + chart toggle */}
+              {/* Dashboards picker + time range + chart toggle */}
               <div className="flex items-center gap-3">
                 <Drawer>
                     <DrawerTrigger asChild>
@@ -350,16 +388,16 @@ const VotesDashboard = () => {
                 {/* Chart mode toggle */}
                 <div className="flex items-center gap-1">
                   <button
-                    onClick={() => setChartMode((prev) => (prev - 1 + 3) % 3)}
+                    onClick={() => setChartMode((prev) => (prev - 1 + NUM_MODES) % NUM_MODES)}
                     className="p-1 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap min-w-[100px] text-center">
+                  <span className="text-xs text-muted-foreground whitespace-nowrap min-w-[120px] text-center">
                     {CHART_LABELS[chartMode]}
                   </span>
                   <button
-                    onClick={() => setChartMode((prev) => (prev + 1) % 3)}
+                    onClick={() => setChartMode((prev) => (prev + 1) % NUM_MODES)}
                     className="p-1 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                   >
                     <ChevronRight className="h-4 w-4" />
@@ -381,27 +419,50 @@ const VotesDashboard = () => {
                   <div key={i} className="h-14 bg-muted/30 rounded-lg animate-pulse" />
                 ))}
               </div>
-            ) : chartMode === 2 ? (
-              /* ── Bills Pass/Fail Table ─────────────────────── */
-              billsPassFail.length === 0 ? (
+
+            /* ── Bills Tables (modes 1, 2, 4) ────────────── */
+            ) : isBillsTable ? (
+              activeBillRows.length === 0 ? (
                 <div className="text-center py-12 px-4">
                   <p className="text-muted-foreground">No bill vote records found.</p>
                 </div>
               ) : (
                 <>
                   <div className="divide-y">
-                    <div className="hidden md:grid grid-cols-[1fr_90px_60px_60px_70px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
-                      <span>Bill</span>
-                      <span className="text-right">Date</span>
-                      <span className="text-right">Yes</span>
-                      <span className="text-right">No</span>
-                      <span className="text-right">Result</span>
-                    </div>
+                    {/* Column headers vary by mode */}
+                    {chartMode === 1 && (
+                      <div className="hidden md:grid grid-cols-[1fr_90px_60px_60px_60px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                        <span>Bill</span>
+                        <span className="text-right">Date</span>
+                        <span className="text-right">Total</span>
+                        <span className="text-right">Yes</span>
+                        <span className="text-right">No</span>
+                      </div>
+                    )}
+                    {chartMode === 2 && (
+                      <div className="hidden md:grid grid-cols-[1fr_90px_60px_60px_70px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                        <span>Bill</span>
+                        <span className="text-right">Date</span>
+                        <span className="text-right">Yes</span>
+                        <span className="text-right">No</span>
+                        <span className="text-right">Result</span>
+                      </div>
+                    )}
+                    {chartMode === 4 && (
+                      <div className="hidden md:grid grid-cols-[1fr_90px_60px_60px_70px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                        <span>Bill</span>
+                        <span className="text-right">Date</span>
+                        <span className="text-right">Yes</span>
+                        <span className="text-right">No</span>
+                        <span className="text-right">Margin</span>
+                      </div>
+                    )}
 
-                    {(isAuthenticated ? billsPassFail.slice(0, billDisplayCount) : billsPassFail.slice(0, 6)).map((row) => (
-                      <BillPassFailRowItem
-                        key={row.rollCallId}
+                    {(isAuthenticated ? activeBillRows.slice(0, billDisplayCount) : activeBillRows.slice(0, 6)).map((row) => (
+                      <BillRowItem
+                        key={`${chartMode}-${row.rollCallId}`}
                         row={row}
+                        mode={chartMode as 1 | 2 | 4}
                         isExpanded={expandedBillRows.has(row.rollCallId)}
                         onToggle={() => toggleBillRow(row.rollCallId)}
                         getBillMemberVotes={getBillMemberVotes}
@@ -410,77 +471,84 @@ const VotesDashboard = () => {
                   </div>
                   {!isAuthenticated && (
                     <div className="text-center py-12">
-                      <p className="text-muted-foreground">
-                        Please log in to view all bill records.
-                      </p>
+                      <p className="text-muted-foreground">Please log in to view all bill records.</p>
                       <Button variant="ghost" onClick={() => navigate('/auth-4')}
-                        className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">
-                        Sign Up
-                      </Button>
+                        className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">Sign Up</Button>
                     </div>
                   )}
-                  {isAuthenticated && billDisplayCount < billsPassFail.length && (
+                  {isAuthenticated && billDisplayCount < activeBillRows.length && (
                     <div className="flex justify-center py-6">
                       <button
                         onClick={() => setBillDisplayCount((prev) => prev + 20)}
                         className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
                       >
-                        Load More ({Math.min(billDisplayCount, billsPassFail.length)} of {billsPassFail.length})
+                        Load More ({Math.min(billDisplayCount, activeBillRows.length)} of {activeBillRows.length})
                       </button>
                     </div>
                   )}
                 </>
               )
-            ) : byMember.length === 0 ? (
-              <div className="text-center py-12 px-4">
-                <p className="text-muted-foreground">No vote records found.</p>
-              </div>
-            ) : (
-              /* ── Members Table (mode 0 & 1) ────────────────── */
-              <>
-                <div className="divide-y">
-                  {/* Column headers */}
-                  <div className="hidden md:grid grid-cols-[1fr_80px_80px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
-                    <span>Name</span>
-                    <span className="text-right">Votes</span>
-                    <span className="text-right">Yes</span>
-                    <span className="text-right">No</span>
-                    <span className="text-right">% Yes</span>
-                  </div>
 
-                  {(isAuthenticated ? byMember.slice(0, displayCount) : byMember.slice(0, 6)).map((row) => (
-                    <VoteRowItem
-                      key={row.people_id}
-                      row={row}
-                      isExpanded={expandedRows.has(row.people_id)}
-                      onToggle={() => toggleRow(row.people_id)}
-                      getDrillDown={getDrillDown}
-                    />
-                  ))}
+            /* ── Members Tables (modes 0, 3) ─────────────── */
+            ) : isMembersTable ? (
+              byMember.length === 0 ? (
+                <div className="text-center py-12 px-4">
+                  <p className="text-muted-foreground">No vote records found.</p>
                 </div>
-                {!isAuthenticated && (
-                  <div className="text-center py-12">
-                    <p className="text-muted-foreground">
-                      Please log in to view all vote records.
-                    </p>
-                    <Button variant="ghost" onClick={() => navigate('/auth-4')}
-                      className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">
-                      Sign Up
-                    </Button>
+              ) : (
+                <>
+                  <div className="divide-y">
+                    {chartMode === 0 && (
+                      <div className="hidden md:grid grid-cols-[1fr_80px_80px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                        <span>Name</span>
+                        <span className="text-right">Votes</span>
+                        <span className="text-right">Yes</span>
+                        <span className="text-right">No</span>
+                        <span className="text-right">% Yes</span>
+                      </div>
+                    )}
+                    {chartMode === 3 && (
+                      <div className="hidden md:grid grid-cols-[1fr_60px_80px_80px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                        <span>Name</span>
+                        <span>Party</span>
+                        <span className="text-right">Votes</span>
+                        <span className="text-right">Yes</span>
+                        <span className="text-right">No</span>
+                        <span className="text-right">% Yes</span>
+                      </div>
+                    )}
+
+                    {(isAuthenticated ? byMember.slice(0, displayCount) : byMember.slice(0, 6)).map((row) => (
+                      <VoteRowItem
+                        key={row.people_id}
+                        row={row}
+                        showParty={chartMode === 3}
+                        isExpanded={expandedRows.has(row.people_id)}
+                        onToggle={() => toggleRow(row.people_id)}
+                        getDrillDown={getDrillDown}
+                      />
+                    ))}
                   </div>
-                )}
-                {isAuthenticated && displayCount < byMember.length && (
-                  <div className="flex justify-center py-6">
-                    <button
-                      onClick={() => setDisplayCount((prev) => prev + 20)}
-                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
-                    >
-                      Load More ({Math.min(displayCount, byMember.length)} of {byMember.length})
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
+                  {!isAuthenticated && (
+                    <div className="text-center py-12">
+                      <p className="text-muted-foreground">Please log in to view all vote records.</p>
+                      <Button variant="ghost" onClick={() => navigate('/auth-4')}
+                        className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">Sign Up</Button>
+                    </div>
+                  )}
+                  {isAuthenticated && displayCount < byMember.length && (
+                    <div className="flex justify-center py-6">
+                      <button
+                        onClick={() => setDisplayCount((prev) => prev + 20)}
+                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                      >
+                        Load More ({Math.min(displayCount, byMember.length)} of {byMember.length})
+                      </button>
+                    </div>
+                  )}
+                </>
+              )
+            ) : null}
           </div>
         </div>
       </div>
@@ -488,64 +556,81 @@ const VotesDashboard = () => {
   );
 };
 
-// ── Vote Row Component ───────────────────────────────────────
+// ── Legend Dot ─────────────────────────────────────────────────
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+      <span className="text-xs text-muted-foreground">{label}</span>
+    </div>
+  );
+}
+
+// ── Vote Row Component (Members table) ────────────────────────
 
 interface VoteRowItemProps {
   row: VotesDashboardRow;
+  showParty: boolean;
   isExpanded: boolean;
   onToggle: () => void;
   getDrillDown: (peopleId: number) => VotesDrillDownRow[];
 }
 
-function VoteRowItem({ row, isExpanded, onToggle, getDrillDown }: VoteRowItemProps) {
+function VoteRowItem({ row, showParty, isExpanded, onToggle, getDrillDown }: VoteRowItemProps) {
   const drillDownRows = isExpanded ? getDrillDown(row.people_id) : [];
+
+  const gridCols = showParty
+    ? 'md:grid-cols-[1fr_60px_80px_80px_80px_80px]'
+    : 'md:grid-cols-[1fr_80px_80px_80px_80px]';
 
   return (
     <div>
-      {/* Main row */}
       <div
         onClick={onToggle}
-        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_80px_80px_80px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer hover:bg-muted/30 transition-all duration-200 items-center"
+        className={cn("group grid grid-cols-[1fr_auto] gap-4 px-4 md:px-6 py-4 cursor-pointer hover:bg-muted/30 transition-all duration-200 items-center", gridCols)}
       >
-        {/* Name with expand chevron */}
         <div className="flex items-center gap-2 min-w-0">
           <span className="flex-shrink-0 text-muted-foreground">
-            {isExpanded ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
+            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </span>
           <span className="font-medium truncate">{row.name}</span>
-          {/* Mobile: show total votes inline */}
           <span className="md:hidden text-sm text-muted-foreground ml-auto pl-2 whitespace-nowrap">
             {row.totalVotes.toLocaleString()} votes
           </span>
         </div>
 
-        {/* Desktop columns */}
-        <span className="hidden md:block text-right font-medium tabular-nums">
-          {row.totalVotes.toLocaleString()}
-        </span>
-        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">
-          {row.yesCount.toLocaleString()}
-        </span>
-        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">
-          {row.noCount.toLocaleString()}
-        </span>
-        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">
-          {row.pctYes.toFixed(0)}%
-        </span>
+        {showParty && (
+          <span className={cn(
+            "hidden md:block text-xs font-medium px-1.5 py-0.5 rounded w-fit",
+            row.party === 'D' && "bg-blue-100 text-blue-700",
+            row.party === 'R' && "bg-red-100 text-red-600",
+            row.party !== 'D' && row.party !== 'R' && "bg-muted text-muted-foreground"
+          )}>
+            {row.party}
+          </span>
+        )}
+
+        <span className="hidden md:block text-right font-medium tabular-nums">{row.totalVotes.toLocaleString()}</span>
+        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.yesCount.toLocaleString()}</span>
+        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.noCount.toLocaleString()}</span>
+        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.pctYes.toFixed(0)}%</span>
       </div>
 
-      {/* Mobile supplementary info */}
       <div className="md:hidden px-4 pb-3 -mt-2 flex items-center gap-3 text-xs text-muted-foreground pl-10">
+        {showParty && (
+          <span className={cn(
+            "font-medium px-1.5 py-0.5 rounded",
+            row.party === 'D' && "bg-blue-100 text-blue-700",
+            row.party === 'R' && "bg-red-100 text-red-600",
+          )}>
+            {row.party}
+          </span>
+        )}
         <span>{row.yesCount} yes</span>
         <span>{row.noCount} no</span>
         <span>{row.pctYes.toFixed(0)}% yes</span>
       </div>
 
-      {/* Drill-down rows */}
       {isExpanded && drillDownRows.length > 0 && (
         <div className="bg-muted/10 border-t border-b">
           {drillDownRows.map((vote, idx) => (
@@ -557,55 +642,34 @@ function VoteRowItem({ row, isExpanded, onToggle, getDrillDown }: VoteRowItemPro
   );
 }
 
-// ── Vote Drill-Down Row ─────────────────────────────────────────
+// ── Vote Drill-Down Row ───────────────────────────────────────
 
-interface VoteDrillRowProps {
-  vote: VotesDrillDownRow;
-}
-
-function VoteDrillRow({ vote }: VoteDrillRowProps) {
+function VoteDrillRow({ vote }: { vote: VotesDrillDownRow }) {
   return (
     <>
-      {/* Desktop */}
       <div className="hidden md:grid grid-cols-[1fr_120px_80px] gap-4 px-6 py-3 pl-14 hover:bg-muted/20 transition-colors items-center">
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-sm truncate">{vote.billTitle || 'No title'}</span>
           {vote.billNumber && (
-            <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
-              {vote.billNumber}
-            </span>
+            <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">{vote.billNumber}</span>
           )}
         </div>
         <span className="text-right text-sm text-muted-foreground">
           {vote.date ? new Date(vote.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
         </span>
-        <span className={cn(
-          "text-right text-sm font-medium",
-          vote.vote === 'Yes' && "text-green-600",
-          vote.vote === 'No' && "text-red-500",
-          vote.vote === 'Other' && "text-muted-foreground"
-        )}>
+        <span className={cn("text-right text-sm font-medium", vote.vote === 'Yes' && "text-green-600", vote.vote === 'No' && "text-red-500", vote.vote === 'Other' && "text-muted-foreground")}>
           {vote.vote}
         </span>
       </div>
-
-      {/* Mobile */}
       <div className="md:hidden px-4 py-3 pl-10">
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <span className="text-sm truncate">{vote.billTitle || 'No title'}</span>
             {vote.billNumber && (
-              <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
-                {vote.billNumber}
-              </span>
+              <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">{vote.billNumber}</span>
             )}
           </div>
-          <span className={cn(
-            "text-sm font-medium ml-2 whitespace-nowrap",
-            vote.vote === 'Yes' && "text-green-600",
-            vote.vote === 'No' && "text-red-500",
-            vote.vote === 'Other' && "text-muted-foreground"
-          )}>
+          <span className={cn("text-sm font-medium ml-2 whitespace-nowrap", vote.vote === 'Yes' && "text-green-600", vote.vote === 'No' && "text-red-500", vote.vote === 'Other' && "text-muted-foreground")}>
             {vote.vote}
           </span>
         </div>
@@ -617,70 +681,73 @@ function VoteDrillRow({ vote }: VoteDrillRowProps) {
   );
 }
 
-// ── Bill Pass/Fail Row Component ──────────────────────────────
+// ── Bill Row Component (Bills table — modes 1, 2, 4) ─────────
 
-interface BillPassFailRowItemProps {
+interface BillRowItemProps {
   row: BillPassFailRow;
+  mode: 1 | 2 | 4;
   isExpanded: boolean;
   onToggle: () => void;
   getBillMemberVotes: (rollCallId: number) => BillMemberVoteRow[];
 }
 
-function BillPassFailRowItem({ row, isExpanded, onToggle, getBillMemberVotes }: BillPassFailRowItemProps) {
+function BillRowItem({ row, mode, isExpanded, onToggle, getBillMemberVotes }: BillRowItemProps) {
   const memberVotes = isExpanded ? getBillMemberVotes(row.rollCallId) : [];
+  const margin = Math.abs(row.yesCount - row.noCount);
+
+  const gridCols = mode === 1
+    ? 'md:grid-cols-[1fr_90px_60px_60px_60px]'
+    : 'md:grid-cols-[1fr_90px_60px_60px_70px]';
 
   return (
     <div>
-      {/* Main row */}
       <div
         onClick={onToggle}
-        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_90px_60px_60px_70px] gap-4 px-4 md:px-6 py-4 cursor-pointer hover:bg-muted/30 transition-all duration-200 items-center"
+        className={cn("group grid grid-cols-[1fr_auto] gap-4 px-4 md:px-6 py-4 cursor-pointer hover:bg-muted/30 transition-all duration-200 items-center", gridCols)}
       >
-        {/* Bill info with expand chevron */}
         <div className="flex items-center gap-2 min-w-0">
           <span className="flex-shrink-0 text-muted-foreground">
-            {isExpanded ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
+            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </span>
           <span className="font-medium truncate" title={row.billTitle || 'No title'}>{row.billTitle || 'No title'}</span>
           {row.billNumber && (
-            <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
-              {row.billNumber}
-            </span>
+            <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">{row.billNumber}</span>
           )}
-          {/* Mobile: show result inline */}
+          {/* Mobile: last column value */}
           <span className={cn(
             "md:hidden text-sm font-medium ml-auto pl-2 whitespace-nowrap",
-            row.result === 'Passed' && "text-green-600",
-            row.result === 'Failed' && "text-red-500"
+            mode === 2 && row.result === 'Passed' && "text-green-600",
+            mode === 2 && row.result === 'Failed' && "text-red-500",
           )}>
-            {row.result}
+            {mode === 1 ? `${row.yesCount + row.noCount}` : mode === 2 ? row.result : margin}
           </span>
         </div>
 
-        {/* Desktop columns */}
         <span className="hidden md:block text-right text-sm text-muted-foreground whitespace-nowrap">
           {row.date ? new Date(row.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
         </span>
-        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">
-          {row.yesCount.toLocaleString()}
-        </span>
-        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">
-          {row.noCount.toLocaleString()}
-        </span>
-        <span className={cn(
-          "hidden md:block text-right text-sm font-medium",
-          row.result === 'Passed' && "text-green-600",
-          row.result === 'Failed' && "text-red-500"
-        )}>
-          {row.result}
-        </span>
+
+        {mode === 1 ? (
+          <>
+            <span className="hidden md:block text-right text-sm font-medium tabular-nums">{(row.yesCount + row.noCount).toLocaleString()}</span>
+            <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.yesCount.toLocaleString()}</span>
+            <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.noCount.toLocaleString()}</span>
+          </>
+        ) : (
+          <>
+            <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.yesCount.toLocaleString()}</span>
+            <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.noCount.toLocaleString()}</span>
+            {mode === 2 ? (
+              <span className={cn("hidden md:block text-right text-sm font-medium", row.result === 'Passed' && "text-green-600", row.result === 'Failed' && "text-red-500")}>
+                {row.result}
+              </span>
+            ) : (
+              <span className="hidden md:block text-right text-sm font-medium tabular-nums">{margin}</span>
+            )}
+          </>
+        )}
       </div>
 
-      {/* Mobile supplementary info */}
       <div className="md:hidden px-4 pb-3 -mt-2 flex items-center gap-3 text-xs text-muted-foreground pl-10">
         <span>{row.yesCount} yes</span>
         <span>{row.noCount} no</span>
@@ -689,7 +756,6 @@ function BillPassFailRowItem({ row, isExpanded, onToggle, getBillMemberVotes }: 
         )}
       </div>
 
-      {/* Drill-down: member votes */}
       {isExpanded && memberVotes.length > 0 && (
         <div className="bg-muted/10 border-t border-b">
           {memberVotes.map((mv, idx) => (
@@ -703,35 +769,18 @@ function BillPassFailRowItem({ row, isExpanded, onToggle, getBillMemberVotes }: 
 
 // ── Bill Member Vote Drill-Down Row ──────────────────────────
 
-interface BillMemberVoteDrillRowProps {
-  memberVote: BillMemberVoteRow;
-}
-
-function BillMemberVoteDrillRow({ memberVote }: BillMemberVoteDrillRowProps) {
+function BillMemberVoteDrillRow({ memberVote }: { memberVote: BillMemberVoteRow }) {
   return (
     <>
-      {/* Desktop */}
       <div className="hidden md:grid grid-cols-[1fr_80px] gap-4 px-6 py-3 pl-14 hover:bg-muted/20 transition-colors items-center">
         <span className="text-sm truncate">{memberVote.name}</span>
-        <span className={cn(
-          "text-right text-sm font-medium",
-          memberVote.vote === 'Yes' && "text-green-600",
-          memberVote.vote === 'No' && "text-red-500",
-          memberVote.vote === 'Other' && "text-muted-foreground"
-        )}>
+        <span className={cn("text-right text-sm font-medium", memberVote.vote === 'Yes' && "text-green-600", memberVote.vote === 'No' && "text-red-500", memberVote.vote === 'Other' && "text-muted-foreground")}>
           {memberVote.vote}
         </span>
       </div>
-
-      {/* Mobile */}
       <div className="md:hidden px-4 py-3 pl-10 flex items-center justify-between">
         <span className="text-sm truncate">{memberVote.name}</span>
-        <span className={cn(
-          "text-sm font-medium ml-2 whitespace-nowrap",
-          memberVote.vote === 'Yes' && "text-green-600",
-          memberVote.vote === 'No' && "text-red-500",
-          memberVote.vote === 'Other' && "text-muted-foreground"
-        )}>
+        <span className={cn("text-sm font-medium ml-2 whitespace-nowrap", memberVote.vote === 'Yes' && "text-green-600", memberVote.vote === 'No' && "text-red-500", memberVote.vote === 'Other' && "text-muted-foreground")}>
           {memberVote.vote}
         </span>
       </div>

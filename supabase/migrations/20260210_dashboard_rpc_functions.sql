@@ -12,6 +12,7 @@ CREATE OR REPLACE FUNCTION get_votes_by_member()
 RETURNS TABLE (
   people_id int,
   name text,
+  party text,
   total_votes bigint,
   yes_count bigint,
   no_count bigint
@@ -19,12 +20,13 @@ RETURNS TABLE (
   SELECT
     v.people_id,
     COALESCE(p.name, 'Unknown') AS name,
+    COALESCE(p.party, 'Unknown') AS party,
     COUNT(*)::bigint AS total_votes,
     COUNT(*) FILTER (WHERE v.vote_desc LIKE 'Y%')::bigint AS yes_count,
     COUNT(*) FILTER (WHERE v.vote_desc LIKE 'N%' AND v.vote_desc NOT LIKE 'NV%')::bigint AS no_count
   FROM "Votes" v
   LEFT JOIN "People" p ON p.people_id = v.people_id
-  GROUP BY v.people_id, p.name
+  GROUP BY v.people_id, p.name, p.party
   ORDER BY total_votes DESC;
 $$;
 
@@ -653,4 +655,53 @@ RETURNS TABLE (
   LEFT JOIN "People" p ON p.people_id = v.people_id
   WHERE v.roll_call_id = p_roll_call_id
   ORDER BY p.name;
+$$;
+
+-- ────────────────────────────────────────────────────────────
+-- 1i. VOTES: Yes votes by party per day (for party breakdown chart)
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION get_votes_by_party_per_day()
+RETURNS TABLE (
+  date text,
+  dem_yes bigint,
+  rep_yes bigint
+) LANGUAGE sql STABLE AS $$
+  SELECT
+    rc.date,
+    COUNT(*) FILTER (WHERE v.vote_desc LIKE 'Y%' AND p.party = 'D')::bigint AS dem_yes,
+    COUNT(*) FILTER (WHERE v.vote_desc LIKE 'Y%' AND p.party = 'R')::bigint AS rep_yes
+  FROM "Votes" v
+  JOIN "Roll Call" rc ON rc.roll_call_id = v.roll_call_id
+  LEFT JOIN "People" p ON p.people_id = v.people_id
+  WHERE rc.date IS NOT NULL
+  GROUP BY rc.date
+  ORDER BY rc.date;
+$$;
+
+-- ────────────────────────────────────────────────────────────
+-- 1j. VOTES: Average vote margin per day (for closest votes chart)
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION get_votes_avg_margin_per_day()
+RETURNS TABLE (
+  date text,
+  avg_margin numeric
+) LANGUAGE sql STABLE AS $$
+  WITH bill_margins AS (
+    SELECT
+      rc.date,
+      ABS(
+        COUNT(*) FILTER (WHERE v.vote_desc LIKE 'Y%') -
+        COUNT(*) FILTER (WHERE v.vote_desc LIKE 'N%' AND v.vote_desc NOT LIKE 'NV%')
+      ) AS margin
+    FROM "Votes" v
+    JOIN "Roll Call" rc ON rc.roll_call_id = v.roll_call_id
+    WHERE rc.date IS NOT NULL
+    GROUP BY rc.date, v.roll_call_id
+  )
+  SELECT
+    date,
+    ROUND(AVG(margin), 1)::numeric AS avg_margin
+  FROM bill_margins
+  GROUP BY date
+  ORDER BY date;
 $$;
