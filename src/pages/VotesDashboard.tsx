@@ -220,6 +220,10 @@ const VotesDashboard = () => {
     labelFormatter: (label: string) => { const d = new Date(label + 'T00:00:00'); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); },
   };
 
+  // ── Dynamic summary number ──────────────────────────────────
+  const summaryNumber = isMembersTable ? totalVotes : sortedBills.length;
+  const summaryLabel = isMembersTable ? 'Total Votes' : chartMode === 1 ? 'Roll Calls' : 'Bills';
+
   // Sortable header cell style
   const hdr = "hover:bg-muted/60 rounded px-1.5 py-1 -mx-1.5 transition-colors cursor-pointer select-none";
 
@@ -270,10 +274,10 @@ const VotesDashboard = () => {
                 {!isLoading && !error && (
                   <div className="text-right flex-shrink-0">
                     <span className="text-3xl md:text-4xl font-bold tracking-tight">
-                      {totalVotes.toLocaleString()}
+                      {summaryNumber.toLocaleString()}
                     </span>
                     <div className="text-sm text-muted-foreground">
-                      Total Votes &middot; {totalMembers} Members
+                      {summaryLabel}
                     </div>
                   </div>
                 )}
@@ -429,15 +433,13 @@ const VotesDashboard = () => {
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 px-4 pb-8">
                         {/* Dashboard navigation cards */}
                         {[
-                          { path: '/budget-dashboard', img: '/dashboard-budget.avif', label: 'Budget', desc: 'NYS budget spending' },
-                          { path: '/lobbying-dashboard', img: '/dashboard-lobbying-line.avif', label: 'Lobbying', desc: 'Lobbyist compensation' },
-                          { path: '/contracts-dashboard', img: '/dashboard-contracts.avif', label: 'Contracts', desc: 'State contracts' },
+                          { path: '/budget-dashboard', label: 'Budget', desc: 'NYS budget spending', gradient: 'from-emerald-500/20 to-teal-500/10' },
+                          { path: '/lobbying-dashboard', label: 'Lobbying', desc: 'Lobbyist compensation', gradient: 'from-blue-500/20 to-indigo-500/10' },
+                          { path: '/contracts-dashboard', label: 'Contracts', desc: 'State contracts', gradient: 'from-amber-500/20 to-orange-500/10' },
                         ].map((d) => (
                           <DrawerClose asChild key={d.path}>
                             <button onClick={() => navigate(d.path)} className="text-left rounded-xl border border-border bg-muted/30 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 overflow-hidden">
-                              <div className="h-24 overflow-hidden">
-                                <img src={d.img} alt={d.label} className="w-full h-full object-cover" />
-                              </div>
+                              <div className={cn("h-24 bg-gradient-to-br", d.gradient)} />
                               <div className="px-3 pb-3 pt-2">
                                 <p className="font-semibold text-sm">{d.label}</p>
                                 <p className="text-xs text-muted-foreground">{d.desc}</p>
