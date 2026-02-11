@@ -21,6 +21,7 @@ import { Tables } from "@/integrations/supabase/types";
 import { BillSummary, BillKeyInformation, QuickReviewNoteDialog } from "./features/bills";
 import { BillRelatedBills } from "./features/bills/BillRelatedBills";
 import { BillMilestones } from "./features/bills/BillMilestones";
+import { BillText } from "./features/bills/BillText";
 import { useBillReviews, ReviewStatus, BillNote } from "@/hooks/useBillReviews";
 import { useBillExtendedData } from "@/hooks/useBillExtendedData";
 
@@ -526,6 +527,12 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
                     lawCode={extendedData.lawCode}
                   />
                 )}
+
+                {/* Bill Text - Lazy loaded on expand */}
+                <BillText
+                  billNumber={bill.bill_number}
+                  sessionId={bill.session_id}
+                />
               </TabsContent>
 
               <TabsContent value="sponsors" className="mt-6">
