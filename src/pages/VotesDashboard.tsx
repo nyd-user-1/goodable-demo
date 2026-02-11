@@ -434,28 +434,27 @@ const VotesDashboard = () => {
                         {/* Dashboard navigation cards */}
                         {[
                           { path: '/budget-dashboard', label: 'Budget', desc: 'NYS budget spending', color: 'hsl(160 60% 45%)', id: 'dBudget',
-                            line: 'M0,32 C10,30 15,20 25,18 S38,24 48,22 S58,12 68,14 S80,20 88,16 S95,10 100,12',
-                            area: 'M0,32 C10,30 15,20 25,18 S38,24 48,22 S58,12 68,14 S80,20 88,16 S95,10 100,12 L100,40 L0,40 Z' },
+                            data: [{x:0,y:8},{x:1,y:10},{x:2,y:14},{x:3,y:18},{x:4,y:16},{x:5,y:20},{x:6,y:22},{x:7,y:19},{x:8,y:24},{x:9,y:28}] },
                           { path: '/lobbying-dashboard', label: 'Lobbying', desc: 'Lobbyist compensation', color: 'hsl(217 91% 60%)', id: 'dLobby',
-                            line: 'M0,24 C10,26 18,32 28,28 S40,16 50,18 S60,24 70,20 S82,14 92,16 S97,12 100,14',
-                            area: 'M0,24 C10,26 18,32 28,28 S40,16 50,18 S60,24 70,20 S82,14 92,16 S97,12 100,14 L100,40 L0,40 Z' },
+                            data: [{x:0,y:6},{x:1,y:8},{x:2,y:10},{x:3,y:12},{x:4,y:14},{x:5,y:16},{x:6,y:18},{x:7,y:22},{x:8,y:24},{x:9,y:28}] },
                           { path: '/contracts-dashboard', label: 'Contracts', desc: 'State contracts', color: 'hsl(32 95% 50%)', id: 'dContract',
-                            line: 'M0,20 C12,18 18,26 30,24 S42,30 52,28 S62,18 72,20 S82,26 90,22 S96,16 100,18',
-                            area: 'M0,20 C12,18 18,26 30,24 S42,30 52,28 S62,18 72,20 S82,26 90,22 S96,16 100,18 L100,40 L0,40 Z' },
+                            data: [{x:0,y:14},{x:1,y:12},{x:2,y:16},{x:3,y:14},{x:4,y:18},{x:5,y:16},{x:6,y:20},{x:7,y:18},{x:8,y:22},{x:9,y:24}] },
                         ].map((d) => (
                           <DrawerClose asChild key={d.path}>
                             <button onClick={() => navigate(d.path)} className="text-left rounded-xl border border-border bg-muted/30 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 overflow-hidden">
-                              <div className="h-24 relative">
-                                <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 40">
-                                  <defs>
-                                    <linearGradient id={d.id} x1="0" y1="0" x2="0" y2="1">
-                                      <stop offset="5%" stopColor={d.color} stopOpacity={0.3} />
-                                      <stop offset="95%" stopColor={d.color} stopOpacity={0.02} />
-                                    </linearGradient>
-                                  </defs>
-                                  <path d={d.area} fill={`url(#${d.id})`} />
-                                  <path d={d.line} fill="none" stroke={d.color} strokeWidth="1.5" />
-                                </svg>
+                              <div className="h-24 px-2 pt-2">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <AreaChart data={d.data} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
+                                    <defs>
+                                      <linearGradient id={d.id} x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor={d.color} stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor={d.color} stopOpacity={0.02} />
+                                      </linearGradient>
+                                    </defs>
+                                    <Area type="monotone" dataKey="y" stroke={d.color} strokeWidth={1.5} fill={`url(#${d.id})`} dot={false} animationDuration={500} />
+                                    <XAxis dataKey="x" hide />
+                                  </AreaChart>
+                                </ResponsiveContainer>
                               </div>
                               <div className="px-3 pb-3 pt-2">
                                 <p className="font-semibold text-sm">{d.label}</p>
