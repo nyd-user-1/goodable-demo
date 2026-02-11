@@ -71,8 +71,8 @@ export const BillMilestones = ({ milestones, chamber }: BillMilestonesProps) => 
   });
 
   return (
-    <Card className="card bg-card rounded-xl shadow-sm border overflow-hidden">
-      <CardContent className="px-6 py-5">
+    <Card className="card bg-card rounded-xl shadow-sm border">
+      <CardContent className="px-8 py-6">
         <div className="flex items-center justify-between overflow-x-auto">
           {relevantStages.map((stage, idx) => {
             const isReached = reachedKeys.has(stage.key);
