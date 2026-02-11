@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ChevronRight, ChevronLeft, ChevronDown, LayoutGrid } from 'lucide-react';
+import { ChevronRight, ChevronLeft, ChevronDown, ArrowUp, MessageSquare, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { VotesChatDrawer } from '@/components/VotesChatDrawer';
 import {
   Drawer,
   DrawerTrigger,
@@ -72,6 +73,12 @@ const VotesDashboard = () => {
   const [memberSort, setMemberSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
   const [billSort, setBillSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMemberName, setChatMemberName] = useState<string | null>(null);
+  const [chatMemberParty, setChatMemberParty] = useState<string | null>(null);
+  const [chatBillTitle, setChatBillTitle] = useState<string | null>(null);
+  const [chatBillNumber, setChatBillNumber] = useState<string | null>(null);
+  const [chatBillResult, setChatBillResult] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
@@ -208,6 +215,34 @@ const VotesDashboard = () => {
     return arr;
   }, [activeBillRows, billSort]);
 
+  // Open chat drawer
+  const openChat = () => {
+    setChatMemberName(null);
+    setChatMemberParty(null);
+    setChatBillTitle(null);
+    setChatBillNumber(null);
+    setChatBillResult(null);
+    setChatOpen(true);
+  };
+
+  const handleMemberChatClick = (row: VotesDashboardRow) => {
+    setChatMemberName(row.name);
+    setChatMemberParty(row.party);
+    setChatBillTitle(null);
+    setChatBillNumber(null);
+    setChatBillResult(null);
+    setChatOpen(true);
+  };
+
+  const handleBillChatClick = (row: BillPassFailRow) => {
+    setChatMemberName(null);
+    setChatMemberParty(null);
+    setChatBillTitle(row.billTitle || null);
+    setChatBillNumber(row.billNumber || null);
+    setChatBillResult(row.result || null);
+    setChatOpen(true);
+  };
+
   // ── Chart click → filter table by date ─────────────────────
   const handleChartClick = (data: any) => {
     if (data?.activeLabel) {
@@ -301,9 +336,17 @@ const VotesDashboard = () => {
                 {/* Total votes — top right */}
                 {!isLoading && !error && (
                   <div className="text-right flex-shrink-0">
-                    <span className="text-3xl md:text-4xl font-bold tracking-tight">
-                      {summaryNumber.toLocaleString()}
-                    </span>
+                    <div className="flex items-center gap-2 justify-end">
+                      <button
+                        onClick={() => openChat()}
+                        className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors flex-shrink-0"
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </button>
+                      <span className="text-3xl md:text-4xl font-bold tracking-tight">
+                        {summaryNumber.toLocaleString()}
+                      </span>
+                    </div>
                     <div className="text-sm text-muted-foreground">
                       {summaryLabel}
                     </div>
@@ -619,8 +662,11 @@ const VotesDashboard = () => {
                   <div className="divide-y">
                     {/* Column headers vary by mode */}
                     {chartMode === 1 && (
-                      <div className="hidden md:grid grid-cols-[minmax(0,1fr)_90px_60px_60px_60px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                      <div className="hidden md:grid grid-cols-[minmax(0,1fr)_44px_90px_60px_60px_60px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
                         <span className={hdr} onClick={() => toggleBillSort('billTitle')}>Bill</span>
+                        <span className="flex items-center justify-center">
+                          <MessageSquare className="h-3.5 w-3.5" />
+                        </span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('date')}>Date</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('total')}>Total</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('yesCount')}>Yes</span>
@@ -628,8 +674,11 @@ const VotesDashboard = () => {
                       </div>
                     )}
                     {chartMode === 2 && (
-                      <div className="hidden md:grid grid-cols-[minmax(0,1fr)_90px_60px_60px_70px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                      <div className="hidden md:grid grid-cols-[minmax(0,1fr)_44px_90px_60px_60px_70px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
                         <span className={hdr} onClick={() => toggleBillSort('billTitle')}>Bill</span>
+                        <span className="flex items-center justify-center">
+                          <MessageSquare className="h-3.5 w-3.5" />
+                        </span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('date')}>Date</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('yesCount')}>Yes</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('noCount')}>No</span>
@@ -637,8 +686,11 @@ const VotesDashboard = () => {
                       </div>
                     )}
                     {chartMode === 4 && (
-                      <div className="hidden md:grid grid-cols-[minmax(0,1fr)_90px_60px_60px_70px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                      <div className="hidden md:grid grid-cols-[minmax(0,1fr)_44px_90px_60px_60px_70px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
                         <span className={hdr} onClick={() => toggleBillSort('billTitle')}>Bill</span>
+                        <span className="flex items-center justify-center">
+                          <MessageSquare className="h-3.5 w-3.5" />
+                        </span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('date')}>Date</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('yesCount')}>Yes</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('noCount')}>No</span>
@@ -653,6 +705,7 @@ const VotesDashboard = () => {
                         mode={chartMode as 1 | 2 | 4}
                         isExpanded={expandedBillRows.has(row.rollCallId)}
                         onToggle={() => toggleBillRow(row.rollCallId)}
+                        onChatClick={() => handleBillChatClick(row)}
                         getBillMemberVotes={getBillMemberVotes}
                       />
                     ))}
@@ -687,8 +740,11 @@ const VotesDashboard = () => {
                 <>
                   <div className="divide-y">
                     {chartMode === 0 && (
-                      <div className="hidden md:grid grid-cols-[1fr_80px_80px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                      <div className="hidden md:grid grid-cols-[minmax(0,1fr)_44px_80px_80px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
                         <span className={hdr} onClick={() => toggleMemberSort('name')}>Name</span>
+                        <span className="flex items-center justify-center">
+                          <MessageSquare className="h-3.5 w-3.5" />
+                        </span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('totalVotes')}>Votes</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('yesCount')}>Yes</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('noCount')}>No</span>
@@ -696,8 +752,11 @@ const VotesDashboard = () => {
                       </div>
                     )}
                     {chartMode === 3 && (
-                      <div className="hidden md:grid grid-cols-[1fr_60px_80px_80px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                      <div className="hidden md:grid grid-cols-[minmax(0,1fr)_44px_60px_80px_80px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
                         <span className={hdr} onClick={() => toggleMemberSort('name')}>Name</span>
+                        <span className="flex items-center justify-center">
+                          <MessageSquare className="h-3.5 w-3.5" />
+                        </span>
                         <span className={hdr} onClick={() => toggleMemberSort('party')}>Party</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('totalVotes')}>Votes</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('yesCount')}>Yes</span>
@@ -713,6 +772,7 @@ const VotesDashboard = () => {
                         showParty={chartMode === 3}
                         isExpanded={expandedRows.has(row.people_id)}
                         onToggle={() => toggleRow(row.people_id)}
+                        onChatClick={() => handleMemberChatClick(row)}
                         getDrillDown={getDrillDown}
                       />
                     ))}
@@ -740,6 +800,17 @@ const VotesDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Votes Chat Drawer */}
+      <VotesChatDrawer
+        open={chatOpen}
+        onOpenChange={setChatOpen}
+        memberName={chatMemberName}
+        memberParty={chatMemberParty}
+        billTitle={chatBillTitle}
+        billNumber={chatBillNumber}
+        billResult={chatBillResult}
+      />
     </div>
   );
 };
@@ -761,15 +832,21 @@ interface VoteRowItemProps {
   showParty: boolean;
   isExpanded: boolean;
   onToggle: () => void;
+  onChatClick: () => void;
   getDrillDown: (peopleId: number) => VotesDrillDownRow[];
 }
 
-function VoteRowItem({ row, showParty, isExpanded, onToggle, getDrillDown }: VoteRowItemProps) {
+function VoteRowItem({ row, showParty, isExpanded, onToggle, onChatClick, getDrillDown }: VoteRowItemProps) {
   const drillDownRows = isExpanded ? getDrillDown(row.people_id) : [];
 
+  const handleChatClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChatClick();
+  };
+
   const gridCols = showParty
-    ? 'md:grid-cols-[1fr_60px_80px_80px_80px_80px]'
-    : 'md:grid-cols-[1fr_80px_80px_80px_80px]';
+    ? 'md:grid-cols-[minmax(0,1fr)_44px_60px_80px_80px_80px_80px]'
+    : 'md:grid-cols-[minmax(0,1fr)_44px_80px_80px_80px_80px]';
 
   return (
     <div>
@@ -785,6 +862,16 @@ function VoteRowItem({ row, showParty, isExpanded, onToggle, getDrillDown }: Vot
           <span className="md:hidden text-sm text-muted-foreground ml-auto pl-2 whitespace-nowrap">
             {row.totalVotes.toLocaleString()} votes
           </span>
+        </div>
+
+        {/* Chat button column (desktop) */}
+        <div className="hidden md:flex justify-center">
+          <button
+            onClick={handleChatClick}
+            className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/80"
+          >
+            <ArrowUp className="h-4 w-4" />
+          </button>
         </div>
 
         {showParty && (
@@ -817,6 +904,12 @@ function VoteRowItem({ row, showParty, isExpanded, onToggle, getDrillDown }: Vot
         <span>{row.yesCount} yes</span>
         <span>{row.noCount} no</span>
         <span>{row.pctYes.toFixed(0)}% yes</span>
+        <button
+          onClick={handleChatClick}
+          className="ml-auto w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center"
+        >
+          <ArrowUp className="h-3.5 w-3.5" />
+        </button>
       </div>
 
       {isExpanded && drillDownRows.length > 0 && (
@@ -876,16 +969,22 @@ interface BillRowItemProps {
   mode: 1 | 2 | 4;
   isExpanded: boolean;
   onToggle: () => void;
+  onChatClick: () => void;
   getBillMemberVotes: (rollCallId: number) => BillMemberVoteRow[];
 }
 
-function BillRowItem({ row, mode, isExpanded, onToggle, getBillMemberVotes }: BillRowItemProps) {
+function BillRowItem({ row, mode, isExpanded, onToggle, onChatClick, getBillMemberVotes }: BillRowItemProps) {
   const memberVotes = isExpanded ? getBillMemberVotes(row.rollCallId) : [];
   const margin = Math.abs(row.yesCount - row.noCount);
 
+  const handleChatClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChatClick();
+  };
+
   const gridCols = mode === 1
-    ? 'md:grid-cols-[minmax(0,1fr)_90px_60px_60px_60px]'
-    : 'md:grid-cols-[minmax(0,1fr)_90px_60px_60px_70px]';
+    ? 'md:grid-cols-[minmax(0,1fr)_44px_90px_60px_60px_60px]'
+    : 'md:grid-cols-[minmax(0,1fr)_44px_90px_60px_60px_70px]';
 
   return (
     <div>
@@ -909,6 +1008,16 @@ function BillRowItem({ row, mode, isExpanded, onToggle, getBillMemberVotes }: Bi
           )}>
             {mode === 1 ? `${row.yesCount + row.noCount}` : mode === 2 ? row.result : margin}
           </span>
+        </div>
+
+        {/* Chat button column (desktop) */}
+        <div className="hidden md:flex justify-center">
+          <button
+            onClick={handleChatClick}
+            className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/80"
+          >
+            <ArrowUp className="h-4 w-4" />
+          </button>
         </div>
 
         <span className="hidden md:block text-right text-sm text-muted-foreground whitespace-nowrap">
@@ -942,6 +1051,12 @@ function BillRowItem({ row, mode, isExpanded, onToggle, getBillMemberVotes }: Bi
         {row.date && (
           <span>{new Date(row.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
         )}
+        <button
+          onClick={handleChatClick}
+          className="ml-auto w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center"
+        >
+          <ArrowUp className="h-3.5 w-3.5" />
+        </button>
       </div>
 
       {isExpanded && memberVotes.length > 0 && (

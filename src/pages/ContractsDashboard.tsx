@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronDown, ArrowUp, X, LayoutGrid, Loader2 } from 'lucide-react';
+import { ChevronRight, ChevronDown, ArrowUp, MessageSquare, X, LayoutGrid, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { ContractsChatDrawer } from '@/components/ContractsChatDrawer';
 import {
   Drawer,
   DrawerTrigger,
@@ -44,6 +45,9 @@ const ContractsDashboard = () => {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [selectedRow, setSelectedRow] = useState<string | null>(null);
   const [displayCount, setDisplayCount] = useState(25);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatDepartmentName, setChatDepartmentName] = useState<string | null>(null);
+  const [chatContractTypeName, setChatContractTypeName] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
@@ -113,6 +117,22 @@ const ContractsDashboard = () => {
   // Header values
   const headerAmount = selectedRowData ? selectedRowData.amount : grandTotal;
 
+  // Open chat drawer
+  const openChat = (departmentName?: string | null, contractTypeName?: string | null) => {
+    setChatDepartmentName(departmentName || null);
+    setChatContractTypeName(contractTypeName || null);
+    setChatOpen(true);
+  };
+
+  // Chat click for main row
+  const handleChatClick = (row: ContractsDashboardRow) => {
+    if (activeTab === 'department') {
+      openChat(row.name, null);
+    } else {
+      openChat(null, row.name);
+    }
+  };
+
   return (
     <div className="fixed inset-0 overflow-hidden">
       {/* Left Sidebar */}
@@ -161,7 +181,7 @@ const ContractsDashboard = () => {
                   <div className="text-right flex-shrink-0">
                     <div className="flex items-center gap-2 justify-end">
                       <button
-                        onClick={() => navigate('/contracts')}
+                        onClick={() => openChat()}
                         className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors flex-shrink-0"
                       >
                         <ArrowUp className="h-4 w-4" />
@@ -312,8 +332,11 @@ const ContractsDashboard = () => {
               <>
                 <div className="divide-y">
                   {/* Column headers */}
-                  <div className="hidden md:grid grid-cols-[1fr_120px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                  <div className="hidden md:grid grid-cols-[1fr_44px_120px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
                     <span>Name</span>
+                    <span className="flex items-center justify-center">
+                      <MessageSquare className="h-3.5 w-3.5" />
+                    </span>
                     <span className="text-right">Amount</span>
                     <span className="text-right">Contracts</span>
                     <span className="text-right">Share</span>
@@ -327,14 +350,16 @@ const ContractsDashboard = () => {
                       isSelected={selectedRow === row.name}
                       hasSelection={selectedRow !== null}
                       onToggle={() => toggleRow(row.name)}
+                      onChatClick={() => handleChatClick(row)}
                       tab={activeTab}
                       getDrillDown={getDrillDown}
                     />
                   ))}
 
                   {/* Grand total row */}
-                  <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_120px_80px_80px] gap-4 px-4 md:px-6 py-4 bg-muted/30 font-semibold">
+                  <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_120px_80px_80px] gap-4 px-4 md:px-6 py-4 bg-muted/30 font-semibold">
                     <span>Total</span>
+                    <span className="hidden md:block" />
                     <span className="text-right">{formatCompactCurrency(grandTotal)}</span>
                     <span className="hidden md:block text-right">{displayedTotalContracts.toLocaleString()}</span>
                     <span className="hidden md:block text-right">100%</span>
@@ -366,6 +391,14 @@ const ContractsDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Contracts Chat Drawer */}
+      <ContractsChatDrawer
+        open={chatOpen}
+        onOpenChange={setChatOpen}
+        departmentName={chatDepartmentName}
+        contractTypeName={chatContractTypeName}
+      />
     </div>
   );
 };
@@ -378,6 +411,7 @@ interface ContractRowItemProps {
   isSelected: boolean;
   hasSelection: boolean;
   onToggle: () => void;
+  onChatClick: () => void;
   tab: ContractsDashboardTab;
   getDrillDown: (tab: ContractsDashboardTab, groupValue: string) => ContractsDrillDownRow[];
 }
@@ -388,10 +422,16 @@ function ContractRowItem({
   isSelected,
   hasSelection,
   onToggle,
+  onChatClick,
   tab,
   getDrillDown,
 }: ContractRowItemProps) {
   const drillDownRows = isExpanded ? getDrillDown(tab, row.name) : [];
+
+  const handleChatClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChatClick();
+  };
 
   return (
     <div>
@@ -399,7 +439,7 @@ function ContractRowItem({
       <div
         onClick={onToggle}
         className={cn(
-          "group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_120px_80px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer transition-all duration-200 items-center",
+          "group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_120px_80px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer transition-all duration-200 items-center",
           isSelected
             ? "bg-muted/50"
             : hasSelection
@@ -438,6 +478,16 @@ function ContractRowItem({
           </span>
         </div>
 
+        {/* Chat button column (desktop) */}
+        <div className="hidden md:flex justify-center">
+          <button
+            onClick={handleChatClick}
+            className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/80"
+          >
+            <ArrowUp className="h-4 w-4" />
+          </button>
+        </div>
+
         {/* Desktop columns */}
         <span className="hidden md:block text-right font-medium tabular-nums">
           {formatCompactCurrency(row.amount)}
@@ -473,6 +523,12 @@ function ContractRowItem({
           />
         </div>
         <span>{row.pctOfTotal.toFixed(0)}%</span>
+        <button
+          onClick={handleChatClick}
+          className="ml-auto w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center"
+        >
+          <ArrowUp className="h-3.5 w-3.5" />
+        </button>
       </div>
 
       {/* Drill-down rows */}
@@ -516,7 +572,7 @@ function ContractDrillRow({ contract }: ContractDrillRowProps) {
       <div
         onClick={handleClick}
         className={cn(
-          "hidden md:grid grid-cols-[1fr_120px_80px_80px] gap-4 px-6 py-3 pl-14 hover:bg-muted/20 transition-colors items-center group",
+          "hidden md:grid grid-cols-[1fr_44px_120px_80px_80px] gap-4 px-6 py-3 pl-14 hover:bg-muted/20 transition-colors items-center group",
           contract.contractNumber && "cursor-pointer"
         )}
       >
@@ -528,6 +584,7 @@ function ContractDrillRow({ contract }: ContractDrillRowProps) {
             </span>
           )}
         </div>
+        <span />
         <span className="text-right text-sm tabular-nums">
           {formatCompactCurrency(contract.amount)}
         </span>
