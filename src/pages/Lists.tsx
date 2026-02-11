@@ -434,10 +434,10 @@ export default function Lists() {
                     </div>
                   </div>
 
-                  {/* ------ Yay (members by Yea votes) ------ */}
+                  {/* ------ Yes Votes (members by Yes votes) ------ */}
                   <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
                     <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                      Yay
+                      Yes Votes
                     </h3>
                     <div className="divide-y-2 divide-dotted divide-border/80">
                       {(membersByYesVotes || [])
@@ -486,10 +486,10 @@ export default function Lists() {
                     </div>
                   </div>
 
-                  {/* ------ Nay (members by Nay votes) ------ */}
+                  {/* ------ No Votes (members by No votes) ------ */}
                   <div className="md:pl-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
                     <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                      Nay
+                      No Votes
                     </h3>
                     <div className="divide-y-2 divide-dotted divide-border/80">
                       {(membersByNoVotes || [])
