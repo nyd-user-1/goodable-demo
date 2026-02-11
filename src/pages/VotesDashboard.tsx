@@ -79,6 +79,7 @@ const VotesDashboard = () => {
   const [chatBillTitle, setChatBillTitle] = useState<string | null>(null);
   const [chatBillNumber, setChatBillNumber] = useState<string | null>(null);
   const [chatBillResult, setChatBillResult] = useState<string | null>(null);
+  const [chatMemberVoteDetails, setChatMemberVoteDetails] = useState<string | null>(null);
   const [chatBillVoteDetails, setChatBillVoteDetails] = useState<string | null>(null);
 
   useEffect(() => {
@@ -220,6 +221,7 @@ const VotesDashboard = () => {
   const openChat = () => {
     setChatMemberName(null);
     setChatMemberParty(null);
+    setChatMemberVoteDetails(null);
     setChatBillTitle(null);
     setChatBillNumber(null);
     setChatBillResult(null);
@@ -228,8 +230,26 @@ const VotesDashboard = () => {
   };
 
   const handleMemberChatClick = (row: VotesDashboardRow) => {
+    const votes = getDrillDown(row.people_id);
+    // Include all No votes (usually few) + summary for context
+    const noVotes = votes.filter((v) => v.vote === 'No');
+    const yesVotes = votes.filter((v) => v.vote === 'Yes');
+    const otherVotes = votes.filter((v) => v.vote !== 'Yes' && v.vote !== 'No');
+    let details = `Summary: ${row.totalVotes} total votes, ${row.yesCount} Yes, ${row.noCount} No, ${row.pctYes.toFixed(0)}% Yes`;
+    if (noVotes.length > 0) {
+      details += `\n\nBills they voted NO on:\n${noVotes.map((v) => `- ${v.billTitle || 'Untitled'} (${v.billNumber || 'no number'}) — ${v.date}`).join('\n')}`;
+    }
+    if (otherVotes.length > 0) {
+      details += `\n\nBills with Other/Not Voting:\n${otherVotes.map((v) => `- ${v.billTitle || 'Untitled'} (${v.billNumber || 'no number'}) — ${v.vote} — ${v.date}`).join('\n')}`;
+    }
+    if (yesVotes.length > 0) {
+      const shown = yesVotes.slice(0, 20);
+      details += `\n\nRecent Yes votes (${yesVotes.length} total):\n${shown.map((v) => `- ${v.billTitle || 'Untitled'} (${v.billNumber || 'no number'}) — ${v.date}`).join('\n')}`;
+      if (yesVotes.length > 20) details += `\n... and ${yesVotes.length - 20} more Yes votes`;
+    }
     setChatMemberName(row.name);
     setChatMemberParty(row.party);
+    setChatMemberVoteDetails(details);
     setChatBillTitle(null);
     setChatBillNumber(null);
     setChatBillResult(null);
@@ -244,6 +264,7 @@ const VotesDashboard = () => {
       : null;
     setChatMemberName(null);
     setChatMemberParty(null);
+    setChatMemberVoteDetails(null);
     setChatBillTitle(row.billTitle || null);
     setChatBillNumber(row.billNumber || null);
     setChatBillResult(row.result || null);
@@ -815,6 +836,7 @@ const VotesDashboard = () => {
         onOpenChange={setChatOpen}
         memberName={chatMemberName}
         memberParty={chatMemberParty}
+        memberVoteDetails={chatMemberVoteDetails}
         billTitle={chatBillTitle}
         billNumber={chatBillNumber}
         billResult={chatBillResult}
@@ -847,6 +869,12 @@ interface VoteRowItemProps {
 
 function VoteRowItem({ row, showParty, isExpanded, onToggle, onChatClick, getDrillDown }: VoteRowItemProps) {
   const drillDownRows = isExpanded ? getDrillDown(row.people_id) : [];
+  const [drillDisplayCount, setDrillDisplayCount] = useState(20);
+
+  // Reset display count when collapsing
+  useEffect(() => {
+    if (!isExpanded) setDrillDisplayCount(20);
+  }, [isExpanded]);
 
   const handleChatClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -922,10 +950,20 @@ function VoteRowItem({ row, showParty, isExpanded, onToggle, onChatClick, getDri
       </div>
 
       {isExpanded && drillDownRows.length > 0 && (
-        <div className="bg-muted/10 border-t border-b">
-          {drillDownRows.map((vote, idx) => (
+        <div className="bg-muted/10 border-t border-b max-h-[400px] overflow-y-auto">
+          {drillDownRows.slice(0, drillDisplayCount).map((vote, idx) => (
             <VoteDrillRow key={`${vote.billNumber}-${idx}`} vote={vote} />
           ))}
+          {drillDisplayCount < drillDownRows.length && (
+            <div className="flex justify-center py-3">
+              <button
+                onClick={(e) => { e.stopPropagation(); setDrillDisplayCount((prev) => prev + 50); }}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Load more ({drillDisplayCount} of {drillDownRows.length})
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
