@@ -433,13 +433,17 @@ const VotesDashboard = () => {
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 px-4 pb-8">
                         {/* Dashboard navigation cards */}
                         {[
-                          { path: '/budget-dashboard', label: 'Budget', desc: 'NYS budget spending', gradient: 'from-emerald-500/20 to-teal-500/10' },
-                          { path: '/lobbying-dashboard', label: 'Lobbying', desc: 'Lobbyist compensation', gradient: 'from-blue-500/20 to-indigo-500/10' },
-                          { path: '/contracts-dashboard', label: 'Contracts', desc: 'State contracts', gradient: 'from-amber-500/20 to-orange-500/10' },
+                          { path: '/budget-dashboard', label: 'Budget', desc: 'NYS budget spending', gradient: 'from-emerald-500/20 to-teal-500/10', stroke: 'hsl(160 60% 45%)', d: 'M0,28 C8,26 12,18 20,16 S32,22 40,20 S52,10 60,12 S72,18 80,14 S92,8 100,10' },
+                          { path: '/lobbying-dashboard', label: 'Lobbying', desc: 'Lobbyist compensation', gradient: 'from-blue-500/20 to-indigo-500/10', stroke: 'hsl(217 91% 60%)', d: 'M0,22 C10,24 15,30 25,28 S35,14 45,16 S55,22 65,18 S80,12 90,14 S95,10 100,12' },
+                          { path: '/contracts-dashboard', label: 'Contracts', desc: 'State contracts', gradient: 'from-amber-500/20 to-orange-500/10', stroke: 'hsl(32 95% 50%)', d: 'M0,18 C10,16 18,24 28,22 S38,28 48,26 S58,16 68,18 S78,24 88,20 S95,14 100,16' },
                         ].map((d) => (
                           <DrawerClose asChild key={d.path}>
                             <button onClick={() => navigate(d.path)} className="text-left rounded-xl border border-border bg-muted/30 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 overflow-hidden">
-                              <div className={cn("h-24 bg-gradient-to-br", d.gradient)} />
+                              <div className={cn("h-24 bg-gradient-to-br relative", d.gradient)}>
+                                <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 40">
+                                  <path d={d.d} fill="none" stroke={d.stroke} strokeWidth="1.5" opacity="0.6" />
+                                </svg>
+                              </div>
                               <div className="px-3 pb-3 pt-2">
                                 <p className="font-semibold text-sm">{d.label}</p>
                                 <p className="text-xs text-muted-foreground">{d.desc}</p>
