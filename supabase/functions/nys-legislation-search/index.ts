@@ -417,9 +417,12 @@ async function getProgress() {
 async function getBillDetail(billNumber: string, sessionYear: number = 2025, view: string = 'no_fulltext', fullTextFormat?: string) {
   // Normalize session year
   sessionYear = sessionYear % 2 === 1 ? sessionYear : sessionYear - 1;
-  console.log(`Fetching bill detail for ${billNumber} (${sessionYear}) view=${view} fullTextFormat=${fullTextFormat || 'default'}`);
+  console.log(`Fetching bill detail for ${billNumber} (${sessionYear}) view=${view} fullTextFormat=${fullTextFormat || 'none'}`);
 
-  let apiUrl = `https://legislation.nysenate.gov/api/3/bills/${sessionYear}/${billNumber}?view=${view}&key=${nysApiKey}`;
+  let apiUrl = `https://legislation.nysenate.gov/api/3/bills/${sessionYear}/${billNumber}?key=${nysApiKey}`;
+  if (view && view !== 'default') {
+    apiUrl += `&view=${view}`;
+  }
   if (fullTextFormat) {
     apiUrl += `&fullTextFormat=${fullTextFormat}`;
   }

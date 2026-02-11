@@ -14,6 +14,7 @@ export function useBillText(billNumber: string | null, sessionId: number | null,
             action: "get-bill-detail",
             billNumber,
             sessionYear: sessionId,
+            view: "default",
             fullTextFormat: "html",
           },
         }
