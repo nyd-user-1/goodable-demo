@@ -1,14 +1,14 @@
-
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Tables } from "@/integrations/supabase/types";
-import { VotesTable } from "./votes/VotesTable";
+import { useMemberVotes, type MemberVoteRow } from "@/hooks/useMemberVotes";
 import { VotesPagination } from "./votes/VotesPagination";
-import { mockVoteData } from "./votes/mockVoteData";
 
 type Member = Tables<"People">;
 
@@ -16,105 +16,216 @@ interface MemberVotesTableProps {
   member: Member;
 }
 
+type SortField = 'billNumber' | 'billTitle' | 'date' | 'vote';
+type SortDirection = 'asc' | 'desc' | null;
+
 const VOTES_PER_PAGE = 25;
 
 export const MemberVotesTable = ({ member }: MemberVotesTableProps) => {
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const handleVoteClick = (vote: any) => {
-    navigate(`/bills?selected=${vote.bill_id}`);
+  const { votes, loading, error } = useMemberVotes(member.people_id);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortField(null);
+        setSortDirection(null);
+      } else {
+        setSortDirection('asc');
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
   };
 
-  const handleAIAnalysis = (vote: any, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) return <ArrowUpDown className="h-4 w-4" />;
+    if (sortDirection === 'asc') return <ArrowUp className="h-4 w-4" />;
+    if (sortDirection === 'desc') return <ArrowDown className="h-4 w-4" />;
+    return <ArrowUpDown className="h-4 w-4" />;
   };
 
-  const handleFavorite = async (vote: any, e: React.MouseEvent) => {
-    e.stopPropagation();
-    // TODO: Implement favorite functionality for votes/bills
-  };
+  const filteredAndSorted = useMemo(() => {
+    let filtered = votes;
 
-  // Filter votes based on search query (searches ALL votes)
-  const filteredVotes = useMemo(() => {
-    if (!searchQuery.trim()) return mockVoteData;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = votes.filter(v =>
+        v.billNumber?.toLowerCase().includes(query) ||
+        v.billTitle?.toLowerCase().includes(query) ||
+        v.vote?.toLowerCase().includes(query) ||
+        v.date?.includes(query)
+      );
+    }
 
-    const query = searchQuery.toLowerCase();
-    return mockVoteData.filter(vote => 
-      // Basic bill information
-      vote.bill_number?.toLowerCase().includes(query) ||
-      vote.description?.toLowerCase().includes(query) ||
-      vote.bill_text?.toLowerCase().includes(query) ||
-      vote.status?.toLowerCase().includes(query) ||
-      
-      // Sponsor and co-sponsor search
-      vote.sponsor?.toLowerCase().includes(query) ||
-      vote.co_sponsors?.some(coSponsor => 
-        coSponsor.toLowerCase().includes(query)
-      ) ||
-      
-      // Committee search
-      vote.committee?.toLowerCase().includes(query) ||
-      
-      // Vote type search
-      vote.vote_type?.toLowerCase().includes(query) ||
-      
-      // Date search (supports partial matches like "2025" or "01/05")
-      vote.vote_date?.includes(query)
-    );
-  }, [searchQuery]);
+    if (sortField && sortDirection) {
+      filtered = [...filtered].sort((a, b) => {
+        let aVal: string = (a[sortField] || '').toLowerCase();
+        let bVal: string = (b[sortField] || '').toLowerCase();
 
-  // Calculate pagination
-  const totalPages = Math.ceil(filteredVotes.length / VOTES_PER_PAGE);
+        if (sortField === 'date') {
+          const aDate = new Date(aVal || 0).getTime();
+          const bDate = new Date(bVal || 0).getTime();
+          return sortDirection === 'asc' ? aDate - bDate : bDate - aDate;
+        }
+
+        if (sortDirection === 'asc') return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+        return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+      });
+    }
+
+    return filtered;
+  }, [votes, searchQuery, sortField, sortDirection]);
+
+  const totalPages = Math.ceil(filteredAndSorted.length / VOTES_PER_PAGE);
   const startIndex = (currentPage - 1) * VOTES_PER_PAGE;
-  const endIndex = startIndex + VOTES_PER_PAGE;
-  const currentPageVotes = filteredVotes.slice(startIndex, endIndex);
+  const currentPageVotes = filteredAndSorted.slice(startIndex, startIndex + VOTES_PER_PAGE);
 
-  // Reset to page 1 when search changes
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
     setCurrentPage(1);
   };
 
   return (
-      <Card>
-        <CardHeader className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <CardTitle>Member Votes ({filteredVotes.length} total)</CardTitle>
-            <Button variant="outline" size="sm">
-              View All Votes
-            </Button>
-          </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search votes by bill number, description, sponsor, co-sponsor, committee, vote type, or date..."
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <VotesTable
-            votes={currentPageVotes}
-            onVoteClick={handleVoteClick}
-            onAIAnalysis={handleAIAnalysis}
-            onFavorite={handleFavorite}
-            searchQuery={searchQuery}
+    <Card>
+      <CardHeader className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <CardTitle>Member Votes ({filteredAndSorted.length} total)</CardTitle>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search votes by bill number, description, vote type, or date..."
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="pl-9"
           />
-          
-          {filteredVotes.length > VOTES_PER_PAGE && (
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-muted-foreground">Loading votes...</div>
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-destructive">{error}</div>
+          </div>
+        ) : filteredAndSorted.length === 0 ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-muted-foreground">
+              {searchQuery ? "No votes found matching your search" : "No vote records found for this member"}
+            </div>
+          </div>
+        ) : (
+          <div className="relative border-t">
+            {/* Fixed Header */}
+            <Table className="table-fixed w-full">
+              <TableHeader className="bg-background border-b">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-[70px] px-3 text-left">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleSort('billNumber')}
+                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                    >
+                      Bill {getSortIcon('billNumber')}
+                    </Button>
+                  </TableHead>
+                  <TableHead className="px-3 text-left">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleSort('billTitle')}
+                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                    >
+                      Description {getSortIcon('billTitle')}
+                    </Button>
+                  </TableHead>
+                  <TableHead className="w-[100px] px-3 text-left">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleSort('date')}
+                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                    >
+                      Date {getSortIcon('date')}
+                    </Button>
+                  </TableHead>
+                  <TableHead className="w-[70px] px-3 text-left">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleSort('vote')}
+                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                    >
+                      Vote {getSortIcon('vote')}
+                    </Button>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+            </Table>
+
+            {/* Scrollable Body */}
+            <ScrollArea className="h-[500px] w-full">
+              <Table className="table-fixed w-full">
+                <TableBody>
+                  {currentPageVotes.map((vote, idx) => (
+                    <TableRow
+                      key={`${vote.billNumber}-${vote.date}-${idx}`}
+                      className="hover:bg-muted/50 transition-colors"
+                    >
+                      <TableCell className="w-[70px] px-3 font-medium text-left">
+                        {vote.billNumber || "—"}
+                      </TableCell>
+                      <TableCell className="px-3 text-left">
+                        <div className="text-sm truncate" title={vote.billTitle || ""}>
+                          {vote.billTitle || "No title"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="w-[100px] px-3 text-sm text-muted-foreground text-left whitespace-nowrap">
+                        {vote.date ? new Date(vote.date + 'T00:00:00').toLocaleDateString() : "—"}
+                      </TableCell>
+                      <TableCell className="w-[70px] px-3 text-left">
+                        <Badge
+                          variant={
+                            vote.vote === 'Yes' ? 'success'
+                              : vote.vote === 'No' ? 'destructive'
+                                : 'secondary'
+                          }
+                          className="whitespace-nowrap text-xs"
+                        >
+                          {vote.vote}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          </div>
+        )}
+
+        {filteredAndSorted.length > VOTES_PER_PAGE && (
+          <div className="p-4">
             <VotesPagination
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={setCurrentPage}
-              totalVotes={filteredVotes.length}
+              totalVotes={filteredAndSorted.length}
               votesPerPage={VOTES_PER_PAGE}
             />
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };

@@ -253,6 +253,26 @@ export function useVotesDashboard() {
     return [];
   };
 
+  // Fetch only No/Other votes for chat context (bypasses drilldown RPC limit)
+  const fetchOppositionVotes = async (peopleId: number): Promise<VotesDrillDownRow[]> => {
+    // Try the dedicated opposition RPC first
+    const { data, error } = await (supabase as any)
+      .rpc('get_member_opposition_votes', { p_people_id: peopleId });
+
+    if (!error && data) {
+      return (data as any[]).map((d: any) => ({
+        billNumber: d.bill_number,
+        billTitle: d.bill_title,
+        date: d.date || '',
+        vote: d.vote,
+      }));
+    }
+
+    // Fallback: filter from drilldown cache or fetch
+    const all = await fetchDrillDownAsync(peopleId);
+    return all.filter((v) => v.vote !== 'Yes');
+  };
+
   // ── Bill member votes drill-down: lazy RPC with cache ────
   const [billDrillCache, setBillDrillCache] = useState<Record<string, BillMemberVoteRow[]>>({});
   const billFetchingRef = useRef<Set<string>>(new Set());
@@ -294,6 +314,7 @@ export function useVotesDashboard() {
     billsPassFail: billsPassFailRaw ?? [],
     getDrillDown,
     fetchDrillDownAsync,
+    fetchOppositionVotes,
     getBillMemberVotes,
     totalVotes: totalsRaw?.totalVotes ?? 0,
     totalMembers: totalsRaw?.totalMembers ?? 0,

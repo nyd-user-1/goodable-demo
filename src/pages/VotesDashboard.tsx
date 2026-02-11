@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ChevronRight, ChevronLeft, ChevronDown, ArrowUp, MessageSquare, LayoutGrid } from 'lucide-react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { ChevronRight, ChevronLeft, ChevronDown, ArrowUp, MessageSquare, LayoutGrid, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
@@ -102,6 +102,7 @@ const VotesDashboard = () => {
     billsPassFail,
     getDrillDown,
     fetchDrillDownAsync,
+    fetchOppositionVotes,
     getBillMemberVotes,
     totalVotes,
     totalMembers,
@@ -231,11 +232,17 @@ const VotesDashboard = () => {
   };
 
   const handleMemberChatClick = async (row: VotesDashboardRow) => {
-    const votes = await fetchDrillDownAsync(row.people_id);
-    // Include all No votes (usually few) + summary for context
-    const noVotes = votes.filter((v) => v.vote === 'No');
-    const yesVotes = votes.filter((v) => v.vote === 'Yes');
-    const otherVotes = votes.filter((v) => v.vote !== 'Yes' && v.vote !== 'No');
+    // Fetch opposition votes directly (bypasses drilldown LIMIT)
+    // Also fetch drilldown for recent Yes vote context
+    const [oppositionVotes, drilldownVotes] = await Promise.all([
+      fetchOppositionVotes(row.people_id),
+      fetchDrillDownAsync(row.people_id),
+    ]);
+
+    const noVotes = oppositionVotes.filter((v) => v.vote === 'No');
+    const otherVotes = oppositionVotes.filter((v) => v.vote === 'Other');
+    const yesVotes = drilldownVotes.filter((v) => v.vote === 'Yes');
+
     let details = `Summary: ${row.totalVotes} total votes, ${row.yesCount} Yes, ${row.noCount} No, ${row.pctYes.toFixed(0)}% Yes`;
     if (noVotes.length > 0) {
       details += `\n\nBills they voted NO on:\n${noVotes.map((v) => `- ${v.billTitle || 'Untitled'} (${v.billNumber || 'no number'}) — ${v.date}`).join('\n')}`;
@@ -955,16 +962,23 @@ function VoteRowItem({ row, showParty, isExpanded, onToggle, onChatClick, getDri
           {drillDownRows.slice(0, drillDisplayCount).map((vote, idx) => (
             <VoteDrillRow key={`${vote.billNumber}-${idx}`} vote={vote} />
           ))}
-          {drillDisplayCount < drillDownRows.length && (
-            <div className="flex justify-center py-3">
+          <div className="flex items-center justify-center gap-4 py-3">
+            {drillDisplayCount < drillDownRows.length && (
               <button
                 onClick={(e) => { e.stopPropagation(); setDrillDisplayCount((prev) => prev + 50); }}
                 className="text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 Load more ({drillDisplayCount} of {drillDownRows.length})
               </button>
-            </div>
-          )}
+            )}
+            <Link
+              to={`/members/${row.name.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').split(/\s+/).filter(p => p.length > 1).join('-')}`}
+              onClick={(e) => e.stopPropagation()}
+              className="text-xs text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+            >
+              View member <ExternalLink className="h-3 w-3" />
+            </Link>
+          </div>
         </div>
       )}
     </div>
