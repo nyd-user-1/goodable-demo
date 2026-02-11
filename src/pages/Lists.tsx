@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
@@ -7,10 +7,17 @@ import { ArrowUp, Users, Search, TrendingUp, TrendingDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useVotesDashboard } from '@/hooks/useVotesDashboard';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+} from 'recharts';
 
 export default function Lists() {
   const navigate = useNavigate();
-  const [pageTab, setPageTab] = useState<'members' | 'lobbyists'>('members');
+  const [pageTab, setPageTab] = useState<'members' | 'lobbyists' | 'charts'>('members');
   const [memberSearch, setMemberSearch] = useState('');
   const [lobbyingSearch, setLobbyingSearch] = useState('');
   const [lobbyistVisibleCount, setLobbyistVisibleCount] = useState(10);
@@ -245,6 +252,63 @@ export default function Lists() {
   }
 
   // -----------------------------------------------------------------------
+  // Votes dashboard data (for Charts tab)
+  // -----------------------------------------------------------------------
+  const votes = useVotesDashboard();
+
+  const chartCutoff = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 90);
+    return d.toISOString().split('T')[0];
+  }, []);
+
+  const chartPreviews = useMemo(() => [
+    {
+      label: 'Votes by Day',
+      desc: 'Yes vs. No votes cast per day',
+      data: votes.chartData.filter((p) => p.date >= chartCutoff),
+      areas: [
+        { key: 'yes', stroke: 'hsl(142 76% 36%)', id: 'prevYes' },
+        { key: 'no', stroke: 'hsl(0 84% 60%)', id: 'prevNo' },
+      ],
+    },
+    {
+      label: 'Roll Calls',
+      desc: 'Number of roll call votes per day',
+      data: votes.rollCallsPerDay.filter((p) => p.date >= chartCutoff),
+      areas: [
+        { key: 'rollCalls', stroke: 'hsl(217 91% 60%)', id: 'prevRC' },
+      ],
+    },
+    {
+      label: 'Passed vs. Failed',
+      desc: 'Bills that passed or failed each day',
+      data: votes.passFailPerDay.filter((p) => p.date >= chartCutoff),
+      areas: [
+        { key: 'passed', stroke: 'hsl(142 76% 36%)', id: 'prevPass' },
+        { key: 'failed', stroke: 'hsl(0 84% 60%)', id: 'prevFail' },
+      ],
+    },
+    {
+      label: 'By Party',
+      desc: 'Democrat vs. Republican yes votes',
+      data: votes.partyPerDay.filter((p) => p.date >= chartCutoff),
+      areas: [
+        { key: 'demYes', stroke: 'hsl(217 91% 60%)', id: 'prevDem' },
+        { key: 'repYes', stroke: 'hsl(0 84% 60%)', id: 'prevRep' },
+      ],
+    },
+    {
+      label: 'Closest Votes',
+      desc: 'Average vote margin per day',
+      data: votes.marginPerDay.filter((p) => p.date >= chartCutoff),
+      areas: [
+        { key: 'avgMargin', stroke: 'hsl(280 67% 55%)', id: 'prevMargin' },
+      ],
+    },
+  ], [votes.chartData, votes.rollCallsPerDay, votes.passFailPerDay, votes.partyPerDay, votes.marginPerDay, chartCutoff]);
+
+  // -----------------------------------------------------------------------
   // Helpers
   // -----------------------------------------------------------------------
   const makeMemberSlug = (m: any): string => {
@@ -269,7 +333,7 @@ export default function Lists() {
           {/* Pill tab toggle */}
           <div className="flex justify-center mb-12">
             <div className="inline-flex items-center bg-muted/50 rounded-full p-1">
-              {(['members', 'lobbyists'] as const).map((tab) => (
+              {(['members', 'lobbyists', 'charts'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setPageTab(tab)}
@@ -280,7 +344,7 @@ export default function Lists() {
                       : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
-                  {tab === 'members' ? 'Members' : 'Lobbyists'}
+                  {tab === 'members' ? 'Members' : tab === 'lobbyists' ? 'Lobbyists' : 'Charts'}
                 </button>
               ))}
             </div>
@@ -679,6 +743,69 @@ export default function Lists() {
                     </button>
                   </div>
                 )}
+              </div>
+            </>
+          )}
+
+          {pageTab === 'charts' && (
+            <>
+              <div className="pt-0 pb-12">
+                <div className="mb-8">
+                  <h2 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
+                    Charts
+                  </h2>
+                  <p className="text-muted-foreground mt-2">
+                    Legislative voting activity visualized
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {chartPreviews.map((chart, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => navigate(`/votes-dashboard?mode=${idx}`)}
+                      className="group text-left rounded-xl border border-border bg-muted/30 hover:bg-muted/50 hover:shadow-lg hover:border-border/80 transition-all duration-200 overflow-hidden"
+                    >
+                      <div className="h-32 px-2 pt-3">
+                        {chart.data.length > 1 ? (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={chart.data} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
+                              <defs>
+                                {chart.areas.map((a) => (
+                                  <linearGradient key={a.id} id={a.id} x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor={a.stroke} stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor={a.stroke} stopOpacity={0.02} />
+                                  </linearGradient>
+                                ))}
+                              </defs>
+                              {chart.areas.map((a) => (
+                                <Area
+                                  key={a.key}
+                                  type="monotone"
+                                  dataKey={a.key}
+                                  stroke={a.stroke}
+                                  strokeWidth={1.5}
+                                  fill={`url(#${a.id})`}
+                                  dot={false}
+                                  animationDuration={500}
+                                />
+                              ))}
+                              <XAxis dataKey="date" hide />
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        ) : (
+                          <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+                            Loading...
+                          </div>
+                        )}
+                      </div>
+                      <div className="px-4 pb-4 pt-2">
+                        <p className="font-semibold text-sm group-hover:text-foreground transition-colors">{chart.label}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{chart.desc}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             </>
           )}

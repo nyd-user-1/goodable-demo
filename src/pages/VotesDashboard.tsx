@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, ChevronDown, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
@@ -42,6 +42,7 @@ const NUM_MODES = CHART_LABELS.length;
 
 const VotesDashboard = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { session } = useAuth();
   const isAuthenticated = !!session;
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
@@ -51,7 +52,10 @@ const VotesDashboard = () => {
   const [displayCount, setDisplayCount] = useState(20);
   const [billDisplayCount, setBillDisplayCount] = useState(20);
   const [timeRange, setTimeRange] = useState('90');
-  const [chartMode, setChartMode] = useState(0);
+  const [chartMode, setChartMode] = useState(() => {
+    const m = parseInt(searchParams.get('mode') || '0');
+    return m >= 0 && m < NUM_MODES ? m : 0;
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
