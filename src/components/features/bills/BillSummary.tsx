@@ -121,19 +121,7 @@ export const BillSummary = ({
   };
 
   return (
-    <Card className="card bg-card rounded-xl shadow-sm border overflow-hidden relative">
-      {/* Has Note Badge - Top Right Corner */}
-      {hasNotes && (
-        <div className="absolute top-4 right-6 z-10">
-          <Badge
-            variant="outline"
-            className="bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800"
-          >
-            <StickyNote className="h-3 w-3 mr-1" />
-            Has Note
-          </Badge>
-        </div>
-      )}
+    <Card className="card bg-card rounded-xl shadow-sm border overflow-hidden">
       <CardHeader className="card-header px-6 py-4 border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -149,6 +137,15 @@ export const BillSummary = ({
                 {bill.bill_number || "Unknown Bill Number"}
               </CardTitle>
               {getReviewBadge()}
+              {hasNotes && (
+                <Badge
+                  variant="outline"
+                  className="bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800"
+                >
+                  <StickyNote className="h-3 w-3 mr-1" />
+                  Has Note
+                </Badge>
+              )}
             </div>
           </div>
           <Link to="/bills">
