@@ -71,11 +71,15 @@ const VotesDashboard = () => {
   });
   const [memberSort, setMemberSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
   const [billSort, setBillSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
     return () => clearTimeout(timer);
   }, []);
+
+  // Clear date filter when switching chart modes
+  useEffect(() => { setSelectedDate(null); }, [chartMode]);
 
   const {
     isLoading,
@@ -204,6 +208,18 @@ const VotesDashboard = () => {
     return arr;
   }, [activeBillRows, billSort]);
 
+  // ── Chart click → filter table by date ─────────────────────
+  const handleChartClick = (data: any) => {
+    if (data?.activeLabel) {
+      setSelectedDate((prev) => prev === data.activeLabel ? null : data.activeLabel);
+    }
+  };
+
+  const displayBills = useMemo(() => {
+    if (!selectedDate) return sortedBills;
+    return sortedBills.filter((b) => b.date === selectedDate);
+  }, [sortedBills, selectedDate]);
+
   // ── Drawer chart previews ───────────────────────────────────
   const drawerCharts = useMemo(() => [
     { label: CHART_LABELS[0], desc: CHART_DESCS[0], data: filteredChartData,
@@ -233,7 +249,7 @@ const VotesDashboard = () => {
   };
 
   // ── Dynamic summary number ──────────────────────────────────
-  const summaryNumber = isMembersTable ? totalVotes : sortedBills.length;
+  const summaryNumber = isMembersTable ? totalVotes : displayBills.length;
   const summaryLabel = isMembersTable ? 'Total Votes' : chartMode === 1 ? 'Roll Calls' : 'Bills';
 
   // Sortable header cell style
@@ -304,7 +320,7 @@ const VotesDashboard = () => {
                     {/* Mode 0: Yes/No votes per day */}
                     {chartMode === 0 && (
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={filteredChartData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                        <AreaChart data={filteredChartData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }} onClick={handleChartClick} style={{ cursor: 'pointer' }}>
                           <defs>
                             <linearGradient id="votesYesGradient" x1="0" y1="0" x2="0" y2="1">
                               <stop offset="5%" stopColor="hsl(142 76% 36%)" stopOpacity={0.4} />
@@ -326,7 +342,7 @@ const VotesDashboard = () => {
                     {/* Mode 1: Roll calls per day */}
                     {chartMode === 1 && (
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={filteredRollCallData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                        <AreaChart data={filteredRollCallData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }} onClick={handleChartClick} style={{ cursor: 'pointer' }}>
                           <defs>
                             <linearGradient id="rollCallGradient" x1="0" y1="0" x2="0" y2="1">
                               <stop offset="5%" stopColor="hsl(217 91% 60%)" stopOpacity={0.4} />
@@ -343,7 +359,7 @@ const VotesDashboard = () => {
                     {/* Mode 2: Passed vs Failed per day */}
                     {chartMode === 2 && (
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={filteredPassFailData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                        <AreaChart data={filteredPassFailData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }} onClick={handleChartClick} style={{ cursor: 'pointer' }}>
                           <defs>
                             <linearGradient id="passedGradient" x1="0" y1="0" x2="0" y2="1">
                               <stop offset="5%" stopColor="hsl(142 76% 36%)" stopOpacity={0.4} />
@@ -365,7 +381,7 @@ const VotesDashboard = () => {
                     {/* Mode 3: Party breakdown — D vs R yes votes */}
                     {chartMode === 3 && (
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={filteredPartyData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                        <AreaChart data={filteredPartyData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }} onClick={handleChartClick} style={{ cursor: 'pointer' }}>
                           <defs>
                             <linearGradient id="demGradient" x1="0" y1="0" x2="0" y2="1">
                               <stop offset="5%" stopColor="hsl(217 91% 60%)" stopOpacity={0.4} />
@@ -387,7 +403,7 @@ const VotesDashboard = () => {
                     {/* Mode 4: Average margin per day */}
                     {chartMode === 4 && (
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={filteredMarginData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                        <AreaChart data={filteredMarginData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }} onClick={handleChartClick} style={{ cursor: 'pointer' }}>
                           <defs>
                             <linearGradient id="marginGradient" x1="0" y1="0" x2="0" y2="1">
                               <stop offset="5%" stopColor="hsl(280 67% 55%)" stopOpacity={0.4} />
@@ -578,12 +594,28 @@ const VotesDashboard = () => {
 
             /* ── Bills Tables (modes 1, 2, 4) ────────────── */
             ) : isBillsTable ? (
-              sortedBills.length === 0 ? (
+              displayBills.length === 0 && !selectedDate ? (
                 <div className="text-center py-12 px-4">
                   <p className="text-muted-foreground">No bill vote records found.</p>
                 </div>
               ) : (
                 <>
+                  {/* Active date filter pill */}
+                  {selectedDate && (
+                    <div className="px-4 md:px-6 py-2 border-b flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">Filtered to</span>
+                      <button
+                        onClick={() => setSelectedDate(null)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-foreground/10 text-xs font-medium hover:bg-foreground/20 transition-colors"
+                      >
+                        {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        <span className="text-muted-foreground">&times;</span>
+                      </button>
+                      <span className="text-xs text-muted-foreground">
+                        {displayBills.length} {displayBills.length === 1 ? 'bill' : 'bills'}
+                      </span>
+                    </div>
+                  )}
                   <div className="divide-y">
                     {/* Column headers vary by mode */}
                     {chartMode === 1 && (
@@ -614,7 +646,7 @@ const VotesDashboard = () => {
                       </div>
                     )}
 
-                    {(isAuthenticated ? sortedBills.slice(0, billDisplayCount) : sortedBills.slice(0, 6)).map((row) => (
+                    {(isAuthenticated ? displayBills.slice(0, billDisplayCount) : displayBills.slice(0, 6)).map((row) => (
                       <BillRowItem
                         key={`${chartMode}-${row.rollCallId}`}
                         row={row}
@@ -632,13 +664,13 @@ const VotesDashboard = () => {
                         className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">Sign Up</Button>
                     </div>
                   )}
-                  {isAuthenticated && billDisplayCount < sortedBills.length && (
+                  {isAuthenticated && billDisplayCount < displayBills.length && (
                     <div className="flex justify-center py-6">
                       <button
                         onClick={() => setBillDisplayCount((prev) => prev + 20)}
                         className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
                       >
-                        Load More ({Math.min(billDisplayCount, sortedBills.length)} of {sortedBills.length})
+                        Load More ({Math.min(billDisplayCount, displayBills.length)} of {displayBills.length})
                       </button>
                     </div>
                   )}
