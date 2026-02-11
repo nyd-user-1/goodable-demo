@@ -101,6 +101,7 @@ const VotesDashboard = () => {
     marginPerDay,
     billsPassFail,
     getDrillDown,
+    fetchDrillDownAsync,
     getBillMemberVotes,
     totalVotes,
     totalMembers,
@@ -229,8 +230,8 @@ const VotesDashboard = () => {
     setChatOpen(true);
   };
 
-  const handleMemberChatClick = (row: VotesDashboardRow) => {
-    const votes = getDrillDown(row.people_id);
+  const handleMemberChatClick = async (row: VotesDashboardRow) => {
+    const votes = await fetchDrillDownAsync(row.people_id);
     // Include all No votes (usually few) + summary for context
     const noVotes = votes.filter((v) => v.vote === 'No');
     const yesVotes = votes.filter((v) => v.vote === 'Yes');

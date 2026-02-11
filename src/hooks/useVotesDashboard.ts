@@ -233,6 +233,26 @@ export function useVotesDashboard() {
     return [];
   };
 
+  const fetchDrillDownAsync = async (peopleId: number): Promise<VotesDrillDownRow[]> => {
+    const key = String(peopleId);
+    if (drillCache[key]) return drillCache[key];
+
+    const { data } = await (supabase as any)
+      .rpc('get_votes_drilldown', { p_people_id: peopleId });
+
+    if (data) {
+      const rows = (data as any[]).map((d: any) => ({
+        billNumber: d.bill_number,
+        billTitle: d.bill_title,
+        date: d.date || '',
+        vote: d.vote,
+      }));
+      setDrillCache((prev) => ({ ...prev, [key]: rows }));
+      return rows;
+    }
+    return [];
+  };
+
   // ── Bill member votes drill-down: lazy RPC with cache ────
   const [billDrillCache, setBillDrillCache] = useState<Record<string, BillMemberVoteRow[]>>({});
   const billFetchingRef = useRef<Set<string>>(new Set());
@@ -273,6 +293,7 @@ export function useVotesDashboard() {
     marginPerDay: marginChartRaw ?? [],
     billsPassFail: billsPassFailRaw ?? [],
     getDrillDown,
+    fetchDrillDownAsync,
     getBillMemberVotes,
     totalVotes: totalsRaw?.totalVotes ?? 0,
     totalMembers: totalsRaw?.totalMembers ?? 0,

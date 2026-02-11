@@ -69,8 +69,14 @@ RETURNS TABLE (
   LEFT JOIN "Roll Call" rc ON rc.roll_call_id = v.roll_call_id
   LEFT JOIN "Bills" b ON b.bill_id = rc.bill_id
   WHERE v.people_id = p_people_id
-  ORDER BY rc.date DESC NULLS LAST
-  LIMIT 10;
+  ORDER BY
+    CASE
+      WHEN v.vote_desc LIKE 'N%' AND v.vote_desc NOT LIKE 'NV%' THEN 0
+      WHEN v.vote_desc NOT LIKE 'Y%' AND v.vote_desc NOT LIKE 'N%' THEN 1
+      ELSE 2
+    END,
+    rc.date DESC NULLS LAST
+  LIMIT 100;
 $$;
 
 -- 1d. Votes grand totals
