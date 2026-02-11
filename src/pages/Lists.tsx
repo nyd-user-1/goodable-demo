@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
 import { cn } from '@/lib/utils';
-import { ArrowUp, Users, Search, TrendingUp, TrendingDown } from 'lucide-react';
+import { ArrowUp, ArrowDown, ArrowUpDown, Users, Search, TrendingUp, TrendingDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,6 +22,9 @@ export default function Lists() {
   const [lobbyingSearch, setLobbyingSearch] = useState('');
   const [lobbyistVisibleCount, setLobbyistVisibleCount] = useState(10);
   const [memberVisibleCount, setMemberVisibleCount] = useState(14);
+  const [sponsoredSort, setSponsoredSort] = useState<'desc' | 'asc'>('desc');
+  const [yesSort, setYesSort] = useState<'desc' | 'asc'>('desc');
+  const [noSort, setNoSort] = useState<'desc' | 'asc'>('desc');
 
   // -----------------------------------------------------------------------
   // Supabase: top members by # of bills sponsored
@@ -384,12 +387,17 @@ export default function Lists() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
                   {/* ------ Sponsored (members by bills sponsored) ------ */}
                   <div className="md:border-r-2 md:border-dotted md:border-border/80 md:pr-6 pb-8 md:pb-0">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                    <button
+                      onClick={() => setSponsoredSort(s => s === 'desc' ? 'asc' : 'desc')}
+                      className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4 hover:text-foreground transition-colors"
+                    >
                       Sponsored
-                    </h3>
+                      {sponsoredSort === 'desc' ? <ArrowDown className="h-3.5 w-3.5" /> : <ArrowUp className="h-3.5 w-3.5" />}
+                    </button>
                     <div className="divide-y-2 divide-dotted divide-border/80">
                       {(topMembers || [])
                         .filter((m: any) => !memberSearch || m.name?.toLowerCase().includes(memberSearch.toLowerCase()))
+                        .sort((a: any, b: any) => sponsoredSort === 'desc' ? b.billCount - a.billCount : a.billCount - b.billCount)
                         .slice(0, memberVisibleCount).map((m: any) => (
                         <div key={m.people_id} className="py-3 first:pt-0">
                           <Link
@@ -436,12 +444,17 @@ export default function Lists() {
 
                   {/* ------ Yes Votes (members by Yes votes) ------ */}
                   <div className="md:border-r-2 md:border-dotted md:border-border/80 md:px-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0 pb-8 md:pb-0">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                    <button
+                      onClick={() => setYesSort(s => s === 'desc' ? 'asc' : 'desc')}
+                      className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4 hover:text-foreground transition-colors"
+                    >
                       Yes Votes
-                    </h3>
+                      {yesSort === 'desc' ? <ArrowDown className="h-3.5 w-3.5" /> : <ArrowUp className="h-3.5 w-3.5" />}
+                    </button>
                     <div className="divide-y-2 divide-dotted divide-border/80">
                       {(membersByYesVotes || [])
                         .filter((m: any) => !memberSearch || m.name?.toLowerCase().includes(memberSearch.toLowerCase()))
+                        .sort((a: any, b: any) => yesSort === 'desc' ? b.yeaCount - a.yeaCount : a.yeaCount - b.yeaCount)
                         .slice(0, memberVisibleCount).map((m: any) => (
                         <div key={m.people_id} className="py-3 first:pt-0">
                           <Link
@@ -488,12 +501,17 @@ export default function Lists() {
 
                   {/* ------ No Votes (members by No votes) ------ */}
                   <div className="md:pl-6 border-t-2 border-dotted border-border/80 md:border-t-0 pt-8 md:pt-0">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                    <button
+                      onClick={() => setNoSort(s => s === 'desc' ? 'asc' : 'desc')}
+                      className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4 hover:text-foreground transition-colors"
+                    >
                       No Votes
-                    </h3>
+                      {noSort === 'desc' ? <ArrowDown className="h-3.5 w-3.5" /> : <ArrowUp className="h-3.5 w-3.5" />}
+                    </button>
                     <div className="divide-y-2 divide-dotted divide-border/80">
                       {(membersByNoVotes || [])
                         .filter((m: any) => !memberSearch || m.name?.toLowerCase().includes(memberSearch.toLowerCase()))
+                        .sort((a: any, b: any) => noSort === 'desc' ? b.noCount - a.noCount : a.noCount - b.noCount)
                         .slice(0, memberVisibleCount).map((m: any) => (
                         <div key={m.people_id} className="py-3 first:pt-0">
                           <Link
