@@ -777,19 +777,20 @@ const VotesDashboard = () => {
                 <>
                   <div className="divide-y">
                     {chartMode === 0 && (
-                      <div className="hidden md:grid grid-cols-[minmax(0,1fr)_44px_80px_80px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                      <div className="hidden md:grid grid-cols-[minmax(0,1fr)_44px_80px_80px_80px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
                         <span className={hdr} onClick={() => toggleMemberSort('name')}>Name</span>
                         <span className="flex items-center justify-center">
                           <MessageSquare className="h-3.5 w-3.5" />
                         </span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('totalVotes')}>Votes</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('yesCount')}>Yes</span>
-                        <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('noCount')}>No</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('pctYes')}>% Yes</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('noCount')}>No</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('noCount')}>% No</span>
                       </div>
                     )}
                     {chartMode === 3 && (
-                      <div className="hidden md:grid grid-cols-[minmax(0,1fr)_44px_60px_80px_80px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                      <div className="hidden md:grid grid-cols-[minmax(0,1fr)_44px_60px_80px_80px_80px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
                         <span className={hdr} onClick={() => toggleMemberSort('name')}>Name</span>
                         <span className="flex items-center justify-center">
                           <MessageSquare className="h-3.5 w-3.5" />
@@ -797,8 +798,9 @@ const VotesDashboard = () => {
                         <span className={hdr} onClick={() => toggleMemberSort('party')}>Party</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('totalVotes')}>Votes</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('yesCount')}>Yes</span>
-                        <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('noCount')}>No</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('pctYes')}>% Yes</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('noCount')}>No</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('noCount')}>% No</span>
                       </div>
                     )}
 
@@ -890,8 +892,8 @@ function VoteRowItem({ row, showParty, isExpanded, onToggle, onChatClick, getDri
   };
 
   const gridCols = showParty
-    ? 'md:grid-cols-[minmax(0,1fr)_44px_60px_80px_80px_80px_80px]'
-    : 'md:grid-cols-[minmax(0,1fr)_44px_80px_80px_80px_80px]';
+    ? 'md:grid-cols-[minmax(0,1fr)_44px_60px_80px_80px_80px_80px_80px]'
+    : 'md:grid-cols-[minmax(0,1fr)_44px_80px_80px_80px_80px_80px]';
 
   return (
     <div>
@@ -932,8 +934,9 @@ function VoteRowItem({ row, showParty, isExpanded, onToggle, onChatClick, getDri
 
         <span className="hidden md:block text-right font-medium tabular-nums">{row.totalVotes.toLocaleString()}</span>
         <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.yesCount.toLocaleString()}</span>
-        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.noCount.toLocaleString()}</span>
         <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.pctYes.toFixed(0)}%</span>
+        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.noCount.toLocaleString()}</span>
+        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.totalVotes > 0 ? ((row.noCount / row.totalVotes) * 100).toFixed(0) : 0}%</span>
       </div>
 
       <div className="md:hidden px-4 pb-3 -mt-2 flex items-center gap-3 text-xs text-muted-foreground pl-10">
@@ -946,9 +949,8 @@ function VoteRowItem({ row, showParty, isExpanded, onToggle, onChatClick, getDri
             {row.party}
           </span>
         )}
-        <span>{row.yesCount} yes</span>
-        <span>{row.noCount} no</span>
-        <span>{row.pctYes.toFixed(0)}% yes</span>
+        <span>{row.yesCount} yes ({row.pctYes.toFixed(0)}%)</span>
+        <span>{row.noCount} no ({row.totalVotes > 0 ? ((row.noCount / row.totalVotes) * 100).toFixed(0) : 0}%)</span>
         <button
           onClick={handleChatClick}
           className="ml-auto w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center"
