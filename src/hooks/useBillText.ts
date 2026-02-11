@@ -14,7 +14,6 @@ export function useBillText(billNumber: string | null, sessionId: number | null,
             action: "get-bill-detail",
             billNumber,
             sessionYear: sessionId,
-            view: "only_fulltext",
             fullTextFormat: "html",
           },
         }
@@ -28,12 +27,23 @@ export function useBillText(billNumber: string | null, sessionId: number | null,
       const result = data?.result;
       if (!result) return null;
 
-      // Extract full text from the active amendment version
-      const activeVersion = result.activeVersion || "";
-      const amendment = result.amendments?.items?.[activeVersion];
-      return amendment?.fullText || null;
+      // Try active amendment version first
+      const activeVersion = result.activeVersion ?? "";
+      const items = result.amendments?.items;
+      if (items) {
+        const amendment = items[activeVersion];
+        if (amendment?.fullText) return amendment.fullText;
+
+        // Fallback: try any amendment that has fullText
+        for (const key of Object.keys(items)) {
+          if (items[key]?.fullText) return items[key].fullText;
+        }
+      }
+
+      // Last fallback: direct fullText on result
+      return result.fullText || null;
     },
     enabled: enabled && !!billNumber && !!sessionId,
-    staleTime: 30 * 60 * 1000, // 30 min cache - text rarely changes
+    staleTime: 30 * 60 * 1000,
   });
 }

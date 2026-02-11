@@ -19,7 +19,6 @@ import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { BillSummary, BillKeyInformation, QuickReviewNoteDialog } from "./features/bills";
-import { BillRelatedBills } from "./features/bills/BillRelatedBills";
 import { BillMilestones } from "./features/bills/BillMilestones";
 import { BillText } from "./features/bills/BillText";
 import { useBillReviews, ReviewStatus, BillNote } from "@/hooks/useBillReviews";
@@ -514,19 +513,15 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
               </TabsList>
 
               <TabsContent value="overview" className="mt-6 space-y-6">
-                {/* Bill Key Information Section */}
-                <BillKeyInformation bill={bill} />
-
-                {/* Related Bills (Same-As, Previous Versions, Law Section) */}
-                {extendedData && (
-                  <BillRelatedBills
-                    sameAs={extendedData.sameAs}
-                    previousVersions={extendedData.previousVersions}
-                    substitutedBy={extendedData.substitutedBy}
-                    lawSection={extendedData.lawSection}
-                    lawCode={extendedData.lawCode}
-                  />
-                )}
+                {/* Bill Key Information Section (includes Related Bills) */}
+                <BillKeyInformation
+                  bill={bill}
+                  previousVersions={extendedData?.previousVersions}
+                  sameAs={extendedData?.sameAs}
+                  substitutedBy={extendedData?.substitutedBy}
+                  lawSection={extendedData?.lawSection}
+                  lawCode={extendedData?.lawCode}
+                />
 
                 {/* Bill Text - Lazy loaded on expand */}
                 <BillText
