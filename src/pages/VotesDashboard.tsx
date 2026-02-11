@@ -990,26 +990,34 @@ function VoteRowItem({ row, showParty, isExpanded, onToggle, onChatClick, getDri
 // ── Vote Drill-Down Row ───────────────────────────────────────
 
 function VoteDrillRow({ vote }: { vote: VotesDrillDownRow }) {
+  const billUrl = vote.billNumber ? `/bills/${vote.billNumber}` : undefined;
   return (
     <>
-      <div className="hidden md:grid grid-cols-[1fr_120px_80px] gap-4 px-6 py-3 pl-14 hover:bg-muted/20 transition-colors items-center">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-sm truncate">{vote.billTitle || 'No title'}</span>
-          {vote.billNumber && (
-            <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">{vote.billNumber}</span>
-          )}
-        </div>
+      <Link
+        to={billUrl || '#'}
+        onClick={(e) => { e.stopPropagation(); if (!billUrl) e.preventDefault(); }}
+        className={cn("hidden md:grid grid-cols-[60px_minmax(0,1fr)_100px_60px] gap-4 px-6 py-3 pl-14 hover:bg-muted/20 transition-colors items-center", billUrl && "cursor-pointer")}
+      >
+        {vote.billNumber && (
+          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded w-fit">{vote.billNumber}</span>
+        )}
+        {!vote.billNumber && <span />}
+        <span className="text-sm truncate" title={vote.billTitle || ''}>{vote.billTitle || 'No title'}</span>
         <span className="text-right text-sm text-muted-foreground">
           {vote.date ? new Date(vote.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
         </span>
         <span className={cn("text-right text-sm font-medium", vote.vote === 'Yes' && "text-green-600", vote.vote === 'No' && "text-red-500", vote.vote === 'Other' && "text-muted-foreground")}>
           {vote.vote}
         </span>
-      </div>
-      <div className="md:hidden px-4 py-3 pl-10">
+      </Link>
+      <Link
+        to={billUrl || '#'}
+        onClick={(e) => { e.stopPropagation(); if (!billUrl) e.preventDefault(); }}
+        className="md:hidden block px-4 py-3 pl-10 hover:bg-muted/20 transition-colors"
+      >
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <span className="text-sm truncate">{vote.billTitle || 'No title'}</span>
+            <span className="text-sm truncate" title={vote.billTitle || ''}>{vote.billTitle || 'No title'}</span>
             {vote.billNumber && (
               <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">{vote.billNumber}</span>
             )}
@@ -1021,7 +1029,7 @@ function VoteDrillRow({ vote }: { vote: VotesDrillDownRow }) {
         <span className="text-xs text-muted-foreground">
           {vote.date ? new Date(vote.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
         </span>
-      </div>
+      </Link>
     </>
   );
 }
