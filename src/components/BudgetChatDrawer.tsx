@@ -8,13 +8,53 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowUp, Square, Copy, Check } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { ArrowUp, Square, ChevronDown, FileText } from 'lucide-react';
+import { Check } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { ChatResponseFooter } from '@/components/ChatResponseFooter';
+import { useModel } from '@/contexts/ModelContext';
 import {
   BUDGET_CHAT_SYSTEM_PROMPT,
   getBudgetContextForFunction,
 } from '@/lib/budget/budgetContext';
+
+// Model provider icons
+const OpenAIIcon = ({ className }: { className?: string }) => (
+  <img
+    src="/OAI LOGO.png"
+    alt="OpenAI"
+    className={`object-contain ${className}`}
+    style={{ maxWidth: '14px', maxHeight: '14px', width: 'auto', height: 'auto' }}
+  />
+);
+
+const ClaudeIcon = ({ className }: { className?: string }) => (
+  <img
+    src="/claude-ai-icon-65aa.png"
+    alt="Claude"
+    className={`object-contain ${className}`}
+    style={{ maxWidth: '14px', maxHeight: '14px', width: 'auto', height: 'auto' }}
+  />
+);
+
+const PerplexityIcon = ({ className }: { className?: string }) => (
+  <img
+    src="/PPLX LOGO.png"
+    alt="Perplexity"
+    className={`object-contain ${className}`}
+    style={{ maxWidth: '14px', maxHeight: '14px', width: 'auto', height: 'auto' }}
+  />
+);
 
 interface BudgetChatDrawerProps {
   open: boolean;
@@ -190,12 +230,15 @@ export function BudgetChatDrawer({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [lineItemContext, setLineItemContext] = useState<string>('');
+  const { selectedModel, setSelectedModel } = useModel();
+  const [wordCountLimit, setWordCountLimit] = useState<number>(250);
   const abortControllerRef = useRef<AbortController | null>(null);
   const readerRef = useRef<ReadableStreamDefaultReader | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Context label for the pill
+  const contextLabel = functionName || 'NYS Budget';
 
   // Fetch live appropriation line items when drawer opens with a functionName
   useEffect(() => {
@@ -332,10 +375,10 @@ export function BudgetChatDrawer({
             apikey: supabaseKey,
           },
           body: JSON.stringify({
-            prompt: text,
+            prompt: `${text} (limit response to approximately ${wordCountLimit} words)`,
             type: 'chat',
             stream: true,
-            model: 'gpt-4o-mini',
+            model: selectedModel,
             context: {
               systemContext: systemPrompt,
               previousMessages,
@@ -438,12 +481,6 @@ export function BudgetChatDrawer({
     }
   };
 
-  const handleCopy = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
   const title = functionName
     ? `Ask about ${functionName}`
     : 'Ask about the FY 2027 Budget';
@@ -501,61 +538,52 @@ export function BudgetChatDrawer({
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-3">
-                      <div className="prose prose-sm max-w-none dark:prose-invert">
-                        <ReactMarkdown
-                          components={{
-                            p: ({ children }) => (
-                              <p className="mb-3 leading-relaxed text-foreground">{children}</p>
-                            ),
-                            strong: ({ children }) => (
-                              <strong className="font-semibold text-foreground">{children}</strong>
-                            ),
-                            h1: ({ children }) => (
-                              <h1 className="text-xl font-bold mt-6 mb-3 text-foreground">{children}</h1>
-                            ),
-                            h2: ({ children }) => (
-                              <h2 className="text-lg font-semibold mt-5 mb-2 text-foreground">{children}</h2>
-                            ),
-                            h3: ({ children }) => (
-                              <h3 className="text-base font-semibold mt-4 mb-2 text-foreground">{children}</h3>
-                            ),
-                            ul: ({ children }) => (
-                              <ul className="list-disc pl-6 space-y-1 my-2">{children}</ul>
-                            ),
-                            ol: ({ children }) => (
-                              <ol className="list-decimal pl-6 space-y-1 my-2">{children}</ol>
-                            ),
-                            li: ({ children }) => (
-                              <li className="leading-relaxed text-foreground">{children}</li>
-                            ),
-                          }}
-                        >
-                          {displayContent}
-                        </ReactMarkdown>
-                        {msg.isStreaming && (
-                          <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1">|</span>
-                        )}
-                      </div>
-
-                      {/* Copy button below assistant message */}
-                      {!msg.isStreaming && displayContent && (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCopy(msg.content, msg.id)}
-                            className="h-7 px-2 text-muted-foreground hover:text-foreground"
+                    <ChatResponseFooter
+                      messageContent={
+                        <div className="dark:prose-invert">
+                          <ReactMarkdown
+                            components={{
+                              p: ({ children }) => (
+                                <p className="mb-3 leading-relaxed text-foreground">{children}</p>
+                              ),
+                              strong: ({ children }) => (
+                                <strong className="font-semibold text-foreground">{children}</strong>
+                              ),
+                              h1: ({ children }) => (
+                                <h1 className="text-xl font-bold mt-6 mb-3 text-foreground">{children}</h1>
+                              ),
+                              h2: ({ children }) => (
+                                <h2 className="text-lg font-semibold mt-5 mb-2 text-foreground">{children}</h2>
+                              ),
+                              h3: ({ children }) => (
+                                <h3 className="text-base font-semibold mt-4 mb-2 text-foreground">{children}</h3>
+                              ),
+                              ul: ({ children }) => (
+                                <ul className="list-disc pl-6 space-y-1 my-2">{children}</ul>
+                              ),
+                              ol: ({ children }) => (
+                                <ol className="list-decimal pl-6 space-y-1 my-2">{children}</ol>
+                              ),
+                              li: ({ children }) => (
+                                <li className="leading-relaxed text-foreground">{children}</li>
+                              ),
+                            }}
                           >
-                            {copiedId === msg.id ? (
-                              <><Check className="h-3.5 w-3.5 mr-1" /> Copied</>
-                            ) : (
-                              <><Copy className="h-3.5 w-3.5 mr-1" /> Copy</>
-                            )}
-                          </Button>
+                            {displayContent}
+                          </ReactMarkdown>
+                          {msg.isStreaming && (
+                            <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1">|</span>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      }
+                      bills={[]}
+                      sources={[]}
+                      isStreaming={msg.isStreaming}
+                      userMessage={messages[index - 1]?.role === 'user' ? messages[index - 1]?.content : undefined}
+                      assistantMessageText={displayContent}
+                      onSendMessage={sendMessage}
+                      hideCreateExcerpt={false}
+                    />
                   )}
                 </div>
               );
@@ -564,44 +592,150 @@ export function BudgetChatDrawer({
           </div>
         </ScrollArea>
 
-        {/* Input area - matches NewChat standard */}
+        {/* Enhanced Input area */}
         <div className="flex-shrink-0 px-6 py-4 border-t bg-background">
-          <div className="flex items-end gap-2">
-            <textarea
-              ref={textareaRef}
+          <div className="border rounded-t-lg rounded-b-lg bg-background overflow-hidden">
+            {/* Context Pill */}
+            <div className="px-3 py-2 border-b bg-muted/30 rounded-t-lg">
+              <div className="flex items-center gap-2">
+                <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground truncate">
+                  {contextLabel}
+                </span>
+              </div>
+            </div>
+
+            {/* Textarea */}
+            <Textarea
               value={inputValue}
-              onChange={(e) => {
-                setInputValue(e.target.value);
-                if (textareaRef.current) {
-                  textareaRef.current.style.height = 'auto';
-                  const maxHeight = 144;
-                  textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, maxHeight) + 'px';
-                  textareaRef.current.style.overflowY = textareaRef.current.scrollHeight > maxHeight ? 'auto' : 'hidden';
-                }
-              }}
+              onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="What are you researching?"
+              className="min-h-[60px] max-h-[120px] resize-none border-0 border-x border-transparent focus-visible:ring-0 focus-visible:border-x focus-visible:border-transparent rounded-none bg-background"
+              rows={2}
               disabled={isLoading}
-              rows={1}
-              className="flex-1 min-h-[40px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none p-0 placeholder:text-muted-foreground/60 text-base disabled:opacity-50"
             />
-            <Button
-              onClick={isLoading ? stopStream : handleSend}
-              disabled={!isLoading && !inputValue.trim()}
-              size="icon"
-              className={cn(
-                'h-9 w-9 rounded-lg flex-shrink-0',
-                isLoading
-                  ? 'bg-destructive hover:bg-destructive/90'
-                  : 'bg-foreground hover:bg-foreground/90'
-              )}
-            >
+
+            {/* Toolbar: model selector + word count + send/stop */}
+            <div className="px-2 py-2 flex items-center justify-between border-t bg-background">
+              <div className="flex items-center gap-1">
+                {/* Model Selector */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs px-2">
+                      {selectedModel.startsWith("gpt") ? (
+                        <OpenAIIcon className="h-3.5 w-3.5" />
+                      ) : selectedModel.startsWith("claude") ? (
+                        <ClaudeIcon className="h-3.5 w-3.5" />
+                      ) : (
+                        <PerplexityIcon className="h-3.5 w-3.5" />
+                      )}
+                      <span className="hidden sm:inline">
+                        {selectedModel === "gpt-4o" ? "GPT-4o" :
+                         selectedModel === "gpt-4o-mini" ? "GPT-4o Mini" :
+                         selectedModel === "gpt-4-turbo" ? "GPT-4 Turbo" :
+                         selectedModel === "claude-sonnet-4-5-20250929" ? "Claude Sonnet" :
+                         selectedModel === "claude-haiku-4-5-20251001" ? "Claude Haiku" :
+                         selectedModel === "claude-opus-4-5-20251101" ? "Claude Opus" :
+                         "Model"}
+                      </span>
+                      <ChevronDown className="h-3 w-3 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56">
+                    <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">OpenAI</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => setSelectedModel("gpt-4o")} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <OpenAIIcon className="h-4 w-4" />
+                        <span>GPT-4o</span>
+                      </div>
+                      {selectedModel === "gpt-4o" && <Check className="h-4 w-4" />}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSelectedModel("gpt-4o-mini")} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <OpenAIIcon className="h-4 w-4" />
+                        <span>GPT-4o Mini</span>
+                      </div>
+                      {selectedModel === "gpt-4o-mini" && <Check className="h-4 w-4" />}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSelectedModel("gpt-4-turbo")} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <OpenAIIcon className="h-4 w-4" />
+                        <span>GPT-4 Turbo</span>
+                      </div>
+                      {selectedModel === "gpt-4-turbo" && <Check className="h-4 w-4" />}
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">Anthropic</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => setSelectedModel("claude-sonnet-4-5-20250929")} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ClaudeIcon className="h-4 w-4" />
+                        <span>Claude Sonnet</span>
+                      </div>
+                      {selectedModel === "claude-sonnet-4-5-20250929" && <Check className="h-4 w-4" />}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSelectedModel("claude-haiku-4-5-20251001")} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ClaudeIcon className="h-4 w-4" />
+                        <span>Claude Haiku</span>
+                      </div>
+                      {selectedModel === "claude-haiku-4-5-20251001" && <Check className="h-4 w-4" />}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSelectedModel("claude-opus-4-5-20251101")} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ClaudeIcon className="h-4 w-4" />
+                        <span>Claude Opus</span>
+                      </div>
+                      {selectedModel === "claude-opus-4-5-20251101" && <Check className="h-4 w-4" />}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Word Count Selector */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs px-2">
+                      <span>{wordCountLimit} words</span>
+                      <ChevronDown className="h-3 w-3 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem onClick={() => setWordCountLimit(100)}>
+                      100 words
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setWordCountLimit(250)}>
+                      250 words
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setWordCountLimit(500)}>
+                      500 words
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Send/Stop Button */}
               {isLoading ? (
-                <Square className="h-4 w-4" fill="currentColor" />
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  className="h-7 w-7 rounded-full"
+                  onClick={stopStream}
+                >
+                  <Square className="h-3 w-3 fill-current" />
+                </Button>
               ) : (
-                <ArrowUp className="h-4 w-4" />
+                <Button
+                  size="icon"
+                  className="h-7 w-7 rounded-full bg-foreground hover:bg-foreground/90 text-background"
+                  disabled={!inputValue.trim()}
+                  onClick={handleSend}
+                >
+                  <ArrowUp className="h-3.5 w-3.5" />
+                </Button>
               )}
-            </Button>
+            </div>
           </div>
         </div>
       </SheetContent>
