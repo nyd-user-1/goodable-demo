@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tables } from "@/integrations/supabase/types";
 import { generateMemberSlug } from "@/utils/memberSlug";
-import { ThumbsUp, ThumbsDown, Minus, StickyNote } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Minus, StickyNote, List } from "lucide-react";
 import { ReviewStatus } from "@/hooks/useBillReviews";
 
 type Bill = Tables<"Bills">;
@@ -133,16 +134,16 @@ export const BillSummary = ({
           </Badge>
         </div>
       )}
-      <CardHeader className={`card-header px-6 py-4 border-b ${hasNotes ? 'pr-32' : ''}`}>
-        <div className="flex items-center gap-4">
-          {chamber && (
-            <img
-              src={chamberSeal}
-              alt={`${chamber} seal`}
-              className="w-12 h-12 object-contain"
-            />
-          )}
-          <div className="flex-1">
+      <CardHeader className="card-header px-6 py-4 border-b">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {chamber && (
+              <img
+                src={chamberSeal}
+                alt={`${chamber} seal`}
+                className="w-12 h-12 object-contain"
+              />
+            )}
             <div className="flex items-center gap-3">
               <CardTitle className="text-xl font-semibold">
                 {bill.bill_number || "Unknown Bill Number"}
@@ -150,6 +151,12 @@ export const BillSummary = ({
               {getReviewBadge()}
             </div>
           </div>
+          <Link to="/bills">
+            <Button variant="outline" size="sm" className="gap-2">
+              <List className="h-4 w-4" />
+              All Bills
+            </Button>
+          </Link>
         </div>
       </CardHeader>
       <CardContent className="card-body p-6">

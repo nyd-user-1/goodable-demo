@@ -70,19 +70,25 @@ const Bills = () => {
           const normalized = normalizeBillNumber(billNumber);
           const sessionParam = searchParams.get('session');
 
-          // Build query — optionally filter by session
+          // Default to current legislative session (odd year) when no session specified
+          const currentYear = new Date().getFullYear();
+          const defaultSession = currentYear % 2 === 1 ? currentYear : currentYear - 1;
+          const targetSession = sessionParam ? parseInt(sessionParam) : null;
+
+          // Build query — prefer current legislative session, fallback to any
           let query = supabase
             .from("Bills")
             .select("*")
             .ilike("bill_number", normalized);
-          if (sessionParam) {
-            query = query.eq("session_id", parseInt(sessionParam));
+          if (targetSession) {
+            query = query.eq("session_id", targetSession);
           }
           let { data } = await query
             .order("session_id", { ascending: false })
-            .limit(1);
+            .limit(10);
 
-          let bill = data?.[0] || null;
+          // Pick the best match: prefer current legislative session, then latest
+          let bill = data?.find(b => b.session_id === (targetSession || defaultSession)) || data?.[0] || null;
 
           // Fallback: try the raw value (handles legacy padded entries)
           if (!bill && normalized !== billNumber.toUpperCase()) {
@@ -90,13 +96,13 @@ const Bills = () => {
               .from("Bills")
               .select("*")
               .ilike("bill_number", billNumber);
-            if (sessionParam) {
-              fallbackQuery = fallbackQuery.eq("session_id", parseInt(sessionParam));
+            if (targetSession) {
+              fallbackQuery = fallbackQuery.eq("session_id", targetSession);
             }
             const result = await fallbackQuery
               .order("session_id", { ascending: false })
-              .limit(1);
-            bill = result.data?.[0] || null;
+              .limit(10);
+            bill = result.data?.find(b => b.session_id === (targetSession || defaultSession)) || result.data?.[0] || null;
           }
 
           // Fallback: try without leading zeros (e.g., S00270 -> S270)
@@ -107,13 +113,13 @@ const Bills = () => {
                 .from("Bills")
                 .select("*")
                 .ilike("bill_number", strippedNumber);
-              if (sessionParam) {
-                stripQuery = stripQuery.eq("session_id", parseInt(sessionParam));
+              if (targetSession) {
+                stripQuery = stripQuery.eq("session_id", targetSession);
               }
               const result = await stripQuery
                 .order("session_id", { ascending: false })
-                .limit(1);
-              bill = result.data?.[0] || null;
+                .limit(10);
+              bill = result.data?.find(b => b.session_id === (targetSession || defaultSession)) || result.data?.[0] || null;
             }
           }
 

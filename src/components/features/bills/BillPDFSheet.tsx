@@ -34,7 +34,8 @@ const CORS_PROXIES = [
 export const BillPDFSheet = ({ isOpen, onClose, billNumber, billTitle, bill }: BillPDFSheetProps) => {
   // Clean bill number for URL (remove periods and lowercase)
   const cleanBillNumber = billNumber.toLowerCase().replace(/[^a-z0-9]/g, '');
-  const pdfUrl = `https://legislation.nysenate.gov/pdf/bills/2025/${cleanBillNumber}`;
+  const sessionYear = bill?.session_id || 2025;
+  const pdfUrl = `https://legislation.nysenate.gov/pdf/bills/${sessionYear}/${cleanBillNumber}`;
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
