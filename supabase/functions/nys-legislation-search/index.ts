@@ -887,6 +887,10 @@ async function resyncExistingBills(sessionYear: number, batchSize: number, offse
 }
 
 async function upsertBill(supabase: any, bill: any, sessionYear: number): Promise<{inserted: boolean, updated: boolean}> {
+  // Normalize session year to odd year (NY legislative sessions span 2 years: 2025-2026 → 2025)
+  // Prefer the session field from the API response if available
+  sessionYear = bill.session || (sessionYear % 2 === 1 ? sessionYear : sessionYear - 1);
+
   // Transform NYS API bill data to match Bills table schema
   const status = bill.status || {};
   const currentCommittee = status.committeeName || bill.currentCommittee?.name || null;
