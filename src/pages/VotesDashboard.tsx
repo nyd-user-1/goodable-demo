@@ -619,7 +619,7 @@ const VotesDashboard = () => {
                   <div className="divide-y">
                     {/* Column headers vary by mode */}
                     {chartMode === 1 && (
-                      <div className="hidden md:grid grid-cols-[1fr_90px_60px_60px_60px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                      <div className="hidden md:grid grid-cols-[minmax(0,1fr)_90px_60px_60px_60px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
                         <span className={hdr} onClick={() => toggleBillSort('billTitle')}>Bill</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('date')}>Date</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('total')}>Total</span>
@@ -628,7 +628,7 @@ const VotesDashboard = () => {
                       </div>
                     )}
                     {chartMode === 2 && (
-                      <div className="hidden md:grid grid-cols-[1fr_90px_60px_60px_70px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                      <div className="hidden md:grid grid-cols-[minmax(0,1fr)_90px_60px_60px_70px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
                         <span className={hdr} onClick={() => toggleBillSort('billTitle')}>Bill</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('date')}>Date</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('yesCount')}>Yes</span>
@@ -637,7 +637,7 @@ const VotesDashboard = () => {
                       </div>
                     )}
                     {chartMode === 4 && (
-                      <div className="hidden md:grid grid-cols-[1fr_90px_60px_60px_70px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                      <div className="hidden md:grid grid-cols-[minmax(0,1fr)_90px_60px_60px_70px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
                         <span className={hdr} onClick={() => toggleBillSort('billTitle')}>Bill</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('date')}>Date</span>
                         <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('yesCount')}>Yes</span>
@@ -884,8 +884,8 @@ function BillRowItem({ row, mode, isExpanded, onToggle, getBillMemberVotes }: Bi
   const margin = Math.abs(row.yesCount - row.noCount);
 
   const gridCols = mode === 1
-    ? 'md:grid-cols-[1fr_90px_60px_60px_60px]'
-    : 'md:grid-cols-[1fr_90px_60px_60px_70px]';
+    ? 'md:grid-cols-[minmax(0,1fr)_90px_60px_60px_60px]'
+    : 'md:grid-cols-[minmax(0,1fr)_90px_60px_60px_70px]';
 
   return (
     <div>
@@ -897,7 +897,7 @@ function BillRowItem({ row, mode, isExpanded, onToggle, getBillMemberVotes }: Bi
           <span className="flex-shrink-0 text-muted-foreground">
             {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </span>
-          <span className="font-medium truncate" title={row.billTitle || 'No title'}>{row.billTitle || 'No title'}</span>
+          <span className="font-medium truncate max-w-[50vw]" title={row.billTitle || 'No title'}>{row.billTitle || 'No title'}</span>
           {row.billNumber && (
             <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">{row.billNumber}</span>
           )}
