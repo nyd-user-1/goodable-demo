@@ -38,6 +38,7 @@ import {
 } from 'recharts';
 
 const CHART_LABELS = ['Votes by Day', 'Roll Calls', 'Passed vs. Failed', 'By Party', 'Closest Votes'];
+const CHART_DESCS = ['Yes vs No votes per day', 'Roll call votes per day', 'Bills passed or failed per day', 'D vs R yes votes per day', 'Average vote margin per day'];
 const NUM_MODES = CHART_LABELS.length;
 
 const VotesDashboard = () => {
@@ -56,6 +57,8 @@ const VotesDashboard = () => {
     const m = parseInt(searchParams.get('mode') || '0');
     return m >= 0 && m < NUM_MODES ? m : 0;
   });
+  const [memberSort, setMemberSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
+  const [billSort, setBillSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
@@ -79,23 +82,31 @@ const VotesDashboard = () => {
   } = useVotesDashboard();
 
   // ── Time-range filtered chart data ──────────────────────────
-  const cutoffStr = useMemo(() => {
+  const { cutoffStr, endStr } = useMemo(() => {
+    if (timeRange === 'all') return { cutoffStr: '', endStr: '' };
+    if (timeRange === '2026') return { cutoffStr: '2026-01-01', endStr: '' };
+    if (timeRange === '2025') return { cutoffStr: '2025-01-01', endStr: '2025-12-31' };
     const days = parseInt(timeRange);
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
-    return cutoff.toISOString().split('T')[0];
+    return { cutoffStr: cutoff.toISOString().split('T')[0], endStr: '' };
   }, [timeRange]);
 
   const filteredChartData = useMemo(() =>
-    chartData.filter((p) => p.date >= cutoffStr), [chartData, cutoffStr]);
+    chartData.filter((p) => (!cutoffStr || p.date >= cutoffStr) && (!endStr || p.date <= endStr)),
+    [chartData, cutoffStr, endStr]);
   const filteredRollCallData = useMemo(() =>
-    rollCallsPerDay.filter((p) => p.date >= cutoffStr), [rollCallsPerDay, cutoffStr]);
+    rollCallsPerDay.filter((p) => (!cutoffStr || p.date >= cutoffStr) && (!endStr || p.date <= endStr)),
+    [rollCallsPerDay, cutoffStr, endStr]);
   const filteredPassFailData = useMemo(() =>
-    passFailPerDay.filter((p) => p.date >= cutoffStr), [passFailPerDay, cutoffStr]);
+    passFailPerDay.filter((p) => (!cutoffStr || p.date >= cutoffStr) && (!endStr || p.date <= endStr)),
+    [passFailPerDay, cutoffStr, endStr]);
   const filteredPartyData = useMemo(() =>
-    partyPerDay.filter((p) => p.date >= cutoffStr), [partyPerDay, cutoffStr]);
+    partyPerDay.filter((p) => (!cutoffStr || p.date >= cutoffStr) && (!endStr || p.date <= endStr)),
+    [partyPerDay, cutoffStr, endStr]);
   const filteredMarginData = useMemo(() =>
-    marginPerDay.filter((p) => p.date >= cutoffStr), [marginPerDay, cutoffStr]);
+    marginPerDay.filter((p) => (!cutoffStr || p.date >= cutoffStr) && (!endStr || p.date <= endStr)),
+    [marginPerDay, cutoffStr, endStr]);
 
   // ── Bills sorted by closest margin (for mode 4) ────────────
   const billsByMargin = useMemo(() =>
@@ -131,6 +142,70 @@ const VotesDashboard = () => {
   // Get the bill rows for the current mode
   const activeBillRows = chartMode === 4 ? billsByMargin : billsPassFail;
 
+  // ── Sorting ──────────────────────────────────────────────────
+  const toggleMemberSort = (key: string) => {
+    setMemberSort((prev) => {
+      if (prev?.key === key) return { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' };
+      return { key, dir: key === 'name' || key === 'party' ? 'asc' : 'desc' };
+    });
+  };
+
+  const toggleBillSort = (key: string) => {
+    setBillSort((prev) => {
+      if (prev?.key === key) return { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' };
+      return { key, dir: key === 'billTitle' ? 'asc' : 'desc' };
+    });
+  };
+
+  const sortedMembers = useMemo(() => {
+    if (!memberSort) return byMember;
+    const arr = [...byMember];
+    const { key, dir } = memberSort;
+    arr.sort((a, b) => {
+      let cmp: number;
+      if (key === 'name') cmp = a.name.localeCompare(b.name);
+      else if (key === 'party') cmp = a.party.localeCompare(b.party);
+      else cmp = ((a as any)[key] as number) - ((b as any)[key] as number);
+      return dir === 'asc' ? cmp : -cmp;
+    });
+    return arr;
+  }, [byMember, memberSort]);
+
+  const sortedBills = useMemo(() => {
+    if (!billSort) return activeBillRows;
+    const arr = [...activeBillRows];
+    const { key, dir } = billSort;
+    arr.sort((a, b) => {
+      let cmp: number;
+      switch (key) {
+        case 'billTitle': cmp = (a.billTitle || '').localeCompare(b.billTitle || ''); break;
+        case 'date': cmp = a.date.localeCompare(b.date); break;
+        case 'total': cmp = (a.yesCount + a.noCount) - (b.yesCount + b.noCount); break;
+        case 'yesCount': cmp = a.yesCount - b.yesCount; break;
+        case 'noCount': cmp = a.noCount - b.noCount; break;
+        case 'result': cmp = a.result.localeCompare(b.result); break;
+        case 'margin': cmp = Math.abs(a.yesCount - a.noCount) - Math.abs(b.yesCount - b.noCount); break;
+        default: cmp = 0;
+      }
+      return dir === 'asc' ? cmp : -cmp;
+    });
+    return arr;
+  }, [activeBillRows, billSort]);
+
+  // ── Drawer chart previews ───────────────────────────────────
+  const drawerCharts = useMemo(() => [
+    { label: CHART_LABELS[0], desc: CHART_DESCS[0], data: filteredChartData,
+      areas: [{ key: 'yes', stroke: 'hsl(142 76% 36%)', id: 'dYes' }, { key: 'no', stroke: 'hsl(0 84% 60%)', id: 'dNo' }] },
+    { label: CHART_LABELS[1], desc: CHART_DESCS[1], data: filteredRollCallData,
+      areas: [{ key: 'rollCalls', stroke: 'hsl(217 91% 60%)', id: 'dRC' }] },
+    { label: CHART_LABELS[2], desc: CHART_DESCS[2], data: filteredPassFailData,
+      areas: [{ key: 'passed', stroke: 'hsl(142 76% 36%)', id: 'dPass' }, { key: 'failed', stroke: 'hsl(0 84% 60%)', id: 'dFail' }] },
+    { label: CHART_LABELS[3], desc: CHART_DESCS[3], data: filteredPartyData,
+      areas: [{ key: 'demYes', stroke: 'hsl(217 91% 60%)', id: 'dDem' }, { key: 'repYes', stroke: 'hsl(0 84% 60%)', id: 'dRep' }] },
+    { label: CHART_LABELS[4], desc: CHART_DESCS[4], data: filteredMarginData,
+      areas: [{ key: 'avgMargin', stroke: 'hsl(280 67% 55%)', id: 'dMargin' }] },
+  ], [filteredChartData, filteredRollCallData, filteredPassFailData, filteredPartyData, filteredMarginData]);
+
   // Shared tooltip/axis styling
   const xAxisProps = {
     dataKey: 'date' as const,
@@ -144,6 +219,9 @@ const VotesDashboard = () => {
     contentStyle: { backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' },
     labelFormatter: (label: string) => { const d = new Date(label + 'T00:00:00'); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); },
   };
+
+  // Sortable header cell style
+  const hdr = "hover:bg-muted/60 rounded px-1.5 py-1 -mx-1.5 transition-colors cursor-pointer select-none";
 
   return (
     <div className="fixed inset-0 overflow-hidden">
@@ -348,31 +426,59 @@ const VotesDashboard = () => {
                         <DrawerTitle>Dashboards</DrawerTitle>
                         <DrawerDescription>Explore NYS data dashboards</DrawerDescription>
                       </DrawerHeader>
-                      <div className="flex gap-4 overflow-x-auto px-4 pb-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                        <DrawerClose asChild>
-                          <button onClick={() => navigate('/budget-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
-                            <img src="/dashboard-budget.avif" alt="Budget Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
-                            <span className="text-sm font-medium">Budget</span>
-                          </button>
-                        </DrawerClose>
-                        <DrawerClose asChild>
-                          <button onClick={() => navigate('/lobbying-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
-                            <img src="/dashboard-lobbying-line.avif" alt="Lobbying Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
-                            <span className="text-sm font-medium">Lobbying</span>
-                          </button>
-                        </DrawerClose>
-                        <DrawerClose asChild>
-                          <button onClick={() => navigate('/contracts-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
-                            <img src="/dashboard-contracts.avif" alt="Contracts Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
-                            <span className="text-sm font-medium">Contracts</span>
-                          </button>
-                        </DrawerClose>
-                        <DrawerClose asChild>
-                          <button onClick={() => navigate('/votes-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
-                            <img src="/dashboard-votes.png" alt="Votes Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
-                            <span className="text-sm font-medium">Votes</span>
-                          </button>
-                        </DrawerClose>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 px-4 pb-8">
+                        {/* Dashboard navigation cards */}
+                        {[
+                          { path: '/budget-dashboard', img: '/dashboard-budget.avif', label: 'Budget', desc: 'NYS budget spending' },
+                          { path: '/lobbying-dashboard', img: '/dashboard-lobbying-line.avif', label: 'Lobbying', desc: 'Lobbyist compensation' },
+                          { path: '/contracts-dashboard', img: '/dashboard-contracts.avif', label: 'Contracts', desc: 'State contracts' },
+                        ].map((d) => (
+                          <DrawerClose asChild key={d.path}>
+                            <button onClick={() => navigate(d.path)} className="text-left rounded-xl border border-border bg-muted/30 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 overflow-hidden">
+                              <div className="h-24 overflow-hidden">
+                                <img src={d.img} alt={d.label} className="w-full h-full object-cover" />
+                              </div>
+                              <div className="px-3 pb-3 pt-2">
+                                <p className="font-semibold text-sm">{d.label}</p>
+                                <p className="text-xs text-muted-foreground">{d.desc}</p>
+                              </div>
+                            </button>
+                          </DrawerClose>
+                        ))}
+
+                        {/* Vote chart cards */}
+                        {drawerCharts.map((chart, idx) => (
+                          <DrawerClose asChild key={idx}>
+                            <button onClick={() => setChartMode(idx)} className={cn("text-left rounded-xl border bg-muted/30 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 overflow-hidden", chartMode === idx ? "border-foreground/30 ring-1 ring-foreground/10" : "border-border")}>
+                              <div className="h-24 px-2 pt-2">
+                                {chart.data.length > 1 ? (
+                                  <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={chart.data} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
+                                      <defs>
+                                        {chart.areas.map((a) => (
+                                          <linearGradient key={a.id} id={a.id} x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor={a.stroke} stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor={a.stroke} stopOpacity={0.02} />
+                                          </linearGradient>
+                                        ))}
+                                      </defs>
+                                      {chart.areas.map((a) => (
+                                        <Area key={a.key} type="monotone" dataKey={a.key} stroke={a.stroke} strokeWidth={1.5} fill={`url(#${a.id})`} dot={false} animationDuration={500} />
+                                      ))}
+                                      <XAxis dataKey="date" hide />
+                                    </AreaChart>
+                                  </ResponsiveContainer>
+                                ) : (
+                                  <div className="h-full flex items-center justify-center text-xs text-muted-foreground">Loading...</div>
+                                )}
+                              </div>
+                              <div className="px-3 pb-3 pt-2">
+                                <p className="font-semibold text-sm">{chart.label}</p>
+                                <p className="text-xs text-muted-foreground">{chart.desc}</p>
+                              </div>
+                            </button>
+                          </DrawerClose>
+                        ))}
                       </div>
                     </DrawerContent>
                   </Drawer>
@@ -383,6 +489,9 @@ const VotesDashboard = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all" className="focus:bg-muted focus:text-foreground">All time</SelectItem>
+                    <SelectItem value="2026" className="focus:bg-muted focus:text-foreground">2026</SelectItem>
+                    <SelectItem value="2025" className="focus:bg-muted focus:text-foreground">2025</SelectItem>
                     <SelectItem value="90" className="focus:bg-muted focus:text-foreground">90 days</SelectItem>
                     <SelectItem value="30" className="focus:bg-muted focus:text-foreground">30 days</SelectItem>
                     <SelectItem value="7" className="focus:bg-muted focus:text-foreground">7 days</SelectItem>
@@ -426,7 +535,7 @@ const VotesDashboard = () => {
 
             /* ── Bills Tables (modes 1, 2, 4) ────────────── */
             ) : isBillsTable ? (
-              activeBillRows.length === 0 ? (
+              sortedBills.length === 0 ? (
                 <div className="text-center py-12 px-4">
                   <p className="text-muted-foreground">No bill vote records found.</p>
                 </div>
@@ -436,33 +545,33 @@ const VotesDashboard = () => {
                     {/* Column headers vary by mode */}
                     {chartMode === 1 && (
                       <div className="hidden md:grid grid-cols-[1fr_90px_60px_60px_60px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
-                        <span>Bill</span>
-                        <span className="text-right">Date</span>
-                        <span className="text-right">Total</span>
-                        <span className="text-right">Yes</span>
-                        <span className="text-right">No</span>
+                        <span className={hdr} onClick={() => toggleBillSort('billTitle')}>Bill</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('date')}>Date</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('total')}>Total</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('yesCount')}>Yes</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('noCount')}>No</span>
                       </div>
                     )}
                     {chartMode === 2 && (
                       <div className="hidden md:grid grid-cols-[1fr_90px_60px_60px_70px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
-                        <span>Bill</span>
-                        <span className="text-right">Date</span>
-                        <span className="text-right">Yes</span>
-                        <span className="text-right">No</span>
-                        <span className="text-right">Result</span>
+                        <span className={hdr} onClick={() => toggleBillSort('billTitle')}>Bill</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('date')}>Date</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('yesCount')}>Yes</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('noCount')}>No</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('result')}>Result</span>
                       </div>
                     )}
                     {chartMode === 4 && (
                       <div className="hidden md:grid grid-cols-[1fr_90px_60px_60px_70px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
-                        <span>Bill</span>
-                        <span className="text-right">Date</span>
-                        <span className="text-right">Yes</span>
-                        <span className="text-right">No</span>
-                        <span className="text-right">Margin</span>
+                        <span className={hdr} onClick={() => toggleBillSort('billTitle')}>Bill</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('date')}>Date</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('yesCount')}>Yes</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('noCount')}>No</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleBillSort('margin')}>Margin</span>
                       </div>
                     )}
 
-                    {(isAuthenticated ? activeBillRows.slice(0, billDisplayCount) : activeBillRows.slice(0, 6)).map((row) => (
+                    {(isAuthenticated ? sortedBills.slice(0, billDisplayCount) : sortedBills.slice(0, 6)).map((row) => (
                       <BillRowItem
                         key={`${chartMode}-${row.rollCallId}`}
                         row={row}
@@ -480,13 +589,13 @@ const VotesDashboard = () => {
                         className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">Sign Up</Button>
                     </div>
                   )}
-                  {isAuthenticated && billDisplayCount < activeBillRows.length && (
+                  {isAuthenticated && billDisplayCount < sortedBills.length && (
                     <div className="flex justify-center py-6">
                       <button
                         onClick={() => setBillDisplayCount((prev) => prev + 20)}
                         className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
                       >
-                        Load More ({Math.min(billDisplayCount, activeBillRows.length)} of {activeBillRows.length})
+                        Load More ({Math.min(billDisplayCount, sortedBills.length)} of {sortedBills.length})
                       </button>
                     </div>
                   )}
@@ -495,7 +604,7 @@ const VotesDashboard = () => {
 
             /* ── Members Tables (modes 0, 3) ─────────────── */
             ) : isMembersTable ? (
-              byMember.length === 0 ? (
+              sortedMembers.length === 0 ? (
                 <div className="text-center py-12 px-4">
                   <p className="text-muted-foreground">No vote records found.</p>
                 </div>
@@ -504,25 +613,25 @@ const VotesDashboard = () => {
                   <div className="divide-y">
                     {chartMode === 0 && (
                       <div className="hidden md:grid grid-cols-[1fr_80px_80px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
-                        <span>Name</span>
-                        <span className="text-right">Votes</span>
-                        <span className="text-right">Yes</span>
-                        <span className="text-right">No</span>
-                        <span className="text-right">% Yes</span>
+                        <span className={hdr} onClick={() => toggleMemberSort('name')}>Name</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('totalVotes')}>Votes</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('yesCount')}>Yes</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('noCount')}>No</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('pctYes')}>% Yes</span>
                       </div>
                     )}
                     {chartMode === 3 && (
                       <div className="hidden md:grid grid-cols-[1fr_60px_80px_80px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
-                        <span>Name</span>
-                        <span>Party</span>
-                        <span className="text-right">Votes</span>
-                        <span className="text-right">Yes</span>
-                        <span className="text-right">No</span>
-                        <span className="text-right">% Yes</span>
+                        <span className={hdr} onClick={() => toggleMemberSort('name')}>Name</span>
+                        <span className={hdr} onClick={() => toggleMemberSort('party')}>Party</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('totalVotes')}>Votes</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('yesCount')}>Yes</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('noCount')}>No</span>
+                        <span className={cn(hdr, "text-right")} onClick={() => toggleMemberSort('pctYes')}>% Yes</span>
                       </div>
                     )}
 
-                    {(isAuthenticated ? byMember.slice(0, displayCount) : byMember.slice(0, 6)).map((row) => (
+                    {(isAuthenticated ? sortedMembers.slice(0, displayCount) : sortedMembers.slice(0, 6)).map((row) => (
                       <VoteRowItem
                         key={row.people_id}
                         row={row}
@@ -540,13 +649,13 @@ const VotesDashboard = () => {
                         className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">Sign Up</Button>
                     </div>
                   )}
-                  {isAuthenticated && displayCount < byMember.length && (
+                  {isAuthenticated && displayCount < sortedMembers.length && (
                     <div className="flex justify-center py-6">
                       <button
                         onClick={() => setDisplayCount((prev) => prev + 20)}
                         className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
                       >
-                        Load More ({Math.min(displayCount, byMember.length)} of {byMember.length})
+                        Load More ({Math.min(displayCount, sortedMembers.length)} of {sortedMembers.length})
                       </button>
                     </div>
                   )}
