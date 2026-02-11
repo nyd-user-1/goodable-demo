@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { BillSummary, BillKeyInformation, QuickReviewNoteDialog } from "./features/bills";
 import { BillRelatedBills } from "./features/bills/BillRelatedBills";
+import { BillMilestones } from "./features/bills/BillMilestones";
 import { useBillReviews, ReviewStatus, BillNote } from "@/hooks/useBillReviews";
 import { useBillExtendedData } from "@/hooks/useBillExtendedData";
 
@@ -478,6 +479,20 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
             reviewStatus={billReview?.review_status}
             hasNotes={notes.length > 0}
           />
+
+          {/* Bill Milestones Progress Bar */}
+          {extendedData && extendedData.milestones.length > 0 && (
+            <BillMilestones
+              milestones={extendedData.milestones}
+              chamber={
+                bill.bill_number?.match(/^[Aa]/i)
+                  ? "assembly"
+                  : bill.bill_number?.match(/^[Ss]/i)
+                  ? "senate"
+                  : null
+              }
+            />
+          )}
 
           {/* Bill Tabs Section */}
           <section>
