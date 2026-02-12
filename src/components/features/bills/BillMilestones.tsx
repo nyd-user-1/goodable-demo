@@ -1,8 +1,8 @@
+import { Fragment } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BillMilestone } from "@/hooks/useBillExtendedData";
 import { cn } from "@/lib/utils";
 
-// Map status types to normalized stage keys
 function normalizeStatus(statusType: string): string {
   const map: Record<string, string> = {
     INTRODUCED: "INTRODUCED",
@@ -59,15 +59,15 @@ const STAGES: Stage[] = [
   { id: "signed", label: "Signed By\nGovernor", type: "shared", sharedKey: "SIGNED_BY_GOV" },
 ];
 
-// Desktop node sizes
+// Node sizes
 const COMPLETED_SIZE = 18;
 const CURRENT_SIZE = 22;
 const UNREACHED_SIZE = 14;
 
-// Box layout
-const TRACK_ROW_H = 44;
-const BOX_PY = 10;
-const BOX_H = TRACK_ROW_H * 2 + BOX_PY * 2 + 12; // 120px
+// Box dimensions — taller for breathing room
+const TRACK_ROW_H = 50;
+const BOX_PY = 14;
+const BOX_H = TRACK_ROW_H * 2 + BOX_PY * 2 + 16; // 144px
 
 interface BillMilestonesProps {
   milestones: BillMilestone[];
@@ -83,10 +83,7 @@ function getFurthestStageIndex(assemblyReached: Set<string>, senateReached: Set<
         furthest = idx;
       }
     } else {
-      if (
-        assemblyReached.has(stage.assemblyKey!) ||
-        senateReached.has(stage.senateKey!)
-      ) {
+      if (assemblyReached.has(stage.assemblyKey!) || senateReached.has(stage.senateKey!)) {
         furthest = idx;
       }
     }
@@ -101,7 +98,6 @@ function isStageReached(stage: Stage, assemblyReached: Set<string>, senateReache
   return assemblyReached.has(stage.assemblyKey!) || senateReached.has(stage.senateKey!);
 }
 
-// White checkmark SVG for completed nodes
 function CheckIcon({ size = 10 }: { size?: number }) {
   return (
     <svg
@@ -120,7 +116,6 @@ function CheckIcon({ size = 10 }: { size?: number }) {
   );
 }
 
-// Three visual states: checkmark (past), large dot (current), empty circle (unreached)
 function MilestoneNode({
   reached,
   isCurrent,
@@ -136,7 +131,6 @@ function MilestoneNode({
   const checkSize = compact ? 8 : 10;
 
   if (isCurrent) {
-    // Current (furthest reached): larger filled blue circle
     return (
       <div
         className="rounded-full bg-primary flex-shrink-0"
@@ -146,7 +140,6 @@ function MilestoneNode({
   }
 
   if (reached) {
-    // Completed (past): blue circle with white checkmark
     return (
       <div
         className="rounded-full bg-primary flex items-center justify-center flex-shrink-0"
@@ -157,7 +150,6 @@ function MilestoneNode({
     );
   }
 
-  // Unreached: empty circle with gray border
   return (
     <div
       className="rounded-full border-2 border-muted-foreground/30 bg-background flex-shrink-0"
@@ -183,19 +175,20 @@ export const BillMilestones = ({
 
   return (
     <Card className="card bg-card rounded-xl shadow-sm border">
-      <CardContent className="px-4 sm:px-8 py-8">
-        {/* Desktop layout */}
+      <CardContent className="px-6 sm:px-10 py-10">
+        {/* Desktop layout — stages are flex-none, connectors are flex-1 for even spacing */}
         <div className="hidden sm:block">
-          <div className="flex items-center" style={{ minHeight: 220 }}>
+          <div className="flex items-center">
             {STAGES.map((stage, idx) => {
               const stageReached = isStageReached(stage, assemblyReached, senateReached);
               const isFurthest = idx === furthestIdx;
+              const nextStage = idx < STAGES.length - 1 ? STAGES[idx + 1] : null;
 
               return (
-                <div key={stage.id} className="flex items-center flex-1 min-w-0 last:flex-none">
+                <Fragment key={stage.id}>
+                  {/* Stage column — fixed width */}
                   {stage.type === "shared" ? (
-                    /* Shared stage: single node with label below */
-                    <div className="flex flex-col items-center" style={{ minWidth: 70 }}>
+                    <div className="flex-none flex flex-col items-center" style={{ minWidth: 64 }}>
                       <MilestoneNode
                         reached={stageReached}
                         isCurrent={isFurthest && stageReached}
@@ -210,9 +203,8 @@ export const BillMilestones = ({
                       </p>
                     </div>
                   ) : (
-                    /* Dual stage: Assembly (top) + Senate (bottom) in a bordered box */
-                    <div className="flex flex-col items-center" style={{ minWidth: 90 }}>
-                      {/* Assembly label above box */}
+                    <div className="flex-none flex flex-col items-center">
+                      {/* Assembly label above */}
                       <p
                         className={cn(
                           "text-[11px] font-medium text-center whitespace-pre-line leading-tight mb-2",
@@ -224,12 +216,11 @@ export const BillMilestones = ({
                         {stage.assemblyLabel}
                       </p>
 
-                      {/* Box containing both nodes */}
+                      {/* Box with two nodes */}
                       <div
-                        className="border border-muted-foreground/25 rounded-sm flex flex-col items-center px-6"
-                        style={{ height: BOX_H }}
+                        className="border border-muted-foreground/25 rounded-sm flex flex-col items-center"
+                        style={{ height: BOX_H, minWidth: 56, paddingLeft: 20, paddingRight: 20 }}
                       >
-                        {/* Assembly node (top) */}
                         <div
                           className="flex items-center justify-center"
                           style={{ height: TRACK_ROW_H, marginTop: BOX_PY }}
@@ -240,7 +231,6 @@ export const BillMilestones = ({
                           />
                         </div>
                         <div className="flex-1" />
-                        {/* Senate node (bottom) */}
                         <div
                           className="flex items-center justify-center"
                           style={{ height: TRACK_ROW_H, marginBottom: BOX_PY }}
@@ -252,7 +242,7 @@ export const BillMilestones = ({
                         </div>
                       </div>
 
-                      {/* Senate label below box */}
+                      {/* Senate label below */}
                       <p
                         className={cn(
                           "text-[11px] font-medium text-center whitespace-pre-line leading-tight mt-2",
@@ -266,11 +256,11 @@ export const BillMilestones = ({
                     </div>
                   )}
 
-                  {/* Horizontal connector to next stage */}
-                  {idx < STAGES.length - 1 && (
-                    <div className="flex-1 min-w-3 px-0.5 self-center">
-                      {stage.type === "dual" && STAGES[idx + 1].type === "dual" ? (
-                        /* Dual-to-dual: two parallel lines matching box track heights */
+                  {/* Connector — takes equal remaining space */}
+                  {nextStage && (
+                    <div className="flex-1 min-w-4 self-center">
+                      {stage.type === "dual" && nextStage.type === "dual" ? (
+                        /* Dual→dual: two parallel lines aligned with box tracks */
                         <div className="flex flex-col" style={{ height: BOX_H }}>
                           <div
                             className="flex items-center"
@@ -280,7 +270,7 @@ export const BillMilestones = ({
                               className={cn(
                                 "flex-1 h-0.5",
                                 assemblyReached.has(stage.assemblyKey!) &&
-                                  assemblyReached.has(STAGES[idx + 1].assemblyKey!)
+                                  assemblyReached.has(nextStage.assemblyKey!)
                                   ? "bg-primary"
                                   : "bg-muted-foreground/20"
                               )}
@@ -295,7 +285,7 @@ export const BillMilestones = ({
                               className={cn(
                                 "flex-1 h-0.5",
                                 senateReached.has(stage.senateKey!) &&
-                                  senateReached.has(STAGES[idx + 1].senateKey!)
+                                  senateReached.has(nextStage.senateKey!)
                                   ? "bg-primary"
                                   : "bg-muted-foreground/20"
                               )}
@@ -303,42 +293,40 @@ export const BillMilestones = ({
                           </div>
                         </div>
                       ) : (
-                        /* Single centered line: shared↔dual or shared↔shared */
+                        /* Single centered line */
                         <div
                           className={cn(
                             "h-0.5",
-                            stageReached &&
-                              isStageReached(STAGES[idx + 1], assemblyReached, senateReached)
+                            stageReached && isStageReached(nextStage, assemblyReached, senateReached)
                               ? "bg-primary"
-                              : stageReached
-                              ? "bg-primary/40"
                               : "bg-muted-foreground/20"
                           )}
                         />
                       )}
                     </div>
                   )}
-                </div>
+                </Fragment>
               );
             })}
           </div>
         </div>
 
-        {/* Mobile layout - compact version */}
+        {/* Mobile layout */}
         <div className="sm:hidden">
-          <div className="flex items-center overflow-x-auto pb-2" style={{ minHeight: 140 }}>
+          <div className="flex items-center overflow-x-auto pb-2" style={{ minHeight: 120 }}>
             {STAGES.map((stage, idx) => {
               const stageReached = isStageReached(stage, assemblyReached, senateReached);
               const isFurthest = idx === furthestIdx;
+              const nextStage = idx < STAGES.length - 1 ? STAGES[idx + 1] : null;
 
-              const M_TRACK = 28;
-              const M_PY = 6;
+              const M_TRACK = 26;
+              const M_PY = 5;
               const M_BOX = M_TRACK * 2 + M_PY * 2 + 6;
 
               return (
-                <div key={stage.id} className="flex items-center flex-1 min-w-0 last:flex-none">
+                <Fragment key={stage.id}>
                   {stage.type === "shared" ? (
-                    <div className="flex flex-col items-center" style={{ minWidth: 44 }}>
+                    <div className="flex-none flex flex-col items-center" style={{ minWidth: 40 }}>
                       <MilestoneNode
                         reached={stageReached}
                         isCurrent={isFurthest && stageReached}
@@ -354,9 +342,9 @@ export const BillMilestones = ({
                       </p>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center" style={{ minWidth: 48 }}>
+                    <div className="flex-none flex flex-col items-center" style={{ minWidth: 40 }}>
                       <div
-                        className="border border-muted-foreground/25 rounded-sm flex flex-col items-center px-2"
+                        className="border border-muted-foreground/25 rounded-sm flex flex-col items-center px-1.5"
                         style={{ height: M_BOX }}
                       >
                         <div
@@ -396,21 +384,19 @@ export const BillMilestones = ({
                     </div>
                   )}
 
-                  {/* Mobile connector */}
-                  {idx < STAGES.length - 1 && (
-                    <div className="flex-1 min-w-1 px-0.5 self-center">
+                  {nextStage && (
+                    <div className="flex-1 min-w-1 self-center">
                       <div
                         className={cn(
                           "h-0.5",
-                          stageReached &&
-                            isStageReached(STAGES[idx + 1], assemblyReached, senateReached)
+                          stageReached && isStageReached(nextStage, assemblyReached, senateReached)
                             ? "bg-primary"
                             : "bg-muted-foreground/20"
                         )}
                       />
                     </div>
                   )}
-                </div>
+                </Fragment>
               );
             })}
           </div>
