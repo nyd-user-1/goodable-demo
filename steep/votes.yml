@@ -28,6 +28,8 @@ module:
       calculation: "custom-value"
       sql_expression: "COUNT(*)"
       time: "roll_call.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "total_yea_votes"
       name: "Total Yea Votes"
@@ -35,6 +37,8 @@ module:
       calculation: "custom-value"
       sql_expression: "SUM(yea)"
       time: "roll_call.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "avg_yea_votes"
       name: "Avg Yea Votes Per Roll Call"
@@ -42,6 +46,8 @@ module:
       calculation: "custom-value"
       sql_expression: "AVG(yea)"
       time: "roll_call.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "avg_total_votes"
       name: "Avg Total Votes"
@@ -49,3 +55,5 @@ module:
       calculation: "custom-value"
       sql_expression: "AVG(total)"
       time: "roll_call.created_at"
+      dimensions:
+        - "this.*"

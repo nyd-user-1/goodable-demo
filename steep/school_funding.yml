@@ -28,6 +28,8 @@ module:
       calculation: "custom-value"
       sql_expression: "COUNT(*)"
       time: "school_funding_totals.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "total_school_year_funding"
       name: "Total School Year Funding"
@@ -35,6 +37,8 @@ module:
       calculation: "custom-value"
       sql_expression: "SUM(total_school_year)"
       time: "school_funding_totals.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "total_base_year_funding"
       name: "Total Base Year Funding"
@@ -42,6 +46,8 @@ module:
       calculation: "custom-value"
       sql_expression: "SUM(total_base_year)"
       time: "school_funding_totals.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "total_funding_change"
       name: "Total Funding Change"
@@ -49,6 +55,8 @@ module:
       calculation: "custom-value"
       sql_expression: "SUM(total_change)"
       time: "school_funding_totals.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "avg_percent_change"
       name: "Avg Percent Change"
@@ -56,3 +64,5 @@ module:
       calculation: "custom-value"
       sql_expression: "AVG(percent_change)"
       time: "school_funding_totals.created_at"
+      dimensions:
+        - "this.*"

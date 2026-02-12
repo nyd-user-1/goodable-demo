@@ -48,6 +48,8 @@ module:
       calculation: "custom-value"
       sql_expression: "COUNT(*)"
       time: "chat_sessions.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "active_users"
       name: "Active Users"
@@ -55,6 +57,8 @@ module:
       calculation: "custom-value"
       sql_expression: "COUNT(DISTINCT user_id)"
       time: "chat_sessions.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "bill_chats"
       name: "Bill-Related Chats"
@@ -62,6 +66,8 @@ module:
       calculation: "custom-value"
       sql_expression: "COUNT(*) FILTER (WHERE bill_id IS NOT NULL)"
       time: "chat_sessions.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "committee_chats"
       name: "Committee-Related Chats"
@@ -69,6 +75,8 @@ module:
       calculation: "custom-value"
       sql_expression: "COUNT(*) FILTER (WHERE committee_id IS NOT NULL)"
       time: "chat_sessions.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "member_chats"
       name: "Member-Related Chats"
@@ -76,3 +84,5 @@ module:
       calculation: "custom-value"
       sql_expression: "COUNT(*) FILTER (WHERE member_id IS NOT NULL)"
       time: "chat_sessions.created_at"
+      dimensions:
+        - "this.*"

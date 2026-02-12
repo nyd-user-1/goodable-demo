@@ -18,6 +18,8 @@ module:
       calculation: "custom-value"
       sql_expression: "COUNT(*)"
       time: "lobbying_spend.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "total_client_spending"
       name: "Total Client Spending"
@@ -25,6 +27,8 @@ module:
       calculation: "custom-value"
       sql_expression: "SUM(CAST(REPLACE(compensation_and_expenses, ',', '') AS numeric))"
       time: "lobbying_spend.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "total_client_compensation"
       name: "Total Client Compensation"
@@ -32,3 +36,5 @@ module:
       calculation: "custom-value"
       sql_expression: "SUM(CAST(REPLACE(compensation, ',', '') AS numeric))"
       time: "lobbying_spend.created_at"
+      dimensions:
+        - "this.*"

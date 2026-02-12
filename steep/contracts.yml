@@ -43,6 +43,8 @@ module:
       calculation: "custom-value"
       sql_expression: "COUNT(*)"
       time: "contracts.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "total_contract_value"
       name: "Total Contract Value"
@@ -50,6 +52,8 @@ module:
       calculation: "custom-value"
       sql_expression: "SUM(current_contract_amount)"
       time: "contracts.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "avg_contract_value"
       name: "Average Contract Value"
@@ -57,6 +61,8 @@ module:
       calculation: "custom-value"
       sql_expression: "AVG(current_contract_amount)"
       time: "contracts.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "unique_vendors"
       name: "Unique Vendors"
@@ -64,3 +70,5 @@ module:
       calculation: "custom-value"
       sql_expression: "COUNT(DISTINCT vendor_name)"
       time: "contracts.created_at"
+      dimensions:
+        - "this.*"

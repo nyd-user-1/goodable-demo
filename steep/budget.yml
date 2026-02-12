@@ -43,6 +43,8 @@ module:
       calculation: "custom-value"
       sql_expression: "SUM(CAST(NULLIF(REPLACE(\"2026-27 Estimates\", ',', ''), '') AS numeric))"
       time: "budget_2027_spending.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "total_spending_2026"
       name: "Total Spending 2025-26 (Est)"
@@ -50,6 +52,8 @@ module:
       calculation: "custom-value"
       sql_expression: "SUM(CAST(NULLIF(REPLACE(\"2025-26 Estimates\", ',', ''), '') AS numeric))"
       time: "budget_2027_spending.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "total_actuals_2025"
       name: "Total Actuals 2024-25"
@@ -57,6 +61,8 @@ module:
       calculation: "custom-value"
       sql_expression: "SUM(CAST(NULLIF(REPLACE(\"2024-25 Actuals\", ',', ''), '') AS numeric))"
       time: "budget_2027_spending.created_at"
+      dimensions:
+        - "this.*"
 
     - identifier: "budget_line_items"
       name: "Budget Line Items"
@@ -64,3 +70,5 @@ module:
       calculation: "custom-value"
       sql_expression: "COUNT(*)"
       time: "budget_2027_spending.created_at"
+      dimensions:
+        - "this.*"
