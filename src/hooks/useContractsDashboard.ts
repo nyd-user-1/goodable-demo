@@ -187,8 +187,8 @@ export function useContractsDashboard() {
     gcTime: 15 * 60 * 1000,
   });
 
-  const isLoading = deptLoading || typeLoading || histLoading || totalsLoading || monthlyLoading || vendorsLoading || durationLoading;
-  const error = deptError || typeError || histError || totalsError || monthlyError || vendorsError || durationError;
+  const isLoading = deptLoading || typeLoading || histLoading || totalsLoading;
+  const error = deptError || typeError || histError || totalsError;
 
   // ── Drill-down: lazy RPC with cache ────────────────────────
   const [drillCache, setDrillCache] = useState<Record<string, ContractsDrillDownRow[]>>({});
