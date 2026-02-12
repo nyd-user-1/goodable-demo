@@ -1,0 +1,46 @@
+module:
+  schema: "public"
+  table: "bills"
+  identifier: "bills"
+  label: "Bills"
+  description: "NYS legislative bills with status, committee, and action history"
+
+  dimensions:
+    - column: "status_desc"
+      type: "categorical"
+      label: "Status"
+      description: "Current bill status"
+
+    - column: "committee"
+      type: "categorical"
+      label: "Committee"
+      description: "Assigned committee name"
+
+    - column: "title"
+      type: "categorical"
+      label: "Title"
+      description: "Bill title"
+
+    - column: "bill_number"
+      type: "categorical"
+      label: "Bill Number"
+      description: "Official bill number"
+
+  metrics:
+    - identifier: "total_bills"
+      name: "Total Bills"
+      description: "Total number of bills"
+      calculation: "custom-value"
+      sql_expression: "COUNT(*)"
+      time: "bills.created_at"
+      dimensions:
+        - "this.*"
+
+    - identifier: "bills_by_status"
+      name: "Bills with Actions"
+      description: "Bills that have had at least one action"
+      calculation: "custom-value"
+      sql_expression: "COUNT(*) FILTER (WHERE last_action_date IS NOT NULL)"
+      time: "bills.created_at"
+      dimensions:
+        - "this.*"

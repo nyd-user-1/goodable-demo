@@ -1,0 +1,32 @@
+module:
+  schema: "public"
+  table: "people"
+  identifier: "people"
+  label: "Members"
+  description: "NYS legislators with party, chamber, and district information"
+
+  dimensions:
+    - column: "name"
+      type: "categorical"
+      label: "Name"
+      description: "Full name of the legislator"
+
+    - column: "party"
+      type: "categorical"
+      label: "Party"
+      description: "Political party affiliation"
+
+    - column: "chamber"
+      type: "categorical"
+      label: "Chamber"
+      description: "Legislative chamber (Senate or Assembly)"
+
+    - column: "district"
+      type: "categorical"
+      label: "District"
+      description: "Legislative district"
+
+    - column: "role"
+      type: "categorical"
+      label: "Role"
+      description: "Legislative role"

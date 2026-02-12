@@ -1,0 +1,89 @@
+module:
+  schema: "public"
+  table: "member_votes"
+  identifier: "member_votes"
+  label: "Individual Votes"
+  description: "How each NYS legislator voted on each roll call"
+
+  dimensions:
+    - column: "vote_desc"
+      type: "categorical"
+      label: "Vote"
+      description: "How the member voted (Yea, Nay, NV, Absent)"
+
+  joinPaths:
+    - from:
+        column: "people_id"
+      to:
+        schema: "public"
+        table: "people"
+        column: "people_id"
+      type: "one-to-one"
+
+    - from:
+        column: "roll_call_id"
+      to:
+        schema: "public"
+        table: "roll_call"
+        column: "roll_call_id"
+      type: "one-to-one"
+
+  metrics:
+    - identifier: "total_individual_votes"
+      name: "Total Individual Votes"
+      description: "Total number of individual vote records cast"
+      calculation: "custom-value"
+      sql_expression: "COUNT(*)"
+      time: "roll_call.created_at"
+      dimensions:
+        - "this.*"
+        - "public.people.*"
+        - "public.roll_call.*"
+
+    - identifier: "yea_votes_cast"
+      name: "Yea Votes Cast"
+      description: "Number of Yea votes cast by members"
+      calculation: "custom-value"
+      sql_expression: "COUNT(*) FILTER (WHERE vote_desc = 'Yea')"
+      time: "roll_call.created_at"
+      dimensions:
+        - "this.*"
+        - "public.people.*"
+        - "public.roll_call.*"
+
+    - identifier: "nay_votes_cast"
+      name: "Nay Votes Cast"
+      description: "Number of Nay votes cast by members"
+      calculation: "custom-value"
+      sql_expression: "COUNT(*) FILTER (WHERE vote_desc = 'Nay')"
+      time: "roll_call.created_at"
+      dimensions:
+        - "this.*"
+        - "public.people.*"
+        - "public.roll_call.*"
+
+    - identifier: "yea_vote_rate"
+      name: "Yea Vote Rate"
+      description: "Percentage of votes that were Yea"
+      calculation: "custom-ratio"
+      numerator_sql: "COUNT(*) FILTER (WHERE vote_desc = 'Yea')"
+      denominator_sql: "COUNT(*)"
+      format: "percentage"
+      time: "roll_call.created_at"
+      dimensions:
+        - "this.*"
+        - "public.people.*"
+        - "public.roll_call.*"
+
+    - identifier: "absent_rate"
+      name: "Absent Rate"
+      description: "Percentage of votes where member was absent"
+      calculation: "custom-ratio"
+      numerator_sql: "COUNT(*) FILTER (WHERE vote_desc = 'Absent')"
+      denominator_sql: "COUNT(*)"
+      format: "percentage"
+      time: "roll_call.created_at"
+      dimensions:
+        - "this.*"
+        - "public.people.*"
+        - "public.roll_call.*"

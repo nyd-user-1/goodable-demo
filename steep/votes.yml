@@ -21,6 +21,15 @@ module:
       label: "Vote Date"
       description: "Date of the roll call vote"
 
+  joinPaths:
+    - from:
+        column: "bill_id"
+      to:
+        schema: "public"
+        table: "bills"
+        column: "bill_id"
+      type: "one-to-one"
+
   metrics:
     - identifier: "total_roll_calls"
       name: "Total Roll Calls"
@@ -30,6 +39,7 @@ module:
       time: "roll_call.created_at"
       dimensions:
         - "this.*"
+        - "public.bills.*"
 
     - identifier: "total_yea_votes"
       name: "Total Yea Votes"
@@ -39,6 +49,7 @@ module:
       time: "roll_call.created_at"
       dimensions:
         - "this.*"
+        - "public.bills.*"
 
     - identifier: "avg_yea_votes"
       name: "Avg Yea Votes Per Roll Call"
@@ -48,6 +59,7 @@ module:
       time: "roll_call.created_at"
       dimensions:
         - "this.*"
+        - "public.bills.*"
 
     - identifier: "avg_total_votes"
       name: "Avg Total Votes"
@@ -57,3 +69,4 @@ module:
       time: "roll_call.created_at"
       dimensions:
         - "this.*"
+        - "public.bills.*"

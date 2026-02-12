@@ -1,0 +1,63 @@
+module:
+  schema: "public"
+  table: "sponsors"
+  identifier: "sponsors"
+  label: "Bill Sponsors"
+  description: "Which legislators sponsor which bills"
+
+  dimensions:
+    - column: "position"
+      type: "categorical"
+      label: "Sponsor Position"
+      description: "Primary sponsor (1) vs co-sponsor"
+
+  joinPaths:
+    - from:
+        column: "people_id"
+      to:
+        schema: "public"
+        table: "people"
+        column: "people_id"
+      type: "one-to-one"
+
+    - from:
+        column: "bill_id"
+      to:
+        schema: "public"
+        table: "bills"
+        column: "bill_id"
+      type: "one-to-one"
+
+  metrics:
+    - identifier: "total_sponsorships"
+      name: "Total Sponsorships"
+      description: "Total number of bill sponsorships"
+      calculation: "custom-value"
+      sql_expression: "COUNT(*)"
+      time: "bills.created_at"
+      dimensions:
+        - "this.*"
+        - "public.people.*"
+        - "public.bills.*"
+
+    - identifier: "primary_sponsorships"
+      name: "Primary Sponsorships"
+      description: "Number of bills where member is primary sponsor"
+      calculation: "custom-value"
+      sql_expression: "COUNT(*) FILTER (WHERE position = 1)"
+      time: "bills.created_at"
+      dimensions:
+        - "this.*"
+        - "public.people.*"
+        - "public.bills.*"
+
+    - identifier: "unique_sponsors"
+      name: "Unique Sponsors"
+      description: "Number of distinct legislators sponsoring bills"
+      calculation: "custom-value"
+      sql_expression: "COUNT(DISTINCT people_id)"
+      time: "bills.created_at"
+      dimensions:
+        - "this.*"
+        - "public.people.*"
+        - "public.bills.*"
