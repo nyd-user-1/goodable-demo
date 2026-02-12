@@ -46,37 +46,3 @@ module:
       description: "Average lobbyist compensation"
       calculation: "custom-value"
       sql_expression: "AVG(CAST(compensation AS numeric))"
-
----
-
-module:
-  schema: "public"
-  table: "lobbying_spend"
-  identifier: "lobbying_spend"
-  label: "Lobbying Client Spending"
-  description: "Client-level lobbying expenditure data"
-
-  dimensions:
-    - column: "contractual_client"
-      type: "categorical"
-      label: "Client"
-      description: "Contractual client name"
-
-  metrics:
-    - identifier: "total_clients"
-      name: "Total Lobbying Clients"
-      description: "Number of lobbying clients"
-      calculation: "custom-value"
-      sql_expression: "COUNT(*)"
-
-    - identifier: "total_client_spending"
-      name: "Total Client Spending"
-      description: "Total compensation and expenses by clients"
-      calculation: "custom-value"
-      sql_expression: "SUM(CAST(compensation_and_expenses AS numeric))"
-
-    - identifier: "total_client_compensation"
-      name: "Total Client Compensation"
-      description: "Total compensation paid by clients"
-      calculation: "custom-value"
-      sql_expression: "SUM(CAST(compensation AS numeric))"
