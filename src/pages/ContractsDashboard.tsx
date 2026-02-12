@@ -23,6 +23,12 @@ import {
   type ContractsDashboardTab,
   type ContractsDashboardRow,
   type ContractsDrillDownRow,
+  type ContractsYearRow,
+  type ContractsVendorRow,
+  type ContractsDurationBucket,
+  type ContractsMonthDrillRow,
+  type ContractsVendorDrillRow,
+  type ContractsDurationDrillRow,
   TAB_LABELS,
 } from '@/hooks/useContractsDashboard';
 import {
@@ -78,6 +84,10 @@ const ContractsDashboard = () => {
     monthlyData,
     topVendors,
     durationBuckets,
+    byYear,
+    getMonthsForYear,
+    getContractsForVendor,
+    getContractsForDurationBucket,
   } = useContractsDashboard();
 
   // Get rows for the active tab
@@ -107,12 +117,12 @@ const ContractsDashboard = () => {
     setSelectedRow((prev) => (prev === name ? null : name));
   };
 
-  // Reset expanded rows and display count when tab changes
+  // Reset expanded rows and display count when tab or chart mode changes
   useEffect(() => {
     setExpandedRows(new Set());
     setSelectedRow(null);
     setDisplayCount(25);
-  }, [activeTab]);
+  }, [activeTab, chartMode]);
 
   // Selected row data for header display
   const selectedRowData = useMemo(() => {
@@ -286,9 +296,9 @@ const ContractsDashboard = () => {
                   {/* Mode 3: Duration buckets bar chart */}
                   {chartMode === 3 && durationBuckets.length > 0 && (
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={durationBuckets} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                      <BarChart data={durationBuckets} margin={{ top: 4, right: 8, bottom: 16, left: 8 }}>
                         <Bar dataKey="count" fill="hsl(280 67% 55%)" radius={[2, 2, 0, 0]} animationDuration={500} />
-                        <XAxis dataKey="bucket" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
+                        <XAxis dataKey="bucket" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
                         <RechartsTooltip
                           contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
                           formatter={(value: number, name: string) => [name === 'count' ? `${value} contracts` : formatFullCurrency(value), name === 'count' ? 'Contracts' : 'Total Value']}
@@ -300,25 +310,8 @@ const ContractsDashboard = () => {
                 </div>
               )}
 
-              {/* Chart mode toggle + Dashboards picker + Tabs */}
+              {/* Dashboards picker + Tabs + Chart mode toggle */}
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setChartMode((prev) => (prev - 1 + NUM_CHART_MODES) % NUM_CHART_MODES)}
-                    className="p-1 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap min-w-[100px] text-center">
-                    {CHART_LABELS[chartMode]}
-                  </span>
-                  <button
-                    onClick={() => setChartMode((prev) => (prev + 1) % NUM_CHART_MODES)}
-                    className="p-1 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
                 <Drawer>
                     <DrawerTrigger asChild>
                       <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
@@ -373,6 +366,23 @@ const ContractsDashboard = () => {
                     {TAB_LABELS[tab]}
                   </button>
                 ))}
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setChartMode((prev) => (prev - 1 + NUM_CHART_MODES) % NUM_CHART_MODES)}
+                    className="p-1 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap min-w-[100px] text-center">
+                    {CHART_LABELS[chartMode]}
+                  </span>
+                  <button
+                    onClick={() => setChartMode((prev) => (prev + 1) % NUM_CHART_MODES)}
+                    className="p-1 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -389,70 +399,115 @@ const ContractsDashboard = () => {
                   <div key={i} className="h-14 bg-muted/30 rounded-lg animate-pulse" />
                 ))}
               </div>
-            ) : rows.length === 0 ? (
-              <div className="text-center py-12 px-4">
-                <p className="text-muted-foreground">No contract records found.</p>
-              </div>
-            ) : (
-              <>
-                <div className="divide-y">
-                  {/* Column headers */}
-                  <div className="hidden md:grid grid-cols-[1fr_44px_120px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
-                    <span>Name</span>
-                    <span className="flex items-center justify-center">
-                      <MessageSquare className="h-3.5 w-3.5" />
-                    </span>
-                    <span className="text-right">Amount</span>
-                    <span className="text-right">Contracts</span>
-                    <span className="text-right">Share</span>
-                  </div>
-
-                  {(isAuthenticated ? rows.slice(0, displayCount) : rows.slice(0, 6)).map((row) => (
-                    <ContractRowItem
-                      key={row.name}
-                      row={row}
-                      isExpanded={expandedRows.has(row.name)}
-                      isSelected={selectedRow === row.name}
-                      hasSelection={selectedRow !== null}
-                      onToggle={() => toggleRow(row.name)}
-                      onChatClick={() => handleChatClick(row)}
-                      tab={activeTab}
-                      getDrillDown={getDrillDown}
-                    />
-                  ))}
-
-                  {/* Grand total row */}
-                  <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_120px_80px_80px] gap-4 px-4 md:px-6 py-4 bg-muted/30 font-semibold">
-                    <span>Total</span>
-                    <span className="hidden md:block" />
-                    <span className="text-right">{formatCompactCurrency(grandTotal)}</span>
-                    <span className="hidden md:block text-right">{displayedTotalContracts.toLocaleString()}</span>
-                    <span className="hidden md:block text-right">100%</span>
-                  </div>
+            ) : chartMode === 0 ? (
+              /* ── Mode 0: Department/Type table (existing) ── */
+              rows.length === 0 ? (
+                <div className="text-center py-12 px-4">
+                  <p className="text-muted-foreground">No contract records found.</p>
                 </div>
-                {!isAuthenticated && (
-                  <div className="text-center py-12">
-                    <p className="text-muted-foreground">
-                      Please log in to view all contract records.
-                    </p>
-                    <Button variant="ghost" onClick={() => navigate('/auth-4')}
-                      className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">
-                      Sign Up
-                    </Button>
+              ) : (
+                <>
+                  <div className="divide-y">
+                    <div className="hidden md:grid grid-cols-[1fr_44px_120px_80px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                      <span>Name</span>
+                      <span className="flex items-center justify-center">
+                        <MessageSquare className="h-3.5 w-3.5" />
+                      </span>
+                      <span className="text-right">Amount</span>
+                      <span className="text-right">Contracts</span>
+                      <span className="text-right">Share</span>
+                    </div>
+                    {(isAuthenticated ? rows.slice(0, displayCount) : rows.slice(0, 6)).map((row) => (
+                      <ContractRowItem
+                        key={row.name}
+                        row={row}
+                        isExpanded={expandedRows.has(row.name)}
+                        isSelected={selectedRow === row.name}
+                        hasSelection={selectedRow !== null}
+                        onToggle={() => toggleRow(row.name)}
+                        onChatClick={() => handleChatClick(row)}
+                        tab={activeTab}
+                        getDrillDown={getDrillDown}
+                      />
+                    ))}
+                    <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_120px_80px_80px] gap-4 px-4 md:px-6 py-4 bg-muted/30 font-semibold">
+                      <span>Total</span>
+                      <span className="hidden md:block" />
+                      <span className="text-right">{formatCompactCurrency(grandTotal)}</span>
+                      <span className="hidden md:block text-right">{displayedTotalContracts.toLocaleString()}</span>
+                      <span className="hidden md:block text-right">100%</span>
+                    </div>
                   </div>
-                )}
-                {isAuthenticated && displayCount < rows.length && (
-                  <div className="flex justify-center py-6">
-                    <button
-                      onClick={() => setDisplayCount((prev) => prev + 50)}
-                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
-                    >
-                      Load More ({Math.min(displayCount, rows.length)} of {rows.length})
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
+                  {!isAuthenticated && (
+                    <div className="text-center py-12">
+                      <p className="text-muted-foreground">Please log in to view all contract records.</p>
+                      <Button variant="ghost" onClick={() => navigate('/auth-4')} className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">Sign Up</Button>
+                    </div>
+                  )}
+                  {isAuthenticated && displayCount < rows.length && (
+                    <div className="flex justify-center py-6">
+                      <button onClick={() => setDisplayCount((prev) => prev + 50)} className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors">
+                        Load More ({Math.min(displayCount, rows.length)} of {rows.length})
+                      </button>
+                    </div>
+                  )}
+                </>
+              )
+            ) : chartMode === 1 ? (
+              /* ── Mode 1: Years table with month drill-down ── */
+              <div className="divide-y">
+                <div className="hidden md:grid grid-cols-[1fr_120px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                  <span>Year</span>
+                  <span className="text-right">Amount</span>
+                  <span className="text-right">Contracts</span>
+                </div>
+                {byYear.map((yr) => (
+                  <YearRowItem
+                    key={yr.year}
+                    row={yr}
+                    isExpanded={expandedRows.has(yr.year)}
+                    onToggle={() => toggleRow(yr.year)}
+                    getMonthsForYear={getMonthsForYear}
+                  />
+                ))}
+              </div>
+            ) : chartMode === 2 ? (
+              /* ── Mode 2: Vendors table with contract drill-down ── */
+              <div className="divide-y">
+                <div className="hidden md:grid grid-cols-[1fr_120px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                  <span>Vendor</span>
+                  <span className="text-right">Amount</span>
+                  <span className="text-right">Contracts</span>
+                </div>
+                {topVendors.map((vendor) => (
+                  <VendorRowItem
+                    key={vendor.name}
+                    row={vendor}
+                    isExpanded={expandedRows.has(vendor.name)}
+                    onToggle={() => toggleRow(vendor.name)}
+                    getContractsForVendor={getContractsForVendor}
+                  />
+                ))}
+              </div>
+            ) : chartMode === 3 ? (
+              /* ── Mode 3: Duration buckets table ── */
+              <div className="divide-y">
+                <div className="hidden md:grid grid-cols-[1fr_120px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                  <span>Duration</span>
+                  <span className="text-right">Amount</span>
+                  <span className="text-right">Contracts</span>
+                </div>
+                {durationBuckets.map((bucket) => (
+                  <DurationRowItem
+                    key={bucket.bucket}
+                    row={bucket}
+                    isExpanded={expandedRows.has(bucket.bucket)}
+                    onToggle={() => toggleRow(bucket.bucket)}
+                    getContractsForDurationBucket={getContractsForDurationBucket}
+                  />
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
@@ -699,6 +754,184 @@ function ContractDrillRow({ contract }: ContractDrillRowProps) {
         </div>
       </div>
     </>
+  );
+}
+
+// ── Year Row (Mode 1) ────────────────────────────────────────────
+
+function YearRowItem({
+  row,
+  isExpanded,
+  onToggle,
+  getMonthsForYear,
+}: {
+  row: ContractsYearRow;
+  isExpanded: boolean;
+  onToggle: () => void;
+  getMonthsForYear: (year: string) => ContractsMonthDrillRow[];
+}) {
+  const months = isExpanded ? getMonthsForYear(row.year) : [];
+
+  return (
+    <div>
+      <div
+        onClick={onToggle}
+        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_120px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer hover:bg-muted/30 transition-colors items-center"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="flex-shrink-0 text-muted-foreground">
+            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </span>
+          <span className="font-medium">{row.year}</span>
+          <span className="md:hidden text-sm text-muted-foreground ml-auto pl-2 whitespace-nowrap">
+            {formatCompactCurrency(row.amount)}
+          </span>
+        </div>
+        <span className="hidden md:block text-right font-medium tabular-nums">{formatCompactCurrency(row.amount)}</span>
+        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.count.toLocaleString()}</span>
+      </div>
+      {isExpanded && months.length > 0 && (
+        <div className="bg-muted/10 border-t border-b">
+          {months.map((m) => (
+            <div key={m.month} className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_120px_80px] gap-4 px-4 md:px-6 py-3 pl-10 md:pl-14 text-sm">
+              <span>{m.monthName} {row.year}</span>
+              <span className="text-right tabular-nums">{formatCompactCurrency(m.amount)}</span>
+              <span className="hidden md:block text-right tabular-nums text-muted-foreground">{m.count.toLocaleString()}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Vendor Row (Mode 2) ──────────────────────────────────────────
+
+function VendorRowItem({
+  row,
+  isExpanded,
+  onToggle,
+  getContractsForVendor,
+}: {
+  row: ContractsVendorRow;
+  isExpanded: boolean;
+  onToggle: () => void;
+  getContractsForVendor: (name: string) => ContractsVendorDrillRow[];
+}) {
+  const navigate = useNavigate();
+  const contracts = isExpanded ? getContractsForVendor(row.name) : [];
+
+  return (
+    <div>
+      <div
+        onClick={onToggle}
+        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_120px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer hover:bg-muted/30 transition-colors items-center"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="flex-shrink-0 text-muted-foreground">
+            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </span>
+          <span className="font-medium truncate">{row.name}</span>
+          <span className="md:hidden text-sm text-muted-foreground ml-auto pl-2 whitespace-nowrap">
+            {formatCompactCurrency(row.amount)}
+          </span>
+        </div>
+        <span className="hidden md:block text-right font-medium tabular-nums">{formatCompactCurrency(row.amount)}</span>
+        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.contractCount.toLocaleString()}</span>
+      </div>
+      {isExpanded && contracts.length > 0 && (
+        <div className="bg-muted/10 border-t border-b">
+          {contracts.map((c, idx) => (
+            <div
+              key={`${c.contractNumber}-${idx}`}
+              onClick={() => c.contractNumber && navigate(`/contracts/${c.contractNumber}`)}
+              className={cn(
+                "grid grid-cols-[1fr_auto] md:grid-cols-[1fr_120px_80px] gap-4 px-4 md:px-6 py-3 pl-10 md:pl-14 text-sm hover:bg-muted/20 transition-colors",
+                c.contractNumber && "cursor-pointer"
+              )}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="truncate">{c.name}</span>
+                {c.contractNumber && (
+                  <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
+                    {c.contractNumber}
+                  </span>
+                )}
+              </div>
+              <span className="text-right tabular-nums">{formatCompactCurrency(c.amount)}</span>
+              <span className="hidden md:block text-right tabular-nums text-muted-foreground text-xs">
+                {c.startDate ? c.startDate.slice(0, 10) : '—'}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Duration Row (Mode 3) ────────────────────────────────────────
+
+function DurationRowItem({
+  row,
+  isExpanded,
+  onToggle,
+  getContractsForDurationBucket,
+}: {
+  row: ContractsDurationBucket;
+  isExpanded: boolean;
+  onToggle: () => void;
+  getContractsForDurationBucket: (bucket: string) => ContractsDurationDrillRow[];
+}) {
+  const navigate = useNavigate();
+  const contracts = isExpanded ? getContractsForDurationBucket(row.bucket) : [];
+
+  return (
+    <div>
+      <div
+        onClick={onToggle}
+        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_120px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer hover:bg-muted/30 transition-colors items-center"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="flex-shrink-0 text-muted-foreground">
+            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </span>
+          <span className="font-medium">{row.bucket}</span>
+          <span className="md:hidden text-sm text-muted-foreground ml-auto pl-2 whitespace-nowrap">
+            {formatCompactCurrency(row.amount)}
+          </span>
+        </div>
+        <span className="hidden md:block text-right font-medium tabular-nums">{formatCompactCurrency(row.amount)}</span>
+        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.count.toLocaleString()}</span>
+      </div>
+      {isExpanded && contracts.length > 0 && (
+        <div className="bg-muted/10 border-t border-b">
+          {contracts.map((c, idx) => (
+            <div
+              key={`${c.contractNumber}-${idx}`}
+              onClick={() => c.contractNumber && navigate(`/contracts/${c.contractNumber}`)}
+              className={cn(
+                "grid grid-cols-[1fr_auto] md:grid-cols-[1fr_120px_80px] gap-4 px-4 md:px-6 py-3 pl-10 md:pl-14 text-sm hover:bg-muted/20 transition-colors",
+                c.contractNumber && "cursor-pointer"
+              )}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="truncate">{c.vendorName}</span>
+                {c.contractNumber && (
+                  <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
+                    {c.contractNumber}
+                  </span>
+                )}
+              </div>
+              <span className="text-right tabular-nums">{formatCompactCurrency(c.amount)}</span>
+              <span className="hidden md:block text-right tabular-nums text-muted-foreground text-xs">
+                {Math.round(c.durationDays / 365 * 10) / 10} yr
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
