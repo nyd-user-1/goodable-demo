@@ -1,6 +1,6 @@
 module:
   schema: "public"
-  table: "Contracts"
+  table: "contracts"
   identifier: "contracts"
   label: "State Contracts"
   description: "NYS state contracts with vendors including amounts, dates, and descriptions"
