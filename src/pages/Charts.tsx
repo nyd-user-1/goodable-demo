@@ -7,6 +7,8 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
+  BarChart,
+  Bar,
   XAxis,
 } from 'recharts';
 
@@ -109,6 +111,48 @@ export default function Charts() {
                         <Area type="monotone" dataKey="y" stroke={d.color} strokeWidth={1.5} fill={`url(#${d.id})`} dot={false} animationDuration={500} />
                         <XAxis dataKey="x" hide />
                       </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="px-4 pb-4 pt-2">
+                    <p className="font-semibold text-sm group-hover:text-foreground transition-colors">{d.label}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{d.desc}</p>
+                  </div>
+                </button>
+              ))}
+
+              {/* Contract chart mode cards */}
+              {[
+                { path: '/contracts-dashboard?mode=1', label: 'Contracts by Month', desc: 'New contracts per month', color: 'hsl(142 76% 36%)', id: 'cMonth', type: 'area' as const,
+                  data: [{x:0,y:30},{x:1,y:45},{x:2,y:38},{x:3,y:52},{x:4,y:48},{x:5,y:60},{x:6,y:55},{x:7,y:70},{x:8,y:65},{x:9,y:80}] },
+                { path: '/contracts-dashboard?mode=2', label: 'Top Vendors', desc: 'Vendors by contract value', color: 'hsl(32 95% 50%)', id: 'cVendor', type: 'bar' as const,
+                  data: [{x:0,y:80},{x:1,y:65},{x:2,y:55},{x:3,y:45},{x:4,y:38},{x:5,y:30},{x:6,y:25},{x:7,y:20},{x:8,y:15},{x:9,y:10}] },
+                { path: '/contracts-dashboard?mode=3', label: 'Contract Duration', desc: 'Contracts by duration', color: 'hsl(280 67% 55%)', id: 'cDuration', type: 'bar' as const,
+                  data: [{x:0,y:40},{x:1,y:70},{x:2,y:55},{x:3,y:30},{x:4,y:15}] },
+              ].map((d) => (
+                <button
+                  key={d.path}
+                  onClick={() => navigate(d.path)}
+                  className="group text-left rounded-xl border border-border bg-muted/30 hover:bg-muted/50 hover:shadow-lg hover:border-border/80 transition-all duration-200 overflow-hidden"
+                >
+                  <div className="h-32 px-2 pt-3">
+                    <ResponsiveContainer width="100%" height="100%">
+                      {d.type === 'area' ? (
+                        <AreaChart data={d.data} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
+                          <defs>
+                            <linearGradient id={d.id} x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor={d.color} stopOpacity={0.3} />
+                              <stop offset="95%" stopColor={d.color} stopOpacity={0.02} />
+                            </linearGradient>
+                          </defs>
+                          <Area type="monotone" dataKey="y" stroke={d.color} strokeWidth={1.5} fill={`url(#${d.id})`} dot={false} animationDuration={500} />
+                          <XAxis dataKey="x" hide />
+                        </AreaChart>
+                      ) : (
+                        <BarChart data={d.data} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
+                          <Bar dataKey="y" fill={d.color} radius={[2, 2, 0, 0]} animationDuration={500} />
+                          <XAxis dataKey="x" hide />
+                        </BarChart>
+                      )}
                     </ResponsiveContainer>
                   </div>
                   <div className="px-4 pb-4 pt-2">

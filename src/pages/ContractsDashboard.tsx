@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronDown, ArrowUp, MessageSquare, X, LayoutGrid, Loader2 } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ChevronRight, ChevronLeft, ChevronDown, ArrowUp, MessageSquare, X, LayoutGrid, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { NoteViewSidebar } from '@/components/NoteViewSidebar';
@@ -27,16 +27,23 @@ import {
 } from '@/hooks/useContractsDashboard';
 import {
   XAxis,
+  YAxis,
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Area,
   AreaChart,
+  BarChart,
+  Bar,
 } from 'recharts';
 
 const TABS: ContractsDashboardTab[] = ['department', 'type'];
 
+const CHART_LABELS = ['Contract Value', 'By Start Date', 'Top Vendors', 'Duration'];
+const NUM_CHART_MODES = CHART_LABELS.length;
+
 const ContractsDashboard = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { session } = useAuth();
   const isAuthenticated = !!session;
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
@@ -48,6 +55,10 @@ const ContractsDashboard = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatDepartmentName, setChatDepartmentName] = useState<string | null>(null);
   const [chatContractTypeName, setChatContractTypeName] = useState<string | null>(null);
+  const [chartMode, setChartMode] = useState(() => {
+    const m = parseInt(searchParams.get('mode') || '0');
+    return m >= 0 && m < NUM_CHART_MODES ? m : 0;
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
@@ -64,6 +75,9 @@ const ContractsDashboard = () => {
     getDrillDown,
     historicalTotals,
     getHistoricalForGroup,
+    monthlyData,
+    topVendors,
+    durationBuckets,
   } = useContractsDashboard();
 
   // Get rows for the active tab
@@ -209,51 +223,102 @@ const ContractsDashboard = () => {
                 <MobileNYSgpt />
               </div>
 
-              {/* Mini Historical Chart */}
-              {!isLoading && chartData.length > 1 && (
+              {/* Chart area */}
+              {!isLoading && (
                 <div className="h-24 md:h-28 mb-4 -mx-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
-                      <defs>
-                        <linearGradient id="contractsGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(217 91% 60%)" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="hsl(217 91% 60%)" stopOpacity={0.05} />
-                        </linearGradient>
-                      </defs>
-                      <Area
-                        type="monotone"
-                        dataKey="total"
-                        stroke="hsl(217 91% 60%)"
-                        strokeWidth={1.5}
-                        fill="url(#contractsGradient)"
-                        dot={false}
-                        animationDuration={500}
-                      />
-                      <XAxis
-                        dataKey="year"
-                        tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                        tickLine={false}
-                        axisLine={false}
-                        interval="preserveStartEnd"
-                        tickFormatter={(value) => `'${value.slice(-2)}`}
-                      />
-                      <RechartsTooltip
-                        contentStyle={{
-                          backgroundColor: 'hsl(var(--background))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                        }}
-                        formatter={(value: number) => [formatFullCurrency(value), selectedRow || 'Cumulative']}
-                        labelFormatter={(label) => `Contracts starting ${label}`}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                  {/* Mode 0: Cumulative contract value (existing) */}
+                  {chartMode === 0 && chartData.length > 1 && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                        <defs>
+                          <linearGradient id="contractsGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(217 91% 60%)" stopOpacity={0.4} />
+                            <stop offset="95%" stopColor="hsl(217 91% 60%)" stopOpacity={0.05} />
+                          </linearGradient>
+                        </defs>
+                        <Area type="monotone" dataKey="total" stroke="hsl(217 91% 60%)" strokeWidth={1.5} fill="url(#contractsGradient)" dot={false} animationDuration={500} />
+                        <XAxis dataKey="year" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} interval="preserveStartEnd" tickFormatter={(value) => `'${value.slice(-2)}`} />
+                        <RechartsTooltip
+                          contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
+                          formatter={(value: number) => [formatFullCurrency(value), selectedRow || 'Cumulative']}
+                          labelFormatter={(label) => `Contracts starting ${label}`}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  )}
+
+                  {/* Mode 1: Monthly contracts line chart */}
+                  {chartMode === 1 && monthlyData.length > 1 && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={monthlyData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                        <defs>
+                          <linearGradient id="monthlyGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(142 76% 36%)" stopOpacity={0.4} />
+                            <stop offset="95%" stopColor="hsl(142 76% 36%)" stopOpacity={0.05} />
+                          </linearGradient>
+                        </defs>
+                        <Area type="monotone" dataKey="count" stroke="hsl(142 76% 36%)" strokeWidth={1.5} fill="url(#monthlyGradient)" dot={false} animationDuration={500} />
+                        <XAxis dataKey="month" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} interval="preserveStartEnd" tickFormatter={(v) => v.slice(2, 7)} />
+                        <RechartsTooltip
+                          contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
+                          formatter={(value: number, name: string) => [name === 'count' ? `${value} contracts` : formatFullCurrency(value), name === 'count' ? 'New Contracts' : 'Amount']}
+                          labelFormatter={(label) => label}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  )}
+
+                  {/* Mode 2: Top vendors bar chart */}
+                  {chartMode === 2 && topVendors.length > 0 && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={topVendors.slice(0, 20)} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                        <Bar dataKey="amount" fill="hsl(32 95% 50%)" radius={[2, 2, 0, 0]} animationDuration={500} />
+                        <XAxis dataKey="name" hide />
+                        <RechartsTooltip
+                          contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
+                          formatter={(value: number) => [formatFullCurrency(value), 'Total Value']}
+                          labelFormatter={(label) => label}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+
+                  {/* Mode 3: Duration buckets bar chart */}
+                  {chartMode === 3 && durationBuckets.length > 0 && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={durationBuckets} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+                        <Bar dataKey="count" fill="hsl(280 67% 55%)" radius={[2, 2, 0, 0]} animationDuration={500} />
+                        <XAxis dataKey="bucket" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
+                        <RechartsTooltip
+                          contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
+                          formatter={(value: number, name: string) => [name === 'count' ? `${value} contracts` : formatFullCurrency(value), name === 'count' ? 'Contracts' : 'Total Value']}
+                          labelFormatter={(label) => label}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
               )}
 
-              {/* Dashboards picker + Tabs */}
+              {/* Chart mode toggle + Dashboards picker + Tabs */}
               <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setChartMode((prev) => (prev - 1 + NUM_CHART_MODES) % NUM_CHART_MODES)}
+                    className="p-1 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap min-w-[100px] text-center">
+                    {CHART_LABELS[chartMode]}
+                  </span>
+                  <button
+                    onClick={() => setChartMode((prev) => (prev + 1) % NUM_CHART_MODES)}
+                    className="p-1 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
                 <Drawer>
                     <DrawerTrigger asChild>
                       <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">

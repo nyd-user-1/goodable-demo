@@ -23,6 +23,24 @@ export interface ContractsDrillDownRow {
   pctOfParent: number;
 }
 
+export interface ContractsMonthlyPoint {
+  month: string;
+  count: number;
+  amount: number;
+}
+
+export interface ContractsVendorRow {
+  name: string;
+  amount: number;
+  contractCount: number;
+}
+
+export interface ContractsDurationBucket {
+  bucket: string;
+  count: number;
+  amount: number;
+}
+
 // Format large currency values compactly: $1.2B, $456M, $12K
 export function formatCompactCurrency(value: number): string {
   const abs = Math.abs(value);
@@ -121,8 +139,56 @@ export function useContractsDashboard() {
     gcTime: 15 * 60 * 1000,
   });
 
-  const isLoading = deptLoading || typeLoading || histLoading || totalsLoading;
-  const error = deptError || typeError || histError || totalsError;
+  // ── RPC: contracts by month ──────────────────────────────
+  const { data: monthlyRaw, isLoading: monthlyLoading, error: monthlyError } = useQuery({
+    queryKey: ['contracts-rpc-by-month'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_contracts_by_month');
+      if (error) throw error;
+      return (data as any[]).map((r: any): ContractsMonthlyPoint => ({
+        month: r.month,
+        count: Number(r.count),
+        amount: Number(r.total_amount),
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
+  // ── RPC: top vendors ────────────────────────────────────
+  const { data: vendorsRaw, isLoading: vendorsLoading, error: vendorsError } = useQuery({
+    queryKey: ['contracts-rpc-top-vendors'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_contracts_top_vendors', { p_limit: 40 });
+      if (error) throw error;
+      return (data as any[]).map((r: any): ContractsVendorRow => ({
+        name: r.vendor_name,
+        amount: Number(r.total_amount),
+        contractCount: Number(r.contract_count),
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
+  // ── RPC: duration buckets ───────────────────────────────
+  const { data: durationRaw, isLoading: durationLoading, error: durationError } = useQuery({
+    queryKey: ['contracts-rpc-duration-buckets'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_contracts_duration_buckets');
+      if (error) throw error;
+      return (data as any[]).map((r: any): ContractsDurationBucket => ({
+        bucket: r.bucket,
+        count: Number(r.count),
+        amount: Number(r.total_amount),
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
+  const isLoading = deptLoading || typeLoading || histLoading || totalsLoading || monthlyLoading || vendorsLoading || durationLoading;
+  const error = deptError || typeError || histError || totalsError || monthlyError || vendorsError || durationError;
 
   // ── Drill-down: lazy RPC with cache ────────────────────────
   const [drillCache, setDrillCache] = useState<Record<string, ContractsDrillDownRow[]>>({});
@@ -200,5 +266,8 @@ export function useContractsDashboard() {
     getDrillDown,
     historicalTotals: historicalRaw ?? [],
     getHistoricalForGroup,
+    monthlyData: monthlyRaw ?? [],
+    topVendors: vendorsRaw ?? [],
+    durationBuckets: durationRaw ?? [],
   };
 }
