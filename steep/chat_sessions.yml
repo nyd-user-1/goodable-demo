@@ -45,14 +45,15 @@ module:
     - identifier: "total_chats"
       name: "Total Chats"
       description: "Total number of chat sessions"
-      calculation: "count"
+      calculation: "custom-value"
+      sql_expression: "COUNT(*)"
       time: "chat_sessions.created_at"
 
     - identifier: "active_users"
       name: "Active Users"
       description: "Number of distinct users who started a chat"
-      calculation: "count-distinct"
-      distinct_on: "chat_sessions.user_id"
+      calculation: "custom-value"
+      sql_expression: "COUNT(DISTINCT user_id)"
       time: "chat_sessions.created_at"
 
     - identifier: "bill_chats"
