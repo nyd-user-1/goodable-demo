@@ -164,6 +164,13 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
   // Fetch extended data from NYS API (previous versions, same-as, milestones, etc.)
   const { data: extendedData } = useBillExtendedData(bill.bill_number, bill.session_id);
 
+  // Fetch companion bill data (sameAs) for dual-track milestones
+  const companionBill = extendedData?.sameAs?.[0];
+  const { data: companionData } = useBillExtendedData(
+    companionBill?.basePrintNo ?? null,
+    companionBill?.session ?? null
+  );
+
   // Enable sidebar transitions after mount to prevent flash
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
@@ -484,6 +491,7 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
           {extendedData && extendedData.milestones.length > 0 && (
             <BillMilestones
               milestones={extendedData.milestones}
+              companionMilestones={companionData?.milestones || []}
               chamber={
                 bill.bill_number?.match(/^[Aa]/i)
                   ? "assembly"
