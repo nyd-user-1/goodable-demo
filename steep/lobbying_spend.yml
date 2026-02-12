@@ -17,15 +17,18 @@ module:
       description: "Number of lobbying clients"
       calculation: "custom-value"
       sql_expression: "COUNT(*)"
+      time: ""
 
     - identifier: "total_client_spending"
       name: "Total Client Spending"
       description: "Total compensation and expenses by clients"
       calculation: "custom-value"
       sql_expression: "SUM(CAST(compensation_and_expenses AS numeric))"
+      time: ""
 
     - identifier: "total_client_compensation"
       name: "Total Client Compensation"
       description: "Total compensation paid by clients"
       calculation: "custom-value"
       sql_expression: "SUM(CAST(compensation AS numeric))"
+      time: ""
