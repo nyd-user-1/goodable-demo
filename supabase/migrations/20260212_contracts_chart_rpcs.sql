@@ -79,11 +79,11 @@ RETURNS TABLE (
       ELSE '10+ yr'
     END
   ORDER BY
-    CASE
+    MIN(CASE
       WHEN days < 365 THEN 1
       WHEN days < 730 THEN 2
       WHEN days < 1825 THEN 3
       WHEN days < 3650 THEN 4
       ELSE 5
-    END;
+    END);
 $$;
