@@ -58,26 +58,20 @@ module:
     - identifier: "bill_chats"
       name: "Bill-Related Chats"
       description: "Chat sessions associated with a specific bill"
-      calculation: "count"
+      calculation: "custom-value"
+      sql_expression: "COUNT(*) FILTER (WHERE bill_id IS NOT NULL)"
       time: "chat_sessions.created_at"
-      filters:
-        - column: "chat_sessions.bill_id"
-          operator: "is-not-null"
 
     - identifier: "committee_chats"
       name: "Committee-Related Chats"
       description: "Chat sessions associated with a specific committee"
-      calculation: "count"
+      calculation: "custom-value"
+      sql_expression: "COUNT(*) FILTER (WHERE committee_id IS NOT NULL)"
       time: "chat_sessions.created_at"
-      filters:
-        - column: "chat_sessions.committee_id"
-          operator: "is-not-null"
 
     - identifier: "member_chats"
       name: "Member-Related Chats"
       description: "Chat sessions associated with a specific member"
-      calculation: "count"
+      calculation: "custom-value"
+      sql_expression: "COUNT(*) FILTER (WHERE member_id IS NOT NULL)"
       time: "chat_sessions.created_at"
-      filters:
-        - column: "chat_sessions.member_id"
-          operator: "is-not-null"
