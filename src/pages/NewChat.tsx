@@ -703,8 +703,8 @@ const NewChat = () => {
     try {
       const { data, error } = await supabase
         .from("Bills")
-        .select("bill_number, title, status_desc, description, committee, session_id")
-        .order("bill_number", { ascending: true })
+        .select("bill_number, title, status_desc, description, committee, session_id, last_action_date")
+        .order("last_action_date", { ascending: false, nullsFirst: false })
         .range(offset, offset + 29);
 
       if (error) throw error;
