@@ -64,6 +64,7 @@ const LiveFeed = React.lazy(() => import("./pages/LiveFeed"));
 const Prompts = React.lazy(() => import("./pages/Prompts"));
 const PromptHub = React.lazy(() => import("./pages/PromptHub"));
 const Lists = React.lazy(() => import("./pages/Lists"));
+const Charts = React.lazy(() => import("./pages/Charts"));
 const DepartmentDetail = React.lazy(() => import("./pages/DepartmentDetail"));
 const FeedPage = React.lazy(() => import("./pages/FeedPage"));
 const SubmitPrompt = React.lazy(() => import("./pages/SubmitPrompt"));
@@ -139,6 +140,7 @@ const App = () => {
                   <Route path="/ai-fluency" element={<AIFluency />} />
                   <Route path="/prompts" element={<PromptHub />} />
                   <Route path="/lists" element={<Lists />} />
+                  <Route path="/charts" element={<Charts />} />
                   <Route path="/submit-prompt" element={<SubmitPrompt />} />
                   <Route path="/new-excerpt" element={<NewExcerpt />} />
                   <Route path="/advertise" element={<Advertise />} />

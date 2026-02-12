@@ -19,8 +19,9 @@ interface ChatHeaderProps {
 // Nav items configuration
 const NAV_ITEMS = [
   { to: "/", label: "Chat" },
-  { to: "/prompts", label: "Prompts" },
+  { to: "/charts", label: "Charts" },
   { to: "/lists", label: "Lists" },
+  { to: "/prompts", label: "Prompts" },
 ];
 
 export function ChatHeader({ onNewChat, onWhatIsNYSgpt, onOpenSidebar }: ChatHeaderProps) {
