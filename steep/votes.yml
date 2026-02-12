@@ -1,0 +1,47 @@
+module:
+  schema: "public"
+  table: "Roll Call"
+  identifier: "roll_call"
+  label: "Roll Call Votes"
+  description: "NYS legislative roll call votes with yea/nay/absent counts"
+
+  dimensions:
+    - column: "chamber"
+      type: "categorical"
+      label: "Chamber"
+      description: "Legislative chamber (Senate or Assembly)"
+
+    - column: "description"
+      type: "categorical"
+      label: "Description"
+      description: "Vote description"
+
+    - column: "date"
+      type: "categorical"
+      label: "Vote Date"
+      description: "Date of the roll call vote"
+
+  metrics:
+    - identifier: "total_roll_calls"
+      name: "Total Roll Calls"
+      description: "Total number of roll call votes"
+      calculation: "custom-value"
+      sql_expression: "COUNT(*)"
+
+    - identifier: "total_yea_votes"
+      name: "Total Yea Votes"
+      description: "Sum of all yea votes across roll calls"
+      calculation: "custom-value"
+      sql_expression: "SUM(yea)"
+
+    - identifier: "avg_yea_votes"
+      name: "Avg Yea Votes Per Roll Call"
+      description: "Average yea votes per roll call"
+      calculation: "custom-value"
+      sql_expression: "AVG(yea)"
+
+    - identifier: "avg_total_votes"
+      name: "Avg Total Votes"
+      description: "Average total votes per roll call"
+      calculation: "custom-value"
+      sql_expression: "AVG(total)"

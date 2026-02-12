@@ -1,0 +1,53 @@
+module:
+  schema: "public"
+  table: "school_funding_totals"
+  identifier: "school_funding"
+  label: "School Funding"
+  description: "NYS school district funding totals with year-over-year changes"
+
+  dimensions:
+    - column: "district"
+      type: "categorical"
+      label: "District"
+      description: "School district name"
+
+    - column: "county"
+      type: "categorical"
+      label: "County"
+      description: "County where the district is located"
+
+    - column: "enacted_budget"
+      type: "categorical"
+      label: "Budget Year"
+      description: "Enacted budget year"
+
+  metrics:
+    - identifier: "total_districts"
+      name: "Total Districts"
+      description: "Number of school districts"
+      calculation: "custom-value"
+      sql_expression: "COUNT(*)"
+
+    - identifier: "total_school_year_funding"
+      name: "Total School Year Funding"
+      description: "Sum of all school year funding"
+      calculation: "custom-value"
+      sql_expression: "SUM(total_school_year)"
+
+    - identifier: "total_base_year_funding"
+      name: "Total Base Year Funding"
+      description: "Sum of all base year funding"
+      calculation: "custom-value"
+      sql_expression: "SUM(total_base_year)"
+
+    - identifier: "total_funding_change"
+      name: "Total Funding Change"
+      description: "Sum of year-over-year funding changes"
+      calculation: "custom-value"
+      sql_expression: "SUM(total_change)"
+
+    - identifier: "avg_percent_change"
+      name: "Avg Percent Change"
+      description: "Average percent change in funding across districts"
+      calculation: "custom-value"
+      sql_expression: "AVG(percent_change)"

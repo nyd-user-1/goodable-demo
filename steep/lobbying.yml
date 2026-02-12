@@ -1,0 +1,82 @@
+module:
+  schema: "public"
+  table: "lobbyist_compensation"
+  identifier: "lobbyist_compensation"
+  label: "Lobbyist Compensation"
+  description: "Lobbyist compensation and expense data for NYS"
+
+  dimensions:
+    - column: "principal_lobbyist"
+      type: "categorical"
+      label: "Principal Lobbyist"
+      description: "Name of the principal lobbyist"
+
+    - column: "normalized_lobbyist"
+      type: "categorical"
+      label: "Normalized Name"
+      description: "Normalized lobbyist name for matching"
+
+  metrics:
+    - identifier: "total_lobbyists"
+      name: "Total Lobbyists"
+      description: "Number of lobbyist records"
+      calculation: "custom-value"
+      sql_expression: "COUNT(*)"
+
+    - identifier: "total_compensation"
+      name: "Total Compensation"
+      description: "Sum of all lobbyist compensation"
+      calculation: "custom-value"
+      sql_expression: "SUM(CAST(compensation AS numeric))"
+
+    - identifier: "total_expenses"
+      name: "Total Reimbursed Expenses"
+      description: "Sum of all reimbursed expenses"
+      calculation: "custom-value"
+      sql_expression: "SUM(CAST(reimbursed_expenses AS numeric))"
+
+    - identifier: "total_comp_and_expenses"
+      name: "Total Compensation + Expenses"
+      description: "Grand total of compensation and expenses"
+      calculation: "custom-value"
+      sql_expression: "SUM(CAST(grand_total_compensation_expenses AS numeric))"
+
+    - identifier: "avg_compensation"
+      name: "Average Compensation"
+      description: "Average lobbyist compensation"
+      calculation: "custom-value"
+      sql_expression: "AVG(CAST(compensation AS numeric))"
+
+---
+
+module:
+  schema: "public"
+  table: "lobbying_spend"
+  identifier: "lobbying_spend"
+  label: "Lobbying Client Spending"
+  description: "Client-level lobbying expenditure data"
+
+  dimensions:
+    - column: "contractual_client"
+      type: "categorical"
+      label: "Client"
+      description: "Contractual client name"
+
+  metrics:
+    - identifier: "total_clients"
+      name: "Total Lobbying Clients"
+      description: "Number of lobbying clients"
+      calculation: "custom-value"
+      sql_expression: "COUNT(*)"
+
+    - identifier: "total_client_spending"
+      name: "Total Client Spending"
+      description: "Total compensation and expenses by clients"
+      calculation: "custom-value"
+      sql_expression: "SUM(CAST(compensation_and_expenses AS numeric))"
+
+    - identifier: "total_client_compensation"
+      name: "Total Client Compensation"
+      description: "Total compensation paid by clients"
+      calculation: "custom-value"
+      sql_expression: "SUM(CAST(compensation AS numeric))"

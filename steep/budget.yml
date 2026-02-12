@@ -1,0 +1,62 @@
+module:
+  schema: "public"
+  table: "budget_2027_spending"
+  identifier: "budget_spending"
+  label: "Budget Spending"
+  description: "NYS 2027 executive budget spending data by agency, fund, and category"
+
+  dimensions:
+    - column: "Function"
+      type: "categorical"
+      label: "Function"
+      description: "Budget function category"
+
+    - column: "Agency"
+      type: "categorical"
+      label: "Agency"
+      description: "State agency"
+
+    - column: "Fund Type"
+      type: "categorical"
+      label: "Fund Type"
+      description: "Type of fund (General, Special Revenue, etc.)"
+
+    - column: "FP Category"
+      type: "categorical"
+      label: "FP Category"
+      description: "Financial plan category"
+
+    - column: "Fund"
+      type: "categorical"
+      label: "Fund"
+      description: "Specific fund"
+
+    - column: "Subfund Name"
+      type: "categorical"
+      label: "Subfund"
+      description: "Subfund name"
+
+  metrics:
+    - identifier: "total_spending_2027"
+      name: "Total Spending 2026-27 (Est)"
+      description: "Total estimated spending for 2026-27"
+      calculation: "custom-value"
+      sql_expression: "SUM(CAST(NULLIF(\"2026-27 Estimates\", '') AS numeric))"
+
+    - identifier: "total_spending_2026"
+      name: "Total Spending 2025-26 (Est)"
+      description: "Total estimated spending for 2025-26"
+      calculation: "custom-value"
+      sql_expression: "SUM(CAST(NULLIF(\"2025-26 Estimates\", '') AS numeric))"
+
+    - identifier: "total_actuals_2025"
+      name: "Total Actuals 2024-25"
+      description: "Total actual spending for 2024-25"
+      calculation: "custom-value"
+      sql_expression: "SUM(CAST(NULLIF(\"2024-25 Actuals\", '') AS numeric))"
+
+    - identifier: "budget_line_items"
+      name: "Budget Line Items"
+      description: "Number of budget line items"
+      calculation: "custom-value"
+      sql_expression: "COUNT(*)"
