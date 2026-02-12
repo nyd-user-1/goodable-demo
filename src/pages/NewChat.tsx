@@ -2345,11 +2345,16 @@ const NewChat = () => {
                                       idx > 0 && "border-t border-border/40"
                                     )}
                                   >
-                                    <div className="flex items-center justify-between gap-2">
-                                      <span className="font-medium">{bill.bill_number}</span>
-                                      {bill.session_id && <span className="text-muted-foreground text-[11px] shrink-0">{bill.session_id}</span>}
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div className="min-w-0 flex-1">
+                                        <span className="font-medium">{bill.bill_number}</span>
+                                        <p className="text-muted-foreground text-xs mt-0.5 line-clamp-1">{bill.title}</p>
+                                      </div>
+                                      {bill.last_action_date && <div className="text-right shrink-0">
+                                        <span className="text-muted-foreground text-[10px] uppercase tracking-wide">Last Action</span>
+                                        <p className="text-muted-foreground text-[11px]">{new Date(bill.last_action_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                                      </div>}
                                     </div>
-                                    <p className="text-muted-foreground text-xs mt-0.5 line-clamp-1">{bill.title}</p>
                                   </button>
                                 ))}
                                 {billsLoading && <div className="px-4 py-3 text-center text-xs text-muted-foreground">Loading...</div>}
@@ -2675,11 +2680,16 @@ const NewChat = () => {
                                   )}
                                 >
                                   <div className="min-w-0 flex-1">
-                                    <div className="flex items-center justify-between gap-2">
-                                      <span className="font-medium text-foreground">{bill.bill_number}</span>
-                                      {bill.session_id && <span className="text-muted-foreground text-[11px] shrink-0">{bill.session_id}</span>}
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div className="min-w-0 flex-1">
+                                        <span className="font-medium text-foreground">{bill.bill_number}</span>
+                                        <p className="text-muted-foreground text-xs mt-0.5 line-clamp-1">{bill.title}</p>
+                                      </div>
+                                      {bill.last_action_date && <div className="text-right shrink-0">
+                                        <span className="text-muted-foreground text-[10px] uppercase tracking-wide">Last Action</span>
+                                        <p className="text-muted-foreground text-[11px]">{new Date(bill.last_action_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                                      </div>}
                                     </div>
-                                    <p className="text-muted-foreground text-xs mt-0.5 line-clamp-1">{bill.title}</p>
                                   </div>
                                   {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
                                 </button>
@@ -2911,11 +2921,16 @@ const NewChat = () => {
                                 idx > 0 && "border-t border-border/40"
                               )}
                             >
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="font-medium">{bill.bill_number}</span>
-                                {bill.session_id && <span className="text-muted-foreground text-[11px] shrink-0">{bill.session_id}</span>}
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0 flex-1">
+                                  <span className="font-medium">{bill.bill_number}</span>
+                                  <p className="text-muted-foreground text-xs mt-0.5 line-clamp-1">{bill.title}</p>
+                                </div>
+                                {bill.last_action_date && <div className="text-right shrink-0">
+                                  <span className="text-muted-foreground text-[10px] uppercase tracking-wide">Last Action</span>
+                                  <p className="text-muted-foreground text-[11px]">{new Date(bill.last_action_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                                </div>}
                               </div>
-                              <p className="text-muted-foreground text-xs mt-0.5 line-clamp-1">{bill.title}</p>
                             </button>
                           ))}
                           {billsLoading && <div className="px-4 py-3 text-center text-xs text-muted-foreground">Loading...</div>}
