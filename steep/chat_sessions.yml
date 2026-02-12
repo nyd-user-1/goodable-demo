@@ -1,0 +1,83 @@
+module:
+  schema: "public"
+  table: "chat_sessions"
+  identifier: "chat_sessions"
+  label: "Chat Sessions"
+  description: "User AI chat sessions including bill, committee, and member context"
+
+  dimensions:
+    - column: "title"
+      type: "categorical"
+      label: "Session Title"
+      description: "Title of the chat session"
+
+    - column: "user_id"
+      type: "categorical"
+      label: "User"
+      description: "User who created the chat session"
+
+    - column: "bill_id"
+      type: "categorical"
+      label: "Bill"
+      description: "Associated bill ID (if any)"
+
+    - column: "committee_id"
+      type: "categorical"
+      label: "Committee"
+      description: "Associated committee ID (if any)"
+
+    - column: "member_id"
+      type: "categorical"
+      label: "Member"
+      description: "Associated member ID (if any)"
+
+    - column: "created_at"
+      type: "categorical"
+      label: "Created At"
+      description: "When the chat session was started"
+
+    - column: "updated_at"
+      type: "categorical"
+      label: "Updated At"
+      description: "When the chat session was last active"
+
+  metrics:
+    - identifier: "total_chats"
+      name: "Total Chats"
+      description: "Total number of chat sessions"
+      calculation: "count"
+      time: "chat_sessions.created_at"
+
+    - identifier: "active_users"
+      name: "Active Users"
+      description: "Number of distinct users who started a chat"
+      calculation: "count-distinct"
+      distinct_on: "chat_sessions.user_id"
+      time: "chat_sessions.created_at"
+
+    - identifier: "bill_chats"
+      name: "Bill-Related Chats"
+      description: "Chat sessions associated with a specific bill"
+      calculation: "count"
+      time: "chat_sessions.created_at"
+      filters:
+        - column: "chat_sessions.bill_id"
+          operator: "is-not-null"
+
+    - identifier: "committee_chats"
+      name: "Committee-Related Chats"
+      description: "Chat sessions associated with a specific committee"
+      calculation: "count"
+      time: "chat_sessions.created_at"
+      filters:
+        - column: "chat_sessions.committee_id"
+          operator: "is-not-null"
+
+    - identifier: "member_chats"
+      name: "Member-Related Chats"
+      description: "Chat sessions associated with a specific member"
+      calculation: "count"
+      time: "chat_sessions.created_at"
+      filters:
+        - column: "chat_sessions.member_id"
+          operator: "is-not-null"
