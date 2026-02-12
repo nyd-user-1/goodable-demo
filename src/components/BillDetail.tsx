@@ -487,20 +487,6 @@ export const BillDetail = ({ bill, onBack }: BillDetailProps) => {
             hasNotes={notes.length > 0}
           />
 
-          {/* Bill Milestones Progress Bar */}
-          {extendedData && extendedData.milestones.length > 0 && (
-            <BillMilestones
-              milestones={extendedData.milestones}
-              companionMilestones={companionData?.milestones || []}
-              chamber={
-                bill.bill_number?.match(/^[Aa]/i)
-                  ? "assembly"
-                  : bill.bill_number?.match(/^[Ss]/i)
-                  ? "senate"
-                  : null
-              }
-            />
-          )}
 
           {/* Bill Tabs Section */}
           <section>
