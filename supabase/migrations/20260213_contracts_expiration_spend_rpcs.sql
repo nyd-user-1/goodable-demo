@@ -71,7 +71,7 @@ RETURNS TABLE (
   SELECT
     c.contract_number,
     COALESCE(c.vendor_name, 'Unknown Vendor') AS vendor_name,
-    COALESCE(c.department, 'Unknown') AS department,
+    COALESCE(c.department_facility, 'Unknown') AS department,
     COALESCE(c.current_contract_amount, 0)::numeric AS amount,
     c.contract_end_date AS end_date,
     (c.contract_end_date::date - CURRENT_DATE)::int AS days_until_expiry
