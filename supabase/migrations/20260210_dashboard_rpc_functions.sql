@@ -146,7 +146,7 @@ RETURNS TABLE (
       EXTRACT(YEAR FROM contract_start_date::date)::int AS yr,
       COALESCE(SUM(current_contract_amount), 0) AS annual
     FROM "Contracts"
-    WHERE contract_start_date IS NOT NULL
+    WHERE contract_start_date IS NOT NULL AND contract_start_date <> ''
       AND EXTRACT(YEAR FROM contract_start_date::date) BETWEEN 1990 AND 2030
     GROUP BY yr
     ORDER BY yr

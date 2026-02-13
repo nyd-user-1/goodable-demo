@@ -14,7 +14,7 @@ RETURNS TABLE (
     COUNT(*)::bigint AS count,
     COALESCE(SUM(current_contract_amount), 0)::numeric AS total_amount
   FROM "Contracts"
-  WHERE contract_start_date IS NOT NULL
+  WHERE contract_start_date IS NOT NULL AND contract_start_date <> ''
     AND EXTRACT(YEAR FROM contract_start_date::date) BETWEEN 2000 AND 2030
   GROUP BY EXTRACT(YEAR FROM contract_start_date::date)::int
   ORDER BY year DESC;
@@ -34,7 +34,7 @@ RETURNS TABLE (
     COUNT(*)::bigint AS count,
     COALESCE(SUM(current_contract_amount), 0)::numeric AS total_amount
   FROM "Contracts"
-  WHERE contract_start_date IS NOT NULL
+  WHERE contract_start_date IS NOT NULL AND contract_start_date <> ''
     AND EXTRACT(YEAR FROM contract_start_date::date) = p_year
   GROUP BY TO_CHAR(contract_start_date::date, 'YYYY-MM'), TO_CHAR(contract_start_date::date, 'Month'), EXTRACT(MONTH FROM contract_start_date::date)
   ORDER BY EXTRACT(MONTH FROM contract_start_date::date) DESC;
@@ -75,8 +75,8 @@ RETURNS TABLE (
     COALESCE(current_contract_amount, 0)::numeric AS amount,
     (contract_end_date::date - contract_start_date::date)::int AS duration_days
   FROM "Contracts"
-  WHERE contract_start_date IS NOT NULL
-    AND contract_end_date IS NOT NULL
+  WHERE contract_start_date IS NOT NULL AND contract_start_date <> ''
+    AND contract_end_date IS NOT NULL AND contract_end_date <> ''
     AND contract_end_date::date >= contract_start_date::date
     AND (contract_end_date::date - contract_start_date::date) >= p_min_days
     AND (contract_end_date::date - contract_start_date::date) < p_max_days

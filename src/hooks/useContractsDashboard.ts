@@ -231,8 +231,8 @@ export function useContractsDashboard() {
     gcTime: 15 * 60 * 1000,
   });
 
-  const isLoading = deptLoading || typeLoading || histLoading || totalsLoading;
-  const error = deptError || typeError || histError || totalsError;
+  const isLoading = deptLoading || typeLoading || histLoading || totalsLoading || monthlyLoading || vendorsLoading || durationLoading;
+  const error = deptError || typeError || histError || totalsError || monthlyError || vendorsError || durationError;
 
   // ── Mode 1 drill-down: months within a year ────────────────
   const [monthDrillCache, setMonthDrillCache] = useState<Record<string, ContractsMonthDrillRow[]>>({});

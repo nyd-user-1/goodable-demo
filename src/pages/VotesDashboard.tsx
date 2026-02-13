@@ -72,6 +72,12 @@ const VotesDashboard = () => {
     const m = subChart ? (VOTES_SLUG_TO_MODE[subChart] ?? 0) : 0;
     return m >= 0 && m < NUM_MODES ? m : 0;
   });
+  // Sync URL subChart param → chartMode (useState initializer only runs on mount)
+  useEffect(() => {
+    const m = subChart ? (VOTES_SLUG_TO_MODE[subChart] ?? 0) : 0;
+    setChartMode(m >= 0 && m < NUM_MODES ? m : 0);
+  }, [subChart]);
+
   const [memberSort, setMemberSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
   const [billSort, setBillSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);

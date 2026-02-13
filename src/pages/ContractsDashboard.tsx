@@ -71,6 +71,12 @@ const ContractsDashboard = () => {
     return m >= 0 && m < NUM_CHART_MODES ? m : 0;
   });
 
+  // Sync URL subChart param → chartMode (useState initializer only runs on mount)
+  useEffect(() => {
+    const m = subChart ? (CONTRACTS_SLUG_TO_MODE[subChart] ?? 0) : 0;
+    setChartMode(m >= 0 && m < NUM_CHART_MODES ? m : 0);
+  }, [subChart]);
+
   useEffect(() => {
     const timer = setTimeout(() => setSidebarMounted(true), 50);
     return () => clearTimeout(timer);
