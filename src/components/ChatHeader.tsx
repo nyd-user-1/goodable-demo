@@ -16,12 +16,86 @@ interface ChatHeaderProps {
   onOpenSidebar?: () => void;
 }
 
+// Dropdown group structure
+interface DropdownGroup {
+  label: string;
+  items: { label: string; to: string }[];
+}
+
 // Nav items configuration
-const NAV_ITEMS = [
+const NAV_ITEMS: {
+  to: string;
+  label: string;
+  dropdown?: DropdownGroup[];
+}[] = [
   { to: "/", label: "Chat" },
-  { to: "/charts", label: "Charts" },
-  { to: "/lists", label: "Lists" },
-  { to: "/prompts", label: "Prompts" },
+  {
+    to: "/charts",
+    label: "Charts",
+    dropdown: [
+      {
+        label: "Dashboards",
+        items: [
+          { label: "Budget", to: "/budget-dashboard" },
+          { label: "Lobbying", to: "/lobbying-dashboard" },
+          { label: "Contracts", to: "/contracts-dashboard" },
+        ],
+      },
+      {
+        label: "Contract Charts",
+        items: [
+          { label: "Contracts by Month", to: "/contracts-dashboard?mode=1" },
+          { label: "Top Vendors", to: "/contracts-dashboard?mode=2" },
+          { label: "Contract Duration", to: "/contracts-dashboard?mode=3" },
+        ],
+      },
+      {
+        label: "Vote Charts",
+        items: [
+          { label: "Votes by Day", to: "/votes-dashboard?mode=0" },
+          { label: "Roll Calls", to: "/votes-dashboard?mode=1" },
+          { label: "Passed vs. Failed", to: "/votes-dashboard?mode=2" },
+          { label: "By Party", to: "/votes-dashboard?mode=3" },
+          { label: "Closest Votes", to: "/votes-dashboard?mode=4" },
+        ],
+      },
+    ],
+  },
+  {
+    to: "/lists",
+    label: "Lists",
+    dropdown: [
+      {
+        label: "Members",
+        items: [
+          { label: "Sponsored", to: "/lists?tab=members" },
+          { label: "Yes Votes", to: "/lists?tab=members" },
+          { label: "No Votes", to: "/lists?tab=members" },
+        ],
+      },
+      {
+        label: "Lobbyists",
+        items: [
+          { label: "Earnings", to: "/lists?tab=lobbyists" },
+          { label: "Clients", to: "/lists?tab=lobbyists" },
+          { label: "Individual Lobbyists", to: "/lists?tab=lobbyists" },
+        ],
+      },
+    ],
+  },
+  {
+    to: "/prompts",
+    label: "Prompts",
+    dropdown: [
+      {
+        label: "Prompts",
+        items: [
+          { label: "User Prompts", to: "/prompts#community" },
+          { label: "Admin Prompts", to: "/prompts#lists" },
+        ],
+      },
+    ],
+  },
 ];
 
 export function ChatHeader({ onNewChat, onWhatIsNYSgpt, onOpenSidebar }: ChatHeaderProps) {
@@ -37,6 +111,10 @@ export function ChatHeader({ onNewChat, onWhatIsNYSgpt, onOpenSidebar }: ChatHea
   const tabRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const [indicatorStyle, setIndicatorStyle] = useState({ width: 0, transform: "translateX(0px)" });
   const [isHovering, setIsHovering] = useState(false);
+
+  // Dropdown state
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const dropdownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (manageOwnSidebar) {
@@ -110,6 +188,28 @@ export function ChatHeader({ onNewChat, onWhatIsNYSgpt, onOpenSidebar }: ChatHea
     if (activeIndex !== -1 && tabRefs.current[activeIndex]) {
       updateIndicator(tabRefs.current[activeIndex]);
     }
+    // Close dropdown with small delay (allows mouse to reach dropdown)
+    dropdownTimeoutRef.current = setTimeout(() => setActiveDropdown(null), 150);
+  };
+
+  // Show dropdown for a tab (cancel any pending close)
+  const handleDropdownEnter = (label: string) => {
+    if (dropdownTimeoutRef.current) {
+      clearTimeout(dropdownTimeoutRef.current);
+      dropdownTimeoutRef.current = null;
+    }
+    setActiveDropdown(label);
+  };
+
+  // Hide dropdown with delay
+  const handleDropdownLeave = () => {
+    dropdownTimeoutRef.current = setTimeout(() => setActiveDropdown(null), 150);
+  };
+
+  // Navigate from dropdown item
+  const handleDropdownNavigate = (to: string) => {
+    setActiveDropdown(null);
+    navigate(to);
   };
 
   return (
@@ -172,24 +272,62 @@ export function ChatHeader({ onNewChat, onWhatIsNYSgpt, onOpenSidebar }: ChatHea
                 }}
               />
 
-              {/* Tab links - no individual hover backgrounds */}
+              {/* Tab links with optional dropdown */}
               {NAV_ITEMS.map((item, index) => (
-                <Link
+                <div
                   key={item.to}
-                  ref={(el) => { tabRefs.current[index] = el; }}
-                  to={item.to}
-                  onMouseEnter={() => handleTabHover(index)}
-                  onFocus={() => handleTabHover(index)}
-                  className={cn(
-                    "relative z-10 text-sm font-normal px-3 py-2 rounded-lg transition-colors min-w-[160px] text-center",
-                    // Active state based on current route
-                    (item.to === "/" ? location.pathname === "/" : location.pathname.startsWith(item.to))
-                      ? "text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
+                  className="relative"
+                  onMouseEnter={() => {
+                    handleTabHover(index);
+                    if (item.dropdown) handleDropdownEnter(item.label);
+                  }}
+                  onMouseLeave={handleDropdownLeave}
                 >
-                  {item.label}
-                </Link>
+                  <Link
+                    ref={(el) => { tabRefs.current[index] = el; }}
+                    to={item.to}
+                    onFocus={() => handleTabHover(index)}
+                    onClick={() => setActiveDropdown(null)}
+                    className={cn(
+                      "relative z-10 text-sm font-normal px-3 py-2 rounded-lg transition-colors min-w-[160px] text-center block",
+                      // Active state based on current route
+                      (item.to === "/" ? location.pathname === "/" : location.pathname.startsWith(item.to))
+                        ? "text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+
+                  {/* Dropdown panel */}
+                  {item.dropdown && activeDropdown === item.label && (
+                    <div
+                      className="absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50"
+                      onMouseEnter={() => handleDropdownEnter(item.label)}
+                      onMouseLeave={handleDropdownLeave}
+                    >
+                      <div className="bg-background border border-border rounded-xl shadow-lg py-2 min-w-[200px]">
+                        {item.dropdown.map((group, gi) => (
+                          <div key={group.label}>
+                            {gi > 0 && <div className="my-1.5 border-t border-border" />}
+                            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider px-3 py-1">
+                              {group.label}
+                            </p>
+                            {group.items.map((sub) => (
+                              <button
+                                key={sub.label}
+                                onClick={() => handleDropdownNavigate(sub.to)}
+                                className="w-full text-left text-sm px-3 py-1.5 hover:bg-muted transition-colors text-foreground"
+                              >
+                                {sub.label}
+                              </button>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>

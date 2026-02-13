@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
 import { cn } from '@/lib/utils';
@@ -10,7 +10,15 @@ import { supabase } from '@/integrations/supabase/client';
 
 export default function Lists() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [pageTab, setPageTab] = useState<'members' | 'lobbyists'>('members');
+
+  // Sync tab from URL search params (e.g., /lists?tab=lobbyists)
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'lobbyists') setPageTab('lobbyists');
+    else if (tab === 'members') setPageTab('members');
+  }, [searchParams]);
   const [memberSearch, setMemberSearch] = useState('');
   const [lobbyingSearch, setLobbyingSearch] = useState('');
   const [lobbyistVisibleCount, setLobbyistVisibleCount] = useState(10);
