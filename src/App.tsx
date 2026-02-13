@@ -13,67 +13,82 @@ import { PageTransition } from "@/components/PageTransition";
 import { SearchModal } from "@/components/SearchModal";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { useHubSpot } from "@/hooks/useHubSpot";
+import { LazyLoadErrorBoundary } from "@/components/LazyLoadErrorBoundary";
 
-// Lazy-loaded page components
-const Auth = React.lazy(() => import("./pages/Auth"));
-const Auth4 = React.lazy(() => import("./pages/Auth4"));
-const Profile = React.lazy(() => import("./pages/Profile"));
-const Bills = React.lazy(() => import("./pages/Bills"));
-const Members = React.lazy(() => import("./pages/Members"));
-const Committees = React.lazy(() => import("./pages/Committees"));
-const NewChat = React.lazy(() => import("./pages/NewChat"));
-const Plans = React.lazy(() => import("./pages/Plans"));
-const About = React.lazy(() => import("./pages/About"));
-const History = React.lazy(() => import("./pages/History"));
-const Academy = React.lazy(() => import("./pages/Academy"));
-const Features = React.lazy(() => import("./pages/Features"));
-const AIFluency = React.lazy(() => import("./pages/AIFluency"));
-const UseCases = React.lazy(() => import("./pages/UseCases"));
-const UseCasesBills = React.lazy(() => import("./pages/UseCasesBills"));
-const UseCasesCommittees = React.lazy(() => import("./pages/UseCasesCommittees"));
-const UseCasesMembers = React.lazy(() => import("./pages/UseCasesMembers"));
-const UseCasesPolicy = React.lazy(() => import("./pages/UseCasesPolicy"));
-const UseCasesDepartments = React.lazy(() => import("./pages/UseCasesDepartments"));
-const Nonprofits = React.lazy(() => import("./pages/Nonprofits"));
-const NonprofitEconomicAdvocacy = React.lazy(() => import("./pages/NonprofitEconomicAdvocacy"));
-const NonprofitEnvironmentalAdvocacy = React.lazy(() => import("./pages/NonprofitEnvironmentalAdvocacy"));
-const NonprofitLegalAdvocacy = React.lazy(() => import("./pages/NonprofitLegalAdvocacy"));
-const NonprofitSocialAdvocacy = React.lazy(() => import("./pages/NonprofitSocialAdvocacy"));
-const NonprofitDirectory = React.lazy(() => import("./pages/NonprofitDirectory"));
-const ExcerptView = React.lazy(() => import("./pages/ExcerptView"));
-const NoteView = React.lazy(() => import("./pages/NoteView"));
-const NewNote = React.lazy(() => import("./pages/NewNote"));
-const Contracts = React.lazy(() => import("./pages/Contracts"));
-const ContractDetail = React.lazy(() => import("./pages/ContractDetail"));
-const Budget = React.lazy(() => import("./pages/Budget"));
-const BudgetDashboard = React.lazy(() => import("./pages/BudgetDashboard"));
-const Lobbying = React.lazy(() => import("./pages/Lobbying"));
-const LobbyingDashboard = React.lazy(() => import("./pages/LobbyingDashboard"));
-const ContractsDashboard = React.lazy(() => import("./pages/ContractsDashboard"));
-const VotesDashboard = React.lazy(() => import("./pages/VotesDashboard"));
-const LobbyingDetail = React.lazy(() => import("./pages/LobbyingDetail"));
-const SchoolFunding = React.lazy(() => import("./pages/SchoolFunding"));
-const SchoolFundingDetail = React.lazy(() => import("./pages/SchoolFundingDetail"));
-const Committees2 = React.lazy(() => import("./pages/Committees2"));
-const Members2 = React.lazy(() => import("./pages/Members2"));
-const Bills2 = React.lazy(() => import("./pages/Bills2"));
-const Chats2 = React.lazy(() => import("./pages/Chats2"));
-const Constitution = React.lazy(() => import("./pages/Constitution"));
-const DigitalBillOfRights = React.lazy(() => import("./pages/DigitalBillOfRights"));
-const LiveFeed = React.lazy(() => import("./pages/LiveFeed"));
-const Prompts = React.lazy(() => import("./pages/Prompts"));
-const PromptHub = React.lazy(() => import("./pages/PromptHub"));
-const Lists = React.lazy(() => import("./pages/Lists"));
-const Charts = React.lazy(() => import("./pages/Charts"));
-const DepartmentDetail = React.lazy(() => import("./pages/DepartmentDetail"));
-const FeedPage = React.lazy(() => import("./pages/FeedPage"));
-const SubmitPrompt = React.lazy(() => import("./pages/SubmitPrompt"));
-const NewExcerpt = React.lazy(() => import("./pages/NewExcerpt"));
-const Advertise = React.lazy(() => import("./pages/Advertise"));
-const Terms = React.lazy(() => import("./pages/Terms"));
-const Privacy = React.lazy(() => import("./pages/Privacy"));
-const Contact = React.lazy(() => import("./pages/Contact"));
-const UserFeedback = React.lazy(() => import("./pages/UserFeedback"));
+// Retry wrapper for lazy imports — guards against "Stale Chunk Blank Screen"
+// When a deployment invalidates old chunk URLs, the first import fails.
+// This retries once before letting the error boundary handle it.
+function lazyRetry(importFn: () => Promise<{ default: React.ComponentType<any> }>) {
+  return React.lazy(() =>
+    importFn().catch(() => {
+      // Brief pause then retry — handles transient network / stale chunk errors
+      return new Promise<{ default: React.ComponentType<any> }>((resolve) =>
+        setTimeout(() => resolve(importFn()), 1000)
+      );
+    })
+  );
+}
+
+// Lazy-loaded page components (with retry for stale chunk protection)
+const Auth = lazyRetry(() => import("./pages/Auth"));
+const Auth4 = lazyRetry(() => import("./pages/Auth4"));
+const Profile = lazyRetry(() => import("./pages/Profile"));
+const Bills = lazyRetry(() => import("./pages/Bills"));
+const Members = lazyRetry(() => import("./pages/Members"));
+const Committees = lazyRetry(() => import("./pages/Committees"));
+const NewChat = lazyRetry(() => import("./pages/NewChat"));
+const Plans = lazyRetry(() => import("./pages/Plans"));
+const About = lazyRetry(() => import("./pages/About"));
+const History = lazyRetry(() => import("./pages/History"));
+const Academy = lazyRetry(() => import("./pages/Academy"));
+const Features = lazyRetry(() => import("./pages/Features"));
+const AIFluency = lazyRetry(() => import("./pages/AIFluency"));
+const UseCases = lazyRetry(() => import("./pages/UseCases"));
+const UseCasesBills = lazyRetry(() => import("./pages/UseCasesBills"));
+const UseCasesCommittees = lazyRetry(() => import("./pages/UseCasesCommittees"));
+const UseCasesMembers = lazyRetry(() => import("./pages/UseCasesMembers"));
+const UseCasesPolicy = lazyRetry(() => import("./pages/UseCasesPolicy"));
+const UseCasesDepartments = lazyRetry(() => import("./pages/UseCasesDepartments"));
+const Nonprofits = lazyRetry(() => import("./pages/Nonprofits"));
+const NonprofitEconomicAdvocacy = lazyRetry(() => import("./pages/NonprofitEconomicAdvocacy"));
+const NonprofitEnvironmentalAdvocacy = lazyRetry(() => import("./pages/NonprofitEnvironmentalAdvocacy"));
+const NonprofitLegalAdvocacy = lazyRetry(() => import("./pages/NonprofitLegalAdvocacy"));
+const NonprofitSocialAdvocacy = lazyRetry(() => import("./pages/NonprofitSocialAdvocacy"));
+const NonprofitDirectory = lazyRetry(() => import("./pages/NonprofitDirectory"));
+const ExcerptView = lazyRetry(() => import("./pages/ExcerptView"));
+const NoteView = lazyRetry(() => import("./pages/NoteView"));
+const NewNote = lazyRetry(() => import("./pages/NewNote"));
+const Contracts = lazyRetry(() => import("./pages/Contracts"));
+const ContractDetail = lazyRetry(() => import("./pages/ContractDetail"));
+const Budget = lazyRetry(() => import("./pages/Budget"));
+const BudgetDashboard = lazyRetry(() => import("./pages/BudgetDashboard"));
+const Lobbying = lazyRetry(() => import("./pages/Lobbying"));
+const LobbyingDashboard = lazyRetry(() => import("./pages/LobbyingDashboard"));
+const ContractsDashboard = lazyRetry(() => import("./pages/ContractsDashboard"));
+const VotesDashboard = lazyRetry(() => import("./pages/VotesDashboard"));
+const LobbyingDetail = lazyRetry(() => import("./pages/LobbyingDetail"));
+const SchoolFunding = lazyRetry(() => import("./pages/SchoolFunding"));
+const SchoolFundingDetail = lazyRetry(() => import("./pages/SchoolFundingDetail"));
+const Committees2 = lazyRetry(() => import("./pages/Committees2"));
+const Members2 = lazyRetry(() => import("./pages/Members2"));
+const Bills2 = lazyRetry(() => import("./pages/Bills2"));
+const Chats2 = lazyRetry(() => import("./pages/Chats2"));
+const Constitution = lazyRetry(() => import("./pages/Constitution"));
+const DigitalBillOfRights = lazyRetry(() => import("./pages/DigitalBillOfRights"));
+const LiveFeed = lazyRetry(() => import("./pages/LiveFeed"));
+const Prompts = lazyRetry(() => import("./pages/Prompts"));
+const PromptHub = lazyRetry(() => import("./pages/PromptHub"));
+const Lists = lazyRetry(() => import("./pages/Lists"));
+const Charts = lazyRetry(() => import("./pages/Charts"));
+const DepartmentDetail = lazyRetry(() => import("./pages/DepartmentDetail"));
+const FeedPage = lazyRetry(() => import("./pages/FeedPage"));
+const SubmitPrompt = lazyRetry(() => import("./pages/SubmitPrompt"));
+const NewExcerpt = lazyRetry(() => import("./pages/NewExcerpt"));
+const Advertise = lazyRetry(() => import("./pages/Advertise"));
+const Terms = lazyRetry(() => import("./pages/Terms"));
+const Privacy = lazyRetry(() => import("./pages/Privacy"));
+const Contact = lazyRetry(() => import("./pages/Contact"));
+const UserFeedback = lazyRetry(() => import("./pages/UserFeedback"));
 
 const queryClient = new QueryClient();
 
@@ -124,6 +139,7 @@ const App = () => {
               <ScrollToTop />
               <KeyboardShortcuts />
               <SearchModal />
+              <LazyLoadErrorBoundary>
               <Suspense fallback={<LoadingFallback />}>
               <PageTransition>
                 <Routes>
@@ -191,6 +207,7 @@ const App = () => {
                 </Routes>
               </PageTransition>
               </Suspense>
+              </LazyLoadErrorBoundary>
             </BrowserRouter>
           </ModelProvider>
         </AuthProvider>
