@@ -208,18 +208,22 @@ const ContractsDashboard = () => {
   };
 
   // Open chat drawer
-  const openChat = (departmentName?: string | null, contractTypeName?: string | null, vendorName?: string | null) => {
+  const openChat = (departmentName?: string | null, contractTypeName?: string | null, vendorName?: string | null, dataCtx?: string | null) => {
     setChatDepartmentName(departmentName || null);
     setChatContractTypeName(contractTypeName || null);
     setChatVendorName(vendorName || null);
 
-    const row = departmentName
-      ? byDepartment.find(r => r.name === departmentName) || null
-      : contractTypeName
-        ? byType.find(r => r.name === contractTypeName) || null
-        : null;
+    if (dataCtx) {
+      setChatDataContext(dataCtx);
+    } else {
+      const row = departmentName
+        ? byDepartment.find(r => r.name === departmentName) || null
+        : contractTypeName
+          ? byType.find(r => r.name === contractTypeName) || null
+          : null;
 
-    setChatDataContext(buildDataContext({ departmentName, contractTypeName, vendorName, row }));
+      setChatDataContext(buildDataContext({ departmentName, contractTypeName, vendorName, row }));
+    }
     setChatOpen(true);
   };
 
@@ -555,6 +559,21 @@ const ContractsDashboard = () => {
                         hasSelection={selectedRow !== null}
                         onToggle={() => toggleRow(row.name)}
                         onChatClick={() => handleChatClick(row)}
+                        onDrillChatClick={(contract) => {
+                          const amt = contract.amount >= 1e9 ? `$${(contract.amount / 1e9).toFixed(1)}B` : contract.amount >= 1e6 ? `$${(contract.amount / 1e6).toFixed(1)}M` : `$${contract.amount.toLocaleString()}`;
+                          const ctx = [
+                            `Contract: ${contract.name}`,
+                            contract.contractNumber ? `Contract Number: ${contract.contractNumber}` : '',
+                            `Amount: ${amt}`,
+                            `Share of ${row.name}: ${contract.pctOfParent.toFixed(1)}%`,
+                            '',
+                            `Parent Category: ${row.name}`,
+                            `Parent Total: ${formatCompactCurrency(row.amount)} (${row.contractCount} contracts, ${row.pctOfTotal.toFixed(1)}% of grand total)`,
+                          ].filter(Boolean).join('\n');
+                          const dept = activeTab === 'department' ? row.name : null;
+                          const type = activeTab === 'type' ? row.name : null;
+                          openChat(dept, type, null, ctx);
+                        }}
                         tab={activeTab}
                         getDrillDown={getDrillDown}
                       />
@@ -599,7 +618,29 @@ const ContractsDashboard = () => {
                     row={yr}
                     isExpanded={expandedRows.has(yr.year)}
                     onToggle={() => toggleRow(yr.year)}
-                    onChatClick={() => openChat()}
+                    onChatClick={() => {
+                      const months = getMonthsForYear(yr.year);
+                      const ctx = [
+                        `Year: ${yr.year}`,
+                        `Total Contract Value: ${formatCompactCurrency(yr.amount)}`,
+                        `Number of Contracts: ${yr.count}`,
+                        '',
+                        'Monthly Breakdown:',
+                        ...months.map(m => `- ${m.monthName} ${yr.year}: ${formatCompactCurrency(m.amount)} (${m.count} contracts)`),
+                      ].join('\n');
+                      openChat(null, null, null, ctx);
+                    }}
+                    onMonthChatClick={(m) => {
+                      const ctx = [
+                        `Month: ${m.monthName} ${yr.year}`,
+                        `Contract Value: ${formatCompactCurrency(m.amount)}`,
+                        `Number of Contracts: ${m.count}`,
+                        '',
+                        `Parent Year: ${yr.year}`,
+                        `Year Total: ${formatCompactCurrency(yr.amount)} (${yr.count} contracts)`,
+                      ].join('\n');
+                      openChat(null, null, null, ctx);
+                    }}
                     getMonthsForYear={getMonthsForYear}
                   />
                 ))}
@@ -622,6 +663,20 @@ const ContractsDashboard = () => {
                     isExpanded={expandedRows.has(vendor.name)}
                     onToggle={() => toggleRow(vendor.name)}
                     onChatClick={() => openChat(null, null, vendor.name)}
+                    onDrillChatClick={(c) => {
+                      const amt = c.amount >= 1e9 ? `$${(c.amount / 1e9).toFixed(1)}B` : c.amount >= 1e6 ? `$${(c.amount / 1e6).toFixed(1)}M` : `$${c.amount.toLocaleString()}`;
+                      const ctx = [
+                        `Contract: ${c.name}`,
+                        c.contractNumber ? `Contract Number: ${c.contractNumber}` : '',
+                        `Amount: ${amt}`,
+                        c.startDate ? `Start Date: ${c.startDate.slice(0, 10)}` : '',
+                        c.endDate ? `End Date: ${c.endDate.slice(0, 10)}` : '',
+                        '',
+                        `Vendor: ${vendor.name}`,
+                        `Vendor Total: ${formatCompactCurrency(vendor.amount)} (${vendor.contractCount} contracts)`,
+                      ].filter(Boolean).join('\n');
+                      openChat(null, null, vendor.name, ctx);
+                    }}
                     getContractsForVendor={getContractsForVendor}
                   />
                 ))}
@@ -629,8 +684,11 @@ const ContractsDashboard = () => {
             ) : chartMode === 3 ? (
               /* ── Mode 3: Duration buckets table ── */
               <div className="divide-y">
-                <div className="hidden md:grid grid-cols-[1fr_120px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                <div className="hidden md:grid grid-cols-[1fr_44px_120px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
                   <span>Duration</span>
+                  <span className="flex items-center justify-center">
+                    <MessageSquare className="h-3.5 w-3.5" />
+                  </span>
                   <span className="text-right">Amount</span>
                   <span className="text-right">Contracts</span>
                 </div>
@@ -640,6 +698,34 @@ const ContractsDashboard = () => {
                     row={bucket}
                     isExpanded={expandedRows.has(bucket.bucket)}
                     onToggle={() => toggleRow(bucket.bucket)}
+                    onChatClick={() => {
+                      const contracts = getContractsForDurationBucket(bucket.bucket);
+                      const ctx = [
+                        `Duration Bucket: ${bucket.bucket}`,
+                        `Total Contract Value: ${formatCompactCurrency(bucket.amount)}`,
+                        `Number of Contracts: ${bucket.count}`,
+                        '',
+                        'Sample Contracts:',
+                        ...contracts.slice(0, 15).map(c => {
+                          const amt = c.amount >= 1e6 ? `$${(c.amount / 1e6).toFixed(1)}M` : `$${c.amount.toLocaleString()}`;
+                          return `- ${c.vendorName}${c.contractNumber ? ` (${c.contractNumber})` : ''}: ${amt}, ${Math.round(c.durationDays / 365 * 10) / 10} years`;
+                        }),
+                      ].join('\n');
+                      openChat(null, null, null, ctx);
+                    }}
+                    onDrillChatClick={(c) => {
+                      const amt = c.amount >= 1e9 ? `$${(c.amount / 1e9).toFixed(1)}B` : c.amount >= 1e6 ? `$${(c.amount / 1e6).toFixed(1)}M` : `$${c.amount.toLocaleString()}`;
+                      const ctx = [
+                        `Vendor: ${c.vendorName}`,
+                        c.contractNumber ? `Contract Number: ${c.contractNumber}` : '',
+                        `Amount: ${amt}`,
+                        `Duration: ${Math.round(c.durationDays / 365 * 10) / 10} years (${c.durationDays} days)`,
+                        '',
+                        `Duration Bucket: ${bucket.bucket}`,
+                        `Bucket Total: ${formatCompactCurrency(bucket.amount)} (${bucket.count} contracts)`,
+                      ].filter(Boolean).join('\n');
+                      openChat(null, null, null, ctx);
+                    }}
                     getContractsForDurationBucket={getContractsForDurationBucket}
                   />
                 ))}
@@ -671,6 +757,7 @@ interface ContractRowItemProps {
   hasSelection: boolean;
   onToggle: () => void;
   onChatClick: () => void;
+  onDrillChatClick: (contract: ContractsDrillDownRow) => void;
   tab: ContractsDashboardTab;
   getDrillDown: (tab: ContractsDashboardTab, groupValue: string) => ContractsDrillDownRow[];
 }
@@ -682,6 +769,7 @@ function ContractRowItem({
   hasSelection,
   onToggle,
   onChatClick,
+  onDrillChatClick,
   tab,
   getDrillDown,
 }: ContractRowItemProps) {
@@ -797,6 +885,7 @@ function ContractRowItem({
             <ContractDrillRow
               key={`${contract.contractNumber}-${idx}`}
               contract={contract}
+              onChatClick={() => onDrillChatClick(contract)}
             />
           ))}
           {drillDownRows.length > 10 && (
@@ -814,15 +903,21 @@ function ContractRowItem({
 
 interface ContractDrillRowProps {
   contract: ContractsDrillDownRow;
+  onChatClick: () => void;
 }
 
-function ContractDrillRow({ contract }: ContractDrillRowProps) {
+function ContractDrillRow({ contract, onChatClick }: ContractDrillRowProps) {
   const navigate = useNavigate();
 
   const handleClick = () => {
     if (contract.contractNumber) {
       navigate(`/contracts/${contract.contractNumber}`);
     }
+  };
+
+  const handleChatClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChatClick();
   };
 
   return (
@@ -843,7 +938,14 @@ function ContractDrillRow({ contract }: ContractDrillRowProps) {
             </span>
           )}
         </div>
-        <span />
+        <div className="flex justify-center">
+          <button
+            onClick={handleChatClick}
+            className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/80"
+          >
+            <ArrowUp className="h-3.5 w-3.5" />
+          </button>
+        </div>
         <span className="text-right text-sm tabular-nums">
           {formatCompactCurrency(contract.amount)}
         </span>
@@ -890,6 +992,12 @@ function ContractDrillRow({ contract }: ContractDrillRowProps) {
             />
           </div>
           <span>{contract.pctOfParent.toFixed(0)}%</span>
+          <button
+            onClick={handleChatClick}
+            className="ml-auto w-6 h-6 bg-foreground text-background rounded-full flex items-center justify-center"
+          >
+            <ArrowUp className="h-3 w-3" />
+          </button>
         </div>
       </div>
     </>
@@ -903,12 +1011,14 @@ function YearRowItem({
   isExpanded,
   onToggle,
   onChatClick,
+  onMonthChatClick,
   getMonthsForYear,
 }: {
   row: ContractsYearRow;
   isExpanded: boolean;
   onToggle: () => void;
   onChatClick: () => void;
+  onMonthChatClick: (month: ContractsMonthDrillRow) => void;
   getMonthsForYear: (year: string) => ContractsMonthDrillRow[];
 }) {
   const months = isExpanded ? getMonthsForYear(row.year) : [];
@@ -962,11 +1072,37 @@ function YearRowItem({
       {isExpanded && months.length > 0 && (
         <div className="bg-muted/10 border-t border-b">
           {months.map((m) => (
-            <div key={m.month} className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_120px_80px] gap-4 px-4 md:px-6 py-3 pl-10 md:pl-14 text-sm">
-              <span>{m.monthName} {row.year}</span>
-              <span />
-              <span className="text-right tabular-nums">{formatCompactCurrency(m.amount)}</span>
-              <span className="hidden md:block text-right tabular-nums text-muted-foreground">{m.count.toLocaleString()}</span>
+            <div key={m.month} className="group">
+              {/* Desktop */}
+              <div className="hidden md:grid grid-cols-[1fr_44px_120px_80px] gap-4 px-6 py-3 pl-14 text-sm hover:bg-muted/20 transition-colors items-center">
+                <span>{m.monthName} {row.year}</span>
+                <div className="flex justify-center">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onMonthChatClick(m); }}
+                    className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/80"
+                  >
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <span className="text-right tabular-nums">{formatCompactCurrency(m.amount)}</span>
+                <span className="text-right tabular-nums text-muted-foreground">{m.count.toLocaleString()}</span>
+              </div>
+              {/* Mobile */}
+              <div className="md:hidden px-4 py-3 pl-10 text-sm">
+                <div className="flex items-center justify-between">
+                  <span>{m.monthName} {row.year}</span>
+                  <span className="text-muted-foreground">{formatCompactCurrency(m.amount)}</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                  <span>{m.count} contracts</span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onMonthChatClick(m); }}
+                    className="ml-auto w-6 h-6 bg-foreground text-background rounded-full flex items-center justify-center"
+                  >
+                    <ArrowUp className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -982,12 +1118,14 @@ function VendorRowItem({
   isExpanded,
   onToggle,
   onChatClick,
+  onDrillChatClick,
   getContractsForVendor,
 }: {
   row: ContractsVendorRow;
   isExpanded: boolean;
   onToggle: () => void;
   onChatClick: () => void;
+  onDrillChatClick: (contract: ContractsVendorDrillRow) => void;
   getContractsForVendor: (name: string) => ContractsVendorDrillRow[];
 }) {
   const navigate = useNavigate();
@@ -1042,27 +1180,67 @@ function VendorRowItem({
       {isExpanded && contracts.length > 0 && (
         <div className="bg-muted/10 border-t border-b">
           {contracts.map((c, idx) => (
-            <div
-              key={`${c.contractNumber}-${idx}`}
-              onClick={() => c.contractNumber && navigate(`/contracts/${c.contractNumber}`)}
-              className={cn(
-                "grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_120px_80px] gap-4 px-4 md:px-6 py-3 pl-10 md:pl-14 text-sm hover:bg-muted/20 transition-colors",
-                c.contractNumber && "cursor-pointer"
-              )}
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="truncate">{c.name}</span>
-                {c.contractNumber && (
-                  <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
-                    {c.contractNumber}
-                  </span>
+            <div key={`${c.contractNumber}-${idx}`} className="group">
+              {/* Desktop */}
+              <div
+                onClick={() => c.contractNumber && navigate(`/contracts/${c.contractNumber}`)}
+                className={cn(
+                  "hidden md:grid grid-cols-[1fr_44px_120px_80px] gap-4 px-6 py-3 pl-14 text-sm hover:bg-muted/20 transition-colors items-center",
+                  c.contractNumber && "cursor-pointer"
                 )}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="truncate">{c.name}</span>
+                  {c.contractNumber && (
+                    <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
+                      {c.contractNumber}
+                    </span>
+                  )}
+                </div>
+                <div className="flex justify-center">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onDrillChatClick(c); }}
+                    className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/80"
+                  >
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <span className="text-right tabular-nums">{formatCompactCurrency(c.amount)}</span>
+                <span className="text-right tabular-nums text-muted-foreground text-xs">
+                  {c.startDate ? c.startDate.slice(0, 10) : '—'}
+                </span>
               </div>
-              <span />
-              <span className="text-right tabular-nums">{formatCompactCurrency(c.amount)}</span>
-              <span className="hidden md:block text-right tabular-nums text-muted-foreground text-xs">
-                {c.startDate ? c.startDate.slice(0, 10) : '—'}
-              </span>
+              {/* Mobile */}
+              <div
+                onClick={() => c.contractNumber && navigate(`/contracts/${c.contractNumber}`)}
+                className={cn(
+                  "md:hidden px-4 py-3 pl-10",
+                  c.contractNumber && "cursor-pointer"
+                )}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span className="text-sm truncate">{c.name}</span>
+                    {c.contractNumber && (
+                      <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
+                        {c.contractNumber}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-sm text-muted-foreground ml-2 whitespace-nowrap">
+                    {formatCompactCurrency(c.amount)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span>{c.startDate ? c.startDate.slice(0, 10) : '—'}</span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onDrillChatClick(c); }}
+                    className="ml-auto w-6 h-6 bg-foreground text-background rounded-full flex items-center justify-center"
+                  >
+                    <ArrowUp className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -1077,21 +1255,30 @@ function DurationRowItem({
   row,
   isExpanded,
   onToggle,
+  onChatClick,
+  onDrillChatClick,
   getContractsForDurationBucket,
 }: {
   row: ContractsDurationBucket;
   isExpanded: boolean;
   onToggle: () => void;
+  onChatClick: () => void;
+  onDrillChatClick: (contract: ContractsDurationDrillRow) => void;
   getContractsForDurationBucket: (bucket: string) => ContractsDurationDrillRow[];
 }) {
   const navigate = useNavigate();
   const contracts = isExpanded ? getContractsForDurationBucket(row.bucket) : [];
 
+  const handleChatClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChatClick();
+  };
+
   return (
     <div>
       <div
         onClick={onToggle}
-        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_120px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer hover:bg-muted/30 transition-colors items-center"
+        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_120px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer hover:bg-muted/30 transition-colors items-center"
       >
         <div className="flex items-center gap-2 min-w-0">
           <span className="flex-shrink-0 text-muted-foreground">
@@ -1102,32 +1289,96 @@ function DurationRowItem({
             {formatCompactCurrency(row.amount)}
           </span>
         </div>
+
+        {/* Chat button column (desktop) */}
+        <div className="hidden md:flex justify-center">
+          <button
+            onClick={handleChatClick}
+            className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/80"
+          >
+            <ArrowUp className="h-4 w-4" />
+          </button>
+        </div>
+
         <span className="hidden md:block text-right font-medium tabular-nums">{formatCompactCurrency(row.amount)}</span>
         <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.count.toLocaleString()}</span>
       </div>
+
+      {/* Mobile supplementary info */}
+      <div className="md:hidden px-4 pb-3 -mt-2 flex items-center gap-3 text-xs text-muted-foreground pl-10">
+        <span>{row.count} contracts</span>
+        <button
+          onClick={handleChatClick}
+          className="ml-auto w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center"
+        >
+          <ArrowUp className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
       {isExpanded && contracts.length > 0 && (
         <div className="bg-muted/10 border-t border-b">
           {contracts.map((c, idx) => (
-            <div
-              key={`${c.contractNumber}-${idx}`}
-              onClick={() => c.contractNumber && navigate(`/contracts/${c.contractNumber}`)}
-              className={cn(
-                "grid grid-cols-[1fr_auto] md:grid-cols-[1fr_120px_80px] gap-4 px-4 md:px-6 py-3 pl-10 md:pl-14 text-sm hover:bg-muted/20 transition-colors",
-                c.contractNumber && "cursor-pointer"
-              )}
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="truncate">{c.vendorName}</span>
-                {c.contractNumber && (
-                  <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
-                    {c.contractNumber}
-                  </span>
+            <div key={`${c.contractNumber}-${idx}`} className="group">
+              {/* Desktop */}
+              <div
+                onClick={() => c.contractNumber && navigate(`/contracts/${c.contractNumber}`)}
+                className={cn(
+                  "hidden md:grid grid-cols-[1fr_44px_120px_80px] gap-4 px-6 py-3 pl-14 text-sm hover:bg-muted/20 transition-colors items-center",
+                  c.contractNumber && "cursor-pointer"
                 )}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="truncate">{c.vendorName}</span>
+                  {c.contractNumber && (
+                    <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
+                      {c.contractNumber}
+                    </span>
+                  )}
+                </div>
+                <div className="flex justify-center">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onDrillChatClick(c); }}
+                    className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/80"
+                  >
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <span className="text-right tabular-nums">{formatCompactCurrency(c.amount)}</span>
+                <span className="text-right tabular-nums text-muted-foreground text-xs">
+                  {Math.round(c.durationDays / 365 * 10) / 10} yr
+                </span>
               </div>
-              <span className="text-right tabular-nums">{formatCompactCurrency(c.amount)}</span>
-              <span className="hidden md:block text-right tabular-nums text-muted-foreground text-xs">
-                {Math.round(c.durationDays / 365 * 10) / 10} yr
-              </span>
+              {/* Mobile */}
+              <div
+                onClick={() => c.contractNumber && navigate(`/contracts/${c.contractNumber}`)}
+                className={cn(
+                  "md:hidden px-4 py-3 pl-10",
+                  c.contractNumber && "cursor-pointer"
+                )}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span className="text-sm truncate">{c.vendorName}</span>
+                    {c.contractNumber && (
+                      <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
+                        {c.contractNumber}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-sm text-muted-foreground ml-2 whitespace-nowrap">
+                    {formatCompactCurrency(c.amount)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span>{Math.round(c.durationDays / 365 * 10) / 10} yr</span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onDrillChatClick(c); }}
+                    className="ml-auto w-6 h-6 bg-foreground text-background rounded-full flex items-center justify-center"
+                  >
+                    <ArrowUp className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
             </div>
           ))}
         </div>

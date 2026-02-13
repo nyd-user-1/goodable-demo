@@ -219,8 +219,21 @@ const VotesDashboard = () => {
     return arr;
   }, [activeBillRows, billSort]);
 
-  // Open chat drawer
+  const [chatDataContext, setChatDataContext] = useState<string | null>(null);
+
+  // Open chat drawer with overview context
   const openChat = () => {
+    const overviewLines = [
+      `Total Votes: ${totalVotes.toLocaleString()}`,
+      `Total Members: ${totalMembers.toLocaleString()}`,
+      `Total Bills (roll calls): ${billsPassFail.length.toLocaleString()}`,
+      '',
+      'Top 10 Members by Vote Count:',
+      ...byMember.slice(0, 10).map(m => `- ${m.name} (${m.party}): ${m.totalVotes} votes, ${m.yesCount} Yes (${m.pctYes.toFixed(0)}%), ${m.noCount} No`),
+      '',
+      'Most Contested Bills (narrowest margins):',
+      ...billsByMargin.slice(0, 10).map(b => `- ${b.billTitle || 'Untitled'} (${b.billNumber || 'no number'}): ${b.yesCount} Yes, ${b.noCount} No, margin ${Math.abs(b.yesCount - b.noCount)} — ${b.result}`),
+    ];
     setChatMemberName(null);
     setChatMemberParty(null);
     setChatMemberVoteDetails(null);
@@ -228,6 +241,7 @@ const VotesDashboard = () => {
     setChatBillNumber(null);
     setChatBillResult(null);
     setChatBillVoteDetails(null);
+    setChatDataContext(overviewLines.join('\n'));
     setChatOpen(true);
   };
 
@@ -262,6 +276,7 @@ const VotesDashboard = () => {
     setChatBillNumber(null);
     setChatBillResult(null);
     setChatBillVoteDetails(null);
+    setChatDataContext(null);
     setChatOpen(true);
   };
 
@@ -277,6 +292,7 @@ const VotesDashboard = () => {
     setChatBillNumber(row.billNumber || null);
     setChatBillResult(row.result || null);
     setChatBillVoteDetails(details);
+    setChatDataContext(null);
     setChatOpen(true);
   };
 
@@ -743,6 +759,28 @@ const VotesDashboard = () => {
                         isExpanded={expandedBillRows.has(row.rollCallId)}
                         onToggle={() => toggleBillRow(row.rollCallId)}
                         onChatClick={() => handleBillChatClick(row)}
+                        onDrillChatClick={(mv) => {
+                          const allVotes = getBillMemberVotes(row.rollCallId);
+                          const details = [
+                            `Bill: ${row.billTitle || 'Untitled'} (${row.billNumber || 'no number'})`,
+                            `Result: ${row.result} — ${row.yesCount} Yes, ${row.noCount} No`,
+                            row.date ? `Vote Date: ${row.date}` : '',
+                            '',
+                            `Focus member: ${mv.name} voted ${mv.vote}`,
+                            '',
+                            'All member votes:',
+                            ...allVotes.map(v => `- ${v.name}: ${v.vote}`),
+                          ].filter(Boolean).join('\n');
+                          setChatMemberName(mv.name);
+                          setChatMemberParty(null);
+                          setChatMemberVoteDetails(null);
+                          setChatBillTitle(row.billTitle || null);
+                          setChatBillNumber(row.billNumber || null);
+                          setChatBillResult(row.result || null);
+                          setChatBillVoteDetails(details);
+                          setChatDataContext(null);
+                          setChatOpen(true);
+                        }}
                         getBillMemberVotes={getBillMemberVotes}
                       />
                     ))}
@@ -812,6 +850,26 @@ const VotesDashboard = () => {
                         isExpanded={expandedRows.has(row.people_id)}
                         onToggle={() => toggleRow(row.people_id)}
                         onChatClick={() => handleMemberChatClick(row)}
+                        onDrillChatClick={(vote) => {
+                          const details = [
+                            `Member: ${row.name} (${row.party})`,
+                            `Vote on this bill: ${vote.vote}`,
+                            `Member stats: ${row.totalVotes} total votes, ${row.yesCount} Yes, ${row.noCount} No, ${row.pctYes.toFixed(0)}% Yes`,
+                            '',
+                            `Bill: ${vote.billTitle || 'Untitled'}`,
+                            vote.billNumber ? `Bill Number: ${vote.billNumber}` : '',
+                            vote.date ? `Vote Date: ${vote.date}` : '',
+                          ].filter(Boolean).join('\n');
+                          setChatMemberName(row.name);
+                          setChatMemberParty(row.party);
+                          setChatMemberVoteDetails(details);
+                          setChatBillTitle(null);
+                          setChatBillNumber(null);
+                          setChatBillResult(null);
+                          setChatBillVoteDetails(null);
+                          setChatDataContext(null);
+                          setChatOpen(true);
+                        }}
                         getDrillDown={getDrillDown}
                       />
                     ))}
@@ -851,6 +909,7 @@ const VotesDashboard = () => {
         billNumber={chatBillNumber}
         billResult={chatBillResult}
         billVoteDetails={chatBillVoteDetails}
+        dataContext={chatDataContext}
       />
     </div>
   );
@@ -874,10 +933,11 @@ interface VoteRowItemProps {
   isExpanded: boolean;
   onToggle: () => void;
   onChatClick: () => void;
+  onDrillChatClick: (vote: VotesDrillDownRow) => void;
   getDrillDown: (peopleId: number) => VotesDrillDownRow[];
 }
 
-function VoteRowItem({ row, showParty, isExpanded, onToggle, onChatClick, getDrillDown }: VoteRowItemProps) {
+function VoteRowItem({ row, showParty, isExpanded, onToggle, onChatClick, onDrillChatClick, getDrillDown }: VoteRowItemProps) {
   const drillDownRows = isExpanded ? getDrillDown(row.people_id) : [];
   const [drillDisplayCount, setDrillDisplayCount] = useState(20);
 
@@ -962,7 +1022,7 @@ function VoteRowItem({ row, showParty, isExpanded, onToggle, onChatClick, getDri
       {isExpanded && drillDownRows.length > 0 && (
         <div className="bg-muted/10 border-t border-b max-h-[400px] overflow-y-auto">
           {drillDownRows.slice(0, drillDisplayCount).map((vote, idx) => (
-            <VoteDrillRow key={`${vote.billNumber}-${idx}`} vote={vote} />
+            <VoteDrillRow key={`${vote.billNumber}-${idx}`} vote={vote} onChatClick={() => onDrillChatClick(vote)} />
           ))}
           <div className="flex items-center justify-center gap-4 py-3">
             {drillDisplayCount < drillDownRows.length && (
@@ -989,47 +1049,71 @@ function VoteRowItem({ row, showParty, isExpanded, onToggle, onChatClick, getDri
 
 // ── Vote Drill-Down Row ───────────────────────────────────────
 
-function VoteDrillRow({ vote }: { vote: VotesDrillDownRow }) {
+function VoteDrillRow({ vote, onChatClick }: { vote: VotesDrillDownRow; onChatClick: () => void }) {
   const billUrl = vote.billNumber ? `/bills/${vote.billNumber}` : undefined;
   return (
     <>
-      <Link
-        to={billUrl || '#'}
-        onClick={(e) => { e.stopPropagation(); if (!billUrl) e.preventDefault(); }}
-        className={cn("hidden md:grid grid-cols-[60px_minmax(0,1fr)_100px_60px] gap-4 px-6 py-3 pl-14 hover:bg-muted/20 transition-colors items-center", billUrl && "cursor-pointer")}
-      >
+      {/* Desktop */}
+      <div className="hidden md:grid grid-cols-[60px_minmax(0,1fr)_44px_100px_60px] gap-4 px-6 py-3 pl-14 hover:bg-muted/20 transition-colors items-center group">
         {vote.billNumber && (
-          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded w-fit">{vote.billNumber}</span>
+          <Link to={`/bills/${vote.billNumber}`} onClick={(e) => e.stopPropagation()} className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded w-fit hover:bg-muted/80">
+            {vote.billNumber}
+          </Link>
         )}
         {!vote.billNumber && <span />}
-        <span className="text-sm truncate" title={vote.billTitle || ''}>{vote.billTitle || 'No title'}</span>
+        <Link
+          to={billUrl || '#'}
+          onClick={(e) => { e.stopPropagation(); if (!billUrl) e.preventDefault(); }}
+          className={cn("text-sm truncate", billUrl && "hover:underline")}
+          title={vote.billTitle || ''}
+        >
+          {vote.billTitle || 'No title'}
+        </Link>
+        <div className="flex justify-center">
+          <button
+            onClick={(e) => { e.stopPropagation(); onChatClick(); }}
+            className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/80"
+          >
+            <ArrowUp className="h-3.5 w-3.5" />
+          </button>
+        </div>
         <span className="text-right text-sm text-muted-foreground">
           {vote.date ? new Date(vote.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
         </span>
         <span className={cn("text-right text-sm font-medium", vote.vote === 'Yes' && "text-green-600", vote.vote === 'No' && "text-red-500", vote.vote === 'Other' && "text-muted-foreground")}>
           {vote.vote}
         </span>
-      </Link>
-      <Link
-        to={billUrl || '#'}
-        onClick={(e) => { e.stopPropagation(); if (!billUrl) e.preventDefault(); }}
-        className="md:hidden block px-4 py-3 pl-10 hover:bg-muted/20 transition-colors"
-      >
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <span className="text-sm truncate" title={vote.billTitle || ''}>{vote.billTitle || 'No title'}</span>
-            {vote.billNumber && (
-              <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">{vote.billNumber}</span>
-            )}
+      </div>
+      {/* Mobile */}
+      <div className="md:hidden px-4 py-3 pl-10 hover:bg-muted/20 transition-colors">
+        <Link
+          to={billUrl || '#'}
+          onClick={(e) => { e.stopPropagation(); if (!billUrl) e.preventDefault(); }}
+        >
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <span className="text-sm truncate" title={vote.billTitle || ''}>{vote.billTitle || 'No title'}</span>
+              {vote.billNumber && (
+                <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">{vote.billNumber}</span>
+              )}
+            </div>
+            <span className={cn("text-sm font-medium ml-2 whitespace-nowrap", vote.vote === 'Yes' && "text-green-600", vote.vote === 'No' && "text-red-500", vote.vote === 'Other' && "text-muted-foreground")}>
+              {vote.vote}
+            </span>
           </div>
-          <span className={cn("text-sm font-medium ml-2 whitespace-nowrap", vote.vote === 'Yes' && "text-green-600", vote.vote === 'No' && "text-red-500", vote.vote === 'Other' && "text-muted-foreground")}>
-            {vote.vote}
+        </Link>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span>
+            {vote.date ? new Date(vote.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
           </span>
+          <button
+            onClick={(e) => { e.stopPropagation(); onChatClick(); }}
+            className="ml-auto w-6 h-6 bg-foreground text-background rounded-full flex items-center justify-center"
+          >
+            <ArrowUp className="h-3 w-3" />
+          </button>
         </div>
-        <span className="text-xs text-muted-foreground">
-          {vote.date ? new Date(vote.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
-        </span>
-      </Link>
+      </div>
     </>
   );
 }
@@ -1042,10 +1126,11 @@ interface BillRowItemProps {
   isExpanded: boolean;
   onToggle: () => void;
   onChatClick: () => void;
+  onDrillChatClick: (memberVote: BillMemberVoteRow) => void;
   getBillMemberVotes: (rollCallId: number) => BillMemberVoteRow[];
 }
 
-function BillRowItem({ row, mode, isExpanded, onToggle, onChatClick, getBillMemberVotes }: BillRowItemProps) {
+function BillRowItem({ row, mode, isExpanded, onToggle, onChatClick, onDrillChatClick, getBillMemberVotes }: BillRowItemProps) {
   const memberVotes = isExpanded ? getBillMemberVotes(row.rollCallId) : [];
   const margin = Math.abs(row.yesCount - row.noCount);
 
@@ -1134,7 +1219,7 @@ function BillRowItem({ row, mode, isExpanded, onToggle, onChatClick, getBillMemb
       {isExpanded && memberVotes.length > 0 && (
         <div className="bg-muted/10 border-t border-b">
           {memberVotes.map((mv, idx) => (
-            <BillMemberVoteDrillRow key={`${mv.name}-${idx}`} memberVote={mv} />
+            <BillMemberVoteDrillRow key={`${mv.name}-${idx}`} memberVote={mv} onChatClick={() => onDrillChatClick(mv)} />
           ))}
         </div>
       )}
@@ -1144,20 +1229,41 @@ function BillRowItem({ row, mode, isExpanded, onToggle, onChatClick, getBillMemb
 
 // ── Bill Member Vote Drill-Down Row ──────────────────────────
 
-function BillMemberVoteDrillRow({ memberVote }: { memberVote: BillMemberVoteRow }) {
+function BillMemberVoteDrillRow({ memberVote, onChatClick }: { memberVote: BillMemberVoteRow; onChatClick: () => void }) {
   return (
     <>
-      <div className="hidden md:grid grid-cols-[1fr_80px] gap-4 px-6 py-3 pl-14 hover:bg-muted/20 transition-colors items-center">
+      {/* Desktop */}
+      <div className="hidden md:grid grid-cols-[1fr_44px_80px] gap-4 px-6 py-3 pl-14 hover:bg-muted/20 transition-colors items-center group">
         <span className="text-sm truncate">{memberVote.name}</span>
+        <div className="flex justify-center">
+          <button
+            onClick={(e) => { e.stopPropagation(); onChatClick(); }}
+            className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/80"
+          >
+            <ArrowUp className="h-3.5 w-3.5" />
+          </button>
+        </div>
         <span className={cn("text-right text-sm font-medium", memberVote.vote === 'Yes' && "text-green-600", memberVote.vote === 'No' && "text-red-500", memberVote.vote === 'Other' && "text-muted-foreground")}>
           {memberVote.vote}
         </span>
       </div>
-      <div className="md:hidden px-4 py-3 pl-10 flex items-center justify-between">
-        <span className="text-sm truncate">{memberVote.name}</span>
-        <span className={cn("text-sm font-medium ml-2 whitespace-nowrap", memberVote.vote === 'Yes' && "text-green-600", memberVote.vote === 'No' && "text-red-500", memberVote.vote === 'Other' && "text-muted-foreground")}>
-          {memberVote.vote}
-        </span>
+      {/* Mobile */}
+      <div className="md:hidden px-4 py-3 pl-10">
+        <div className="flex items-center justify-between">
+          <span className="text-sm truncate">{memberVote.name}</span>
+          <span className={cn("text-sm font-medium ml-2 whitespace-nowrap", memberVote.vote === 'Yes' && "text-green-600", memberVote.vote === 'No' && "text-red-500", memberVote.vote === 'Other' && "text-muted-foreground")}>
+            {memberVote.vote}
+          </span>
+        </div>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+          <span>{memberVote.vote}</span>
+          <button
+            onClick={(e) => { e.stopPropagation(); onChatClick(); }}
+            className="ml-auto w-6 h-6 bg-foreground text-background rounded-full flex items-center justify-center"
+          >
+            <ArrowUp className="h-3 w-3" />
+          </button>
+        </div>
       </div>
     </>
   );

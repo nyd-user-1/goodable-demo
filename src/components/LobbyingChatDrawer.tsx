@@ -57,6 +57,7 @@ interface LobbyingChatDrawerProps {
   onOpenChange: (open: boolean) => void;
   lobbyistName?: string | null;
   clientName?: string | null;
+  dataContext?: string | null;
 }
 
 interface ChatMessage {
@@ -116,6 +117,7 @@ export function LobbyingChatDrawer({
   onOpenChange,
   lobbyistName,
   clientName,
+  dataContext,
 }: LobbyingChatDrawerProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -130,11 +132,13 @@ export function LobbyingChatDrawer({
   const contextLabel = lobbyistName || clientName || 'NYS Lobbying';
 
   // Build context-specific system prompt
+  const dataSection = dataContext ? `\n\n## Actual Lobbying Data\nThe following is real data from JCOPE filings. ALWAYS use these actual figures in your responses — do not guess or generalize:\n\n${dataContext}` : '';
+
   const systemPrompt = lobbyistName
-    ? `${LOBBYING_SYSTEM_PROMPT}\n\nThe user is asking about the lobbyist "${lobbyistName}". Provide specific information about their lobbying activities, clients, and compensation.`
+    ? `${LOBBYING_SYSTEM_PROMPT}\n\nThe user is asking about the lobbyist "${lobbyistName}". Use the actual data provided below to answer questions with specific dollar amounts, client names, and details.${dataSection}`
     : clientName
-      ? `${LOBBYING_SYSTEM_PROMPT}\n\nThe user is asking about the client "${clientName}". Provide specific information about their lobbying expenditures and the lobbyists they hire.`
-      : LOBBYING_SYSTEM_PROMPT;
+      ? `${LOBBYING_SYSTEM_PROMPT}\n\nThe user is asking about the client "${clientName}". Use the actual data provided below to answer questions with specific dollar amounts and details.${dataSection}`
+      : `${LOBBYING_SYSTEM_PROMPT}${dataSection}`;
 
   const suggestions = lobbyistName
     ? LOBBYIST_QUESTIONS

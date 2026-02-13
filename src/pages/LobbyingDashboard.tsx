@@ -49,6 +49,7 @@ const LobbyingDashboard = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatLobbyistName, setChatLobbyistName] = useState<string | null>(null);
   const [chatClientName, setChatClientName] = useState<string | null>(null);
+  const [chatDataContext, setChatDataContext] = useState<string | null>(null);
   const [displayCount, setDisplayCount] = useState(50);
 
   useEffect(() => {
@@ -163,25 +164,76 @@ const LobbyingDashboard = () => {
     }));
   }, [byLobbyist, selectedRow, activeTab, getClientsForLobbyist]);
 
+  // Build data context string from available data
+  const buildDataContext = (opts: {
+    lobbyistName?: string | null;
+    clientName?: string | null;
+    row?: LobbyingDashboardRow | null;
+    drillRow?: LobbyingDrillDownRow | null;
+    parentRow?: LobbyingDashboardRow | null;
+  }): string => {
+    const lines: string[] = [];
+
+    if (opts.lobbyistName && opts.row) {
+      lines.push(`Lobbyist: ${opts.row.name}`);
+      lines.push(`Total Compensation: ${formatCompactCurrency(opts.row.amount)}`);
+      if (opts.row.clientCount) lines.push(`Number of Clients: ${opts.row.clientCount}`);
+      lines.push(`Share of Total: ${opts.row.pctOfTotal.toFixed(1)}%`);
+      if (opts.row.pctChange != null) lines.push(`Change from Prior Period: ${opts.row.pctChange >= 0 ? '+' : ''}${opts.row.pctChange.toFixed(1)}%`);
+
+      const clients = getClientsForLobbyist(opts.row.name);
+      if (clients.length > 0) {
+        lines.push('');
+        lines.push('Clients:');
+        clients.forEach(c => {
+          lines.push(`- ${c.name}: ${formatCompactCurrency(c.amount)} (${c.pctOfParent.toFixed(1)}% of lobbyist total)`);
+        });
+      }
+    } else if (opts.clientName && opts.drillRow && opts.parentRow) {
+      lines.push(`Client: ${opts.drillRow.name}`);
+      lines.push(`Amount Paid: ${formatCompactCurrency(opts.drillRow.amount)}`);
+      lines.push(`Share of Lobbyist Total: ${opts.drillRow.pctOfParent.toFixed(1)}%`);
+      lines.push(`Lobbyist: ${opts.parentRow.name} (total compensation: ${formatCompactCurrency(opts.parentRow.amount)})`);
+    } else if (opts.clientName && opts.row) {
+      lines.push(`Client: ${opts.row.name}`);
+      lines.push(`Total Lobbying Spend: ${formatCompactCurrency(opts.row.amount)}`);
+      lines.push(`Share of Total: ${opts.row.pctOfTotal.toFixed(1)}%`);
+      if (opts.row.pctChange != null) lines.push(`Change from Prior Period: ${opts.row.pctChange >= 0 ? '+' : ''}${opts.row.pctChange.toFixed(1)}%`);
+    } else {
+      lines.push(`Total Lobbying Compensation: ${formatCompactCurrency(grandTotal)}`);
+      lines.push('');
+      lines.push('Top Lobbyists:');
+      byLobbyist.slice(0, 10).forEach(r => {
+        lines.push(`- ${r.name}: ${formatCompactCurrency(r.amount)}${r.clientCount ? ` (${r.clientCount} clients)` : ''} — ${r.pctOfTotal.toFixed(1)}%`);
+      });
+    }
+
+    return lines.join('\n');
+  };
+
   // Open chat drawer
-  const openChat = (lobbyistName?: string | null, clientName?: string | null) => {
+  const openChat = (lobbyistName?: string | null, clientName?: string | null, dataCtx?: string | null) => {
     setChatLobbyistName(lobbyistName || null);
     setChatClientName(clientName || null);
+    setChatDataContext(dataCtx || null);
     setChatOpen(true);
   };
 
   // Chat click for main row
   const handleChatClick = (row: LobbyingDashboardRow) => {
     if (activeTab === 'lobbyist') {
-      openChat(row.name, null);
+      const ctx = buildDataContext({ lobbyistName: row.name, row });
+      openChat(row.name, null, ctx);
     } else {
-      openChat(null, row.name);
+      const ctx = buildDataContext({ clientName: row.name, row });
+      openChat(null, row.name, ctx);
     }
   };
 
-  // Chat click for drill-down row
-  const handleDrillDownChatClick = (drillRow: LobbyingDrillDownRow) => {
-    openChat(null, drillRow.name);
+  // Chat click for drill-down row (client under lobbyist)
+  const handleDrillDownChatClick = (drillRow: LobbyingDrillDownRow, parentRow: LobbyingDashboardRow) => {
+    const ctx = buildDataContext({ clientName: drillRow.name, drillRow, parentRow });
+    openChat(null, drillRow.name, ctx);
   };
 
   return (
@@ -232,7 +284,7 @@ const LobbyingDashboard = () => {
                   <div className="text-right flex-shrink-0">
                     <div className="flex items-center gap-2 justify-end">
                       <button
-                        onClick={() => openChat()}
+                        onClick={() => openChat(null, null, buildDataContext({}))}
                         className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-foreground/80 transition-colors flex-shrink-0"
                       >
                         <ArrowUp className="h-4 w-4" />
@@ -488,7 +540,7 @@ const LobbyingDashboard = () => {
                       onChatClick={() => handleChatClick(row)}
                       tab={activeTab}
                       getClientsForLobbyist={getClientsForLobbyist}
-                      onDrillDownChatClick={handleDrillDownChatClick}
+                      onDrillDownChatClick={(drillRow) => handleDrillDownChatClick(drillRow, row)}
                     />
                   ))}
 
@@ -534,6 +586,7 @@ const LobbyingDashboard = () => {
         onOpenChange={setChatOpen}
         lobbyistName={chatLobbyistName}
         clientName={chatClientName}
+        dataContext={chatDataContext}
       />
     </div>
   );
