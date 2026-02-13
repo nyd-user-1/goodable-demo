@@ -61,6 +61,7 @@ const ContractsDashboard = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatDepartmentName, setChatDepartmentName] = useState<string | null>(null);
   const [chatContractTypeName, setChatContractTypeName] = useState<string | null>(null);
+  const [chatVendorName, setChatVendorName] = useState<string | null>(null);
   const [chartMode, setChartMode] = useState(() => {
     const m = parseInt(searchParams.get('mode') || '0');
     return m >= 0 && m < NUM_CHART_MODES ? m : 0;
@@ -142,9 +143,10 @@ const ContractsDashboard = () => {
   const headerAmount = selectedRowData ? selectedRowData.amount : grandTotal;
 
   // Open chat drawer
-  const openChat = (departmentName?: string | null, contractTypeName?: string | null) => {
+  const openChat = (departmentName?: string | null, contractTypeName?: string | null, vendorName?: string | null) => {
     setChatDepartmentName(departmentName || null);
     setChatContractTypeName(contractTypeName || null);
+    setChatVendorName(vendorName || null);
     setChatOpen(true);
   };
 
@@ -510,8 +512,11 @@ const ContractsDashboard = () => {
             ) : chartMode === 1 ? (
               /* ── Mode 1: Years table with month drill-down ── */
               <div className="divide-y">
-                <div className="hidden md:grid grid-cols-[1fr_120px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                <div className="hidden md:grid grid-cols-[1fr_44px_120px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
                   <span>Year</span>
+                  <span className="flex items-center justify-center">
+                    <MessageSquare className="h-3.5 w-3.5" />
+                  </span>
                   <span className="text-right">Amount</span>
                   <span className="text-right">Contracts</span>
                 </div>
@@ -521,6 +526,7 @@ const ContractsDashboard = () => {
                     row={yr}
                     isExpanded={expandedRows.has(yr.year)}
                     onToggle={() => toggleRow(yr.year)}
+                    onChatClick={() => openChat()}
                     getMonthsForYear={getMonthsForYear}
                   />
                 ))}
@@ -528,8 +534,11 @@ const ContractsDashboard = () => {
             ) : chartMode === 2 ? (
               /* ── Mode 2: Vendors table with contract drill-down ── */
               <div className="divide-y">
-                <div className="hidden md:grid grid-cols-[1fr_120px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                <div className="hidden md:grid grid-cols-[1fr_44px_120px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
                   <span>Vendor</span>
+                  <span className="flex items-center justify-center">
+                    <MessageSquare className="h-3.5 w-3.5" />
+                  </span>
                   <span className="text-right">Amount</span>
                   <span className="text-right">Contracts</span>
                 </div>
@@ -539,6 +548,7 @@ const ContractsDashboard = () => {
                     row={vendor}
                     isExpanded={expandedRows.has(vendor.name)}
                     onToggle={() => toggleRow(vendor.name)}
+                    onChatClick={() => openChat(null, null, vendor.name)}
                     getContractsForVendor={getContractsForVendor}
                   />
                 ))}
@@ -572,6 +582,7 @@ const ContractsDashboard = () => {
         onOpenChange={setChatOpen}
         departmentName={chatDepartmentName}
         contractTypeName={chatContractTypeName}
+        vendorName={chatVendorName}
       />
     </div>
   );
@@ -817,20 +828,27 @@ function YearRowItem({
   row,
   isExpanded,
   onToggle,
+  onChatClick,
   getMonthsForYear,
 }: {
   row: ContractsYearRow;
   isExpanded: boolean;
   onToggle: () => void;
+  onChatClick: () => void;
   getMonthsForYear: (year: string) => ContractsMonthDrillRow[];
 }) {
   const months = isExpanded ? getMonthsForYear(row.year) : [];
+
+  const handleChatClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChatClick();
+  };
 
   return (
     <div>
       <div
         onClick={onToggle}
-        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_120px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer hover:bg-muted/30 transition-colors items-center"
+        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_120px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer hover:bg-muted/30 transition-colors items-center"
       >
         <div className="flex items-center gap-2 min-w-0">
           <span className="flex-shrink-0 text-muted-foreground">
@@ -841,14 +859,38 @@ function YearRowItem({
             {formatCompactCurrency(row.amount)}
           </span>
         </div>
+
+        {/* Chat button column (desktop) */}
+        <div className="hidden md:flex justify-center">
+          <button
+            onClick={handleChatClick}
+            className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/80"
+          >
+            <ArrowUp className="h-4 w-4" />
+          </button>
+        </div>
+
         <span className="hidden md:block text-right font-medium tabular-nums">{formatCompactCurrency(row.amount)}</span>
         <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.count.toLocaleString()}</span>
       </div>
+
+      {/* Mobile supplementary info */}
+      <div className="md:hidden px-4 pb-3 -mt-2 flex items-center gap-3 text-xs text-muted-foreground pl-10">
+        <span>{row.count} contracts</span>
+        <button
+          onClick={handleChatClick}
+          className="ml-auto w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center"
+        >
+          <ArrowUp className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
       {isExpanded && months.length > 0 && (
         <div className="bg-muted/10 border-t border-b">
           {months.map((m) => (
-            <div key={m.month} className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_120px_80px] gap-4 px-4 md:px-6 py-3 pl-10 md:pl-14 text-sm">
+            <div key={m.month} className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_120px_80px] gap-4 px-4 md:px-6 py-3 pl-10 md:pl-14 text-sm">
               <span>{m.monthName} {row.year}</span>
+              <span />
               <span className="text-right tabular-nums">{formatCompactCurrency(m.amount)}</span>
               <span className="hidden md:block text-right tabular-nums text-muted-foreground">{m.count.toLocaleString()}</span>
             </div>
@@ -865,21 +907,28 @@ function VendorRowItem({
   row,
   isExpanded,
   onToggle,
+  onChatClick,
   getContractsForVendor,
 }: {
   row: ContractsVendorRow;
   isExpanded: boolean;
   onToggle: () => void;
+  onChatClick: () => void;
   getContractsForVendor: (name: string) => ContractsVendorDrillRow[];
 }) {
   const navigate = useNavigate();
   const contracts = isExpanded ? getContractsForVendor(row.name) : [];
 
+  const handleChatClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChatClick();
+  };
+
   return (
     <div>
       <div
         onClick={onToggle}
-        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_120px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer hover:bg-muted/30 transition-colors items-center"
+        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_120px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer hover:bg-muted/30 transition-colors items-center"
       >
         <div className="flex items-center gap-2 min-w-0">
           <span className="flex-shrink-0 text-muted-foreground">
@@ -890,9 +939,32 @@ function VendorRowItem({
             {formatCompactCurrency(row.amount)}
           </span>
         </div>
+
+        {/* Chat button column (desktop) */}
+        <div className="hidden md:flex justify-center">
+          <button
+            onClick={handleChatClick}
+            className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/80"
+          >
+            <ArrowUp className="h-4 w-4" />
+          </button>
+        </div>
+
         <span className="hidden md:block text-right font-medium tabular-nums">{formatCompactCurrency(row.amount)}</span>
         <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.contractCount.toLocaleString()}</span>
       </div>
+
+      {/* Mobile supplementary info */}
+      <div className="md:hidden px-4 pb-3 -mt-2 flex items-center gap-3 text-xs text-muted-foreground pl-10">
+        <span>{row.contractCount} contracts</span>
+        <button
+          onClick={handleChatClick}
+          className="ml-auto w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center"
+        >
+          <ArrowUp className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
       {isExpanded && contracts.length > 0 && (
         <div className="bg-muted/10 border-t border-b">
           {contracts.map((c, idx) => (
@@ -900,7 +972,7 @@ function VendorRowItem({
               key={`${c.contractNumber}-${idx}`}
               onClick={() => c.contractNumber && navigate(`/contracts/${c.contractNumber}`)}
               className={cn(
-                "grid grid-cols-[1fr_auto] md:grid-cols-[1fr_120px_80px] gap-4 px-4 md:px-6 py-3 pl-10 md:pl-14 text-sm hover:bg-muted/20 transition-colors",
+                "grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_120px_80px] gap-4 px-4 md:px-6 py-3 pl-10 md:pl-14 text-sm hover:bg-muted/20 transition-colors",
                 c.contractNumber && "cursor-pointer"
               )}
             >
@@ -912,6 +984,7 @@ function VendorRowItem({
                   </span>
                 )}
               </div>
+              <span />
               <span className="text-right tabular-nums">{formatCompactCurrency(c.amount)}</span>
               <span className="hidden md:block text-right tabular-nums text-muted-foreground text-xs">
                 {c.startDate ? c.startDate.slice(0, 10) : '—'}

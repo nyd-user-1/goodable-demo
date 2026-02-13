@@ -57,6 +57,7 @@ interface ContractsChatDrawerProps {
   onOpenChange: (open: boolean) => void;
   departmentName?: string | null;
   contractTypeName?: string | null;
+  vendorName?: string | null;
 }
 
 interface ChatMessage {
@@ -111,11 +112,18 @@ const TYPE_QUESTIONS = [
   'Who are the top vendors for this contract type?',
 ];
 
+const VENDOR_QUESTIONS = [
+  'What types of contracts does this vendor have?',
+  'Which departments contract with this vendor?',
+  'What is the total contract value for this vendor?',
+];
+
 export function ContractsChatDrawer({
   open,
   onOpenChange,
   departmentName,
   contractTypeName,
+  vendorName,
 }: ContractsChatDrawerProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -127,20 +135,24 @@ export function ContractsChatDrawer({
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Context label for the pill
-  const contextLabel = departmentName || contractTypeName || 'NYS Contracts';
+  const contextLabel = departmentName || contractTypeName || vendorName || 'NYS Contracts';
 
   // Build context-specific system prompt
   const systemPrompt = departmentName
     ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about contracts in the "${departmentName}" department. Provide specific information about their contracts, vendors, and spending patterns.`
     : contractTypeName
       ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about "${contractTypeName}" type contracts. Provide specific information about which departments use this type, contract sizes, and key vendors.`
-      : CONTRACTS_SYSTEM_PROMPT;
+      : vendorName
+        ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about the vendor "${vendorName}". Provide specific information about their contracts with New York State, contract types, departments they work with, and total contract values.`
+        : CONTRACTS_SYSTEM_PROMPT;
 
   const suggestions = departmentName
     ? DEPARTMENT_QUESTIONS
     : contractTypeName
       ? TYPE_QUESTIONS
-      : SUGGESTED_QUESTIONS;
+      : vendorName
+        ? VENDOR_QUESTIONS
+        : SUGGESTED_QUESTIONS;
 
   // Reset state when drawer closes
   useEffect(() => {
@@ -337,7 +349,9 @@ export function ContractsChatDrawer({
     ? `Ask about ${departmentName}`
     : contractTypeName
       ? `Ask about ${contractTypeName}`
-      : 'Ask about NYS Contracts';
+      : vendorName
+        ? `Ask about ${vendorName}`
+        : 'Ask about NYS Contracts';
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
