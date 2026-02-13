@@ -50,6 +50,7 @@ const LobbyingDashboard = () => {
   const [chatLobbyistName, setChatLobbyistName] = useState<string | null>(null);
   const [chatClientName, setChatClientName] = useState<string | null>(null);
   const [chatDataContext, setChatDataContext] = useState<string | null>(null);
+  const [chatDrillName, setChatDrillName] = useState<string | null>(null);
   const [displayCount, setDisplayCount] = useState(50);
 
   useEffect(() => {
@@ -212,10 +213,11 @@ const LobbyingDashboard = () => {
   };
 
   // Open chat drawer
-  const openChat = (lobbyistName?: string | null, clientName?: string | null, dataCtx?: string | null) => {
+  const openChat = (lobbyistName?: string | null, clientName?: string | null, dataCtx?: string | null, drillName?: string | null) => {
     setChatLobbyistName(lobbyistName || null);
     setChatClientName(clientName || null);
     setChatDataContext(dataCtx || null);
+    setChatDrillName(drillName || null);
     setChatOpen(true);
   };
 
@@ -233,7 +235,7 @@ const LobbyingDashboard = () => {
   // Chat click for drill-down row (client under lobbyist)
   const handleDrillDownChatClick = (drillRow: LobbyingDrillDownRow, parentRow: LobbyingDashboardRow) => {
     const ctx = buildDataContext({ clientName: drillRow.name, drillRow, parentRow });
-    openChat(null, drillRow.name, ctx);
+    openChat(null, drillRow.name, ctx, drillRow.name);
   };
 
   return (
@@ -587,6 +589,7 @@ const LobbyingDashboard = () => {
         lobbyistName={chatLobbyistName}
         clientName={chatClientName}
         dataContext={chatDataContext}
+        drillName={chatDrillName}
       />
     </div>
   );

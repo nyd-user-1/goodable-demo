@@ -59,6 +59,7 @@ interface ContractsChatDrawerProps {
   contractTypeName?: string | null;
   vendorName?: string | null;
   dataContext?: string | null;
+  drillName?: string | null;
 }
 
 interface ChatMessage {
@@ -117,6 +118,12 @@ const VENDOR_QUESTIONS = [
   'What types of work does this vendor do based on the contract names provided?',
 ];
 
+const DRILL_QUESTIONS = [
+  'Summarize this contract using the details provided',
+  'What is the contract amount and its share of the parent category?',
+  'What can you tell me about this vendor and contract from the data?',
+];
+
 export function ContractsChatDrawer({
   open,
   onOpenChange,
@@ -124,6 +131,7 @@ export function ContractsChatDrawer({
   contractTypeName,
   vendorName,
   dataContext,
+  drillName,
 }: ContractsChatDrawerProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -135,26 +143,30 @@ export function ContractsChatDrawer({
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Context label for the pill
-  const contextLabel = departmentName || contractTypeName || vendorName || 'NYS Contracts';
+  const contextLabel = drillName || departmentName || contractTypeName || vendorName || 'NYS Contracts';
 
   // Build context-specific system prompt
   const dataSection = dataContext ? `\n\n## Actual Contract Data\nThe following is real contract data from the NYS Comptroller's database. You MUST use ONLY these actual figures in your responses. Do NOT make up names, amounts, contract numbers, or dates that are not in this data. If asked about something not in the data, say so rather than guessing.\n\n${dataContext}` : '';
 
-  const systemPrompt = departmentName
-    ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about contracts in the "${departmentName}" department. Use the actual contract data provided below to answer questions with specific dollar amounts, vendor names, and contract details.${dataSection}`
-    : contractTypeName
-      ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about "${contractTypeName}" type contracts. Use the actual contract data provided below to answer questions with specific dollar amounts, vendor names, and contract details.${dataSection}`
-      : vendorName
-        ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about the vendor "${vendorName}". Use the actual contract data provided below to answer questions with specific dollar amounts, contract names, and dates.${dataSection}`
-        : `${CONTRACTS_SYSTEM_PROMPT}${dataSection}`;
+  const systemPrompt = drillName
+    ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about a specific contract: "${drillName}". Use the actual contract data provided below to answer questions with specific dollar amounts, dates, and parent category context.${dataSection}`
+    : departmentName
+      ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about contracts in the "${departmentName}" department. Use the actual contract data provided below to answer questions with specific dollar amounts, vendor names, and contract details.${dataSection}`
+      : contractTypeName
+        ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about "${contractTypeName}" type contracts. Use the actual contract data provided below to answer questions with specific dollar amounts, vendor names, and contract details.${dataSection}`
+        : vendorName
+          ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about the vendor "${vendorName}". Use the actual contract data provided below to answer questions with specific dollar amounts, contract names, and dates.${dataSection}`
+          : `${CONTRACTS_SYSTEM_PROMPT}${dataSection}`;
 
-  const suggestions = departmentName
-    ? DEPARTMENT_QUESTIONS
-    : contractTypeName
-      ? TYPE_QUESTIONS
-      : vendorName
-        ? VENDOR_QUESTIONS
-        : SUGGESTED_QUESTIONS;
+  const suggestions = drillName
+    ? DRILL_QUESTIONS
+    : departmentName
+      ? DEPARTMENT_QUESTIONS
+      : contractTypeName
+        ? TYPE_QUESTIONS
+        : vendorName
+          ? VENDOR_QUESTIONS
+          : SUGGESTED_QUESTIONS;
 
   // Reset state when drawer closes
   useEffect(() => {
@@ -347,13 +359,15 @@ export function ContractsChatDrawer({
     }
   };
 
-  const title = departmentName
-    ? `Ask about ${departmentName}`
-    : contractTypeName
-      ? `Ask about ${contractTypeName}`
-      : vendorName
-        ? `Ask about ${vendorName}`
-        : 'Ask about NYS Contracts';
+  const title = drillName
+    ? `Ask about ${drillName}`
+    : departmentName
+      ? `Ask about ${departmentName}`
+      : contractTypeName
+        ? `Ask about ${contractTypeName}`
+        : vendorName
+          ? `Ask about ${vendorName}`
+          : 'Ask about NYS Contracts';
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>

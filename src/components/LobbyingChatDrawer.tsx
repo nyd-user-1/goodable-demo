@@ -58,6 +58,7 @@ interface LobbyingChatDrawerProps {
   lobbyistName?: string | null;
   clientName?: string | null;
   dataContext?: string | null;
+  drillName?: string | null;
 }
 
 interface ChatMessage {
@@ -110,12 +111,19 @@ const CLIENT_QUESTIONS = [
   'Break down this client\'s engagement with amounts from the data',
 ];
 
+const DRILL_QUESTIONS = [
+  'Summarize this entity using the details provided',
+  'What is their spending amount and share of the parent total?',
+  'What can you tell me about this entity from the data?',
+];
+
 export function LobbyingChatDrawer({
   open,
   onOpenChange,
   lobbyistName,
   clientName,
   dataContext,
+  drillName,
 }: LobbyingChatDrawerProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -127,22 +135,26 @@ export function LobbyingChatDrawer({
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Context label for the pill
-  const contextLabel = lobbyistName || clientName || 'NYS Lobbying';
+  const contextLabel = drillName || lobbyistName || clientName || 'NYS Lobbying';
 
   // Build context-specific system prompt
   const dataSection = dataContext ? `\n\n## Actual Lobbying Data\nThe following is real data from JCOPE filings. You MUST use ONLY these actual figures in your responses. Do NOT make up names, amounts, or statistics that are not in this data. If asked about something not in the data, say so rather than guessing.\n\n${dataContext}` : '';
 
-  const systemPrompt = lobbyistName
-    ? `${LOBBYING_SYSTEM_PROMPT}\n\nThe user is asking about the lobbyist "${lobbyistName}". Use the actual data provided below to answer questions with specific dollar amounts, client names, and details.${dataSection}`
-    : clientName
-      ? `${LOBBYING_SYSTEM_PROMPT}\n\nThe user is asking about the client "${clientName}". Use the actual data provided below to answer questions with specific dollar amounts and details.${dataSection}`
-      : `${LOBBYING_SYSTEM_PROMPT}${dataSection}`;
+  const systemPrompt = drillName
+    ? `${LOBBYING_SYSTEM_PROMPT}\n\nThe user is asking about "${drillName}". Use the actual data provided below to answer questions with specific dollar amounts and details.${dataSection}`
+    : lobbyistName
+      ? `${LOBBYING_SYSTEM_PROMPT}\n\nThe user is asking about the lobbyist "${lobbyistName}". Use the actual data provided below to answer questions with specific dollar amounts, client names, and details.${dataSection}`
+      : clientName
+        ? `${LOBBYING_SYSTEM_PROMPT}\n\nThe user is asking about the client "${clientName}". Use the actual data provided below to answer questions with specific dollar amounts and details.${dataSection}`
+        : `${LOBBYING_SYSTEM_PROMPT}${dataSection}`;
 
-  const suggestions = lobbyistName
-    ? LOBBYIST_QUESTIONS
-    : clientName
-      ? CLIENT_QUESTIONS
-      : SUGGESTED_QUESTIONS;
+  const suggestions = drillName
+    ? DRILL_QUESTIONS
+    : lobbyistName
+      ? LOBBYIST_QUESTIONS
+      : clientName
+        ? CLIENT_QUESTIONS
+        : SUGGESTED_QUESTIONS;
 
   // Reset state when drawer closes
   useEffect(() => {
@@ -337,11 +349,13 @@ export function LobbyingChatDrawer({
     }
   };
 
-  const title = lobbyistName
-    ? `Ask about ${lobbyistName}`
-    : clientName
-      ? `Ask about ${clientName}`
-      : 'Ask about NYS Lobbying';
+  const title = drillName
+    ? `Ask about ${drillName}`
+    : lobbyistName
+      ? `Ask about ${lobbyistName}`
+      : clientName
+        ? `Ask about ${clientName}`
+        : 'Ask about NYS Lobbying';
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>

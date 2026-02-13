@@ -63,6 +63,7 @@ const ContractsDashboard = () => {
   const [chatContractTypeName, setChatContractTypeName] = useState<string | null>(null);
   const [chatVendorName, setChatVendorName] = useState<string | null>(null);
   const [chatDataContext, setChatDataContext] = useState<string | null>(null);
+  const [chatDrillName, setChatDrillName] = useState<string | null>(null);
   const [chartMode, setChartMode] = useState(() => {
     const m = parseInt(searchParams.get('mode') || '0');
     return m >= 0 && m < NUM_CHART_MODES ? m : 0;
@@ -208,10 +209,11 @@ const ContractsDashboard = () => {
   };
 
   // Open chat drawer
-  const openChat = (departmentName?: string | null, contractTypeName?: string | null, vendorName?: string | null, dataCtx?: string | null) => {
+  const openChat = (departmentName?: string | null, contractTypeName?: string | null, vendorName?: string | null, dataCtx?: string | null, drillName?: string | null) => {
     setChatDepartmentName(departmentName || null);
     setChatContractTypeName(contractTypeName || null);
     setChatVendorName(vendorName || null);
+    setChatDrillName(drillName || null);
 
     if (dataCtx) {
       setChatDataContext(dataCtx);
@@ -572,7 +574,7 @@ const ContractsDashboard = () => {
                           ].filter(Boolean).join('\n');
                           const dept = activeTab === 'department' ? row.name : null;
                           const type = activeTab === 'type' ? row.name : null;
-                          openChat(dept, type, null, ctx);
+                          openChat(dept, type, null, ctx, contract.name);
                         }}
                         tab={activeTab}
                         getDrillDown={getDrillDown}
@@ -639,7 +641,7 @@ const ContractsDashboard = () => {
                         `Parent Year: ${yr.year}`,
                         `Year Total: ${formatCompactCurrency(yr.amount)} (${yr.count} contracts)`,
                       ].join('\n');
-                      openChat(null, null, null, ctx);
+                      openChat(null, null, null, ctx, `${m.monthName} ${yr.year}`);
                     }}
                     getMonthsForYear={getMonthsForYear}
                   />
@@ -675,7 +677,7 @@ const ContractsDashboard = () => {
                         `Vendor: ${vendor.name}`,
                         `Vendor Total: ${formatCompactCurrency(vendor.amount)} (${vendor.contractCount} contracts)`,
                       ].filter(Boolean).join('\n');
-                      openChat(null, null, vendor.name, ctx);
+                      openChat(null, null, vendor.name, ctx, c.name);
                     }}
                     getContractsForVendor={getContractsForVendor}
                   />
@@ -724,7 +726,7 @@ const ContractsDashboard = () => {
                         `Duration Bucket: ${bucket.bucket}`,
                         `Bucket Total: ${formatCompactCurrency(bucket.amount)} (${bucket.count} contracts)`,
                       ].filter(Boolean).join('\n');
-                      openChat(null, null, null, ctx);
+                      openChat(null, null, null, ctx, c.vendorName);
                     }}
                     getContractsForDurationBucket={getContractsForDurationBucket}
                   />
@@ -743,6 +745,7 @@ const ContractsDashboard = () => {
         contractTypeName={chatContractTypeName}
         vendorName={chatVendorName}
         dataContext={chatDataContext}
+        drillName={chatDrillName}
       />
     </div>
   );
