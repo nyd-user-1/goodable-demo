@@ -69,6 +69,35 @@ export interface ContractsDurationDrillRow {
   durationDays: number;
 }
 
+export interface ContractsExpirationBucket {
+  bucket: string;
+  count: number;
+  amount: number;
+}
+
+export interface ContractsExpirationDrillRow {
+  contractNumber: string;
+  vendorName: string;
+  department: string;
+  amount: number;
+  endDate: string | null;
+  daysUntilExpiry: number;
+}
+
+export interface ContractsSpendBucket {
+  bucket: string;
+  count: number;
+  amount: number;
+}
+
+export interface ContractsSpendDrillRow {
+  contractNumber: string;
+  vendorName: string;
+  amount: number;
+  spending: number;
+  spendPct: number;
+}
+
 // Format large currency values compactly: $1.2B, $456M, $12K
 export function formatCompactCurrency(value: number): string {
   const abs = Math.abs(value);
@@ -215,6 +244,38 @@ export function useContractsDashboard() {
     gcTime: 15 * 60 * 1000,
   });
 
+  // ── RPC: expiration buckets ────────────────────────────────
+  const { data: expirationRaw, isLoading: expirationLoading, error: expirationError } = useQuery({
+    queryKey: ['contracts-rpc-expiration-buckets'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_contracts_expiration_buckets');
+      if (error) throw error;
+      return (data as any[]).map((r: any): ContractsExpirationBucket => ({
+        bucket: r.bucket,
+        count: Number(r.count),
+        amount: Number(r.total_amount),
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
+  // ── RPC: spend buckets ───────────────────────────────────
+  const { data: spendRaw, isLoading: spendLoading, error: spendError } = useQuery({
+    queryKey: ['contracts-rpc-spend-buckets'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_contracts_spend_buckets');
+      if (error) throw error;
+      return (data as any[]).map((r: any): ContractsSpendBucket => ({
+        bucket: r.bucket,
+        count: Number(r.count),
+        amount: Number(r.total_amount),
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
   // ── RPC: contracts by year (for mode 1 table) ────────────
   const { data: byYearRaw } = useQuery({
     queryKey: ['contracts-rpc-by-year'],
@@ -231,8 +292,8 @@ export function useContractsDashboard() {
     gcTime: 15 * 60 * 1000,
   });
 
-  const isLoading = deptLoading || typeLoading || histLoading || totalsLoading || monthlyLoading || vendorsLoading || durationLoading;
-  const error = deptError || typeError || histError || totalsError || monthlyError || vendorsError || durationError;
+  const isLoading = deptLoading || typeLoading || histLoading || totalsLoading || monthlyLoading || vendorsLoading || durationLoading || expirationLoading || spendLoading;
+  const error = deptError || typeError || histError || totalsError || monthlyError || vendorsError || durationError || expirationError || spendError;
 
   // ── Mode 1 drill-down: months within a year ────────────────
   const [monthDrillCache, setMonthDrillCache] = useState<Record<string, ContractsMonthDrillRow[]>>({});
@@ -296,12 +357,32 @@ export function useContractsDashboard() {
   };
 
   // ── Mode 3 drill-down: contracts for a duration bucket ─────
-  const BUCKET_RANGES: Record<string, [number, number]> = {
+  const DURATION_BUCKET_RANGES: Record<string, [number, number]> = {
     '<1 yr': [0, 365],
     '1-2 yr': [365, 730],
-    '2-5 yr': [730, 1825],
-    '5-10 yr': [1825, 3650],
-    '10+ yr': [3650, 999999],
+    '2-3 yr': [730, 1095],
+    '3-5 yr': [1095, 1795],
+    '5 yr': [1795, 1861],
+    '>5 yr': [1861, 999999],
+  };
+
+  const EXPIRATION_BUCKET_RANGES: Record<string, [number, number]> = {
+    'Expired': [-999999, 0],
+    '<30 days': [0, 30],
+    '30-90 days': [30, 90],
+    '3-6 mo': [90, 180],
+    '6-12 mo': [180, 365],
+    '1-2 yr': [365, 730],
+    '2+ yr': [730, 999999],
+  };
+
+  const SPEND_BUCKET_RANGES: Record<string, [number, number]> = {
+    '0%': [0, 0.001],
+    '<25%': [0.001, 25],
+    '25-50%': [25, 50],
+    '50-75%': [50, 75],
+    '75-100%': [75, 100.001],
+    '>100%': [100.001, 999999],
   };
 
   const [durationDrillCache, setDurationDrillCache] = useState<Record<string, ContractsDurationDrillRow[]>>({});
@@ -312,7 +393,7 @@ export function useContractsDashboard() {
 
     if (!fetchingDurationDrillRef.current.has(bucket)) {
       fetchingDurationDrillRef.current.add(bucket);
-      const [minDays, maxDays] = BUCKET_RANGES[bucket] || [0, 999999];
+      const [minDays, maxDays] = DURATION_BUCKET_RANGES[bucket] || [0, 999999];
       (supabase as any)
         .rpc('get_contracts_for_duration_bucket', { p_min_days: minDays, p_max_days: maxDays })
         .then(({ data }: any) => {
@@ -328,6 +409,71 @@ export function useContractsDashboard() {
             }));
           }
           fetchingDurationDrillRef.current.delete(bucket);
+        });
+    }
+
+    return [];
+  };
+
+  // ── Mode 4 drill-down: contracts for an expiration bucket ──
+  const [expirationDrillCache, setExpirationDrillCache] = useState<Record<string, ContractsExpirationDrillRow[]>>({});
+  const fetchingExpirationDrillRef = useRef<Set<string>>(new Set());
+
+  const getContractsForExpirationBucket = (bucket: string): ContractsExpirationDrillRow[] => {
+    if (expirationDrillCache[bucket]) return expirationDrillCache[bucket];
+
+    if (!fetchingExpirationDrillRef.current.has(bucket)) {
+      fetchingExpirationDrillRef.current.add(bucket);
+      const [minDays, maxDays] = EXPIRATION_BUCKET_RANGES[bucket] || [-999999, 999999];
+      (supabase as any)
+        .rpc('get_contracts_for_expiration_bucket', { p_min_days: minDays, p_max_days: maxDays })
+        .then(({ data }: any) => {
+          if (data) {
+            setExpirationDrillCache((prev) => ({
+              ...prev,
+              [bucket]: (data as any[]).map((d: any) => ({
+                contractNumber: d.contract_number,
+                vendorName: d.vendor_name,
+                department: d.department,
+                amount: Number(d.amount),
+                endDate: d.end_date,
+                daysUntilExpiry: Number(d.days_until_expiry),
+              })),
+            }));
+          }
+          fetchingExpirationDrillRef.current.delete(bucket);
+        });
+    }
+
+    return [];
+  };
+
+  // ── Mode 5 drill-down: contracts for a spend bucket ───────
+  const [spendDrillCache, setSpendDrillCache] = useState<Record<string, ContractsSpendDrillRow[]>>({});
+  const fetchingSpendDrillRef = useRef<Set<string>>(new Set());
+
+  const getContractsForSpendBucket = (bucket: string): ContractsSpendDrillRow[] => {
+    if (spendDrillCache[bucket]) return spendDrillCache[bucket];
+
+    if (!fetchingSpendDrillRef.current.has(bucket)) {
+      fetchingSpendDrillRef.current.add(bucket);
+      const [minPct, maxPct] = SPEND_BUCKET_RANGES[bucket] || [0, 999999];
+      (supabase as any)
+        .rpc('get_contracts_for_spend_bucket', { p_min_pct: minPct, p_max_pct: maxPct })
+        .then(({ data }: any) => {
+          if (data) {
+            setSpendDrillCache((prev) => ({
+              ...prev,
+              [bucket]: (data as any[]).map((d: any) => ({
+                contractNumber: d.contract_number,
+                vendorName: d.vendor_name,
+                amount: Number(d.amount),
+                spending: Number(d.spending),
+                spendPct: Number(d.spend_pct),
+              })),
+            }));
+          }
+          fetchingSpendDrillRef.current.delete(bucket);
         });
     }
 
@@ -413,9 +559,13 @@ export function useContractsDashboard() {
     monthlyData: monthlyRaw ?? [],
     topVendors: vendorsRaw ?? [],
     durationBuckets: durationRaw ?? [],
+    expirationBuckets: expirationRaw ?? [],
+    spendBuckets: spendRaw ?? [],
     byYear: byYearRaw ?? [],
     getMonthsForYear,
     getContractsForVendor,
     getContractsForDurationBucket,
+    getContractsForExpirationBucket,
+    getContractsForSpendBucket,
   };
 }

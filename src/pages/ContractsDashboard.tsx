@@ -26,6 +26,10 @@ import {
   type ContractsYearRow,
   type ContractsVendorRow,
   type ContractsDurationBucket,
+  type ContractsExpirationBucket,
+  type ContractsExpirationDrillRow,
+  type ContractsSpendBucket,
+  type ContractsSpendDrillRow,
   type ContractsMonthDrillRow,
   type ContractsVendorDrillRow,
   type ContractsDurationDrillRow,
@@ -44,10 +48,10 @@ import {
 
 const TABS: ContractsDashboardTab[] = ['department', 'type'];
 
-const CHART_LABELS = ['Contract Value', 'By Start Date', 'Top Vendors', 'Duration'];
+const CHART_LABELS = ['Contract Value', 'By Start Date', 'Top Vendors', 'Duration', 'Expiring', 'Spend Rate'];
 const NUM_CHART_MODES = CHART_LABELS.length;
 
-const CONTRACTS_SLUG_TO_MODE: Record<string, number> = { 'by-month': 1, 'by-top-vendors': 2, 'by-duration': 3 };
+const CONTRACTS_SLUG_TO_MODE: Record<string, number> = { 'by-month': 1, 'by-top-vendors': 2, 'by-duration': 3, 'by-expiration': 4, 'by-spend': 5 };
 
 const ContractsDashboard = () => {
   const navigate = useNavigate();
@@ -95,10 +99,14 @@ const ContractsDashboard = () => {
     monthlyData,
     topVendors,
     durationBuckets,
+    expirationBuckets,
+    spendBuckets,
     byYear,
     getMonthsForYear,
     getContractsForVendor,
     getContractsForDurationBucket,
+    getContractsForExpirationBucket,
+    getContractsForSpendBucket,
   } = useContractsDashboard();
 
   // Get rows for the active tab
@@ -396,6 +404,36 @@ const ContractsDashboard = () => {
                       </BarChart>
                     </ResponsiveContainer>
                   )}
+
+                  {/* Mode 4: Expiration buckets bar chart */}
+                  {chartMode === 4 && expirationBuckets.length > 0 && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={expirationBuckets} margin={{ top: 4, right: 8, bottom: 16, left: 8 }}>
+                        <Bar dataKey="count" fill="hsl(0 84% 60%)" radius={[2, 2, 0, 0]} animationDuration={500} />
+                        <XAxis dataKey="bucket" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
+                        <RechartsTooltip
+                          contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
+                          formatter={(value: number, name: string) => [name === 'count' ? `${value} contracts` : formatFullCurrency(value), name === 'count' ? 'Contracts' : 'Total Value']}
+                          labelFormatter={(label) => label}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+
+                  {/* Mode 5: Spend utilization bar chart */}
+                  {chartMode === 5 && spendBuckets.length > 0 && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={spendBuckets} margin={{ top: 4, right: 8, bottom: 16, left: 8 }}>
+                        <Bar dataKey="count" fill="hsl(180 60% 45%)" radius={[2, 2, 0, 0]} animationDuration={500} />
+                        <XAxis dataKey="bucket" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
+                        <RechartsTooltip
+                          contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
+                          formatter={(value: number, name: string) => [name === 'count' ? `${value} contracts` : formatFullCurrency(value), name === 'count' ? 'Contracts' : 'Total Value']}
+                          labelFormatter={(label) => label}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
               )}
 
@@ -437,6 +475,50 @@ const ContractsDashboard = () => {
                                     <Area type="monotone" dataKey="y" stroke={d.color} strokeWidth={1.5} fill={`url(#${d.id})`} dot={false} animationDuration={500} />
                                     <XAxis dataKey="x" hide />
                                   </AreaChart>
+                                </ResponsiveContainer>
+                              </div>
+                              <div className="px-3 pb-3 pt-2">
+                                <p className="font-semibold text-sm">{d.label}</p>
+                                <p className="text-xs text-muted-foreground">{d.desc}</p>
+                              </div>
+                            </button>
+                          </DrawerClose>
+                        ))}
+
+                        {/* Contracts sub-chart cards */}
+                        {[
+                          { path: '/explore/contracts/by-month', label: 'By Month', desc: 'New contracts per month', color: 'hsl(142 76% 36%)', id: 'dcMonth', type: 'area' as const,
+                            data: [{x:0,y:30},{x:1,y:45},{x:2,y:38},{x:3,y:52},{x:4,y:48},{x:5,y:60},{x:6,y:55},{x:7,y:70},{x:8,y:65},{x:9,y:80}] },
+                          { path: '/explore/contracts/by-top-vendors', label: 'Top Vendors', desc: 'Vendors by contract value', color: 'hsl(32 95% 50%)', id: 'dcVendor', type: 'bar' as const,
+                            data: [{x:0,y:80},{x:1,y:65},{x:2,y:55},{x:3,y:45},{x:4,y:38},{x:5,y:30},{x:6,y:25},{x:7,y:20},{x:8,y:15},{x:9,y:10}] },
+                          { path: '/explore/contracts/by-duration', label: 'Duration', desc: 'Contracts by duration', color: 'hsl(280 67% 55%)', id: 'dcDuration', type: 'bar' as const,
+                            data: [{x:0,y:40},{x:1,y:70},{x:2,y:55},{x:3,y:30},{x:4,y:90},{x:5,y:15}] },
+                          { path: '/explore/contracts/by-expiration', label: 'Expiring', desc: 'Contracts by expiration', color: 'hsl(0 84% 60%)', id: 'dcExpire', type: 'bar' as const,
+                            data: [{x:0,y:60},{x:1,y:20},{x:2,y:30},{x:3,y:25},{x:4,y:35},{x:5,y:40},{x:6,y:50}] },
+                          { path: '/explore/contracts/by-spend', label: 'Spend Rate', desc: 'Spend utilization', color: 'hsl(180 60% 45%)', id: 'dcSpend', type: 'bar' as const,
+                            data: [{x:0,y:30},{x:1,y:45},{x:2,y:55},{x:3,y:40},{x:4,y:35},{x:5,y:15}] },
+                        ].map((d) => (
+                          <DrawerClose asChild key={d.path}>
+                            <button onClick={() => navigate(d.path)} className="text-left rounded-xl border border-border bg-muted/30 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 overflow-hidden">
+                              <div className="h-24 px-2 pt-2">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  {d.type === 'area' ? (
+                                    <AreaChart data={d.data} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
+                                      <defs>
+                                        <linearGradient id={d.id} x1="0" y1="0" x2="0" y2="1">
+                                          <stop offset="5%" stopColor={d.color} stopOpacity={0.3} />
+                                          <stop offset="95%" stopColor={d.color} stopOpacity={0.02} />
+                                        </linearGradient>
+                                      </defs>
+                                      <Area type="monotone" dataKey="y" stroke={d.color} strokeWidth={1.5} fill={`url(#${d.id})`} dot={false} animationDuration={500} />
+                                      <XAxis dataKey="x" hide />
+                                    </AreaChart>
+                                  ) : (
+                                    <BarChart data={d.data} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
+                                      <Bar dataKey="y" fill={d.color} radius={[2, 2, 0, 0]} animationDuration={500} />
+                                      <XAxis dataKey="x" hide />
+                                    </BarChart>
+                                  )}
                                 </ResponsiveContainer>
                               </div>
                               <div className="px-3 pb-3 pt-2">
@@ -737,6 +819,107 @@ const ContractsDashboard = () => {
                       openChat(null, null, null, ctx, c.vendorName);
                     }}
                     getContractsForDurationBucket={getContractsForDurationBucket}
+                  />
+                ))}
+              </div>
+            ) : chartMode === 4 ? (
+              /* ── Mode 4: Expiration buckets table ── */
+              <div className="divide-y">
+                <div className="hidden md:grid grid-cols-[1fr_44px_120px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                  <span>Expiration</span>
+                  <span className="flex items-center justify-center">
+                    <MessageSquare className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="text-right">Amount</span>
+                  <span className="text-right">Contracts</span>
+                </div>
+                {expirationBuckets.map((bucket) => (
+                  <ExpirationRowItem
+                    key={bucket.bucket}
+                    row={bucket}
+                    isExpanded={expandedRows.has(bucket.bucket)}
+                    onToggle={() => toggleRow(bucket.bucket)}
+                    onChatClick={() => {
+                      const contracts = getContractsForExpirationBucket(bucket.bucket);
+                      const ctx = [
+                        `Expiration Bucket: ${bucket.bucket}`,
+                        `Total Contract Value: ${formatCompactCurrency(bucket.amount)}`,
+                        `Number of Contracts: ${bucket.count}`,
+                        '',
+                        'Sample Contracts:',
+                        ...contracts.slice(0, 15).map(c => {
+                          const amt = c.amount >= 1e6 ? `$${(c.amount / 1e6).toFixed(1)}M` : `$${c.amount.toLocaleString()}`;
+                          return `- ${c.vendorName}${c.contractNumber ? ` (${c.contractNumber})` : ''}: ${amt}, ${c.department}, ends ${c.endDate?.slice(0, 10) || 'N/A'} (${c.daysUntilExpiry} days)`;
+                        }),
+                      ].join('\n');
+                      openChat(null, null, null, ctx);
+                    }}
+                    onDrillChatClick={(c) => {
+                      const amt = c.amount >= 1e9 ? `$${(c.amount / 1e9).toFixed(1)}B` : c.amount >= 1e6 ? `$${(c.amount / 1e6).toFixed(1)}M` : `$${c.amount.toLocaleString()}`;
+                      const ctx = [
+                        `Vendor: ${c.vendorName}`,
+                        c.contractNumber ? `Contract Number: ${c.contractNumber}` : '',
+                        `Amount: ${amt}`,
+                        `Department: ${c.department}`,
+                        `End Date: ${c.endDate?.slice(0, 10) || 'N/A'}`,
+                        `Days Until Expiry: ${c.daysUntilExpiry}`,
+                        '',
+                        `Expiration Bucket: ${bucket.bucket}`,
+                        `Bucket Total: ${formatCompactCurrency(bucket.amount)} (${bucket.count} contracts)`,
+                      ].filter(Boolean).join('\n');
+                      openChat(null, null, null, ctx, c.vendorName);
+                    }}
+                    getContractsForExpirationBucket={getContractsForExpirationBucket}
+                  />
+                ))}
+              </div>
+            ) : chartMode === 5 ? (
+              /* ── Mode 5: Spend utilization table ── */
+              <div className="divide-y">
+                <div className="hidden md:grid grid-cols-[1fr_44px_120px_80px] gap-4 px-6 py-3 text-xs text-muted-foreground font-medium uppercase tracking-wider bg-background sticky top-0 z-10 border-b">
+                  <span>Spend Rate</span>
+                  <span className="flex items-center justify-center">
+                    <MessageSquare className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="text-right">Amount</span>
+                  <span className="text-right">Contracts</span>
+                </div>
+                {spendBuckets.map((bucket) => (
+                  <SpendRowItem
+                    key={bucket.bucket}
+                    row={bucket}
+                    isExpanded={expandedRows.has(bucket.bucket)}
+                    onToggle={() => toggleRow(bucket.bucket)}
+                    onChatClick={() => {
+                      const contracts = getContractsForSpendBucket(bucket.bucket);
+                      const ctx = [
+                        `Spend Utilization Bucket: ${bucket.bucket}`,
+                        `Total Contract Value: ${formatCompactCurrency(bucket.amount)}`,
+                        `Number of Contracts: ${bucket.count}`,
+                        '',
+                        'Sample Contracts:',
+                        ...contracts.slice(0, 15).map(c => {
+                          const amt = c.amount >= 1e6 ? `$${(c.amount / 1e6).toFixed(1)}M` : `$${c.amount.toLocaleString()}`;
+                          return `- ${c.vendorName}${c.contractNumber ? ` (${c.contractNumber})` : ''}: ${amt}, spent ${formatCompactCurrency(c.spending)} (${c.spendPct.toFixed(1)}%)`;
+                        }),
+                      ].join('\n');
+                      openChat(null, null, null, ctx);
+                    }}
+                    onDrillChatClick={(c) => {
+                      const amt = c.amount >= 1e9 ? `$${(c.amount / 1e9).toFixed(1)}B` : c.amount >= 1e6 ? `$${(c.amount / 1e6).toFixed(1)}M` : `$${c.amount.toLocaleString()}`;
+                      const ctx = [
+                        `Vendor: ${c.vendorName}`,
+                        c.contractNumber ? `Contract Number: ${c.contractNumber}` : '',
+                        `Contract Amount: ${amt}`,
+                        `Spending to Date: ${formatCompactCurrency(c.spending)}`,
+                        `Spend Rate: ${c.spendPct.toFixed(1)}%`,
+                        '',
+                        `Spend Bucket: ${bucket.bucket}`,
+                        `Bucket Total: ${formatCompactCurrency(bucket.amount)} (${bucket.count} contracts)`,
+                      ].filter(Boolean).join('\n');
+                      openChat(null, null, null, ctx, c.vendorName);
+                    }}
+                    getContractsForSpendBucket={getContractsForSpendBucket}
                   />
                 ))}
               </div>
@@ -1382,6 +1565,282 @@ function DurationRowItem({
                 </div>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
                   <span>{Math.round(c.durationDays / 365 * 10) / 10} yr</span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onDrillChatClick(c); }}
+                    className="ml-auto w-6 h-6 bg-foreground text-background rounded-full flex items-center justify-center"
+                  >
+                    <ArrowUp className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Expiration Row (Mode 4) ──────────────────────────────────
+
+function ExpirationRowItem({
+  row,
+  isExpanded,
+  onToggle,
+  onChatClick,
+  onDrillChatClick,
+  getContractsForExpirationBucket,
+}: {
+  row: ContractsExpirationBucket;
+  isExpanded: boolean;
+  onToggle: () => void;
+  onChatClick: () => void;
+  onDrillChatClick: (contract: ContractsExpirationDrillRow) => void;
+  getContractsForExpirationBucket: (bucket: string) => ContractsExpirationDrillRow[];
+}) {
+  const navigate = useNavigate();
+  const contracts = isExpanded ? getContractsForExpirationBucket(row.bucket) : [];
+
+  const handleChatClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChatClick();
+  };
+
+  return (
+    <div>
+      <div
+        onClick={onToggle}
+        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_120px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer hover:bg-muted/30 transition-colors items-center"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="flex-shrink-0 text-muted-foreground">
+            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </span>
+          <span className="font-medium">{row.bucket}</span>
+          <span className="md:hidden text-sm text-muted-foreground ml-auto pl-2 whitespace-nowrap">
+            {formatCompactCurrency(row.amount)}
+          </span>
+        </div>
+
+        <div className="hidden md:flex justify-center">
+          <button
+            onClick={handleChatClick}
+            className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/80"
+          >
+            <ArrowUp className="h-4 w-4" />
+          </button>
+        </div>
+
+        <span className="hidden md:block text-right font-medium tabular-nums">{formatCompactCurrency(row.amount)}</span>
+        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.count.toLocaleString()}</span>
+      </div>
+
+      <div className="md:hidden px-4 pb-3 -mt-2 flex items-center gap-3 text-xs text-muted-foreground pl-10">
+        <span>{row.count} contracts</span>
+        <button
+          onClick={handleChatClick}
+          className="ml-auto w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center"
+        >
+          <ArrowUp className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      {isExpanded && contracts.length > 0 && (
+        <div className="bg-muted/10 border-t border-b">
+          {contracts.map((c, idx) => (
+            <div key={`${c.contractNumber}-${idx}`} className="group">
+              {/* Desktop */}
+              <div
+                onClick={() => c.contractNumber && navigate(`/contracts/${c.contractNumber}`)}
+                className={cn(
+                  "hidden md:grid grid-cols-[1fr_44px_120px_80px] gap-4 px-6 py-3 pl-14 text-sm hover:bg-muted/20 transition-colors items-center",
+                  c.contractNumber && "cursor-pointer"
+                )}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="truncate">{c.vendorName}</span>
+                  {c.contractNumber && (
+                    <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
+                      {c.contractNumber}
+                    </span>
+                  )}
+                  <span className="text-xs text-muted-foreground flex-shrink-0">{c.department}</span>
+                </div>
+                <div className="flex justify-center">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onDrillChatClick(c); }}
+                    className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/80"
+                  >
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <span className="text-right tabular-nums">{formatCompactCurrency(c.amount)}</span>
+                <span className="text-right tabular-nums text-muted-foreground text-xs">
+                  {c.daysUntilExpiry < 0 ? `${Math.abs(c.daysUntilExpiry)}d ago` : `${c.daysUntilExpiry}d`}
+                </span>
+              </div>
+              {/* Mobile */}
+              <div
+                onClick={() => c.contractNumber && navigate(`/contracts/${c.contractNumber}`)}
+                className={cn(
+                  "md:hidden px-4 py-3 pl-10",
+                  c.contractNumber && "cursor-pointer"
+                )}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span className="text-sm truncate">{c.vendorName}</span>
+                    {c.contractNumber && (
+                      <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
+                        {c.contractNumber}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-sm text-muted-foreground ml-2 whitespace-nowrap">
+                    {formatCompactCurrency(c.amount)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span>{c.department}</span>
+                  <span>{c.endDate?.slice(0, 10) || '—'}</span>
+                  <span>{c.daysUntilExpiry < 0 ? `${Math.abs(c.daysUntilExpiry)}d ago` : `${c.daysUntilExpiry}d left`}</span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onDrillChatClick(c); }}
+                    className="ml-auto w-6 h-6 bg-foreground text-background rounded-full flex items-center justify-center"
+                  >
+                    <ArrowUp className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Spend Row (Mode 5) ──────────────────────────────────────
+
+function SpendRowItem({
+  row,
+  isExpanded,
+  onToggle,
+  onChatClick,
+  onDrillChatClick,
+  getContractsForSpendBucket,
+}: {
+  row: ContractsSpendBucket;
+  isExpanded: boolean;
+  onToggle: () => void;
+  onChatClick: () => void;
+  onDrillChatClick: (contract: ContractsSpendDrillRow) => void;
+  getContractsForSpendBucket: (bucket: string) => ContractsSpendDrillRow[];
+}) {
+  const navigate = useNavigate();
+  const contracts = isExpanded ? getContractsForSpendBucket(row.bucket) : [];
+
+  const handleChatClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChatClick();
+  };
+
+  return (
+    <div>
+      <div
+        onClick={onToggle}
+        className="group grid grid-cols-[1fr_auto] md:grid-cols-[1fr_44px_120px_80px] gap-4 px-4 md:px-6 py-4 cursor-pointer hover:bg-muted/30 transition-colors items-center"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="flex-shrink-0 text-muted-foreground">
+            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </span>
+          <span className="font-medium">{row.bucket}</span>
+          <span className="md:hidden text-sm text-muted-foreground ml-auto pl-2 whitespace-nowrap">
+            {formatCompactCurrency(row.amount)}
+          </span>
+        </div>
+
+        <div className="hidden md:flex justify-center">
+          <button
+            onClick={handleChatClick}
+            className="w-8 h-8 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/80"
+          >
+            <ArrowUp className="h-4 w-4" />
+          </button>
+        </div>
+
+        <span className="hidden md:block text-right font-medium tabular-nums">{formatCompactCurrency(row.amount)}</span>
+        <span className="hidden md:block text-right text-sm tabular-nums text-muted-foreground">{row.count.toLocaleString()}</span>
+      </div>
+
+      <div className="md:hidden px-4 pb-3 -mt-2 flex items-center gap-3 text-xs text-muted-foreground pl-10">
+        <span>{row.count} contracts</span>
+        <button
+          onClick={handleChatClick}
+          className="ml-auto w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center"
+        >
+          <ArrowUp className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      {isExpanded && contracts.length > 0 && (
+        <div className="bg-muted/10 border-t border-b">
+          {contracts.map((c, idx) => (
+            <div key={`${c.contractNumber}-${idx}`} className="group">
+              {/* Desktop */}
+              <div
+                onClick={() => c.contractNumber && navigate(`/contracts/${c.contractNumber}`)}
+                className={cn(
+                  "hidden md:grid grid-cols-[1fr_44px_120px_80px] gap-4 px-6 py-3 pl-14 text-sm hover:bg-muted/20 transition-colors items-center",
+                  c.contractNumber && "cursor-pointer"
+                )}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="truncate">{c.vendorName}</span>
+                  {c.contractNumber && (
+                    <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
+                      {c.contractNumber}
+                    </span>
+                  )}
+                </div>
+                <div className="flex justify-center">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onDrillChatClick(c); }}
+                    className="w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground/80"
+                  >
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <span className="text-right tabular-nums">{formatCompactCurrency(c.amount)}</span>
+                <span className="text-right tabular-nums text-muted-foreground text-xs">
+                  {c.spendPct.toFixed(0)}%
+                </span>
+              </div>
+              {/* Mobile */}
+              <div
+                onClick={() => c.contractNumber && navigate(`/contracts/${c.contractNumber}`)}
+                className={cn(
+                  "md:hidden px-4 py-3 pl-10",
+                  c.contractNumber && "cursor-pointer"
+                )}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span className="text-sm truncate">{c.vendorName}</span>
+                    {c.contractNumber && (
+                      <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
+                        {c.contractNumber}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-sm text-muted-foreground ml-2 whitespace-nowrap">
+                    {formatCompactCurrency(c.amount)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span>Spent: {formatCompactCurrency(c.spending)}</span>
+                  <span>{c.spendPct.toFixed(1)}%</span>
                   <button
                     onClick={(e) => { e.stopPropagation(); onDrillChatClick(c); }}
                     className="ml-auto w-6 h-6 bg-foreground text-background rounded-full flex items-center justify-center"

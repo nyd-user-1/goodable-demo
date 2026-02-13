@@ -61,29 +61,32 @@ RETURNS TABLE (
   )
   SELECT
     CASE
-      WHEN days < 365 THEN '<1 yr'
-      WHEN days < 730 THEN '1-2 yr'
-      WHEN days < 1825 THEN '2-5 yr'
-      WHEN days < 3650 THEN '5-10 yr'
-      ELSE '10+ yr'
+      WHEN days < 365  THEN '<1 yr'
+      WHEN days < 730  THEN '1-2 yr'
+      WHEN days < 1095 THEN '2-3 yr'
+      WHEN days >= 1795 AND days <= 1860 THEN '5 yr'
+      WHEN days < 1795 THEN '3-5 yr'
+      ELSE '>5 yr'
     END AS bucket,
     COUNT(*)::bigint AS count,
     COALESCE(SUM(amount), 0)::numeric AS total_amount
   FROM durations
   GROUP BY
     CASE
-      WHEN days < 365 THEN '<1 yr'
-      WHEN days < 730 THEN '1-2 yr'
-      WHEN days < 1825 THEN '2-5 yr'
-      WHEN days < 3650 THEN '5-10 yr'
-      ELSE '10+ yr'
+      WHEN days < 365  THEN '<1 yr'
+      WHEN days < 730  THEN '1-2 yr'
+      WHEN days < 1095 THEN '2-3 yr'
+      WHEN days >= 1795 AND days <= 1860 THEN '5 yr'
+      WHEN days < 1795 THEN '3-5 yr'
+      ELSE '>5 yr'
     END
   ORDER BY
     MIN(CASE
-      WHEN days < 365 THEN 1
-      WHEN days < 730 THEN 2
-      WHEN days < 1825 THEN 3
-      WHEN days < 3650 THEN 4
-      ELSE 5
+      WHEN days < 365  THEN 1
+      WHEN days < 730  THEN 2
+      WHEN days < 1095 THEN 3
+      WHEN days >= 1795 AND days <= 1860 THEN 5
+      WHEN days < 1795 THEN 4
+      ELSE 6
     END);
 $$;

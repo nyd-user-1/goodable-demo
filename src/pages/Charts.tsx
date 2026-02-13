@@ -131,7 +131,11 @@ export default function Charts() {
                 { path: '/explore/contracts/by-top-vendors', label: 'Top Vendors', desc: 'Vendors by contract value', color: 'hsl(32 95% 50%)', id: 'cVendor', type: 'bar' as const,
                   data: [{x:0,y:80},{x:1,y:65},{x:2,y:55},{x:3,y:45},{x:4,y:38},{x:5,y:30},{x:6,y:25},{x:7,y:20},{x:8,y:15},{x:9,y:10}] },
                 { path: '/explore/contracts/by-duration', label: 'Contract Duration', desc: 'Contracts by duration', color: 'hsl(280 67% 55%)', id: 'cDuration', type: 'bar' as const,
-                  data: [{x:0,y:40},{x:1,y:70},{x:2,y:55},{x:3,y:30},{x:4,y:15}] },
+                  data: [{x:0,y:40},{x:1,y:70},{x:2,y:55},{x:3,y:30},{x:4,y:90},{x:5,y:15}] },
+                { path: '/explore/contracts/by-expiration', label: 'Expiring Contracts', desc: 'Contracts by expiration', color: 'hsl(0 84% 60%)', id: 'cExpire', type: 'bar' as const,
+                  data: [{x:0,y:60},{x:1,y:20},{x:2,y:30},{x:3,y:25},{x:4,y:35},{x:5,y:40},{x:6,y:50}] },
+                { path: '/explore/contracts/by-spend', label: 'Spend Utilization', desc: 'Contracts by spend rate', color: 'hsl(180 60% 45%)', id: 'cSpend', type: 'bar' as const,
+                  data: [{x:0,y:30},{x:1,y:45},{x:2,y:55},{x:3,y:40},{x:4,y:35},{x:5,y:15}] },
               ].map((d) => (
                 <button
                   key={d.path}
