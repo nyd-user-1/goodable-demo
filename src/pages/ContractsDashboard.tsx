@@ -62,6 +62,7 @@ const ContractsDashboard = () => {
   const [chatDepartmentName, setChatDepartmentName] = useState<string | null>(null);
   const [chatContractTypeName, setChatContractTypeName] = useState<string | null>(null);
   const [chatVendorName, setChatVendorName] = useState<string | null>(null);
+  const [chatDataContext, setChatDataContext] = useState<string | null>(null);
   const [chartMode, setChartMode] = useState(() => {
     const m = parseInt(searchParams.get('mode') || '0');
     return m >= 0 && m < NUM_CHART_MODES ? m : 0;
@@ -142,11 +143,83 @@ const ContractsDashboard = () => {
   // Header values
   const headerAmount = selectedRowData ? selectedRowData.amount : grandTotal;
 
+  // Build data context string from available data
+  const buildDataContext = (opts: {
+    departmentName?: string | null;
+    contractTypeName?: string | null;
+    vendorName?: string | null;
+    row?: ContractsDashboardRow | null;
+  }): string => {
+    const lines: string[] = [];
+
+    if (opts.vendorName) {
+      const vendor = topVendors.find(v => v.name === opts.vendorName);
+      if (vendor) {
+        lines.push(`Vendor: ${vendor.name}`);
+        lines.push(`Total Contract Value: $${(vendor.amount / 1e9).toFixed(1)}B (${vendor.amount.toLocaleString()})`);
+        lines.push(`Number of Contracts: ${vendor.contractCount}`);
+      }
+      const contracts = getContractsForVendor(opts.vendorName);
+      if (contracts.length > 0) {
+        lines.push('');
+        lines.push('Individual Contracts:');
+        contracts.forEach(c => {
+          const amt = c.amount >= 1e9 ? `$${(c.amount / 1e9).toFixed(1)}B` : c.amount >= 1e6 ? `$${(c.amount / 1e6).toFixed(1)}M` : `$${c.amount.toLocaleString()}`;
+          lines.push(`- ${c.name} (${c.contractNumber}): ${amt}, started ${c.startDate?.slice(0, 10) || 'N/A'}${c.endDate ? `, ends ${c.endDate.slice(0, 10)}` : ''}`);
+        });
+      }
+    }
+
+    if (opts.row) {
+      lines.push(`Name: ${opts.row.name}`);
+      const amt = opts.row.amount >= 1e9 ? `$${(opts.row.amount / 1e9).toFixed(1)}B` : `$${(opts.row.amount / 1e6).toFixed(1)}M`;
+      lines.push(`Total Contract Value: ${amt} (${opts.row.amount.toLocaleString()})`);
+      lines.push(`Number of Contracts: ${opts.row.contractCount}`);
+      lines.push(`Share of Total: ${opts.row.pctOfTotal.toFixed(1)}%`);
+
+      const tab = opts.departmentName ? 'department' : 'type';
+      const drillDown = getDrillDown(tab as ContractsDashboardTab, opts.row.name);
+      if (drillDown.length > 0) {
+        lines.push('');
+        lines.push('Top Contracts:');
+        drillDown.slice(0, 15).forEach(c => {
+          const cAmt = c.amount >= 1e9 ? `$${(c.amount / 1e9).toFixed(1)}B` : c.amount >= 1e6 ? `$${(c.amount / 1e6).toFixed(1)}M` : `$${c.amount.toLocaleString()}`;
+          lines.push(`- ${c.name}${c.contractNumber ? ` (${c.contractNumber})` : ''}: ${cAmt} (${c.pctOfParent.toFixed(1)}% of category)`);
+        });
+      }
+    }
+
+    if (!opts.vendorName && !opts.row) {
+      lines.push(`Total Contract Value: ${formatCompactCurrency(grandTotal)}`);
+      lines.push(`Total Contracts: ${totalContracts.toLocaleString()}`);
+      lines.push('');
+      lines.push('Top Vendors:');
+      topVendors.slice(0, 10).forEach(v => {
+        lines.push(`- ${v.name}: ${formatCompactCurrency(v.amount)} (${v.contractCount} contracts)`);
+      });
+      lines.push('');
+      lines.push('By Department:');
+      byDepartment.slice(0, 10).forEach(d => {
+        lines.push(`- ${d.name}: ${formatCompactCurrency(d.amount)} (${d.contractCount} contracts, ${d.pctOfTotal.toFixed(1)}%)`);
+      });
+    }
+
+    return lines.join('\n');
+  };
+
   // Open chat drawer
   const openChat = (departmentName?: string | null, contractTypeName?: string | null, vendorName?: string | null) => {
     setChatDepartmentName(departmentName || null);
     setChatContractTypeName(contractTypeName || null);
     setChatVendorName(vendorName || null);
+
+    const row = departmentName
+      ? byDepartment.find(r => r.name === departmentName) || null
+      : contractTypeName
+        ? byType.find(r => r.name === contractTypeName) || null
+        : null;
+
+    setChatDataContext(buildDataContext({ departmentName, contractTypeName, vendorName, row }));
     setChatOpen(true);
   };
 
@@ -583,6 +656,7 @@ const ContractsDashboard = () => {
         departmentName={chatDepartmentName}
         contractTypeName={chatContractTypeName}
         vendorName={chatVendorName}
+        dataContext={chatDataContext}
       />
     </div>
   );

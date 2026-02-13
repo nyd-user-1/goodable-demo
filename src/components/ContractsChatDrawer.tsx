@@ -58,6 +58,7 @@ interface ContractsChatDrawerProps {
   departmentName?: string | null;
   contractTypeName?: string | null;
   vendorName?: string | null;
+  dataContext?: string | null;
 }
 
 interface ChatMessage {
@@ -124,6 +125,7 @@ export function ContractsChatDrawer({
   departmentName,
   contractTypeName,
   vendorName,
+  dataContext,
 }: ContractsChatDrawerProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -138,13 +140,15 @@ export function ContractsChatDrawer({
   const contextLabel = departmentName || contractTypeName || vendorName || 'NYS Contracts';
 
   // Build context-specific system prompt
+  const dataSection = dataContext ? `\n\n## Actual Contract Data\nThe following is real contract data from the NYS Comptroller's database. ALWAYS use these actual figures in your responses — do not guess or generalize:\n\n${dataContext}` : '';
+
   const systemPrompt = departmentName
-    ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about contracts in the "${departmentName}" department. Provide specific information about their contracts, vendors, and spending patterns.`
+    ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about contracts in the "${departmentName}" department. Use the actual contract data provided below to answer questions with specific dollar amounts, vendor names, and contract details.${dataSection}`
     : contractTypeName
-      ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about "${contractTypeName}" type contracts. Provide specific information about which departments use this type, contract sizes, and key vendors.`
+      ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about "${contractTypeName}" type contracts. Use the actual contract data provided below to answer questions with specific dollar amounts, vendor names, and contract details.${dataSection}`
       : vendorName
-        ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about the vendor "${vendorName}". Provide specific information about their contracts with New York State, contract types, departments they work with, and total contract values.`
-        : CONTRACTS_SYSTEM_PROMPT;
+        ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about the vendor "${vendorName}". Use the actual contract data provided below to answer questions with specific dollar amounts, contract names, and dates.${dataSection}`
+        : `${CONTRACTS_SYSTEM_PROMPT}${dataSection}`;
 
   const suggestions = departmentName
     ? DEPARTMENT_QUESTIONS
