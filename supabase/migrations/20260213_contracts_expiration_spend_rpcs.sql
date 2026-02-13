@@ -180,7 +180,7 @@ RETURNS TABLE (
     s.vendor_name,
     s.amount,
     s.spending,
-    ROUND(s.spend_pct, 1) AS spend_pct
+    ROUND(s.spend_pct::numeric, 1) AS spend_pct
   FROM spend s
   WHERE s.spend_pct >= p_min_pct AND s.spend_pct < p_max_pct
   ORDER BY s.amount DESC
