@@ -574,11 +574,11 @@ export function NoteViewSidebar({ onClose }: NoteViewSidebarProps) {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <NavLink
-                      to="/budget-dashboard"
+                      to="/explore/budget"
                       onClick={onClose}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md text-base md:text-[15px] font-normal transition-colors",
-                        isActive("/budget-dashboard") ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
+                        isActive("/explore/budget") ? "bg-black/5 dark:bg-white/10" : "hover:bg-black/5 dark:hover:bg-white/10"
                       )}
                     >
                       <BarChart3 className="h-4 w-4" />

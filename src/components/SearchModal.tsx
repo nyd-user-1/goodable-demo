@@ -70,7 +70,7 @@ interface Prompt {
 
 // Routes shown in Pages section
 const APP_ROUTES = [
-  { path: "/lobbying-dashboard", label: "Lobbying Dashboard" },
+  { path: "/explore/lobbying", label: "Lobbying Dashboard" },
   { path: "/prompts", label: "Prompts" },
   { path: "/lists", label: "Lists" },
   { path: "/features", label: "Features" },
@@ -88,7 +88,7 @@ const APP_ROUTES = [
   { path: "/budget", label: "Budget" },
   { path: "/school-funding", label: "School Funding" },
   { path: "/lobbying", label: "Lobbying" },
-  { path: "/budget-dashboard", label: "Budget Dashboard" },
+  { path: "/explore/budget", label: "Budget Dashboard" },
 ];
 
 // Prompts

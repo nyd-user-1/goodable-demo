@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Analytics } from '@vercel/analytics/react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ModelProvider } from "@/contexts/ModelContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -156,7 +156,7 @@ const App = () => {
                   <Route path="/ai-fluency" element={<AIFluency />} />
                   <Route path="/prompts" element={<PromptHub />} />
                   <Route path="/lists" element={<Lists />} />
-                  <Route path="/charts" element={<Charts />} />
+                  <Route path="/explore" element={<Charts />} />
                   <Route path="/submit-prompt" element={<SubmitPrompt />} />
                   <Route path="/new-excerpt" element={<NewExcerpt />} />
                   <Route path="/advertise" element={<Advertise />} />
@@ -193,11 +193,19 @@ const App = () => {
                   <Route path="/contracts/:contractNumber" element={<ProtectedRoute><ContractDetail /></ProtectedRoute>} />
                   <Route path="/lobbying" element={<ProtectedRoute><Lobbying /></ProtectedRoute>} />
                   <Route path="/lobbying/:id" element={<ProtectedRoute><LobbyingDetail /></ProtectedRoute>} />
-                  <Route path="/lobbying-dashboard" element={<ProtectedRoute><LobbyingDashboard /></ProtectedRoute>} />
                   <Route path="/budget" element={<ProtectedRoute><Budget /></ProtectedRoute>} />
-                  <Route path="/budget-dashboard" element={<ProtectedRoute><BudgetDashboard /></ProtectedRoute>} />
-                  <Route path="/contracts-dashboard" element={<ProtectedRoute><ContractsDashboard /></ProtectedRoute>} />
-                  <Route path="/votes-dashboard" element={<ProtectedRoute><VotesDashboard /></ProtectedRoute>} />
+                  <Route path="/explore/budget" element={<ProtectedRoute><BudgetDashboard /></ProtectedRoute>} />
+                  <Route path="/explore/lobbying" element={<ProtectedRoute><LobbyingDashboard /></ProtectedRoute>} />
+                  <Route path="/explore/contracts" element={<ProtectedRoute><ContractsDashboard /></ProtectedRoute>} />
+                  <Route path="/explore/contracts/:subChart" element={<ProtectedRoute><ContractsDashboard /></ProtectedRoute>} />
+                  <Route path="/explore/votes" element={<ProtectedRoute><VotesDashboard /></ProtectedRoute>} />
+                  <Route path="/explore/votes/:subChart" element={<ProtectedRoute><VotesDashboard /></ProtectedRoute>} />
+                  {/* Redirects for old dashboard URLs */}
+                  <Route path="/charts" element={<Navigate to="/explore" replace />} />
+                  <Route path="/budget-dashboard" element={<Navigate to="/explore/budget" replace />} />
+                  <Route path="/lobbying-dashboard" element={<Navigate to="/explore/lobbying" replace />} />
+                  <Route path="/contracts-dashboard" element={<Navigate to="/explore/contracts" replace />} />
+                  <Route path="/votes-dashboard" element={<Navigate to="/explore/votes" replace />} />
                   <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                   <Route path="/departments" element={<ProtectedRoute><Prompts /></ProtectedRoute>} />
                   <Route path="/departments/:slug" element={<ProtectedRoute><DepartmentDetail /></ProtectedRoute>} />

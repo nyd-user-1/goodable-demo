@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, ChevronDown, ArrowUp, MessageSquare, LayoutGrid, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
@@ -54,9 +54,11 @@ const CHART_EXPLAINERS = [
 ];
 const NUM_MODES = CHART_LABELS.length;
 
+const VOTES_SLUG_TO_MODE: Record<string, number> = { 'by-roll-call': 1, 'by-pass-fail': 2, 'by-party': 3, 'by-closest': 4 };
+
 const VotesDashboard = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const { subChart } = useParams<{ subChart?: string }>();
   const { session } = useAuth();
   const isAuthenticated = !!session;
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
@@ -67,7 +69,7 @@ const VotesDashboard = () => {
   const [billDisplayCount, setBillDisplayCount] = useState(20);
   const [timeRange, setTimeRange] = useState('90');
   const [chartMode, setChartMode] = useState(() => {
-    const m = parseInt(searchParams.get('mode') || '0');
+    const m = subChart ? (VOTES_SLUG_TO_MODE[subChart] ?? 0) : 0;
     return m >= 0 && m < NUM_MODES ? m : 0;
   });
   const [memberSort, setMemberSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
@@ -557,11 +559,11 @@ const VotesDashboard = () => {
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 px-4 pb-8">
                         {/* Dashboard navigation cards */}
                         {[
-                          { path: '/budget-dashboard', label: 'Budget', desc: 'NYS budget spending', color: 'hsl(160 60% 45%)', id: 'dBudget',
+                          { path: '/explore/budget', label: 'Budget', desc: 'NYS budget spending', color: 'hsl(160 60% 45%)', id: 'dBudget',
                             data: [{x:0,y:8},{x:1,y:10},{x:2,y:14},{x:3,y:18},{x:4,y:16},{x:5,y:20},{x:6,y:22},{x:7,y:19},{x:8,y:24},{x:9,y:28}] },
-                          { path: '/lobbying-dashboard', label: 'Lobbying', desc: 'Lobbyist compensation', color: 'hsl(217 91% 60%)', id: 'dLobby',
+                          { path: '/explore/lobbying', label: 'Lobbying', desc: 'Lobbyist compensation', color: 'hsl(217 91% 60%)', id: 'dLobby',
                             data: [{x:0,y:6},{x:1,y:8},{x:2,y:10},{x:3,y:12},{x:4,y:14},{x:5,y:16},{x:6,y:18},{x:7,y:22},{x:8,y:24},{x:9,y:28}] },
-                          { path: '/contracts-dashboard', label: 'Contracts', desc: 'State contracts', color: 'hsl(32 95% 50%)', id: 'dContract',
+                          { path: '/explore/contracts', label: 'Contracts', desc: 'State contracts', color: 'hsl(32 95% 50%)', id: 'dContract',
                             data: [{x:0,y:14},{x:1,y:12},{x:2,y:16},{x:3,y:14},{x:4,y:18},{x:5,y:16},{x:6,y:20},{x:7,y:18},{x:8,y:22},{x:9,y:24}] },
                         ].map((d) => (
                           <DrawerClose asChild key={d.path}>

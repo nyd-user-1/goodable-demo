@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChatHeader } from '@/components/ChatHeader';
 import FooterSimple from '@/components/marketing/FooterSimple';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 import { useVotesDashboard } from '@/hooks/useVotesDashboard';
 import {
   ResponsiveContainer,
@@ -14,6 +16,8 @@ import {
 
 export default function Charts() {
   const navigate = useNavigate();
+  const { session } = useAuth();
+  const isAuthenticated = !!session;
   const votes = useVotesDashboard();
 
   const chartCutoff = useMemo(() => {
@@ -77,7 +81,7 @@ export default function Charts() {
           <div className="pt-0 pb-12">
             <div className="mb-8">
               <h2 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-                Dashboards
+                Explore
               </h2>
               <p className="text-muted-foreground mt-2">
                 Explore NYS data dashboards
@@ -87,11 +91,11 @@ export default function Charts() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
               {/* Dashboard navigation cards */}
               {[
-                { path: '/budget-dashboard', label: 'Budget', desc: 'NYS budget spending', color: 'hsl(160 60% 45%)', id: 'lBudget',
+                { path: '/explore/budget', label: 'Budget', desc: 'NYS budget spending', color: 'hsl(160 60% 45%)', id: 'lBudget',
                   data: [{x:0,y:8},{x:1,y:10},{x:2,y:14},{x:3,y:18},{x:4,y:16},{x:5,y:20},{x:6,y:22},{x:7,y:19},{x:8,y:24},{x:9,y:28}] },
-                { path: '/lobbying-dashboard', label: 'Lobbying', desc: 'Lobbyist compensation', color: 'hsl(217 91% 60%)', id: 'lLobby',
+                { path: '/explore/lobbying', label: 'Lobbying', desc: 'Lobbyist compensation', color: 'hsl(217 91% 60%)', id: 'lLobby',
                   data: [{x:0,y:6},{x:1,y:8},{x:2,y:10},{x:3,y:12},{x:4,y:14},{x:5,y:16},{x:6,y:18},{x:7,y:22},{x:8,y:24},{x:9,y:28}] },
-                { path: '/contracts-dashboard', label: 'Contracts', desc: 'State contracts', color: 'hsl(32 95% 50%)', id: 'lContract',
+                { path: '/explore/contracts', label: 'Contracts', desc: 'State contracts', color: 'hsl(32 95% 50%)', id: 'lContract',
                   data: [{x:0,y:14},{x:1,y:12},{x:2,y:16},{x:3,y:14},{x:4,y:18},{x:5,y:16},{x:6,y:20},{x:7,y:18},{x:8,y:22},{x:9,y:24}] },
               ].map((d) => (
                 <button
@@ -122,11 +126,11 @@ export default function Charts() {
 
               {/* Contract chart mode cards */}
               {[
-                { path: '/contracts-dashboard?mode=1', label: 'Contracts by Month', desc: 'New contracts per month', color: 'hsl(142 76% 36%)', id: 'cMonth', type: 'area' as const,
+                { path: '/explore/contracts/by-month', label: 'Contracts by Month', desc: 'New contracts per month', color: 'hsl(142 76% 36%)', id: 'cMonth', type: 'area' as const,
                   data: [{x:0,y:30},{x:1,y:45},{x:2,y:38},{x:3,y:52},{x:4,y:48},{x:5,y:60},{x:6,y:55},{x:7,y:70},{x:8,y:65},{x:9,y:80}] },
-                { path: '/contracts-dashboard?mode=2', label: 'Top Vendors', desc: 'Vendors by contract value', color: 'hsl(32 95% 50%)', id: 'cVendor', type: 'bar' as const,
+                { path: '/explore/contracts/by-top-vendors', label: 'Top Vendors', desc: 'Vendors by contract value', color: 'hsl(32 95% 50%)', id: 'cVendor', type: 'bar' as const,
                   data: [{x:0,y:80},{x:1,y:65},{x:2,y:55},{x:3,y:45},{x:4,y:38},{x:5,y:30},{x:6,y:25},{x:7,y:20},{x:8,y:15},{x:9,y:10}] },
-                { path: '/contracts-dashboard?mode=3', label: 'Contract Duration', desc: 'Contracts by duration', color: 'hsl(280 67% 55%)', id: 'cDuration', type: 'bar' as const,
+                { path: '/explore/contracts/by-duration', label: 'Contract Duration', desc: 'Contracts by duration', color: 'hsl(280 67% 55%)', id: 'cDuration', type: 'bar' as const,
                   data: [{x:0,y:40},{x:1,y:70},{x:2,y:55},{x:3,y:30},{x:4,y:15}] },
               ].map((d) => (
                 <button
@@ -166,7 +170,7 @@ export default function Charts() {
               {chartPreviews.map((chart, idx) => (
                 <button
                   key={idx}
-                  onClick={() => navigate(`/votes-dashboard?mode=${idx}`)}
+                  onClick={() => navigate(idx === 0 ? '/explore/votes' : `/explore/votes/${['by-roll-call', 'by-pass-fail', 'by-party', 'by-closest'][idx - 1]}`)}
                   className="group text-left rounded-xl border border-border bg-muted/30 hover:bg-muted/50 hover:shadow-lg hover:border-border/80 transition-all duration-200 overflow-hidden"
                 >
                   <div className="h-32 px-2 pt-3">
@@ -209,6 +213,18 @@ export default function Charts() {
                 </button>
               ))}
             </div>
+
+            {!isAuthenticated && (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">
+                  Please log in to explore all NYS data.
+                </p>
+                <Button variant="ghost" onClick={() => navigate('/auth-4')}
+                  className="mt-4 h-9 px-3 font-semibold text-base hover:bg-muted">
+                  Sign Up
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </main>

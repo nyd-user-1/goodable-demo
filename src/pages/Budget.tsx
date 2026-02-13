@@ -250,7 +250,7 @@ const Budget = () => {
                     </button>
                   ))}
                   <button
-                    onClick={() => navigate('/budget-dashboard')}
+                    onClick={() => navigate('/explore/budget')}
                     className="px-4 py-2 rounded-full text-sm font-medium transition-colors bg-muted hover:bg-muted/80 text-foreground whitespace-nowrap"
                   >
                     Dashboard

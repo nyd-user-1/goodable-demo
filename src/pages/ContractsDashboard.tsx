@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, ChevronDown, ArrowUp, MessageSquare, X, LayoutGrid, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
@@ -47,9 +47,11 @@ const TABS: ContractsDashboardTab[] = ['department', 'type'];
 const CHART_LABELS = ['Contract Value', 'By Start Date', 'Top Vendors', 'Duration'];
 const NUM_CHART_MODES = CHART_LABELS.length;
 
+const CONTRACTS_SLUG_TO_MODE: Record<string, number> = { 'by-month': 1, 'by-top-vendors': 2, 'by-duration': 3 };
+
 const ContractsDashboard = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const { subChart } = useParams<{ subChart?: string }>();
   const { session } = useAuth();
   const isAuthenticated = !!session;
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
@@ -65,7 +67,7 @@ const ContractsDashboard = () => {
   const [chatDataContext, setChatDataContext] = useState<string | null>(null);
   const [chatDrillName, setChatDrillName] = useState<string | null>(null);
   const [chartMode, setChartMode] = useState(() => {
-    const m = parseInt(searchParams.get('mode') || '0');
+    const m = subChart ? (CONTRACTS_SLUG_TO_MODE[subChart] ?? 0) : 0;
     return m >= 0 && m < NUM_CHART_MODES ? m : 0;
   });
 
@@ -408,11 +410,11 @@ const ContractsDashboard = () => {
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 px-4 pb-8">
                         {/* Dashboard navigation cards */}
                         {[
-                          { path: '/budget-dashboard', label: 'Budget', desc: 'NYS budget spending', color: 'hsl(160 60% 45%)', id: 'dBudget',
+                          { path: '/explore/budget', label: 'Budget', desc: 'NYS budget spending', color: 'hsl(160 60% 45%)', id: 'dBudget',
                             data: [{x:0,y:8},{x:1,y:10},{x:2,y:14},{x:3,y:18},{x:4,y:16},{x:5,y:20},{x:6,y:22},{x:7,y:19},{x:8,y:24},{x:9,y:28}] },
-                          { path: '/lobbying-dashboard', label: 'Lobbying', desc: 'Lobbyist compensation', color: 'hsl(217 91% 60%)', id: 'dLobby',
+                          { path: '/explore/lobbying', label: 'Lobbying', desc: 'Lobbyist compensation', color: 'hsl(217 91% 60%)', id: 'dLobby',
                             data: [{x:0,y:6},{x:1,y:8},{x:2,y:10},{x:3,y:12},{x:4,y:14},{x:5,y:16},{x:6,y:18},{x:7,y:22},{x:8,y:24},{x:9,y:28}] },
-                          { path: '/votes-dashboard', label: 'Votes', desc: 'Legislative votes', color: 'hsl(142 76% 36%)', id: 'dVotes',
+                          { path: '/explore/votes', label: 'Votes', desc: 'Legislative votes', color: 'hsl(142 76% 36%)', id: 'dVotes',
                             data: [{x:0,y:12},{x:1,y:10},{x:2,y:14},{x:3,y:16},{x:4,y:12},{x:5,y:18},{x:6,y:20},{x:7,y:16},{x:8,y:22},{x:9,y:22}] },
                         ].map((d) => (
                           <DrawerClose asChild key={d.path}>
@@ -441,19 +443,19 @@ const ContractsDashboard = () => {
 
                         {/* Votes chart cards */}
                         {[
-                          { path: '/votes-dashboard?mode=0', label: 'Votes by Day', desc: 'Yes vs No votes per day',
+                          { path: '/explore/votes', label: 'Votes by Day', desc: 'Yes vs No votes per day',
                             areas: [{ key: 'y1', stroke: 'hsl(142 76% 36%)', id: 'cvYes' }, { key: 'y2', stroke: 'hsl(0 84% 60%)', id: 'cvNo' }],
                             data: [{x:0,y1:20,y2:5},{x:1,y1:18,y2:6},{x:2,y1:24,y2:4},{x:3,y1:22,y2:8},{x:4,y1:26,y2:3},{x:5,y1:20,y2:7},{x:6,y1:28,y2:5},{x:7,y1:24,y2:6},{x:8,y1:30,y2:4},{x:9,y1:26,y2:5}] },
-                          { path: '/votes-dashboard?mode=1', label: 'Roll Calls', desc: 'Roll call votes per day',
+                          { path: '/explore/votes/by-roll-call', label: 'Roll Calls', desc: 'Roll call votes per day',
                             areas: [{ key: 'y1', stroke: 'hsl(217 91% 60%)', id: 'cvRC' }],
                             data: [{x:0,y1:8},{x:1,y1:12},{x:2,y1:10},{x:3,y1:14},{x:4,y1:16},{x:5,y1:12},{x:6,y1:18},{x:7,y1:14},{x:8,y1:20},{x:9,y1:16}] },
-                          { path: '/votes-dashboard?mode=2', label: 'Passed vs. Failed', desc: 'Bills passed or failed per day',
+                          { path: '/explore/votes/by-pass-fail', label: 'Passed vs. Failed', desc: 'Bills passed or failed per day',
                             areas: [{ key: 'y1', stroke: 'hsl(142 76% 36%)', id: 'cvPass' }, { key: 'y2', stroke: 'hsl(0 84% 60%)', id: 'cvFail' }],
                             data: [{x:0,y1:14,y2:4},{x:1,y1:16,y2:3},{x:2,y1:12,y2:5},{x:3,y1:18,y2:2},{x:4,y1:20,y2:4},{x:5,y1:16,y2:3},{x:6,y1:22,y2:2},{x:7,y1:18,y2:4},{x:8,y1:24,y2:3},{x:9,y1:20,y2:2}] },
-                          { path: '/votes-dashboard?mode=3', label: 'By Party', desc: 'D vs R yes votes per day',
+                          { path: '/explore/votes/by-party', label: 'By Party', desc: 'D vs R yes votes per day',
                             areas: [{ key: 'y1', stroke: 'hsl(217 91% 60%)', id: 'cvDem' }, { key: 'y2', stroke: 'hsl(0 84% 60%)', id: 'cvRep' }],
                             data: [{x:0,y1:16,y2:10},{x:1,y1:18,y2:12},{x:2,y1:14,y2:14},{x:3,y1:20,y2:10},{x:4,y1:22,y2:12},{x:5,y1:18,y2:14},{x:6,y1:24,y2:10},{x:7,y1:20,y2:12},{x:8,y1:26,y2:14},{x:9,y1:22,y2:12}] },
-                          { path: '/votes-dashboard?mode=4', label: 'Closest Votes', desc: 'Average vote margin per day',
+                          { path: '/explore/votes/by-closest', label: 'Closest Votes', desc: 'Average vote margin per day',
                             areas: [{ key: 'y1', stroke: 'hsl(280 67% 55%)', id: 'cvMargin' }],
                             data: [{x:0,y1:18},{x:1,y1:14},{x:2,y1:20},{x:3,y1:12},{x:4,y1:16},{x:5,y1:22},{x:6,y1:14},{x:7,y1:18},{x:8,y1:10},{x:9,y1:16}] },
                         ].map((chart) => (
