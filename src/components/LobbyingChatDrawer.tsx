@@ -92,24 +92,22 @@ Format your responses clearly with:
 - Clear paragraph breaks`;
 
 const SUGGESTED_QUESTIONS = [
-  'What is the total lobbying spend in NYS?',
-  'Who are the top lobbyists by earnings?',
-  'Which clients spend the most on lobbying?',
-  'How does lobbying work in New York State?',
-  'What are common lobbying practices?',
-  'What regulations govern NYS lobbying?',
+  'Summarize total lobbying compensation using the actual figures provided',
+  'List the top lobbyists by earnings from the data with amounts',
+  'What patterns do you see in the lobbying data provided?',
+  'How is lobbying spending distributed? Use actual figures',
 ];
 
 const LOBBYIST_QUESTIONS = [
-  'What clients does this lobbyist represent?',
-  'What is their total compensation?',
-  'What industries do they focus on?',
+  'List all clients and their compensation amounts from the data provided',
+  'Summarize total compensation with a breakdown using actual figures',
+  'How does this lobbyist compare to the overall totals provided?',
 ];
 
 const CLIENT_QUESTIONS = [
-  'How much did they spend on lobbying?',
-  'What are their lobbying priorities?',
-  'Which lobbyists do they hire?',
+  'Summarize this client\'s lobbying spend using the actual data provided',
+  'What share of the lobbyist\'s total does this client represent?',
+  'Break down this client\'s engagement with amounts from the data',
 ];
 
 export function LobbyingChatDrawer({
@@ -132,7 +130,7 @@ export function LobbyingChatDrawer({
   const contextLabel = lobbyistName || clientName || 'NYS Lobbying';
 
   // Build context-specific system prompt
-  const dataSection = dataContext ? `\n\n## Actual Lobbying Data\nThe following is real data from JCOPE filings. ALWAYS use these actual figures in your responses — do not guess or generalize:\n\n${dataContext}` : '';
+  const dataSection = dataContext ? `\n\n## Actual Lobbying Data\nThe following is real data from JCOPE filings. You MUST use ONLY these actual figures in your responses. Do NOT make up names, amounts, or statistics that are not in this data. If asked about something not in the data, say so rather than guessing.\n\n${dataContext}` : '';
 
   const systemPrompt = lobbyistName
     ? `${LOBBYING_SYSTEM_PROMPT}\n\nThe user is asking about the lobbyist "${lobbyistName}". Use the actual data provided below to answer questions with specific dollar amounts, client names, and details.${dataSection}`

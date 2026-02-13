@@ -93,30 +93,28 @@ Format your responses clearly with:
 - Clear paragraph breaks`;
 
 const SUGGESTED_QUESTIONS = [
-  'What is the total value of NYS state contracts?',
-  'Who are the largest vendors for NYS?',
-  'Which departments spend the most on contracts?',
-  'What types of contracts does NYS use most?',
-  'How does the NYS procurement process work?',
-  'What are the trends in state contracting?',
+  'Summarize overall contract spending using the actual totals provided',
+  'List the top 5 vendors by contract value from the data',
+  'Which departments have the highest contract spending? Show amounts',
+  'What patterns do you see in the contract data provided?',
 ];
 
 const DEPARTMENT_QUESTIONS = [
-  'Who are the top vendors for this department?',
-  'What types of contracts does this department use?',
-  'How much has this department spent on contracts?',
+  'List the top contracts for this department by amount from the data',
+  'Summarize total spending, contract count, and share of total using actual figures',
+  'Which vendors have the largest contracts? List them with amounts',
 ];
 
 const TYPE_QUESTIONS = [
-  'Which departments use this contract type the most?',
-  'What is the average contract size for this type?',
-  'Who are the top vendors for this contract type?',
+  'List the top contracts of this type by amount from the data provided',
+  'Summarize the total value and number of contracts with actual figures',
+  'Which are the largest individual contracts? Show amounts and details',
 ];
 
 const VENDOR_QUESTIONS = [
-  'What types of contracts does this vendor have?',
-  'Which departments contract with this vendor?',
-  'What is the total contract value for this vendor?',
+  'List all contracts for this vendor with amounts, dates, and contract numbers',
+  'Summarize total contract value and number of contracts using the data',
+  'What types of work does this vendor do based on the contract names provided?',
 ];
 
 export function ContractsChatDrawer({
@@ -140,7 +138,7 @@ export function ContractsChatDrawer({
   const contextLabel = departmentName || contractTypeName || vendorName || 'NYS Contracts';
 
   // Build context-specific system prompt
-  const dataSection = dataContext ? `\n\n## Actual Contract Data\nThe following is real contract data from the NYS Comptroller's database. ALWAYS use these actual figures in your responses — do not guess or generalize:\n\n${dataContext}` : '';
+  const dataSection = dataContext ? `\n\n## Actual Contract Data\nThe following is real contract data from the NYS Comptroller's database. You MUST use ONLY these actual figures in your responses. Do NOT make up names, amounts, contract numbers, or dates that are not in this data. If asked about something not in the data, say so rather than guessing.\n\n${dataContext}` : '';
 
   const systemPrompt = departmentName
     ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about contracts in the "${departmentName}" department. Use the actual contract data provided below to answer questions with specific dollar amounts, vendor names, and contract details.${dataSection}`

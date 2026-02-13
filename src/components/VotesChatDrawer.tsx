@@ -98,24 +98,22 @@ Format your responses clearly with:
 - Clear paragraph breaks`;
 
 const SUGGESTED_QUESTIONS = [
-  'How many total votes have been cast this session?',
-  'Who are the most active voting members?',
-  'Which bills were most contested?',
-  'What are the party-line voting trends?',
-  'How often do bills pass vs fail?',
-  'What types of legislation get the most votes?',
+  'Summarize the voting data with actual totals from the data provided',
+  'List the top members by vote count with their yes/no breakdown',
+  'Which bills had the narrowest margins? Show the actual vote counts',
+  'What party-line patterns do you see in the data provided?',
 ];
 
 const MEMBER_QUESTIONS = [
-  'How often do they vote yes?',
-  'Which bills did they oppose?',
-  'Do they vote with their party?',
+  'Summarize their voting record using the actual data provided',
+  'List the specific bills they voted No on from the data',
+  'What is their exact yes/no vote breakdown with counts and percentages?',
 ];
 
 const BILL_QUESTIONS = [
-  'Who voted yes and who voted no?',
-  'Was this a party-line vote?',
-  'What does this bill do?',
+  'List how each member voted on this bill using the data provided',
+  'Was this a party-line vote? Show the actual breakdown by party',
+  'Summarize the vote outcome with exact yes/no counts from the data',
 ];
 
 export function VotesChatDrawer({
@@ -144,11 +142,11 @@ export function VotesChatDrawer({
 
   // Build context-specific system prompt
   const systemPrompt = memberName
-    ? `${VOTES_SYSTEM_PROMPT}\n\nThe user is asking about ${memberName} (${memberParty || 'unknown party'})'s voting record.${memberVoteDetails ? `\n\nHere is their actual voting record:\n${memberVoteDetails}` : ''}\n\nProvide specific information about their voting patterns, party alignment, and notable votes. Use the vote data above when answering questions about specific bills they supported or opposed.`
+    ? `${VOTES_SYSTEM_PROMPT}\n\nThe user is asking about ${memberName} (${memberParty || 'unknown party'})'s voting record.${memberVoteDetails ? `\n\n## Actual Vote Data\nYou MUST use ONLY the following data. Do NOT make up bill names, vote counts, or statistics not listed here.\n\n${memberVoteDetails}` : ''}\n\nProvide specific information about their voting patterns, party alignment, and notable votes. ONLY reference bills and figures from the data above.`
     : billTitle
-      ? `${VOTES_SYSTEM_PROMPT}\n\nThe user is asking about ${billNumber}: ${billTitle}${billResult ? `, which ${billResult}` : ''}.${billVoteDetails ? `\n\nHere are the actual roll call votes for this bill:\n${billVoteDetails}` : ''}\n\nProvide specific information about how members voted, whether it was party-line, and what the bill does. Use the vote data above when answering questions about who voted yes or no.`
+      ? `${VOTES_SYSTEM_PROMPT}\n\nThe user is asking about ${billNumber}: ${billTitle}${billResult ? `, which ${billResult}` : ''}.${billVoteDetails ? `\n\n## Actual Vote Data\nYou MUST use ONLY the following data. Do NOT make up member names or votes not listed here.\n\n${billVoteDetails}` : ''}\n\nProvide specific information about how members voted. ONLY reference members and votes from the data above.`
       : dataContext
-        ? `${VOTES_SYSTEM_PROMPT}\n\n## Actual Vote Data\nThe following is real vote data from the NYS Legislature database. ALWAYS use these actual figures in your responses — never make up names, numbers, or statistics.\n\n${dataContext}`
+        ? `${VOTES_SYSTEM_PROMPT}\n\n## Actual Vote Data\nThe following is real vote data from the NYS Legislature database. You MUST use ONLY these actual figures in your responses. Do NOT make up member names, bill numbers, vote counts, or statistics that are not in this data. If asked about something not in the data, say so rather than guessing.\n\n${dataContext}`
         : VOTES_SYSTEM_PROMPT;
 
   const suggestions = memberName

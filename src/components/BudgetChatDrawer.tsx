@@ -161,12 +161,10 @@ function formatLineItems(data: Record<string, string | null>[]): string {
 }
 
 const SUGGESTED_QUESTIONS = [
-  'What is the total FY 2027 budget?',
-  'How much is Medicaid spending?',
-  'What childcare investments are planned?',
-  'What are the biggest budget risks?',
-  'How does school aid change this year?',
-  'What infrastructure projects are funded?',
+  'Summarize the FY 2027 budget with actual totals from the data',
+  'What are the largest spending categories? List amounts from the data',
+  'How much is Medicaid spending based on the figures provided?',
+  'What are the biggest year-over-year changes in the data?',
 ];
 
 const FUNCTION_QUESTIONS: Record<string, string[]> = {
