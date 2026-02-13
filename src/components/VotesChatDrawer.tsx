@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowUp, Square, ChevronDown, FileText } from 'lucide-react';
+import { ArrowUp, ArrowDown, Square, ChevronDown, FileText } from 'lucide-react';
 import { Check } from 'lucide-react';
 import {
   DropdownMenu,
@@ -136,6 +136,9 @@ export function VotesChatDrawer({
   const abortControllerRef = useRef<AbortController | null>(null);
   const readerRef = useRef<ReadableStreamDefaultReader | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const userScrolledRef = useRef(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
   // Context label for the pill
   const contextLabel = memberName || billNumber || 'NYS Votes';
@@ -155,6 +158,10 @@ export function VotesChatDrawer({
       ? BILL_QUESTIONS
       : SUGGESTED_QUESTIONS;
 
+  // Get the actual scrollable viewport inside Radix ScrollArea
+  const getViewport = () =>
+    scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
+
   // Reset state when drawer closes
   useEffect(() => {
     if (!open) {
@@ -162,18 +169,46 @@ export function VotesChatDrawer({
         setMessages([]);
         setInputValue('');
         setIsLoading(false);
+        setShowScrollButton(false);
+        userScrolledRef.current = false;
         stopStream();
       }, 300);
       return () => clearTimeout(timer);
     }
   }, [open]);
 
-  // Auto-scroll on new content
+  // Handle scroll events to show/hide scroll-to-bottom button
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    const viewport = getViewport();
+    if (!viewport) return;
+
+    const handleScroll = () => {
+      const isAtBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 100;
+      setShowScrollButton(!isAtBottom);
+
+      if (!isAtBottom && isLoading) {
+        userScrolledRef.current = true;
+      }
+      if (isAtBottom) {
+        userScrolledRef.current = false;
+      }
+    };
+
+    viewport.addEventListener('scroll', handleScroll);
+    return () => viewport.removeEventListener('scroll', handleScroll);
+  }, [isLoading]);
+
+  // Auto-scroll to bottom (only if user hasn't scrolled up)
+  useEffect(() => {
+    if (userScrolledRef.current) return;
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    userScrolledRef.current = false;
+    setShowScrollButton(false);
+  };
 
   const stopStream = () => {
     if (abortControllerRef.current) {
@@ -360,7 +395,8 @@ export function VotesChatDrawer({
         </SheetHeader>
 
         {/* Messages area */}
-        <ScrollArea ref={scrollRef} className="flex-1 px-6 py-4">
+        <div className="flex-1 relative overflow-hidden">
+        <ScrollArea ref={scrollRef} className="h-full px-6 py-4">
           <div className="space-y-2">
             {/* Empty state with suggested questions */}
             {messages.length === 0 && !isLoading && (
@@ -456,8 +492,21 @@ export function VotesChatDrawer({
               );
             })}
 
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
+
+        {/* Scroll to bottom button */}
+        {showScrollButton && messages.length > 0 && (
+          <button
+            onClick={scrollToBottom}
+            className="absolute left-1/2 -translate-x-1/2 bottom-2 z-10 bg-background border border-border rounded-full p-2 shadow-lg hover:bg-muted transition-all duration-200"
+            aria-label="Scroll to bottom"
+          >
+            <ArrowDown className="h-4 w-4 text-muted-foreground" />
+          </button>
+        )}
+        </div>
 
         {/* Enhanced Input area */}
         <div className="flex-shrink-0 px-6 py-4 border-t bg-background">
