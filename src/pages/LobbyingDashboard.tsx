@@ -347,31 +347,85 @@ const LobbyingDashboard = () => {
                         <DrawerTitle>Dashboards</DrawerTitle>
                         <DrawerDescription>Explore NYS data dashboards</DrawerDescription>
                       </DrawerHeader>
-                      <div className="flex gap-4 overflow-x-auto px-4 pb-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                        <DrawerClose asChild>
-                          <button onClick={() => navigate('/budget-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
-                            <img src="/dashboard-budget.avif" alt="Budget Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
-                            <span className="text-sm font-medium">Budget</span>
-                          </button>
-                        </DrawerClose>
-                        <DrawerClose asChild>
-                          <button onClick={() => navigate('/lobbying-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
-                            <img src="/dashboard-lobbying-line.avif" alt="Lobbying Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
-                            <span className="text-sm font-medium">Lobbying</span>
-                          </button>
-                        </DrawerClose>
-                        <DrawerClose asChild>
-                          <button onClick={() => navigate('/contracts-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
-                            <img src="/dashboard-contracts.avif" alt="Contracts Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
-                            <span className="text-sm font-medium">Contracts</span>
-                          </button>
-                        </DrawerClose>
-                        <DrawerClose asChild>
-                          <button onClick={() => navigate('/votes-dashboard')} className="group flex flex-col items-center gap-3 rounded-xl border border-transparent hover:border-border p-4 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 flex-none" style={{ width: 'calc((100% - 2rem) / 3)' }}>
-                            <img src="/dashboard-votes.png" alt="Votes Dashboard" className="w-full aspect-[4/3] rounded-lg object-cover" />
-                            <span className="text-sm font-medium">Votes</span>
-                          </button>
-                        </DrawerClose>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 px-4 pb-8">
+                        {/* Dashboard navigation cards */}
+                        {[
+                          { path: '/budget-dashboard', label: 'Budget', desc: 'NYS budget spending', color: 'hsl(160 60% 45%)', id: 'dBudget',
+                            data: [{x:0,y:8},{x:1,y:10},{x:2,y:14},{x:3,y:18},{x:4,y:16},{x:5,y:20},{x:6,y:22},{x:7,y:19},{x:8,y:24},{x:9,y:28}] },
+                          { path: '/contracts-dashboard', label: 'Contracts', desc: 'State contracts', color: 'hsl(32 95% 50%)', id: 'dContract',
+                            data: [{x:0,y:14},{x:1,y:12},{x:2,y:16},{x:3,y:14},{x:4,y:18},{x:5,y:16},{x:6,y:20},{x:7,y:18},{x:8,y:22},{x:9,y:24}] },
+                          { path: '/votes-dashboard', label: 'Votes', desc: 'Legislative votes', color: 'hsl(142 76% 36%)', id: 'dVotes',
+                            data: [{x:0,y:12},{x:1,y:10},{x:2,y:14},{x:3,y:16},{x:4,y:12},{x:5,y:18},{x:6,y:20},{x:7,y:16},{x:8,y:22},{x:9,y:22}] },
+                        ].map((d) => (
+                          <DrawerClose asChild key={d.path}>
+                            <button onClick={() => navigate(d.path)} className="text-left rounded-xl border border-border bg-muted/30 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 overflow-hidden">
+                              <div className="h-24 px-2 pt-2">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <AreaChart data={d.data} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
+                                    <defs>
+                                      <linearGradient id={d.id} x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor={d.color} stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor={d.color} stopOpacity={0.02} />
+                                      </linearGradient>
+                                    </defs>
+                                    <Area type="monotone" dataKey="y" stroke={d.color} strokeWidth={1.5} fill={`url(#${d.id})`} dot={false} animationDuration={500} />
+                                    <XAxis dataKey="x" hide />
+                                  </AreaChart>
+                                </ResponsiveContainer>
+                              </div>
+                              <div className="px-3 pb-3 pt-2">
+                                <p className="font-semibold text-sm">{d.label}</p>
+                                <p className="text-xs text-muted-foreground">{d.desc}</p>
+                              </div>
+                            </button>
+                          </DrawerClose>
+                        ))}
+
+                        {/* Votes chart cards */}
+                        {[
+                          { path: '/votes-dashboard?mode=0', label: 'Votes by Day', desc: 'Yes vs No votes per day',
+                            areas: [{ key: 'y1', stroke: 'hsl(142 76% 36%)', id: 'lvYes' }, { key: 'y2', stroke: 'hsl(0 84% 60%)', id: 'lvNo' }],
+                            data: [{x:0,y1:20,y2:5},{x:1,y1:18,y2:6},{x:2,y1:24,y2:4},{x:3,y1:22,y2:8},{x:4,y1:26,y2:3},{x:5,y1:20,y2:7},{x:6,y1:28,y2:5},{x:7,y1:24,y2:6},{x:8,y1:30,y2:4},{x:9,y1:26,y2:5}] },
+                          { path: '/votes-dashboard?mode=1', label: 'Roll Calls', desc: 'Roll call votes per day',
+                            areas: [{ key: 'y1', stroke: 'hsl(217 91% 60%)', id: 'lvRC' }],
+                            data: [{x:0,y1:8},{x:1,y1:12},{x:2,y1:10},{x:3,y1:14},{x:4,y1:16},{x:5,y1:12},{x:6,y1:18},{x:7,y1:14},{x:8,y1:20},{x:9,y1:16}] },
+                          { path: '/votes-dashboard?mode=2', label: 'Passed vs. Failed', desc: 'Bills passed or failed per day',
+                            areas: [{ key: 'y1', stroke: 'hsl(142 76% 36%)', id: 'lvPass' }, { key: 'y2', stroke: 'hsl(0 84% 60%)', id: 'lvFail' }],
+                            data: [{x:0,y1:14,y2:4},{x:1,y1:16,y2:3},{x:2,y1:12,y2:5},{x:3,y1:18,y2:2},{x:4,y1:20,y2:4},{x:5,y1:16,y2:3},{x:6,y1:22,y2:2},{x:7,y1:18,y2:4},{x:8,y1:24,y2:3},{x:9,y1:20,y2:2}] },
+                          { path: '/votes-dashboard?mode=3', label: 'By Party', desc: 'D vs R yes votes per day',
+                            areas: [{ key: 'y1', stroke: 'hsl(217 91% 60%)', id: 'lvDem' }, { key: 'y2', stroke: 'hsl(0 84% 60%)', id: 'lvRep' }],
+                            data: [{x:0,y1:16,y2:10},{x:1,y1:18,y2:12},{x:2,y1:14,y2:14},{x:3,y1:20,y2:10},{x:4,y1:22,y2:12},{x:5,y1:18,y2:14},{x:6,y1:24,y2:10},{x:7,y1:20,y2:12},{x:8,y1:26,y2:14},{x:9,y1:22,y2:12}] },
+                          { path: '/votes-dashboard?mode=4', label: 'Closest Votes', desc: 'Average vote margin per day',
+                            areas: [{ key: 'y1', stroke: 'hsl(280 67% 55%)', id: 'lvMargin' }],
+                            data: [{x:0,y1:18},{x:1,y1:14},{x:2,y1:20},{x:3,y1:12},{x:4,y1:16},{x:5,y1:22},{x:6,y1:14},{x:7,y1:18},{x:8,y1:10},{x:9,y1:16}] },
+                        ].map((chart) => (
+                          <DrawerClose asChild key={chart.path}>
+                            <button onClick={() => navigate(chart.path)} className="text-left rounded-xl border border-border bg-muted/30 hover:bg-muted/50 hover:shadow-lg transition-all duration-200 overflow-hidden">
+                              <div className="h-24 px-2 pt-2">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <AreaChart data={chart.data} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
+                                    <defs>
+                                      {chart.areas.map((a) => (
+                                        <linearGradient key={a.id} id={a.id} x1="0" y1="0" x2="0" y2="1">
+                                          <stop offset="5%" stopColor={a.stroke} stopOpacity={0.3} />
+                                          <stop offset="95%" stopColor={a.stroke} stopOpacity={0.02} />
+                                        </linearGradient>
+                                      ))}
+                                    </defs>
+                                    {chart.areas.map((a) => (
+                                      <Area key={a.key} type="monotone" dataKey={a.key} stroke={a.stroke} strokeWidth={1.5} fill={`url(#${a.id})`} dot={false} animationDuration={500} />
+                                    ))}
+                                    <XAxis dataKey="x" hide />
+                                  </AreaChart>
+                                </ResponsiveContainer>
+                              </div>
+                              <div className="px-3 pb-3 pt-2">
+                                <p className="font-semibold text-sm">{chart.label}</p>
+                                <p className="text-xs text-muted-foreground">{chart.desc}</p>
+                              </div>
+                            </button>
+                          </DrawerClose>
+                        ))}
                       </div>
                     </DrawerContent>
                   </Drawer>
