@@ -73,7 +73,7 @@ export interface UseChatDrawerConfig {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function getEdgeFunctionName(model: ModelType): string {
+export function getEdgeFunctionName(model: ModelType): string {
   if (model.startsWith('claude-')) return 'generate-with-claude';
   if (model.includes('sonar')) return 'generate-with-perplexity';
   return 'generate-with-openai';

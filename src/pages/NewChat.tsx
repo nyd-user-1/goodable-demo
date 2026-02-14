@@ -22,6 +22,15 @@ const useSidebarSafe = () => {
   }
 };
 import { supabase } from "@/integrations/supabase/client";
+import { parseSSEStream, extractNonStreamingContent } from "@/utils/sseStreamParser";
+import { getEdgeFunctionName } from "@/hooks/useChatDrawer";
+import { composeSystemPrompt } from "@/lib/prompts/systemPromptComposer";
+import { buildContractContext } from "@/lib/context/contractContext";
+import {
+  consumeSchoolFundingData,
+  buildSchoolFundingContext,
+  type SchoolFundingDetails,
+} from "@/lib/context/schoolFundingContext";
 import ReactMarkdown from 'react-markdown';
 import { useModel } from "@/contexts/ModelContext";
 import { Textarea } from "@/components/ui/textarea";
@@ -235,24 +244,7 @@ interface BillCitation {
   session_id?: number;
 }
 
-interface SchoolFundingCategory {
-  name: string;
-  baseYear: string;
-  schoolYear: string;
-  change: string;
-  percentChange: string;
-}
-
-interface SchoolFundingDetails {
-  district: string;
-  county: string | null;
-  budgetYear: string;
-  totalBaseYear: number;
-  totalSchoolYear: number;
-  totalChange: number;
-  percentChange: number;
-  categories: SchoolFundingCategory[];
-}
+// SchoolFundingCategory and SchoolFundingDetails imported from @/lib/context/schoolFundingContext
 
 interface Message {
   id: string;
@@ -1136,17 +1128,7 @@ const NewChat = () => {
     const messageId = `assistant-${Date.now()}`;
 
     // Check for school funding data in sessionStorage
-    let schoolFundingData: SchoolFundingDetails | undefined;
-    try {
-      const storedData = sessionStorage.getItem('schoolFundingDetails');
-      if (storedData) {
-        schoolFundingData = JSON.parse(storedData);
-        // Clear it after reading so it's only used once
-        sessionStorage.removeItem('schoolFundingDetails');
-      }
-    } catch (e) {
-      console.error('Error reading school funding data:', e);
-    }
+    const schoolFundingData = consumeSchoolFundingData();
 
     // Check if this is a contract-related chat (via URL prompt prefix or selected contracts)
     const isContractChat = selectedContracts.length > 0 || userQuery.startsWith('[Contract:');
@@ -1174,78 +1156,41 @@ const NewChat = () => {
 
     try {
       // Determine which edge function to call based on model
-      const isClaudeModel = selectedModel.startsWith('claude-');
       const isPerplexityModel = selectedModel.includes('sonar');
-      const edgeFunction = isClaudeModel
-        ? 'generate-with-claude'
-        : isPerplexityModel
-          ? 'generate-with-perplexity'
-          : 'generate-with-openai';
+      const edgeFunction = getEdgeFunctionName(selectedModel);
 
       // Get Supabase URL from the client (avoids env var issues)
       const supabaseUrl = supabase.supabaseUrl;
       const { data: { session } } = await supabase.auth.getSession();
 
-      // Build contract context if this is a contract chat
-      let contractContext = systemContext || undefined;
+      // Build composed system context for special chat modes
+      let composedSystemContext = systemContext || undefined;
+
       if (isContractChat) {
         try {
-          // Parse contract number from prompt prefix [Contract:xxx]
           const contractMatch = userQuery.match(/\[Contract:([^\]]+)\]/);
           const contractNumber = contractMatch?.[1];
-
           if (contractNumber) {
-            // Fetch the specific contract
-            const { data: contract } = await supabase
-              .from('Contracts')
-              .select('*')
-              .eq('contract_number', contractNumber)
-              .single();
-
-            if (contract) {
-              let contextParts: string[] = [];
-
-              // Primary contract details
-              contextParts.push(`PRIMARY CONTRACT DATA:\n- Contract Number: ${contract.contract_number}\n- Vendor: ${contract.vendor_name}\n- Department: ${contract.department_facility}\n- Type: ${contract.contract_type || 'N/A'}\n- Amount: $${Number(contract.current_contract_amount || 0).toLocaleString()}\n- Spending to Date: $${Number(contract.spending_to_date || 0).toLocaleString()}\n- Start Date: ${contract.contract_start_date || 'N/A'}\n- End Date: ${contract.contract_end_date || 'N/A'}\n- Description: ${contract.contract_description || 'N/A'}`);
-
-              // Fetch other contracts from the same vendor (limit 10)
-              const { data: vendorContracts } = await supabase
-                .from('Contracts')
-                .select('contract_number, department_facility, current_contract_amount, spending_to_date, contract_start_date, contract_end_date, contract_type, contract_description')
-                .eq('vendor_name', contract.vendor_name)
-                .neq('contract_number', contractNumber)
-                .order('current_contract_amount', { ascending: false, nullsFirst: false })
-                .limit(10);
-
-              if (vendorContracts && vendorContracts.length > 0) {
-                const vendorSummary = vendorContracts.map(c =>
-                  `  - ${c.contract_number}: ${c.department_facility} | $${Number(c.current_contract_amount || 0).toLocaleString()} | ${c.contract_type || 'N/A'} | ${c.contract_start_date || '?'} to ${c.contract_end_date || '?'}`
-                ).join('\n');
-                contextParts.push(`\nOTHER CONTRACTS BY SAME VENDOR (${contract.vendor_name}) - ${vendorContracts.length} additional contracts found:\n${vendorSummary}`);
-              }
-
-              // Fetch other contracts from the same department (limit 10, top by amount)
-              const { data: deptContracts } = await supabase
-                .from('Contracts')
-                .select('contract_number, vendor_name, current_contract_amount, spending_to_date, contract_type, contract_description')
-                .eq('department_facility', contract.department_facility)
-                .neq('contract_number', contractNumber)
-                .order('current_contract_amount', { ascending: false, nullsFirst: false })
-                .limit(10);
-
-              if (deptContracts && deptContracts.length > 0) {
-                const deptSummary = deptContracts.map(c =>
-                  `  - ${c.contract_number}: ${c.vendor_name} | $${Number(c.current_contract_amount || 0).toLocaleString()} | ${c.contract_type || 'N/A'}`
-                ).join('\n');
-                contextParts.push(`\nTOP CONTRACTS IN SAME DEPARTMENT (${contract.department_facility}) - showing top ${deptContracts.length} by amount:\n${deptSummary}`);
-              }
-
-              contractContext = contextParts.join('\n') + '\n\nUse this NYS contract database information to provide detailed, data-driven analysis. Reference specific contract numbers, amounts, and comparisons where relevant.';
+            const dataContext = await buildContractContext(contractNumber);
+            if (dataContext) {
+              composedSystemContext = composeSystemPrompt({
+                entityType: 'contract',
+                dataContext,
+              });
             }
           }
         } catch (err) {
           console.error('Error fetching contract context:', err);
-          // Continue without contract context - don't block the chat
+        }
+      } else if (schoolFundingData) {
+        try {
+          composedSystemContext = composeSystemPrompt({
+            entityType: 'schoolFunding',
+            entityName: schoolFundingData.district,
+            dataContext: buildSchoolFundingContext(schoolFundingData),
+          });
+        } catch (err) {
+          console.error('Error building school funding context:', err);
         }
       }
 
@@ -1273,7 +1218,7 @@ const NewChat = () => {
               role: m.role,
               content: m.content
             })),
-            systemContext: contractContext
+            systemContext: composedSystemContext
           }
         }),
         signal: abortControllerRef.current.signal
@@ -1285,71 +1230,27 @@ const NewChat = () => {
 
       let aiResponse = '';
 
-      if (useStreaming) {
-        // Read streaming response (for non-Perplexity models)
-        const reader = response.body?.getReader();
-        readerRef.current = reader || null;
-        const decoder = new TextDecoder();
+      if (useStreaming && response.body) {
+        const reader = response.body.getReader();
+        readerRef.current = reader;
 
-        if (reader) {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+        aiResponse = await parseSSEStream(reader, (_chunk, accumulated) => {
+          setMessages(prev => prev.map(msg =>
+            msg.id === messageId
+              ? { ...msg, streamedContent: accumulated }
+              : msg
+          ));
+        });
 
-            const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n');
-
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                const data = line.slice(6);
-                if (data === '[DONE]') continue;
-
-                try {
-                  const parsed = JSON.parse(data);
-
-                  // Handle different streaming formats
-                  let content = '';
-                  if (parsed.choices?.[0]?.delta?.content) {
-                    // OpenAI/Perplexity format
-                    content = parsed.choices[0].delta.content;
-                  } else if (parsed.delta?.text) {
-                    // Claude format
-                    content = parsed.delta.text;
-                  }
-
-                  if (content) {
-                    aiResponse += content;
-                    // Update UI with streamed content
-                    setMessages(prev => prev.map(msg =>
-                      msg.id === messageId
-                        ? {
-                            ...msg,
-                            streamedContent: aiResponse
-                          }
-                        : msg
-                    ));
-                  }
-                } catch (e) {
-                  // Skip invalid JSON chunks
-                  console.debug('Skipping chunk:', line);
-                }
-              }
-            }
-          }
-        }
+        readerRef.current = null;
       } else {
-        // Non-streaming response (for Perplexity models)
+        // Non-streaming response (Perplexity models)
         const data = await response.json();
-        aiResponse = data.generatedText || data.choices?.[0]?.message?.content || '';
+        aiResponse = extractNonStreamingContent(data);
 
-        // Update UI with complete response
         setMessages(prev => prev.map(msg =>
           msg.id === messageId
-            ? {
-                ...msg,
-                streamedContent: aiResponse,
-                isStreaming: false
-              }
+            ? { ...msg, streamedContent: aiResponse, isStreaming: false }
             : msg
         ));
       }
