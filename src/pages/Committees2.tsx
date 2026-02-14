@@ -12,12 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useCommitteesSearch } from '@/hooks/useCommitteesSearch';
 import { Committee } from '@/types/committee';
 import { generateCommitteeSlug } from '@/utils/committeeSlug';
@@ -310,21 +304,12 @@ function CommitteeCard({ committee, onClick, onChatClick }: CommitteeCardProps) 
 
         {/* Action button - appears on hover */}
         <div className="flex justify-end mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={onChatClick}
-                  className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
-                >
-                  <ArrowUp className="h-5 w-5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Ask AI</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <button
+            onClick={onChatClick}
+            className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
+          >
+            <ArrowUp className="h-5 w-5" />
+          </button>
         </div>
       </div>
     </div>
