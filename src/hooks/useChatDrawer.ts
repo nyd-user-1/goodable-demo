@@ -74,9 +74,9 @@ export interface UseChatDrawerConfig {
 // ---------------------------------------------------------------------------
 
 export function getEdgeFunctionName(model: ModelType): string {
-  if (model.startsWith('claude-')) return 'generate-with-claude';
-  if (model.includes('sonar')) return 'generate-with-perplexity';
-  return 'generate-with-openai';
+  if (model.startsWith('claude-')) return 'generate-with-claude-v2';
+  if (model.includes('sonar')) return 'generate-with-perplexity-v2';
+  return 'generate-with-openai-v2';
 }
 
 /** Convert a ChatMessage (Date timestamp) to a persistable shape (ISO string). */

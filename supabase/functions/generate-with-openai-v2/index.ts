@@ -589,10 +589,13 @@ Member Count: ${entityContext.committee.member_count || 'Unknown'}`;
 
     let systemPrompt = getSystemPrompt(type, combinedContext ? { nysData: combinedContext } : context, entityData);
 
-    // Add custom system context if provided (e.g., for "What is NYSgpt.dev?" prompt)
+    // When frontend provides a composed systemContext (via systemPromptComposer),
+    // use it as the primary prompt — only prepend constitutional principles.
+    // Internal prompt building is kept as fallback for requests without systemContext.
     if (context?.systemContext) {
-      systemPrompt = `${context.systemContext}\n\n${systemPrompt}`;
-      console.log('Added custom systemContext to prompt');
+      const constitutionalContext = getConstitutionalPrompt(type);
+      systemPrompt = `${constitutionalContext}\n\n${context.systemContext}`;
+      console.log('Using frontend-composed systemContext (replaced internal prompt)');
     }
 
     const enhancedPrompt = combinedContext ?

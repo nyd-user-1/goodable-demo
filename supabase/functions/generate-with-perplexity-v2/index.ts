@@ -45,9 +45,14 @@ serve(async (req) => {
 
     console.log('Perplexity request:', { model, promptLength: prompt?.length, stream });
 
-    // Simple messages array - let Sonar do its web search thing
+    // Use frontend-composed systemContext if provided, otherwise fall back to
+    // Perplexity's web-search-focused prompt
+    const systemContent = context?.systemContext
+      ? `${context.systemContext}\n\n${getSystemPrompt()}`
+      : getSystemPrompt();
+
     const messages = [
-      { role: "system", content: getSystemPrompt() },
+      { role: "system", content: systemContent },
       { role: "user", content: prompt }
     ];
 
