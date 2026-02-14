@@ -123,16 +123,17 @@ const Bills2 = () => {
     const billNum = bill.bill_number || 'this bill';
     const title = bill.title ? ` "${bill.title}"` : '';
     const status = bill.status_desc ? ` (Status: ${bill.status_desc})` : '';
+    const sponsor = bill.sponsor_name ? ` Sponsored by ${bill.sponsor_name}.` : '';
 
     // Use description if available to vary the prompt
     if (bill.description) {
       const shortDesc = bill.description.length > 150
         ? bill.description.substring(0, 150) + '...'
         : bill.description;
-      return `Tell me about bill ${billNum}${title}${status}. The bill's summary: "${shortDesc}". What are the key provisions and who would be affected?`;
+      return `Tell me about bill ${billNum}${title}${status}.${sponsor} The bill's summary: "${shortDesc}". What are the key provisions and who would be affected?`;
     }
 
-    return `Tell me about bill ${billNum}${title}${status}. What are the key provisions and who would be affected?`;
+    return `Tell me about bill ${billNum}${title}${status}.${sponsor} What are the key provisions and who would be affected?`;
   };
 
   // Navigate to bill detail page

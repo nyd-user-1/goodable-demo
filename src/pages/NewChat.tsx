@@ -236,12 +236,14 @@ const NYSGPT_CONTEXT = `You are answering "What is NYSgpt?" for a new user. NYSg
 Keep the tone helpful and practical, not preachy. Let the features speak for themselves. End with something like: "Every bill analysis includes tools to email sponsors, generate letters, view official documents, and track your positions."`;
 
 interface BillCitation {
+  bill_id?: number;
   bill_number: string;
   title: string;
   status_desc: string;
   description?: string;
   committee?: string;
   session_id?: number;
+  sponsor_name?: string;
 }
 
 // SchoolFundingCategory and SchoolFundingDetails imported from @/lib/context/schoolFundingContext
@@ -267,6 +269,36 @@ interface Message {
   /** System prompt sent to LLM — for fine-tuning data export */
   promptLog?: string;
 }
+
+// Shared prompt builders — used by card triggers, popovers, and pill drawers
+const buildBillPrompt = (bill: BillCitation): string => {
+  const billNum = bill.bill_number || 'this bill';
+  const title = bill.title ? ` "${bill.title}"` : '';
+  const status = bill.status_desc ? ` (Status: ${bill.status_desc})` : '';
+  const sponsor = bill.sponsor_name ? ` Sponsored by ${bill.sponsor_name}.` : '';
+  if (bill.description) {
+    const shortDesc = bill.description.length > 150
+      ? bill.description.substring(0, 150) + '...'
+      : bill.description;
+    return `Tell me about bill ${billNum}${title}${status}.${sponsor} The bill's summary: "${shortDesc}". What are the key provisions and who would be affected?`;
+  }
+  return `Tell me about bill ${billNum}${title}${status}.${sponsor} What are the key provisions and who would be affected?`;
+};
+
+const buildMemberPrompt = (member: any): string => {
+  const name = member.name || 'this member';
+  const chamber = member.chamber ? `${member.chamber} ` : '';
+  const party = member.party ? ` (${member.party})` : '';
+  const district = member.district ? ` representing District ${member.district}` : '';
+  return `Tell me about ${chamber}member ${name}${party}${district}. What legislation have they sponsored and what are their key policy positions?`;
+};
+
+const buildCommitteePrompt = (committee: any): string => {
+  const chamberPrefix = committee.chamber === 'Senate' ? 'Senate ' : committee.chamber === 'Assembly' ? 'Assembly ' : '';
+  const name = `${chamberPrefix}${committee.committee_name || 'Committee'}`;
+  const chair = committee.chair_name ? ` chaired by ${committee.chair_name}` : '';
+  return `Tell me about the ${name}${chair}. What legislation does this committee handle and what should I know about it?`;
+};
 
 const NewChat = () => {
   const [query, setQuery] = useState("");
@@ -700,12 +732,40 @@ const NewChat = () => {
     try {
       const { data, error } = await supabase
         .from("Bills")
-        .select("bill_number, title, status_desc, description, committee, session_id")
+        .select("bill_id, bill_number, title, status_desc, description, committee, session_id")
         .order("bill_number", { ascending: true })
         .range(offset, offset + 29);
 
       if (error) throw error;
-      const rows = data || [];
+      const rows = (data || []) as BillCitation[];
+
+      // Fetch primary sponsors for these bills
+      if (rows.length > 0) {
+        const billIds = rows.map(r => r.bill_id).filter(Boolean) as number[];
+        if (billIds.length > 0) {
+          const { data: sponsorsData } = await supabase
+            .from('Sponsors')
+            .select('bill_id, people_id, position')
+            .in('bill_id', billIds)
+            .eq('position', 1);
+
+          if (sponsorsData && sponsorsData.length > 0) {
+            const peopleIds = [...new Set(sponsorsData.map(s => s.people_id).filter(Boolean))];
+            const { data: peopleData } = await supabase
+              .from('People')
+              .select('people_id, name')
+              .in('people_id', peopleIds);
+
+            const peopleMap = new Map((peopleData || []).map(p => [p.people_id, p.name]));
+            const sponsorMap = new Map(sponsorsData.map(s => [s.bill_id, peopleMap.get(s.people_id) || null]));
+
+            rows.forEach(row => {
+              row.sponsor_name = sponsorMap.get(row.bill_id!) || undefined;
+            });
+          }
+        }
+      }
+
       if (offset === 0) {
         setAvailableBills(rows);
       } else {
@@ -1034,18 +1094,13 @@ const NewChat = () => {
     }
 
     // Auto-generate prompt if no text but items are selected
-    // Build rich prompts matching the detail page card triggers for better AI output
+    // Uses shared prompt builders so all entry points produce identical prompts
     if (!userQuery && (selectedMembers.length > 0 || selectedBills.length > 0 || selectedCommittees.length > 0 || selectedContracts.length > 0)) {
       const promptParts: string[] = [];
 
       if (selectedMembers.length > 0) {
         if (selectedMembers.length === 1) {
-          const member = selectedMembers[0];
-          const name = member.name || 'this member';
-          const chamber = member.chamber ? `${member.chamber} ` : '';
-          const party = member.party ? ` (${member.party})` : '';
-          const district = member.district ? ` representing District ${member.district}` : '';
-          promptParts.push(`Tell me about ${chamber}member ${name}${party}${district}. What legislation have they sponsored and what are their key policy positions?`);
+          promptParts.push(buildMemberPrompt(selectedMembers[0]));
         } else {
           const memberNames = selectedMembers.map((m: any) => m.name).join(", ");
           promptParts.push(`Tell me about legislators ${memberNames}, including their legislative record, sponsored bills, and committee work`);
@@ -1054,18 +1109,7 @@ const NewChat = () => {
 
       if (selectedBills.length > 0) {
         if (selectedBills.length === 1) {
-          const bill = selectedBills[0];
-          const billNum = bill.bill_number || 'this bill';
-          const title = bill.title ? ` "${bill.title}"` : '';
-          const status = bill.status_desc ? ` (Status: ${bill.status_desc})` : '';
-          if (bill.description) {
-            const shortDesc = bill.description.length > 150
-              ? bill.description.substring(0, 150) + '...'
-              : bill.description;
-            promptParts.push(`Tell me about bill ${billNum}${title}${status}. The bill's summary: "${shortDesc}". What are the key provisions and who would be affected?`);
-          } else {
-            promptParts.push(`Tell me about bill ${billNum}${title}${status}. What are the key provisions and who would be affected?`);
-          }
+          promptParts.push(buildBillPrompt(selectedBills[0]));
         } else {
           const billNumbers = selectedBills.map(b => b.bill_number).join(", ");
           promptParts.push(`Tell me about bills ${billNumbers}, including their status, sponsors, and details`);
@@ -1074,11 +1118,7 @@ const NewChat = () => {
 
       if (selectedCommittees.length > 0) {
         if (selectedCommittees.length === 1) {
-          const committee = selectedCommittees[0];
-          const chamberPrefix = committee.chamber === 'Senate' ? 'Senate ' : committee.chamber === 'Assembly' ? 'Assembly ' : '';
-          const name = `${chamberPrefix}${committee.committee_name || 'Committee'}`;
-          const chair = committee.chair_name ? ` chaired by ${committee.chair_name}` : '';
-          promptParts.push(`Tell me about the ${name}${chair}. What legislation does this committee handle and what should I know about it?`);
+          promptParts.push(buildCommitteePrompt(selectedCommittees[0]));
         } else {
           const committeeNames = selectedCommittees.map((c: any) => c.committee_name).join(", ");
           promptParts.push(`Tell me about the ${committeeNames} committees, including focus areas and current bills`);
@@ -2150,9 +2190,8 @@ const NewChat = () => {
                                     key={`${bill.bill_number}-${bill.session_id}`}
                                     type="button"
                                     onClick={() => {
-                                      setQuery(`Tell me about bill ${bill.bill_number}`);
                                       setMobileDrawerCategory(null);
-                                      textareaRef.current?.focus();
+                                      handleSubmit(null, buildBillPrompt(bill), composeSystemPrompt({ entityType: 'bill', entityName: bill.bill_number }));
                                     }}
                                     className={cn(
                                       "w-full text-left px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors",
@@ -2182,9 +2221,8 @@ const NewChat = () => {
                                     key={member.people_id}
                                     type="button"
                                     onClick={() => {
-                                      setQuery(`Tell me about ${member.name}`);
                                       setMobileDrawerCategory(null);
-                                      textareaRef.current?.focus();
+                                      handleSubmit(null, buildMemberPrompt(member), composeSystemPrompt({ entityType: 'member', entityName: member.name }));
                                     }}
                                     className={cn(
                                       "w-full text-left px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors",
@@ -2206,14 +2244,15 @@ const NewChat = () => {
                                 <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading committees...</div>
                               ) : (
                                 <>
-                                {availableCommittees.map((committee, idx) => (
+                                {availableCommittees.map((committee, idx) => {
+                                  const prefix = committee.chamber === 'Senate' ? 'Senate ' : committee.chamber === 'Assembly' ? 'Assembly ' : '';
+                                  return (
                                   <button
                                     key={committee.committee_id}
                                     type="button"
                                     onClick={() => {
-                                      setQuery(`Tell me about the ${committee.committee_name} committee`);
                                       setMobileDrawerCategory(null);
-                                      textareaRef.current?.focus();
+                                      handleSubmit(null, buildCommitteePrompt(committee), composeSystemPrompt({ entityType: 'committee', entityName: `${prefix}${committee.committee_name || ''}`.trim() }));
                                     }}
                                     className={cn(
                                       "w-full text-left px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors",
@@ -2223,7 +2262,8 @@ const NewChat = () => {
                                     <span className="font-medium">{committee.committee_name}</span>
                                     <span className="text-muted-foreground ml-2">{committee.chamber}</span>
                                   </button>
-                                ))}
+                                  );
+                                })}
                                 {committeesLoading && <div className="px-4 py-3 text-center text-xs text-muted-foreground">Loading...</div>}
                                 </>
                               )
@@ -2724,9 +2764,8 @@ const NewChat = () => {
                               key={`${bill.bill_number}-${bill.session_id}`}
                               type="button"
                               onClick={() => {
-                                setQuery(`Tell me about bill ${bill.bill_number}`);
                                 setMobileDrawerCategory(null);
-                                textareaRef.current?.focus();
+                                handleSubmit(null, buildBillPrompt(bill), composeSystemPrompt({ entityType: 'bill', entityName: bill.bill_number }));
                               }}
                               className={cn(
                                 "w-full text-left px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors",
@@ -2756,9 +2795,8 @@ const NewChat = () => {
                               key={member.people_id}
                               type="button"
                               onClick={() => {
-                                setQuery(`Tell me about ${member.name}`);
                                 setMobileDrawerCategory(null);
-                                textareaRef.current?.focus();
+                                handleSubmit(null, buildMemberPrompt(member), composeSystemPrompt({ entityType: 'member', entityName: member.name }));
                               }}
                               className={cn(
                                 "w-full text-left px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors",
@@ -2780,14 +2818,15 @@ const NewChat = () => {
                           <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading committees...</div>
                         ) : (
                           <>
-                          {availableCommittees.map((committee, idx) => (
+                          {availableCommittees.map((committee, idx) => {
+                            const prefix = committee.chamber === 'Senate' ? 'Senate ' : committee.chamber === 'Assembly' ? 'Assembly ' : '';
+                            return (
                             <button
                               key={committee.committee_id}
                               type="button"
                               onClick={() => {
-                                setQuery(`Tell me about the ${committee.committee_name} committee`);
                                 setMobileDrawerCategory(null);
-                                textareaRef.current?.focus();
+                                handleSubmit(null, buildCommitteePrompt(committee), composeSystemPrompt({ entityType: 'committee', entityName: `${prefix}${committee.committee_name || ''}`.trim() }));
                               }}
                               className={cn(
                                 "w-full text-left px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors",
@@ -2797,7 +2836,8 @@ const NewChat = () => {
                               <span className="font-medium">{committee.committee_name}</span>
                               <span className="text-muted-foreground ml-2">{committee.chamber}</span>
                             </button>
-                          ))}
+                            );
+                          })}
                           {committeesLoading && <div className="px-4 py-3 text-center text-xs text-muted-foreground">Loading...</div>}
                           </>
                         )
@@ -2809,14 +2849,23 @@ const NewChat = () => {
                           <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading contracts...</div>
                         ) : (
                           <>
-                          {availableContracts.map((contract, idx) => (
+                          {availableContracts.map((contract, idx) => {
+                            const vendor = contract.vendor_name || 'Unknown vendor';
+                            const dept = contract.department_facility ? ` (${contract.department_facility})` : '';
+                            const amount = contract.current_contract_amount
+                              ? ` valued at ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(contract.current_contract_amount)}`
+                              : '';
+                            const desc = contract.contract_description ? ` Description: "${contract.contract_description}".` : '';
+                            const contractPrompt = `Tell me about the contract with ${vendor}${dept}${amount}.${desc} What are the contract details, spending status, and related contracts?`;
+                            return (
                             <button
                               key={contract.contract_number}
                               type="button"
                               onClick={() => {
-                                setQuery(`Tell me about the contract with ${contract.vendor_name}`);
                                 setMobileDrawerCategory(null);
-                                textareaRef.current?.focus();
+                                // Set selectedContracts so handleSubmit can build contract context
+                                setSelectedContracts([contract]);
+                                handleSubmit(null, contractPrompt, composeSystemPrompt({ entityType: 'contract', entityName: vendor, scope: 'vendor' }));
                               }}
                               className={cn(
                                 "w-full text-left px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors",
@@ -2830,7 +2879,8 @@ const NewChat = () => {
                                   : ''}
                               </span>
                             </button>
-                          ))}
+                            );
+                          })}
                           {contractsLoading && <div className="px-4 py-3 text-center text-xs text-muted-foreground">Loading...</div>}
                           </>
                         )
