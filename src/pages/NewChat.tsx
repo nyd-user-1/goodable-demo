@@ -1034,27 +1034,71 @@ const NewChat = () => {
     }
 
     // Auto-generate prompt if no text but items are selected
+    // Build rich prompts matching the detail page card triggers for better AI output
     if (!userQuery && (selectedMembers.length > 0 || selectedBills.length > 0 || selectedCommittees.length > 0 || selectedContracts.length > 0)) {
       const promptParts: string[] = [];
 
       if (selectedMembers.length > 0) {
-        const memberNames = selectedMembers.map(m => m.name).join(", ");
-        promptParts.push(`Tell me about ${selectedMembers.length === 1 ? 'legislator' : 'legislators'} ${memberNames}, including their legislative record, sponsored bills, and committee work`);
+        if (selectedMembers.length === 1) {
+          const member = selectedMembers[0];
+          const name = member.name || 'this member';
+          const chamber = member.chamber ? `${member.chamber} ` : '';
+          const party = member.party ? ` (${member.party})` : '';
+          const district = member.district ? ` representing District ${member.district}` : '';
+          promptParts.push(`Tell me about ${chamber}member ${name}${party}${district}. What legislation have they sponsored and what are their key policy positions?`);
+        } else {
+          const memberNames = selectedMembers.map((m: any) => m.name).join(", ");
+          promptParts.push(`Tell me about legislators ${memberNames}, including their legislative record, sponsored bills, and committee work`);
+        }
       }
 
       if (selectedBills.length > 0) {
-        const billNumbers = selectedBills.map(b => b.bill_number).join(", ");
-        promptParts.push(`Tell me about ${selectedBills.length === 1 ? 'bill' : 'bills'} ${billNumbers}, including ${selectedBills.length === 1 ? 'its' : 'their'} status, sponsors, and details`);
+        if (selectedBills.length === 1) {
+          const bill = selectedBills[0];
+          const billNum = bill.bill_number || 'this bill';
+          const title = bill.title ? ` "${bill.title}"` : '';
+          const status = bill.status_desc ? ` (Status: ${bill.status_desc})` : '';
+          if (bill.description) {
+            const shortDesc = bill.description.length > 150
+              ? bill.description.substring(0, 150) + '...'
+              : bill.description;
+            promptParts.push(`Tell me about bill ${billNum}${title}${status}. The bill's summary: "${shortDesc}". What are the key provisions and who would be affected?`);
+          } else {
+            promptParts.push(`Tell me about bill ${billNum}${title}${status}. What are the key provisions and who would be affected?`);
+          }
+        } else {
+          const billNumbers = selectedBills.map(b => b.bill_number).join(", ");
+          promptParts.push(`Tell me about bills ${billNumbers}, including their status, sponsors, and details`);
+        }
       }
 
       if (selectedCommittees.length > 0) {
-        const committeeNames = selectedCommittees.map(c => c.committee_name).join(", ");
-        promptParts.push(`Tell me about the ${committeeNames} ${selectedCommittees.length === 1 ? 'committee' : 'committees'}, including focus areas and current bills`);
+        if (selectedCommittees.length === 1) {
+          const committee = selectedCommittees[0];
+          const chamberPrefix = committee.chamber === 'Senate' ? 'Senate ' : committee.chamber === 'Assembly' ? 'Assembly ' : '';
+          const name = `${chamberPrefix}${committee.committee_name || 'Committee'}`;
+          const chair = committee.chair_name ? ` chaired by ${committee.chair_name}` : '';
+          promptParts.push(`Tell me about the ${name}${chair}. What legislation does this committee handle and what should I know about it?`);
+        } else {
+          const committeeNames = selectedCommittees.map((c: any) => c.committee_name).join(", ");
+          promptParts.push(`Tell me about the ${committeeNames} committees, including focus areas and current bills`);
+        }
       }
 
       if (selectedContracts.length > 0) {
-        const vendorNames = selectedContracts.map(c => c.vendor_name || 'Unknown vendor').join(", ");
-        promptParts.push(`Tell me about ${selectedContracts.length === 1 ? 'contract with' : 'contracts with'} ${vendorNames}, including contract details, amounts, and department information`);
+        if (selectedContracts.length === 1) {
+          const contract = selectedContracts[0];
+          const vendor = contract.vendor_name || 'Unknown vendor';
+          const dept = contract.department_facility ? ` (${contract.department_facility})` : '';
+          const amount = contract.current_contract_amount
+            ? ` valued at ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(contract.current_contract_amount)}`
+            : '';
+          const desc = contract.contract_description ? ` Description: "${contract.contract_description}".` : '';
+          promptParts.push(`Tell me about the contract with ${vendor}${dept}${amount}.${desc} What are the contract details, spending status, and related contracts?`);
+        } else {
+          const vendorNames = selectedContracts.map(c => c.vendor_name || 'Unknown vendor').join(", ");
+          promptParts.push(`Tell me about contracts with ${vendorNames}, including contract details, amounts, and department information`);
+        }
       }
 
       userQuery = promptParts.join(". Also, ");
@@ -1201,6 +1245,27 @@ const NewChat = () => {
           });
         } catch (err) {
           console.error('Error building school funding context:', err);
+        }
+      } else if (!systemContext) {
+        // For pill/badge selections, compose entity-specific system context
+        // (selectedX closures still hold pre-clear values since setState is async)
+        if (selectedBills.length > 0) {
+          composedSystemContext = composeSystemPrompt({
+            entityType: 'bill',
+            entityName: selectedBills[0].bill_number,
+          });
+        } else if (selectedMembers.length > 0) {
+          composedSystemContext = composeSystemPrompt({
+            entityType: 'member',
+            entityName: selectedMembers[0].name,
+          });
+        } else if (selectedCommittees.length > 0) {
+          const c = selectedCommittees[0];
+          const prefix = c.chamber === 'Senate' ? 'Senate ' : c.chamber === 'Assembly' ? 'Assembly ' : '';
+          composedSystemContext = composeSystemPrompt({
+            entityType: 'committee',
+            entityName: `${prefix}${c.committee_name || ''}`.trim(),
+          });
         }
       }
 
@@ -2287,6 +2352,8 @@ const NewChat = () => {
                                       setSelectedMembers(prev => prev.filter(m => m.people_id !== member.people_id));
                                     } else {
                                       setSelectedMembers(prev => [...prev, member]);
+                                      setMembersDialogOpen(false);
+                                      setTimeout(() => textareaRef.current?.focus(), 0);
                                     }
                                   }}
                                   className={cn(
@@ -2351,6 +2418,8 @@ const NewChat = () => {
                                       setSelectedCommittees(prev => prev.filter(c => c.committee_id !== committee.committee_id));
                                     } else {
                                       setSelectedCommittees(prev => [...prev, committee]);
+                                      setCommitteesDialogOpen(false);
+                                      setTimeout(() => textareaRef.current?.focus(), 0);
                                     }
                                   }}
                                   className={cn(
@@ -2415,6 +2484,8 @@ const NewChat = () => {
                                       setSelectedBills(prev => prev.filter(b => !(b.bill_number === bill.bill_number && b.session_id === bill.session_id)));
                                     } else {
                                       setSelectedBills(prev => [...prev, bill]);
+                                      setBillsDialogOpen(false);
+                                      setTimeout(() => textareaRef.current?.focus(), 0);
                                     }
                                   }}
                                   className={cn(
@@ -2482,6 +2553,8 @@ const NewChat = () => {
                                       setSelectedContracts(prev => prev.filter(c => c.contract_number !== contract.contract_number));
                                     } else {
                                       setSelectedContracts(prev => [...prev, contract]);
+                                      setContractsDialogOpen(false);
+                                      setTimeout(() => textareaRef.current?.focus(), 0);
                                     }
                                   }}
                                   className={cn(
