@@ -280,12 +280,12 @@ export function useChatDrawer(config: UseChatDrawerConfig) {
           prev.map(m => (m.id === assistantMsg.id ? finalizedAssistant : m)),
         );
 
-        // Persist completed conversation
+        // Persist completed conversation (include promptLog on assistant message)
         if (persist && sessionIdRef.current) {
           const allPersisted = [
             ...previousMsgs.filter(m => !m.isStreaming).map(toPersistedMessage),
             toPersistedMessage(userMsg),
-            toPersistedMessage(finalizedAssistant),
+            { ...toPersistedMessage(finalizedAssistant), promptLog: systemPrompt },
           ];
           persistence.updateMessages(sessionIdRef.current, allPersisted);
         }

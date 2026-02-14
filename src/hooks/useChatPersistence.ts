@@ -21,6 +21,8 @@ interface PersistedMessage {
   relatedBills?: BillCitation[];
   schoolFundingData?: Record<string, any>;
   feedback?: 'good' | 'bad' | null;
+  /** Full system prompt the model received — used for fine-tuning data export */
+  promptLog?: string;
 }
 
 interface ChatSessionData {

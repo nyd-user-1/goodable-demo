@@ -264,6 +264,8 @@ interface Message {
   reasoning?: string;
   reasoningDuration?: number;
   feedback?: 'good' | 'bad' | null;
+  /** System prompt sent to LLM — for fine-tuning data export */
+  promptLog?: string;
 }
 
 const NewChat = () => {
@@ -561,6 +563,7 @@ const NewChat = () => {
             ...(msg.relatedBills && { relatedBills: msg.relatedBills }),
             ...(msg.schoolFundingData && { schoolFundingData: msg.schoolFundingData }),
             ...(msg.feedback !== undefined && { feedback: msg.feedback }),
+            ...(msg.promptLog && { promptLog: msg.promptLog }),
           }));
           setMessages(loadedMessages);
           setChatStarted(true);
@@ -979,6 +982,7 @@ const NewChat = () => {
         }),
         ...(m.schoolFundingData && { schoolFundingData: m.schoolFundingData }),
         ...(m.feedback !== undefined && { feedback: m.feedback }),
+        ...(m.promptLog && { promptLog: m.promptLog }),
       }));
       // Apply the feedback update to the persisted copy too
       const finalMessages = persistedMessages.map(m =>
@@ -1120,6 +1124,7 @@ const NewChat = () => {
         timestamp: new Date().toISOString(),
         ...(m.schoolFundingData && { schoolFundingData: m.schoolFundingData }),
         ...(m.feedback !== undefined && { feedback: m.feedback }),
+        ...(m.promptLog && { promptLog: m.promptLog }),
       }));
       await updateMessages(sessionId, persistedMessages);
     }
@@ -1324,7 +1329,8 @@ const NewChat = () => {
               citations: responseCitations,
               perplexityCitations: isPerplexityModel ? perplexityCitations : undefined,
               isPerplexityResponse: isPerplexityModel,
-              reasoning: reasoning || undefined
+              reasoning: reasoning || undefined,
+              promptLog: composedSystemContext || undefined,
             }
           : msg
       ));
@@ -1393,6 +1399,8 @@ const NewChat = () => {
           }),
           ...('schoolFundingData' in m && m.schoolFundingData && { schoolFundingData: m.schoolFundingData }),
           ...('feedback' in m && m.feedback !== undefined && { feedback: m.feedback }),
+          // Attach promptLog to assistant message for fine-tuning data
+          ...(m.id === messageId && composedSystemContext && { promptLog: composedSystemContext }),
         }));
         await updateMessages(sessionId, persistedMessages);
         console.log('[NewChat] Saved assistant response to session:', sessionId);
