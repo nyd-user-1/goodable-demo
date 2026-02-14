@@ -69,6 +69,7 @@ interface ChatMessage {
   timestamp: Date;
   isStreaming?: boolean;
   streamedContent?: string;
+  feedback?: 'good' | 'bad' | null;
 }
 
 const CONTRACTS_SYSTEM_PROMPT = `You are an expert on New York State government contracts and procurement. You have access to official contract data from the NYS Comptroller's Office.
@@ -236,6 +237,12 @@ export function ContractsChatDrawer({
       prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m))
     );
     setIsLoading(false);
+  };
+
+  const handleFeedback = (messageId: string, feedbackValue: 'good' | 'bad' | null) => {
+    setMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, feedback: feedbackValue } : m
+    ));
   };
 
   const sendMessage = async (text: string) => {
@@ -503,6 +510,9 @@ export function ContractsChatDrawer({
                       assistantMessageText={displayContent}
                       onSendMessage={sendMessage}
                       hideCreateExcerpt={false}
+                      messageId={msg.id}
+                      feedback={msg.feedback}
+                      onFeedback={handleFeedback}
                     />
                   )}
                 </div>

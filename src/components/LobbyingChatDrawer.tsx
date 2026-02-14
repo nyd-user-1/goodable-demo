@@ -68,6 +68,7 @@ interface ChatMessage {
   timestamp: Date;
   isStreaming?: boolean;
   streamedContent?: string;
+  feedback?: 'good' | 'bad' | null;
 }
 
 const LOBBYING_SYSTEM_PROMPT = `You are an expert on New York State lobbying data and regulations. You have access to official JCOPE (Joint Commission on Public Ethics) lobbying disclosure filings.
@@ -224,6 +225,12 @@ export function LobbyingChatDrawer({
       prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m))
     );
     setIsLoading(false);
+  };
+
+  const handleFeedback = (messageId: string, feedbackValue: 'good' | 'bad' | null) => {
+    setMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, feedback: feedbackValue } : m
+    ));
   };
 
   const sendMessage = async (text: string) => {
@@ -491,6 +498,9 @@ export function LobbyingChatDrawer({
                       assistantMessageText={displayContent}
                       onSendMessage={sendMessage}
                       hideCreateExcerpt={false}
+                      messageId={msg.id}
+                      feedback={msg.feedback}
+                      onFeedback={handleFeedback}
                     />
                   )}
                 </div>

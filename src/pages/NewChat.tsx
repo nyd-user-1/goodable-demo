@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useLocation, useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChatPersistence } from "@/hooks/useChatPersistence";
@@ -271,6 +271,7 @@ interface Message {
   isContractChat?: boolean;
   reasoning?: string;
   reasoningDuration?: number;
+  feedback?: 'good' | 'bad' | null;
 }
 
 const NewChat = () => {
@@ -567,6 +568,7 @@ const NewChat = () => {
             ...(msg.citations && { citations: msg.citations }),
             ...(msg.relatedBills && { relatedBills: msg.relatedBills }),
             ...(msg.schoolFundingData && { schoolFundingData: msg.schoolFundingData }),
+            ...(msg.feedback !== undefined && { feedback: msg.feedback }),
           }));
           setMessages(loadedMessages);
           setChatStarted(true);
@@ -963,6 +965,37 @@ const NewChat = () => {
     });
   };
 
+  const handleFeedback = useCallback(async (messageId: string, feedbackValue: 'good' | 'bad' | null) => {
+    // Update local state
+    setMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, feedback: feedbackValue } : m
+    ));
+
+    // Persist to DB if we have an active session
+    if (shouldPersist && currentSessionId) {
+      const updatedMessages = messages.map(m =>
+        m.id === messageId ? { ...m, feedback: feedbackValue } : m
+      );
+      const persistedMessages = updatedMessages.map(m => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        timestamp: new Date().toISOString(),
+        ...(m.role === 'assistant' && m.citations && {
+          citations: m.citations,
+          relatedBills: m.relatedBills,
+        }),
+        ...(m.schoolFundingData && { schoolFundingData: m.schoolFundingData }),
+        ...(m.feedback !== undefined && { feedback: m.feedback }),
+      }));
+      // Apply the feedback update to the persisted copy too
+      const finalMessages = persistedMessages.map(m =>
+        m.id === messageId ? { ...m, feedback: feedbackValue } : m
+      );
+      await updateMessages(currentSessionId, finalMessages);
+    }
+  }, [messages, shouldPersist, currentSessionId, updateMessages]);
+
   const handleSubmit = async (e: React.FormEvent | null, promptText?: string, systemContext?: string) => {
     if (e) e.preventDefault();
 
@@ -1094,6 +1127,7 @@ const NewChat = () => {
         content: m.content,
         timestamp: new Date().toISOString(),
         ...(m.schoolFundingData && { schoolFundingData: m.schoolFundingData }),
+        ...(m.feedback !== undefined && { feedback: m.feedback }),
       }));
       await updateMessages(sessionId, persistedMessages);
     }
@@ -1457,6 +1491,7 @@ const NewChat = () => {
             relatedBills: m.relatedBills,
           }),
           ...('schoolFundingData' in m && m.schoolFundingData && { schoolFundingData: m.schoolFundingData }),
+          ...('feedback' in m && m.feedback !== undefined && { feedback: m.feedback }),
         }));
         await updateMessages(sessionId, persistedMessages);
         console.log('[NewChat] Saved assistant response to session:', sessionId);
@@ -2026,6 +2061,9 @@ const NewChat = () => {
                         }
                         assistantMessageText={message.content}
                         parentSessionId={currentSessionId || undefined}
+                        messageId={message.id}
+                        feedback={message.feedback}
+                        onFeedback={handleFeedback}
                       />
                     )}
                   </div>

@@ -60,6 +60,10 @@ interface ChatResponseFooterProps {
   parentSessionId?: string;
   hideCreateExcerpt?: boolean;
   onExcerptCreated?: () => void;
+  // Props for thumbs up/down feedback
+  messageId?: string;
+  feedback?: 'good' | 'bad' | null;
+  onFeedback?: (messageId: string, feedback: 'good' | 'bad' | null) => void;
 }
 
 export function ChatResponseFooter({
@@ -74,7 +78,10 @@ export function ChatResponseFooter({
   assistantMessageText,
   parentSessionId,
   hideCreateExcerpt = false,
-  onExcerptCreated
+  onExcerptCreated,
+  messageId,
+  feedback,
+  onFeedback
 }: ChatResponseFooterProps) {
   const hasBills = bills && bills.length > 0;
   const hasSources = sources && sources.length > 0;
@@ -92,6 +99,7 @@ export function ChatResponseFooter({
   const [showCitations, setShowCitations] = useState(false);
   const [copied, setCopied] = useState(false);
   const [emailSheetOpen, setEmailSheetOpen] = useState(false);
+  const [feedbackState, setFeedbackState] = useState<'good' | 'bad' | null>(feedback ?? null);
   const accordionRef = useRef<HTMLDivElement>(null);
 
   const handlePDFView = async (billNumber: string, billTitle: string, e: React.MouseEvent) => {
@@ -558,6 +566,54 @@ export function ChatResponseFooter({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {/* Thumbs Up/Down Feedback */}
+          {onFeedback && messageId && (
+            <div className="flex items-center gap-1 ml-auto">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={`h-8 w-8 ${
+                      feedbackState === 'good'
+                        ? 'text-green-600 hover:text-green-600 hover:bg-green-50'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                    onClick={() => {
+                      const next = feedbackState === 'good' ? null : 'good';
+                      setFeedbackState(next);
+                      onFeedback(messageId, next);
+                    }}
+                  >
+                    <ThumbsUp className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Good response</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={`h-8 w-8 ${
+                      feedbackState === 'bad'
+                        ? 'text-red-500 hover:text-red-500 hover:bg-red-50'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                    onClick={() => {
+                      const next = feedbackState === 'bad' ? null : 'bad';
+                      setFeedbackState(next);
+                      onFeedback(messageId, next);
+                    }}
+                  >
+                    <ThumbsDown className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Bad response</TooltipContent>
+              </Tooltip>
+            </div>
+          )}
         </div>
       )}
 

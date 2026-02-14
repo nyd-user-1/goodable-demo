@@ -72,6 +72,7 @@ interface ChatMessage {
   timestamp: Date;
   isStreaming?: boolean;
   streamedContent?: string;
+  feedback?: 'good' | 'bad' | null;
 }
 
 const VOTES_SYSTEM_PROMPT = `You are an expert on New York State legislative voting records. You have access to official roll call vote data from the NY Senate and Assembly.
@@ -223,6 +224,12 @@ export function VotesChatDrawer({
       prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m))
     );
     setIsLoading(false);
+  };
+
+  const handleFeedback = (messageId: string, feedbackValue: 'good' | 'bad' | null) => {
+    setMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, feedback: feedbackValue } : m
+    ));
   };
 
   const sendMessage = async (text: string) => {
@@ -486,6 +493,9 @@ export function VotesChatDrawer({
                       assistantMessageText={displayContent}
                       onSendMessage={sendMessage}
                       hideCreateExcerpt={false}
+                      messageId={msg.id}
+                      feedback={msg.feedback}
+                      onFeedback={handleFeedback}
                     />
                   )}
                 </div>

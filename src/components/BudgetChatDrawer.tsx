@@ -69,6 +69,7 @@ interface ChatMessage {
   timestamp: Date;
   isStreaming?: boolean;
   streamedContent?: string;
+  feedback?: 'good' | 'bad' | null;
 }
 
 // Map parent function names to DB agency names for appropriation queries
@@ -356,6 +357,12 @@ export function BudgetChatDrawer({
     setIsLoading(false);
   };
 
+  const handleFeedback = (messageId: string, feedbackValue: 'good' | 'bad' | null) => {
+    setMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, feedback: feedbackValue } : m
+    ));
+  };
+
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
 
@@ -617,6 +624,9 @@ export function BudgetChatDrawer({
                       assistantMessageText={displayContent}
                       onSendMessage={sendMessage}
                       hideCreateExcerpt={false}
+                      messageId={msg.id}
+                      feedback={msg.feedback}
+                      onFeedback={handleFeedback}
                     />
                   )}
                 </div>

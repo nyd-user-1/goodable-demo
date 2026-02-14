@@ -20,6 +20,7 @@ interface PersistedMessage {
   citations?: BillCitation[];
   relatedBills?: BillCitation[];
   schoolFundingData?: Record<string, any>;
+  feedback?: 'good' | 'bad' | null;
 }
 
 interface ChatSessionData {
