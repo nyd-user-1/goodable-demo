@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft, Trash2, FileText, MoreHorizontal, Bold, Italic,
@@ -78,7 +78,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
-import { useModel, ModelType } from "@/contexts/ModelContext";
+import { useChatDrawer } from "@/hooks/useChatDrawer";
 import ReactMarkdown from "react-markdown";
 
 interface BillData {
@@ -117,15 +117,11 @@ const NoteView = () => {
   const [parentChat, setParentChat] = useState<ChatSession | null>(null);
   const [wordCountLimit, setWordCountLimit] = useState<number>(250);
   const [chatInput, setChatInput] = useState("");
-  const [chatMessages, setChatMessages] = useState<Array<{ id: string; role: 'user' | 'assistant'; content: string }>>([]);
-  const [isChatLoading, setIsChatLoading] = useState(false);
-  const { selectedModel, setSelectedModel } = useModel();
   const [fileDetailsOpen, setFileDetailsOpen] = useState(true);
   const [snippetOpen, setSnippetOpen] = useState(true);
   const [showTagInput, setShowTagInput] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [snippetText, setSnippetText] = useState("");
-  const abortControllerRef = useRef<AbortController | null>(null);
   const documentContentRef = useRef<HTMLDivElement>(null);
   const chatContentRef = useRef<HTMLDivElement>(null);
   const snippetSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -156,14 +152,6 @@ const NoteView = () => {
     toast({ title: "Copied to clipboard" });
   }, [toast]);
 
-  // Stop streaming
-  const stopStreaming = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-      setIsChatLoading(false);
-    }
-  }, []);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const titleSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const editorRef = useRef<TipTapEditorRef>(null);
@@ -430,6 +418,23 @@ const NoteView = () => {
   const wordCount = htmlContent ? getPlainText(htmlContent).trim().split(/\s+/).filter(Boolean).length : 0;
   const characterCount = htmlContent ? getPlainText(htmlContent).length : 0;
 
+  // Chat hook — replaces inline streaming logic
+  const noteContent = useMemo(() => getPlainText(htmlContent), [htmlContent, getPlainText]);
+  const sessionContext = useMemo(
+    () => ({
+      noteTitle: editableTitle || note?.title || '',
+      noteContent,
+    }),
+    [editableTitle, note?.title, noteContent],
+  );
+
+  const chat = useChatDrawer({
+    entityType: 'note',
+    entityName: editableTitle || note?.title,
+    sessionContext,
+    wordCountLimit,
+  });
+
   // Export functions
   const handleExportPDF = useCallback(async () => {
     const plainText = getPlainText(htmlContent);
@@ -528,142 +533,11 @@ const NoteView = () => {
   }, [toast]);
 
   // Send chat message about the note
-  const sendChatMessage = useCallback(async () => {
-    if (!chatInput.trim() || !note) return;
-
-    const userMessage = {
-      id: crypto.randomUUID(),
-      role: 'user' as const,
-      content: chatInput
-    };
-
-    const updatedMessages = [...chatMessages, userMessage];
-    setChatMessages(updatedMessages);
+  const handleSendMessage = useCallback(() => {
+    if (!chatInput.trim()) return;
+    chat.sendMessage(chatInput);
     setChatInput("");
-    setIsChatLoading(true);
-
-    // Create streaming message placeholder
-    const assistantMessageId = crypto.randomUUID();
-    const streamingMessage = {
-      id: assistantMessageId,
-      role: 'assistant' as const,
-      content: ""
-    };
-    setChatMessages([...updatedMessages, streamingMessage]);
-
-    try {
-      const noteContent = getPlainText(htmlContent);
-      const noteTitle = editableTitle || note.title;
-
-      // Build a comprehensive prompt that includes the full note context
-      const contextualPrompt = `I have a note titled "${noteTitle}" with the following content:
-
----
-${noteContent}
----
-
-Based on this note, please answer the following question (limit response to approximately ${wordCountLimit} words):
-
-${chatInput}`;
-
-      const supabaseUrl = supabase.supabaseUrl;
-      const { data: { session } } = await supabase.auth.getSession();
-
-      abortControllerRef.current = new AbortController();
-
-      const response = await fetch(`${supabaseUrl}/functions/v1/generate-with-openai`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token || supabase.supabaseKey}`,
-          'apikey': supabase.supabaseKey,
-        },
-        body: JSON.stringify({
-          prompt: contextualPrompt,
-          type: 'chat',
-          stream: true,
-          fastMode: true,
-          context: {
-            chatType: 'note',
-            title: noteTitle,
-            noteContent: noteContent.slice(0, 8000), // Limit context size
-            previousMessages: chatMessages.slice(-5)
-          }
-        }),
-        signal: abortControllerRef.current.signal
-      });
-
-      if (!response.ok) {
-        throw new Error(`Edge function error: ${response.status}`);
-      }
-
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let aiResponse = '';
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6);
-              if (data === '[DONE]') continue;
-
-              try {
-                const parsed = JSON.parse(data);
-                let content = '';
-                if (parsed.choices?.[0]?.delta?.content) {
-                  content = parsed.choices[0].delta.content;
-                } else if (parsed.delta?.text) {
-                  content = parsed.delta.text;
-                }
-
-                if (content) {
-                  aiResponse += content;
-                  setChatMessages(prev => prev.map(msg =>
-                    msg.id === assistantMessageId
-                      ? { ...msg, content: aiResponse }
-                      : msg
-                  ));
-                }
-              } catch {
-                // Skip invalid JSON chunks
-              }
-            }
-          }
-        }
-      }
-
-      if (!aiResponse) {
-        aiResponse = 'Unable to generate response. Please try again.';
-        setChatMessages(prev => prev.map(msg =>
-          msg.id === assistantMessageId
-            ? { ...msg, content: aiResponse }
-            : msg
-        ));
-      }
-
-    } catch (error: any) {
-      if (error.name !== 'AbortError') {
-        toast({
-          title: "Error",
-          description: "Failed to send message. Please try again.",
-          variant: "destructive"
-        });
-        // Remove streaming message on error
-        setChatMessages(updatedMessages);
-      }
-    } finally {
-      setIsChatLoading(false);
-      abortControllerRef.current = null;
-    }
-  }, [chatInput, chatMessages, note, editableTitle, htmlContent, getPlainText, wordCountLimit, selectedModel, toast]);
-
+  }, [chatInput, chat]);
 
   if (!user) {
     return (
@@ -1036,24 +910,24 @@ ${chatInput}`;
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm" className="h-8 gap-1 font-normal max-w-[220px]">
                             <span className="truncate text-sm">
-                              {chatMessages.length > 0
-                                ? (chatMessages[0]?.content?.slice(0, 30) + (chatMessages[0]?.content?.length > 30 ? '...' : ''))
+                              {chat.messages.length > 0
+                                ? (chat.messages[0]?.content?.slice(0, 30) + (chat.messages[0]?.content?.length > 30 ? '...' : ''))
                                 : "New chat"}
                             </span>
                             <ChevronDown className="h-3 w-3 flex-shrink-0 opacity-50" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="w-64">
-                          <DropdownMenuItem onClick={() => setChatMessages([])}>
+                          <DropdownMenuItem onClick={() => chat.clearMessages()}>
                             New chat
                           </DropdownMenuItem>
-                          {chatMessages.length > 0 && (
+                          {chat.messages.length > 0 && (
                             <>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem className="flex flex-col items-start gap-0.5">
                                 <span className="text-xs text-muted-foreground">Current</span>
                                 <span className="truncate w-full">
-                                  {chatMessages[0]?.content?.slice(0, 40)}{chatMessages[0]?.content?.length > 40 ? '...' : ''}
+                                  {chat.messages[0]?.content?.slice(0, 40)}{chat.messages[0]?.content?.length > 40 ? '...' : ''}
                                 </span>
                               </DropdownMenuItem>
                             </>
@@ -1069,12 +943,12 @@ ${chatInput}`;
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuItem onClick={() => setChatMessages([])}>
+                          <DropdownMenuItem onClick={() => chat.clearMessages()}>
                             <MessageSquare className="h-4 w-4 mr-2" />
                             New chat
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => {
-                            const text = chatMessages.map(m => `${m.role}: ${m.content}`).join('\n\n');
+                            const text = chat.messages.map(m => `${m.role}: ${m.content}`).join('\n\n');
                             navigator.clipboard.writeText(text);
                             toast({ title: "Messages copied" });
                           }}>
@@ -1082,7 +956,7 @@ ${chatInput}`;
                             Copy messages
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => {
-                            const text = chatMessages.map(m => `${m.role}: ${m.content}`).join('\n\n');
+                            const text = chat.messages.map(m => `${m.role}: ${m.content}`).join('\n\n');
                             const blob = new Blob([text], { type: 'text/plain' });
                             const url = URL.createObjectURL(blob);
                             const a = document.createElement('a');
@@ -1117,14 +991,14 @@ ${chatInput}`;
                       </div>
 
                       {/* Messages or Empty State */}
-                      {chatMessages.length === 0 ? (
+                      {chat.messages.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-[calc(100%-80px)] text-center text-muted-foreground">
                           <MessageSquare className="h-12 w-12 mb-4 opacity-20" />
                           <p className="text-sm">Ask questions about this note</p>
                         </div>
                       ) : (
                         <div className="space-y-4 pb-12">
-                          {chatMessages.map((message, index) => (
+                          {chat.messages.map((message, index) => (
                             <div key={message.id}>
                               {message.role === "user" ? (
                                 /* User message - right-aligned light bubble with dark text */
@@ -1136,7 +1010,7 @@ ${chatInput}`;
                               ) : (
                                 /* Assistant message - full-width markdown, no bubble */
                                 <div className="w-full">
-                                  {!message.content && isChatLoading ? (
+                                  {!message.content && chat.isLoading ? (
                                     /* Blinking typewriter cursor when waiting for response */
                                     <div className="text-sm py-2">
                                       <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1">|</span>
@@ -1159,13 +1033,13 @@ ${chatInput}`;
                                           {message.content}
                                         </ReactMarkdown>
                                         {/* Streaming cursor - shows at end of content while loading */}
-                                        {isChatLoading && index === chatMessages.length - 1 && message.content && (
+                                        {chat.isLoading && index === chat.messages.length - 1 && message.content && (
                                           <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1">|</span>
                                         )}
                                       </div>
 
                                       {/* Footer Actions - only show when not streaming */}
-                                      {!(isChatLoading && index === chatMessages.length - 1) && (
+                                      {!(chat.isLoading && index === chat.messages.length - 1) && (
                                         <div className="flex items-center gap-1 mt-2 pt-2 border-t border-transparent hover:border-muted">
                                           <Button
                                             variant="ghost"
@@ -1225,7 +1099,7 @@ ${chatInput}`;
                       )}
 
                       {/* Scroll to bottom button - inside chat area */}
-                      {chatMessages.length > 0 && (
+                      {chat.messages.length > 0 && (
                         <button
                           onClick={scrollChatToBottom}
                           className="sticky bottom-2 left-1/2 -translate-x-1/2 w-8 h-8 bg-background border rounded-full shadow-md flex items-center justify-center hover:bg-muted transition-colors z-10"
@@ -1256,13 +1130,13 @@ ${chatInput}`;
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                               e.preventDefault();
-                              sendChatMessage();
+                              handleSendMessage();
                             }
                           }}
                           placeholder="Ask this note a question..."
                           className="min-h-[60px] max-h-[120px] resize-none border-0 border-x border-transparent focus-visible:ring-0 focus-visible:border-x focus-visible:border-transparent rounded-none bg-background"
                           rows={2}
-                          disabled={isChatLoading}
+                          disabled={chat.isLoading}
                         />
 
                         {/* Toolbar */}
@@ -1273,20 +1147,20 @@ ${chatInput}`;
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs px-2">
                                   {/* Show provider icon based on selected model */}
-                                  {selectedModel.startsWith("gpt") ? (
+                                  {chat.selectedModel.startsWith("gpt") ? (
                                     <OpenAIIcon className="h-3.5 w-3.5" />
-                                  ) : selectedModel.startsWith("claude") ? (
+                                  ) : chat.selectedModel.startsWith("claude") ? (
                                     <ClaudeIcon className="h-3.5 w-3.5" />
                                   ) : (
                                     <PerplexityIcon className="h-3.5 w-3.5" />
                                   )}
                                   <span className="hidden sm:inline">
-                                    {selectedModel === "gpt-4o" ? "GPT-4o" :
-                                     selectedModel === "gpt-4o-mini" ? "GPT-4o Mini" :
-                                     selectedModel === "gpt-4-turbo" ? "GPT-4 Turbo" :
-                                     selectedModel === "claude-sonnet-4-5-20250929" ? "Claude Sonnet" :
-                                     selectedModel === "claude-haiku-4-5-20251001" ? "Claude Haiku" :
-                                     selectedModel === "claude-opus-4-5-20251101" ? "Claude Opus" :
+                                    {chat.selectedModel === "gpt-4o" ? "GPT-4o" :
+                                     chat.selectedModel === "gpt-4o-mini" ? "GPT-4o Mini" :
+                                     chat.selectedModel === "gpt-4-turbo" ? "GPT-4 Turbo" :
+                                     chat.selectedModel === "claude-sonnet-4-5-20250929" ? "Claude Sonnet" :
+                                     chat.selectedModel === "claude-haiku-4-5-20251001" ? "Claude Haiku" :
+                                     chat.selectedModel === "claude-opus-4-5-20251101" ? "Claude Opus" :
                                      "Model"}
                                   </span>
                                   <ChevronDown className="h-3 w-3 opacity-50" />
@@ -1295,52 +1169,52 @@ ${chatInput}`;
                               <DropdownMenuContent align="start" className="w-56">
                                 {/* OpenAI Models */}
                                 <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">OpenAI</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => setSelectedModel("gpt-4o")} className="flex items-center justify-between">
+                                <DropdownMenuItem onClick={() => chat.setSelectedModel("gpt-4o")} className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
                                     <OpenAIIcon className="h-4 w-4" />
                                     <span>GPT-4o</span>
                                   </div>
-                                  {selectedModel === "gpt-4o" && <Check className="h-4 w-4" />}
+                                  {chat.selectedModel === "gpt-4o" && <Check className="h-4 w-4" />}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setSelectedModel("gpt-4o-mini")} className="flex items-center justify-between">
+                                <DropdownMenuItem onClick={() => chat.setSelectedModel("gpt-4o-mini")} className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
                                     <OpenAIIcon className="h-4 w-4" />
                                     <span>GPT-4o Mini</span>
                                   </div>
-                                  {selectedModel === "gpt-4o-mini" && <Check className="h-4 w-4" />}
+                                  {chat.selectedModel === "gpt-4o-mini" && <Check className="h-4 w-4" />}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setSelectedModel("gpt-4-turbo")} className="flex items-center justify-between">
+                                <DropdownMenuItem onClick={() => chat.setSelectedModel("gpt-4-turbo")} className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
                                     <OpenAIIcon className="h-4 w-4" />
                                     <span>GPT-4 Turbo</span>
                                   </div>
-                                  {selectedModel === "gpt-4-turbo" && <Check className="h-4 w-4" />}
+                                  {chat.selectedModel === "gpt-4-turbo" && <Check className="h-4 w-4" />}
                                 </DropdownMenuItem>
 
                                 <DropdownMenuSeparator />
 
                                 {/* Anthropic Models */}
                                 <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">Anthropic</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => setSelectedModel("claude-sonnet-4-5-20250929")} className="flex items-center justify-between">
+                                <DropdownMenuItem onClick={() => chat.setSelectedModel("claude-sonnet-4-5-20250929")} className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
                                     <ClaudeIcon className="h-4 w-4" />
                                     <span>Claude Sonnet</span>
                                   </div>
-                                  {selectedModel === "claude-sonnet-4-5-20250929" && <Check className="h-4 w-4" />}
+                                  {chat.selectedModel === "claude-sonnet-4-5-20250929" && <Check className="h-4 w-4" />}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setSelectedModel("claude-haiku-4-5-20251001")} className="flex items-center justify-between">
+                                <DropdownMenuItem onClick={() => chat.setSelectedModel("claude-haiku-4-5-20251001")} className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
                                     <ClaudeIcon className="h-4 w-4" />
                                     <span>Claude Haiku</span>
                                   </div>
-                                  {selectedModel === "claude-haiku-4-5-20251001" && <Check className="h-4 w-4" />}
+                                  {chat.selectedModel === "claude-haiku-4-5-20251001" && <Check className="h-4 w-4" />}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setSelectedModel("claude-opus-4-5-20251101")} className="flex items-center justify-between">
+                                <DropdownMenuItem onClick={() => chat.setSelectedModel("claude-opus-4-5-20251101")} className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
                                     <ClaudeIcon className="h-4 w-4" />
                                     <span>Claude Opus</span>
                                   </div>
-                                  {selectedModel === "claude-opus-4-5-20251101" && <Check className="h-4 w-4" />}
+                                  {chat.selectedModel === "claude-opus-4-5-20251101" && <Check className="h-4 w-4" />}
                                 </DropdownMenuItem>
 
                               </DropdownMenuContent>
@@ -1369,12 +1243,12 @@ ${chatInput}`;
                           </div>
 
                           {/* Send/Stop Button */}
-                          {isChatLoading ? (
+                          {chat.isLoading ? (
                             <Button
                               size="icon"
                               variant="destructive"
                               className="h-7 w-7 rounded-full"
-                              onClick={stopStreaming}
+                              onClick={chat.stopStream}
                             >
                               <Square className="h-3 w-3 fill-current" />
                             </Button>
@@ -1383,7 +1257,7 @@ ${chatInput}`;
                               size="icon"
                               className="h-7 w-7 rounded-full bg-foreground hover:bg-foreground/90 text-background"
                               disabled={!chatInput.trim()}
-                              onClick={sendChatMessage}
+                              onClick={handleSendMessage}
                             >
                               <ArrowUp className="h-3.5 w-3.5" />
                             </Button>
