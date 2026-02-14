@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { supabase } from "@/integrations/supabase/client";
-import ReactMarkdown from "react-markdown";
+import { ChatMarkdown } from "@/components/shared/ChatMarkdown";
 import { ChatResponseFooter } from "@/components/ChatResponseFooter";
 import {
   AlertDialog,
@@ -255,40 +255,7 @@ const ExcerptView = () => {
             <ChatResponseFooter
               isStreaming={false}
               messageContent={
-                <ReactMarkdown
-                  components={{
-                    p: ({ children }) => (
-                      <p className="mb-3 leading-relaxed text-foreground">
-                        {children}
-                      </p>
-                    ),
-                    strong: ({ children }) => (
-                      <strong className="font-semibold text-foreground">
-                        {children}
-                      </strong>
-                    ),
-                    h1: ({ children }) => (
-                      <h1 className="text-xl font-semibold mb-3 text-foreground">
-                        {children}
-                      </h1>
-                    ),
-                    h2: ({ children }) => (
-                      <h2 className="text-lg font-semibold mb-2 text-foreground">
-                        {children}
-                      </h2>
-                    ),
-                    ul: ({ children }) => (
-                      <ul className="list-disc pl-5 mb-3 space-y-1">
-                        {children}
-                      </ul>
-                    ),
-                    li: ({ children }) => (
-                      <li className="text-foreground text-sm">{children}</li>
-                    ),
-                  }}
-                >
-                  {excerpt.assistant_message}
-                </ReactMarkdown>
+                <ChatMarkdown>{excerpt.assistant_message}</ChatMarkdown>
               }
               bills={bill ? [bill] : []}
               relatedBills={[]}

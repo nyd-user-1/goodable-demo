@@ -28,6 +28,7 @@ import {
   SCHOOL_FUNDING_PROMPT,
   STANDALONE_PROMPT,
   DATA_GROUNDING_INSTRUCTION,
+  INTERNAL_LINKING_INSTRUCTION,
 } from './domainPrompts';
 
 // ---------------------------------------------------------------------------
@@ -216,7 +217,7 @@ export function composeSystemPrompt(config: SystemPromptConfig): string {
   const contextLayer = buildContextLayer(config);
   const metadataLayer = buildMetadataLayer(config.metadata);
 
-  return [baseLayer, contextLayer, metadataLayer]
+  return [baseLayer, INTERNAL_LINKING_INSTRUCTION, contextLayer, metadataLayer]
     .filter(Boolean)
     .join('\n\n---\n\n');
 }

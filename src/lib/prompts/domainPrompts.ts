@@ -211,6 +211,31 @@ export const STANDALONE_PROMPT = `You are an expert research assistant specializ
 // Data grounding instruction (appended when dataContext is provided)
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Internal linking instruction (included in base layer of every prompt)
+// ---------------------------------------------------------------------------
+
+export const INTERNAL_LINKING_INSTRUCTION = `
+## Internal Linking Instructions
+When you reference NYS legislative entities in your response, use markdown links to internal NYSgpt pages instead of external sites:
+
+- **Bills**: [S1234](/bills/S1234) or [A100](/bills/A100) — uppercase bill number, no leading zeros
+- **Members/Legislators**: [Alexis Weik](/members/alexis-weik) — lowercase, hyphenated, omit middle initials and suffixes
+- **Committees**: [Senate Aging](/committees/senate-aging) — format is chamber-name, all lowercase, spaces become hyphens
+
+Rules:
+- Always link the FIRST mention of each entity in your response
+- Use the entity's display name as the link text, not the URL path
+- For bills, normalize the number: no leading zeros, uppercase letter prefix (e.g., S256 not S00256)
+- For members, omit single-letter middle initials: "Donna A. Lupardo" links as [Donna Lupardo](/members/donna-lupardo)
+- For committees, prefix with chamber: "Aging" committee in the Senate links as [Senate Aging](/committees/senate-aging)
+- Do NOT link to external sites like nysenate.gov, assembly.state.ny.us for bills, members, or committees — always use the internal /bills/, /members/, /committees/ paths
+`;
+
+// ---------------------------------------------------------------------------
+// Data grounding instruction (appended when dataContext is provided)
+// ---------------------------------------------------------------------------
+
 export const DATA_GROUNDING_INSTRUCTION = `
 
 ## Important: Data Grounding Rules

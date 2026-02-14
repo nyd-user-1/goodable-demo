@@ -31,7 +31,7 @@ import {
   buildSchoolFundingContext,
   type SchoolFundingDetails,
 } from "@/lib/context/schoolFundingContext";
-import ReactMarkdown from 'react-markdown';
+import { ChatMarkdown } from '@/components/shared/ChatMarkdown';
 import { useModel } from "@/contexts/ModelContext";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatHeader } from "@/components/ChatHeader";
@@ -1078,6 +1078,7 @@ const NewChat = () => {
     setSelectedMembers([]);
     setSelectedBills([]);
     setSelectedCommittees([]);
+    setSelectedContracts([]);
     setAttachedFiles([]);
     setIsTyping(true);
 
@@ -1169,18 +1170,22 @@ const NewChat = () => {
       const { data: { session } } = await supabase.auth.getSession();
 
       // Build composed system context for special chat modes
-      let composedSystemContext = systemContext || undefined;
+      let composedSystemContext = systemContext || composeSystemPrompt({ entityType: 'standalone' });
 
       if (isContractChat) {
         try {
-          const contractMatch = userQuery.match(/\[Contract:([^\]]+)\]/);
-          const contractNumber = contractMatch?.[1];
+          // Get contract number from selected contracts (icon picker) or from [Contract:] pattern (URL flow)
+          const contractNumber =
+            selectedContracts[0]?.contract_number ||
+            userQuery.match(/\[Contract:([^\]]+)\]/)?.[1];
           if (contractNumber) {
             const dataContext = await buildContractContext(contractNumber);
             if (dataContext) {
               composedSystemContext = composeSystemPrompt({
                 entityType: 'contract',
+                entityName: selectedContracts[0]?.vendor_name,
                 dataContext,
+                scope: 'vendor',
               });
             }
           }
@@ -1706,114 +1711,12 @@ const NewChat = () => {
                     {message.isStreaming && (
                       <div className="prose prose-sm max-w-none dark:prose-invert">
                         {message.isPerplexityResponse ? (
-                        // Render Perplexity response - strip citation markers for clean display
-                        <ReactMarkdown
-                          components={{
-                            p: ({ children }) => (
-                              <p className="mb-3 leading-relaxed text-foreground">
-                                {children}
-                              </p>
-                            ),
-                            strong: ({ children }) => (
-                              <strong className="font-semibold text-foreground">
-                                {children}
-                              </strong>
-                            ),
-                            h1: ({ children }) => (
-                              <h1 className="text-xl font-semibold mb-3 text-foreground">
-                                {children}
-                              </h1>
-                            ),
-                            h2: ({ children }) => (
-                              <h2 className="text-lg font-semibold mb-2 text-foreground">
-                                {children}
-                              </h2>
-                            ),
-                            h3: ({ children }) => (
-                              <h3 className="text-base font-semibold mb-2 text-foreground">
-                                {children}
-                              </h3>
-                            ),
-                            h4: ({ children }) => (
-                              <h4 className="text-sm font-semibold mb-1 text-foreground">
-                                {children}
-                              </h4>
-                            ),
-                            ul: ({ children }) => (
-                              <ul className="list-disc pl-5 mb-3 space-y-1">
-                                {children}
-                              </ul>
-                            ),
-                            li: ({ children }) => (
-                              <li className="text-foreground text-sm">{children}</li>
-                            ),
-                            a: ({ href, children }) => (
-                              <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline">
-                                {children}
-                              </a>
-                            ),
-                          }}
-                        >
-                          {stripCitations(message.streamedContent || '')}
-                        </ReactMarkdown>
+                        <ChatMarkdown>{stripCitations(message.streamedContent || '')}</ChatMarkdown>
                       ) : (
-                        // Standard markdown rendering with progressive clients accordion
                         (() => {
                           const streamContent = message.isStreaming ? message.streamedContent || '' : message.content;
-                          const { cleanContent, isLoadingClients, partialClients } = stripClientsSection(streamContent);
-                          return (
-                            <>
-                              <ReactMarkdown
-                                components={{
-                                  p: ({ children }) => (
-                                    <p className="mb-3 leading-relaxed text-foreground">
-                                      {children}
-                                    </p>
-                                  ),
-                                  strong: ({ children }) => (
-                                    <strong className="font-semibold text-foreground">
-                                      {children}
-                                    </strong>
-                                  ),
-                                  h1: ({ children }) => (
-                                    <h1 className="text-xl font-semibold mb-3 text-foreground">
-                                      {children}
-                                    </h1>
-                                  ),
-                                  h2: ({ children }) => (
-                                    <h2 className="text-lg font-semibold mb-2 text-foreground">
-                                      {children}
-                                    </h2>
-                                  ),
-                                  h3: ({ children }) => (
-                                    <h3 className="text-base font-semibold mb-2 text-foreground">
-                                      {children}
-                                    </h3>
-                                  ),
-                                  h4: ({ children }) => (
-                                    <h4 className="text-sm font-semibold mb-1 text-foreground">
-                                      {children}
-                                    </h4>
-                                  ),
-                                  ul: ({ children }) => (
-                                    <ul className="list-disc pl-5 mb-3 space-y-1">
-                                      {children}
-                                    </ul>
-                                  ),
-                                  li: ({ children }) => (
-                                    <li className="text-foreground text-sm">{children}</li>
-                                  ),
-                                  a: ({ href, children }) => (
-                                    <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline">
-                                      {children}
-                                    </a>
-                                  ),
-                                }}
-                              >
-                                {cleanContent}
-                              </ReactMarkdown>
-                            </>
-                          );
+                          const { cleanContent } = stripClientsSection(streamContent);
+                          return <ChatMarkdown>{cleanContent}</ChatMarkdown>;
                         })()
                       )}
                         <span className="inline-block w-1.5 h-4 bg-current animate-pulse ml-0.5">|</span>
@@ -1826,112 +1729,11 @@ const NewChat = () => {
                         isStreaming={message.isStreaming}
                         messageContent={
                           message.isPerplexityResponse ? (
-                            // Perplexity response - strip citation markers for clean display
-                            <ReactMarkdown
-                              components={{
-                                p: ({ children }) => (
-                                  <p className="mb-3 leading-relaxed text-foreground">
-                                    {children}
-                                  </p>
-                                ),
-                                strong: ({ children }) => (
-                                  <strong className="font-semibold text-foreground">
-                                    {children}
-                                  </strong>
-                                ),
-                                h1: ({ children }) => (
-                                  <h1 className="text-xl font-semibold mb-3 text-foreground">
-                                    {children}
-                                  </h1>
-                                ),
-                                h2: ({ children }) => (
-                                  <h2 className="text-lg font-semibold mb-2 text-foreground">
-                                    {children}
-                                  </h2>
-                                ),
-                                h3: ({ children }) => (
-                                  <h3 className="text-base font-semibold mb-2 text-foreground">
-                                    {children}
-                                  </h3>
-                                ),
-                                h4: ({ children }) => (
-                                  <h4 className="text-sm font-semibold mb-1 text-foreground">
-                                    {children}
-                                  </h4>
-                                ),
-                                ul: ({ children }) => (
-                                  <ul className="list-disc pl-5 mb-3 space-y-1">
-                                    {children}
-                                  </ul>
-                                ),
-                                li: ({ children }) => (
-                                  <li className="text-foreground text-sm">{children}</li>
-                                ),
-                                a: ({ href, children }) => (
-                                  <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline">
-                                    {children}
-                                  </a>
-                                ),
-                              }}
-                            >
-                              {stripCitations(message.content)}
-                            </ReactMarkdown>
+                            <ChatMarkdown>{stripCitations(message.content)}</ChatMarkdown>
                           ) : (
                             (() => {
-                              const { mainContent, clients } = parseClientsSection(message.content);
-                              return (
-                                <>
-                                  <ReactMarkdown
-                                    components={{
-                                      p: ({ children }) => (
-                                        <p className="mb-3 leading-relaxed text-foreground">
-                                          {children}
-                                        </p>
-                                      ),
-                                      strong: ({ children }) => (
-                                        <strong className="font-semibold text-foreground">
-                                          {children}
-                                        </strong>
-                                      ),
-                                      h1: ({ children }) => (
-                                        <h1 className="text-xl font-semibold mb-3 text-foreground">
-                                          {children}
-                                        </h1>
-                                      ),
-                                      h2: ({ children }) => (
-                                        <h2 className="text-lg font-semibold mb-2 text-foreground">
-                                          {children}
-                                        </h2>
-                                      ),
-                                      h3: ({ children }) => (
-                                        <h3 className="text-base font-semibold mb-2 text-foreground">
-                                          {children}
-                                        </h3>
-                                      ),
-                                      h4: ({ children }) => (
-                                        <h4 className="text-sm font-semibold mb-1 text-foreground">
-                                          {children}
-                                        </h4>
-                                      ),
-                                      ul: ({ children }) => (
-                                        <ul className="list-disc pl-5 mb-3 space-y-1">
-                                          {children}
-                                        </ul>
-                                      ),
-                                      li: ({ children }) => (
-                                        <li className="text-foreground text-sm">{children}</li>
-                                      ),
-                                      a: ({ href, children }) => (
-                                        <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline">
-                                          {children}
-                                        </a>
-                                      ),
-                                    }}
-                                  >
-                                    {mainContent}
-                                  </ReactMarkdown>
-                                </>
-                              );
+                              const { mainContent } = parseClientsSection(message.content);
+                              return <ChatMarkdown>{mainContent}</ChatMarkdown>;
                             })()
                           )
                         }

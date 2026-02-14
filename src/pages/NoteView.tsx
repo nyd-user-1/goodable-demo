@@ -79,7 +79,7 @@ import { cn } from "@/lib/utils";
 import { NoteViewSidebar } from "@/components/NoteViewSidebar";
 import { MobileMenuIcon, MobileNYSgpt } from '@/components/MobileMenuButton';
 import { useChatDrawer } from "@/hooks/useChatDrawer";
-import ReactMarkdown from "react-markdown";
+import { ChatMarkdown } from "@/components/shared/ChatMarkdown";
 
 interface BillData {
   bill_number: string;
@@ -1018,20 +1018,7 @@ const NoteView = () => {
                                   ) : (
                                     <>
                                       <div className="prose prose-sm dark:prose-invert max-w-none text-sm">
-                                        <ReactMarkdown
-                                          components={{
-                                            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                                            h1: ({ children }) => <h1 className="text-lg font-bold mt-4 mb-2">{children}</h1>,
-                                            h2: ({ children }) => <h2 className="text-base font-bold mt-3 mb-2">{children}</h2>,
-                                            h3: ({ children }) => <h3 className="text-sm font-bold mt-2 mb-1">{children}</h3>,
-                                            ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>,
-                                            ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-1">{children}</ol>,
-                                            li: ({ children }) => <li className="text-sm">{children}</li>,
-                                            strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                                          }}
-                                        >
-                                          {message.content}
-                                        </ReactMarkdown>
+                                        <ChatMarkdown>{message.content}</ChatMarkdown>
                                         {/* Streaming cursor - shows at end of content while loading */}
                                         {chat.isLoading && index === chat.messages.length - 1 && message.content && (
                                           <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1">|</span>

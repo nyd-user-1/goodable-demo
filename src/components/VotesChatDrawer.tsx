@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import ReactMarkdown from 'react-markdown';
+import { ChatMarkdown } from '@/components/shared/ChatMarkdown';
 import {
   Sheet,
   SheetContent,
@@ -247,36 +247,7 @@ export function VotesChatDrawer({
                     <ChatResponseFooter
                       messageContent={
                         <div className="dark:prose-invert">
-                          <ReactMarkdown
-                            components={{
-                              p: ({ children }) => (
-                                <p className="mb-3 leading-relaxed text-foreground">{children}</p>
-                              ),
-                              strong: ({ children }) => (
-                                <strong className="font-semibold text-foreground">{children}</strong>
-                              ),
-                              h1: ({ children }) => (
-                                <h1 className="text-xl font-bold mt-6 mb-3 text-foreground">{children}</h1>
-                              ),
-                              h2: ({ children }) => (
-                                <h2 className="text-lg font-semibold mt-5 mb-2 text-foreground">{children}</h2>
-                              ),
-                              h3: ({ children }) => (
-                                <h3 className="text-base font-semibold mt-4 mb-2 text-foreground">{children}</h3>
-                              ),
-                              ul: ({ children }) => (
-                                <ul className="list-disc pl-6 space-y-1 my-2">{children}</ul>
-                              ),
-                              ol: ({ children }) => (
-                                <ol className="list-decimal pl-6 space-y-1 my-2">{children}</ol>
-                              ),
-                              li: ({ children }) => (
-                                <li className="leading-relaxed text-foreground">{children}</li>
-                              ),
-                            }}
-                          >
-                            {displayContent}
-                          </ReactMarkdown>
+                          <ChatMarkdown>{displayContent}</ChatMarkdown>
                           {msg.isStreaming && (
                             <span className="inline-block w-2 h-4 bg-current animate-pulse ml-1">|</span>
                           )}
