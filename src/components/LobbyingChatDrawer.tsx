@@ -20,9 +20,9 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
 import { ChatResponseFooter } from '@/components/ChatResponseFooter';
-import { useModel } from '@/contexts/ModelContext';
+import { useChatDrawer } from '@/hooks/useChatDrawer';
+import { LOBBYING_SUGGESTED_QUESTIONS } from '@/lib/prompts/domainPrompts';
 
 // Model provider icons
 const OpenAIIcon = ({ className }: { className?: string }) => (
@@ -61,63 +61,6 @@ interface LobbyingChatDrawerProps {
   drillName?: string | null;
 }
 
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  isStreaming?: boolean;
-  streamedContent?: string;
-  feedback?: 'good' | 'bad' | null;
-}
-
-const LOBBYING_SYSTEM_PROMPT = `You are an expert on New York State lobbying data and regulations. You have access to official JCOPE (Joint Commission on Public Ethics) lobbying disclosure filings.
-
-Key facts about NYS lobbying:
-- Lobbyists must register and file semi-annual reports with JCOPE
-- Reports include compensation received, expenses, and client relationships
-- The data covers lobbying activity before the NYS Legislature, Governor, and state agencies
-- "Compensation" refers to payments received for lobbying services
-- "Expenses" include costs incurred in lobbying activities
-- The "Grand Total" is compensation plus reimbursed expenses
-
-When discussing lobbying data:
-1. Be factual and cite specific dollar amounts when available
-2. Explain what the numbers mean in context
-3. Note that large lobbying spending often indicates significant policy interests
-4. Mention that lobbying is legal and regulated in NYS
-5. Avoid making value judgments about whether lobbying is "good" or "bad"
-
-Format your responses clearly with:
-- Bold text for names and key figures
-- Bullet points for lists
-- Clear paragraph breaks`;
-
-const SUGGESTED_QUESTIONS = [
-  'Summarize total lobbying compensation using the actual figures provided',
-  'List the top lobbyists by earnings from the data with amounts',
-  'What patterns do you see in the lobbying data provided?',
-  'How is lobbying spending distributed? Use actual figures',
-];
-
-const LOBBYIST_QUESTIONS = [
-  'List all clients and their compensation amounts from the data provided',
-  'Summarize total compensation with a breakdown using actual figures',
-  'How does this lobbyist compare to the overall totals provided?',
-];
-
-const CLIENT_QUESTIONS = [
-  'Summarize this client\'s lobbying spend using the actual data provided',
-  'What share of the lobbyist\'s total does this client represent?',
-  'Break down this client\'s engagement with amounts from the data',
-];
-
-const DRILL_QUESTIONS = [
-  'Summarize this entity using the details provided',
-  'What is their spending amount and share of the parent total?',
-  'What can you tell me about this entity from the data?',
-];
-
 export function LobbyingChatDrawer({
   open,
   onOpenChange,
@@ -126,39 +69,38 @@ export function LobbyingChatDrawer({
   dataContext,
   drillName,
 }: LobbyingChatDrawerProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { selectedModel, setSelectedModel } = useModel();
   const [wordCountLimit, setWordCountLimit] = useState<number>(250);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const readerRef = useRef<ReadableStreamDefaultReader | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const userScrolledRef = useRef(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
+  // Derive scope and entity name from props
+  const scope = drillName ? 'drill' : lobbyistName ? 'lobbyist' : clientName ? 'client' : undefined;
+  const entityName = drillName || lobbyistName || clientName || undefined;
+
+  const {
+    messages,
+    isLoading,
+    selectedModel,
+    setSelectedModel,
+    sendMessage,
+    stopStream,
+    clearMessages,
+    handleFeedback,
+  } = useChatDrawer({
+    entityType: 'lobbying',
+    entityName: entityName || undefined,
+    scope,
+    dataContext: dataContext || undefined,
+    wordCountLimit,
+  });
+
   // Context label for the pill
   const contextLabel = drillName || lobbyistName || clientName || 'NYS Lobbying';
 
-  // Build context-specific system prompt
-  const dataSection = dataContext ? `\n\n## Actual Lobbying Data\nThe following is real data from JCOPE filings. You MUST use ONLY these actual figures in your responses. Do NOT make up names, amounts, or statistics that are not in this data. If asked about something not in the data, say so rather than guessing.\n\n${dataContext}` : '';
-
-  const systemPrompt = drillName
-    ? `${LOBBYING_SYSTEM_PROMPT}\n\nThe user is asking about "${drillName}". Use the actual data provided below to answer questions with specific dollar amounts and details.${dataSection}`
-    : lobbyistName
-      ? `${LOBBYING_SYSTEM_PROMPT}\n\nThe user is asking about the lobbyist "${lobbyistName}". Use the actual data provided below to answer questions with specific dollar amounts, client names, and details.${dataSection}`
-      : clientName
-        ? `${LOBBYING_SYSTEM_PROMPT}\n\nThe user is asking about the client "${clientName}". Use the actual data provided below to answer questions with specific dollar amounts and details.${dataSection}`
-        : `${LOBBYING_SYSTEM_PROMPT}${dataSection}`;
-
-  const suggestions = drillName
-    ? DRILL_QUESTIONS
-    : lobbyistName
-      ? LOBBYIST_QUESTIONS
-      : clientName
-        ? CLIENT_QUESTIONS
-        : SUGGESTED_QUESTIONS;
+  const suggestions = LOBBYING_SUGGESTED_QUESTIONS[scope || 'default'] || LOBBYING_SUGGESTED_QUESTIONS.default;
 
   // Get the actual scrollable viewport inside Radix ScrollArea
   const getViewport = () =>
@@ -168,16 +110,15 @@ export function LobbyingChatDrawer({
   useEffect(() => {
     if (!open) {
       const timer = setTimeout(() => {
-        setMessages([]);
+        stopStream();
+        clearMessages();
         setInputValue('');
-        setIsLoading(false);
         setShowScrollButton(false);
         userScrolledRef.current = false;
-        stopStream();
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [open]);
+  }, [open, stopStream, clearMessages]);
 
   // Handle scroll events to show/hide scroll-to-bottom button
   useEffect(() => {
@@ -212,175 +153,10 @@ export function LobbyingChatDrawer({
     setShowScrollButton(false);
   };
 
-  const stopStream = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-    if (readerRef.current) {
-      readerRef.current.cancel();
-      readerRef.current = null;
-    }
-    setMessages((prev) =>
-      prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m))
-    );
-    setIsLoading(false);
-  };
-
-  const handleFeedback = (messageId: string, feedbackValue: 'good' | 'bad' | null) => {
-    setMessages(prev => prev.map(m =>
-      m.id === messageId ? { ...m, feedback: feedbackValue } : m
-    ));
-  };
-
-  const sendMessage = async (text: string) => {
-    if (!text.trim()) return;
-
-    const userMsg: ChatMessage = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: text,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
-    setInputValue('');
-    setIsLoading(true);
-
-    const assistantId = `assistant-${Date.now()}`;
-
-    // Add placeholder assistant message for streaming
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: assistantId,
-        role: 'assistant' as const,
-        content: '',
-        timestamp: new Date(),
-        isStreaming: true,
-        streamedContent: '',
-      },
-    ]);
-
-    try {
-      const previousMessages = messages.slice(-10).map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
-
-      // Use direct fetch for real SSE streaming
-      const supabaseUrl = (supabase as any).supabaseUrl;
-      const supabaseKey = (supabase as any).supabaseKey;
-      const { data: { session } } = await supabase.auth.getSession();
-
-      abortControllerRef.current = new AbortController();
-
-      const response = await fetch(
-        `${supabaseUrl}/functions/v1/generate-with-openai`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session?.access_token || supabaseKey}`,
-            apikey: supabaseKey,
-          },
-          body: JSON.stringify({
-            prompt: `${text} (limit response to approximately ${wordCountLimit} words)`,
-            type: 'chat',
-            stream: true,
-            model: selectedModel,
-            context: {
-              systemContext: systemPrompt,
-              previousMessages,
-            },
-            enhanceWithNYSData: false,
-            fastMode: true,
-          }),
-          signal: abortControllerRef.current.signal,
-        }
-      );
-
-      // Stream SSE chunks
-      const reader = response.body?.getReader();
-      readerRef.current = reader || null;
-      const decoder = new TextDecoder();
-      let aiResponse = '';
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6);
-              if (data === '[DONE]') continue;
-
-              try {
-                const parsed = JSON.parse(data);
-                let content = '';
-                if (parsed.choices?.[0]?.delta?.content) {
-                  content = parsed.choices[0].delta.content;
-                } else if (parsed.delta?.text) {
-                  content = parsed.delta.text;
-                }
-
-                if (content) {
-                  aiResponse += content;
-                  setMessages((prev) =>
-                    prev.map((m) =>
-                      m.id === assistantId
-                        ? { ...m, streamedContent: aiResponse, content: aiResponse }
-                        : m
-                    )
-                  );
-                }
-              } catch {
-                // Skip invalid JSON chunks
-              }
-            }
-          }
-        }
-      }
-
-      // Finalize message
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantId
-            ? { ...m, isStreaming: false, content: aiResponse, streamedContent: aiResponse }
-            : m
-        )
-      );
-      setIsLoading(false);
-      readerRef.current = null;
-    } catch (err: any) {
-      if (err?.name === 'AbortError') {
-        setIsLoading(false);
-        return;
-      }
-      console.error('Lobbying chat error:', err);
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantId
-            ? {
-                ...m,
-                isStreaming: false,
-                content: 'Sorry, something went wrong. Please try again.',
-                streamedContent: 'Sorry, something went wrong. Please try again.',
-              }
-            : m
-        )
-      );
-      setIsLoading(false);
-    }
-  };
-
   const handleSend = () => {
     if (inputValue.trim() && !isLoading) {
       sendMessage(inputValue);
+      setInputValue('');
     }
   };
 

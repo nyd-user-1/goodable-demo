@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import {
   Sheet,
@@ -20,9 +20,9 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
 import { ChatResponseFooter } from '@/components/ChatResponseFooter';
-import { useModel } from '@/contexts/ModelContext';
+import { useChatDrawer } from '@/hooks/useChatDrawer';
+import { VOTES_SUGGESTED_QUESTIONS } from '@/lib/prompts/domainPrompts';
 
 // Model provider icons
 const OpenAIIcon = ({ className }: { className?: string }) => (
@@ -65,58 +65,6 @@ interface VotesChatDrawerProps {
   dataContext?: string | null;
 }
 
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  isStreaming?: boolean;
-  streamedContent?: string;
-  feedback?: 'good' | 'bad' | null;
-}
-
-const VOTES_SYSTEM_PROMPT = `You are an expert on New York State legislative voting records. You have access to official roll call vote data from the NY Senate and Assembly.
-
-Key facts about NYS legislative votes:
-- Roll call votes are recorded for both the NY Senate and Assembly
-- Vote types include: Yes/Yea, No/Nay, Not Voting, and Absent
-- Bills pass with a majority of Yes votes (varies by bill type)
-- Data includes member name, party affiliation, vote cast, bill number, bill title, and vote date
-- The legislature has two chambers: Senate (63 members) and Assembly (150 members)
-- Party affiliations are primarily Democrat (D) and Republican (R)
-- Some votes are unanimous while others are closely contested along party lines
-
-When discussing voting data:
-1. Be factual and cite specific vote counts when available
-2. Explain voting patterns and trends in context
-3. Note party-line voting when relevant
-4. Discuss the significance of close or contested votes
-5. Provide context about the legislative process when helpful
-
-Format your responses clearly with:
-- Bold text for names, bill numbers, and key figures
-- Bullet points for lists
-- Clear paragraph breaks`;
-
-const SUGGESTED_QUESTIONS = [
-  'Summarize the voting data with actual totals from the data provided',
-  'List the top members by vote count with their yes/no breakdown',
-  'Which bills had the narrowest margins? Show the actual vote counts',
-  'What party-line patterns do you see in the data provided?',
-];
-
-const MEMBER_QUESTIONS = [
-  'Summarize their voting record using the actual data provided',
-  'List the specific bills they voted No on from the data',
-  'What is their exact yes/no vote breakdown with counts and percentages?',
-];
-
-const BILL_QUESTIONS = [
-  'List how each member voted on this bill using the data provided',
-  'Was this a party-line vote? Show the actual breakdown by party',
-  'Summarize the vote outcome with exact yes/no counts from the data',
-];
-
 export function VotesChatDrawer({
   open,
   onOpenChange,
@@ -129,35 +77,47 @@ export function VotesChatDrawer({
   billVoteDetails,
   dataContext,
 }: VotesChatDrawerProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { selectedModel, setSelectedModel } = useModel();
   const [wordCountLimit, setWordCountLimit] = useState<number>(250);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const readerRef = useRef<ReadableStreamDefaultReader | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const userScrolledRef = useRef(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
+  // Derive scope, entity name, and data from props
+  const scope = memberName ? 'member' : billTitle ? 'bill' : undefined;
+  const entityName = memberName || billTitle || undefined;
+  const resolvedDataContext = memberVoteDetails || billVoteDetails || dataContext || undefined;
+
+  // Session context for scope-specific prompt building (member party, bill number, etc.)
+  const sessionContext = useMemo(() => {
+    if (memberName) return { memberParty: memberParty || undefined };
+    if (billTitle) return { billNumber: billNumber || undefined, billResult: billResult || undefined };
+    return undefined;
+  }, [memberName, memberParty, billTitle, billNumber, billResult]);
+
+  const {
+    messages,
+    isLoading,
+    selectedModel,
+    setSelectedModel,
+    sendMessage,
+    stopStream,
+    clearMessages,
+    handleFeedback,
+  } = useChatDrawer({
+    entityType: 'votes',
+    entityName: entityName || undefined,
+    scope,
+    dataContext: resolvedDataContext || undefined,
+    sessionContext,
+    wordCountLimit,
+  });
+
   // Context label for the pill
   const contextLabel = memberName || billNumber || 'NYS Votes';
 
-  // Build context-specific system prompt
-  const systemPrompt = memberName
-    ? `${VOTES_SYSTEM_PROMPT}\n\nThe user is asking about ${memberName} (${memberParty || 'unknown party'})'s voting record.${memberVoteDetails ? `\n\n## Actual Vote Data\nYou MUST use ONLY the following data. Do NOT make up bill names, vote counts, or statistics not listed here.\n\n${memberVoteDetails}` : ''}\n\nProvide specific information about their voting patterns, party alignment, and notable votes. ONLY reference bills and figures from the data above.`
-    : billTitle
-      ? `${VOTES_SYSTEM_PROMPT}\n\nThe user is asking about ${billNumber}: ${billTitle}${billResult ? `, which ${billResult}` : ''}.${billVoteDetails ? `\n\n## Actual Vote Data\nYou MUST use ONLY the following data. Do NOT make up member names or votes not listed here.\n\n${billVoteDetails}` : ''}\n\nProvide specific information about how members voted. ONLY reference members and votes from the data above.`
-      : dataContext
-        ? `${VOTES_SYSTEM_PROMPT}\n\n## Actual Vote Data\nThe following is real vote data from the NYS Legislature database. You MUST use ONLY these actual figures in your responses. Do NOT make up member names, bill numbers, vote counts, or statistics that are not in this data. If asked about something not in the data, say so rather than guessing.\n\n${dataContext}`
-        : VOTES_SYSTEM_PROMPT;
-
-  const suggestions = memberName
-    ? MEMBER_QUESTIONS
-    : billTitle
-      ? BILL_QUESTIONS
-      : SUGGESTED_QUESTIONS;
+  const suggestions = VOTES_SUGGESTED_QUESTIONS[scope || 'default'] || VOTES_SUGGESTED_QUESTIONS.default;
 
   // Get the actual scrollable viewport inside Radix ScrollArea
   const getViewport = () =>
@@ -167,16 +127,15 @@ export function VotesChatDrawer({
   useEffect(() => {
     if (!open) {
       const timer = setTimeout(() => {
-        setMessages([]);
+        stopStream();
+        clearMessages();
         setInputValue('');
-        setIsLoading(false);
         setShowScrollButton(false);
         userScrolledRef.current = false;
-        stopStream();
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [open]);
+  }, [open, stopStream, clearMessages]);
 
   // Handle scroll events to show/hide scroll-to-bottom button
   useEffect(() => {
@@ -211,173 +170,10 @@ export function VotesChatDrawer({
     setShowScrollButton(false);
   };
 
-  const stopStream = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-    if (readerRef.current) {
-      readerRef.current.cancel();
-      readerRef.current = null;
-    }
-    setMessages((prev) =>
-      prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m))
-    );
-    setIsLoading(false);
-  };
-
-  const handleFeedback = (messageId: string, feedbackValue: 'good' | 'bad' | null) => {
-    setMessages(prev => prev.map(m =>
-      m.id === messageId ? { ...m, feedback: feedbackValue } : m
-    ));
-  };
-
-  const sendMessage = async (text: string) => {
-    if (!text.trim()) return;
-
-    const userMsg: ChatMessage = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: text,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
-    setInputValue('');
-    setIsLoading(true);
-
-    const assistantId = `assistant-${Date.now()}`;
-
-    // Add placeholder assistant message for streaming
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: assistantId,
-        role: 'assistant' as const,
-        content: '',
-        timestamp: new Date(),
-        isStreaming: true,
-        streamedContent: '',
-      },
-    ]);
-
-    try {
-      const previousMessages = messages.slice(-10).map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
-
-      const supabaseUrl = (supabase as any).supabaseUrl;
-      const supabaseKey = (supabase as any).supabaseKey;
-      const { data: { session } } = await supabase.auth.getSession();
-
-      abortControllerRef.current = new AbortController();
-
-      const response = await fetch(
-        `${supabaseUrl}/functions/v1/generate-with-openai`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session?.access_token || supabaseKey}`,
-            apikey: supabaseKey,
-          },
-          body: JSON.stringify({
-            prompt: `${text} (limit response to approximately ${wordCountLimit} words)`,
-            type: 'chat',
-            stream: true,
-            model: selectedModel,
-            context: {
-              systemContext: systemPrompt,
-              previousMessages,
-            },
-            enhanceWithNYSData: false,
-            fastMode: true,
-          }),
-          signal: abortControllerRef.current.signal,
-        }
-      );
-
-      const reader = response.body?.getReader();
-      readerRef.current = reader || null;
-      const decoder = new TextDecoder();
-      let aiResponse = '';
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6);
-              if (data === '[DONE]') continue;
-
-              try {
-                const parsed = JSON.parse(data);
-                let content = '';
-                if (parsed.choices?.[0]?.delta?.content) {
-                  content = parsed.choices[0].delta.content;
-                } else if (parsed.delta?.text) {
-                  content = parsed.delta.text;
-                }
-
-                if (content) {
-                  aiResponse += content;
-                  setMessages((prev) =>
-                    prev.map((m) =>
-                      m.id === assistantId
-                        ? { ...m, streamedContent: aiResponse, content: aiResponse }
-                        : m
-                    )
-                  );
-                }
-              } catch {
-                // Skip invalid JSON chunks
-              }
-            }
-          }
-        }
-      }
-
-      // Finalize message
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantId
-            ? { ...m, isStreaming: false, content: aiResponse, streamedContent: aiResponse }
-            : m
-        )
-      );
-      setIsLoading(false);
-      readerRef.current = null;
-    } catch (err: any) {
-      if (err?.name === 'AbortError') {
-        setIsLoading(false);
-        return;
-      }
-      console.error('Votes chat error:', err);
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantId
-            ? {
-                ...m,
-                isStreaming: false,
-                content: 'Sorry, something went wrong. Please try again.',
-                streamedContent: 'Sorry, something went wrong. Please try again.',
-              }
-            : m
-        )
-      );
-      setIsLoading(false);
-    }
-  };
-
   const handleSend = () => {
     if (inputValue.trim() && !isLoading) {
       sendMessage(inputValue);
+      setInputValue('');
     }
   };
 

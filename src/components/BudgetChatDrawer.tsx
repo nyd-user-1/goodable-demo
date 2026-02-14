@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import {
   Sheet,
@@ -22,9 +22,9 @@ import {
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { ChatResponseFooter } from '@/components/ChatResponseFooter';
-import { useModel } from '@/contexts/ModelContext';
+import { useChatDrawer } from '@/hooks/useChatDrawer';
 import {
-  BUDGET_CHAT_SYSTEM_PROMPT,
+  FY2027_BUDGET_CONTEXT,
   getBudgetContextForFunction,
 } from '@/lib/budget/budgetContext';
 
@@ -60,16 +60,6 @@ interface BudgetChatDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   functionName?: string | null;
-}
-
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  isStreaming?: boolean;
-  streamedContent?: string;
-  feedback?: 'good' | 'bad' | null;
 }
 
 // Map parent function names to DB agency names for appropriation queries
@@ -226,21 +216,13 @@ export function BudgetChatDrawer({
   onOpenChange,
   functionName,
 }: BudgetChatDrawerProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [lineItemContext, setLineItemContext] = useState<string>('');
-  const { selectedModel, setSelectedModel } = useModel();
   const [wordCountLimit, setWordCountLimit] = useState<number>(250);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const readerRef = useRef<ReadableStreamDefaultReader | null>(null);
+  const [lineItemContext, setLineItemContext] = useState<string>('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const userScrolledRef = useRef(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
-
-  // Context label for the pill
-  const contextLabel = functionName || 'NYS Budget';
 
   // Fetch live appropriation line items when drawer opens with a functionName
   useEffect(() => {
@@ -281,10 +263,37 @@ export function BudgetChatDrawer({
     fetchLineItems();
   }, [open, functionName]);
 
-  // Build the system prompt
-  const systemPrompt = functionName
-    ? `${BUDGET_CHAT_SYSTEM_PROMPT}\n\nThe user is currently viewing the "${functionName}" budget category. Here is additional context:\n${getBudgetContextForFunction(functionName)}${lineItemContext ? `\n\n## Detailed Appropriation Line Items\nThe following are the top appropriation line items from the official budget. Use these to answer specific questions about programs, funds, and dollar amounts:\n\n${lineItemContext}` : ''}`
-    : BUDGET_CHAT_SYSTEM_PROMPT;
+  // Build data context from budget briefing book + function context + line items
+  const dataContext = useMemo(() => {
+    let context = FY2027_BUDGET_CONTEXT;
+    if (functionName) {
+      const fnContext = getBudgetContextForFunction(functionName);
+      if (fnContext) context += `\n\n${fnContext}`;
+    }
+    if (lineItemContext) {
+      context += `\n\n## Detailed Appropriation Line Items\nThe following are the top appropriation line items from the official budget. Use these to answer specific questions about programs, funds, and dollar amounts:\n\n${lineItemContext}`;
+    }
+    return context;
+  }, [functionName, lineItemContext]);
+
+  const {
+    messages,
+    isLoading,
+    selectedModel,
+    setSelectedModel,
+    sendMessage,
+    stopStream,
+    clearMessages,
+    handleFeedback,
+  } = useChatDrawer({
+    entityType: 'budget',
+    entityName: functionName || undefined,
+    dataContext,
+    wordCountLimit,
+  });
+
+  // Context label for the pill
+  const contextLabel = functionName || 'NYS Budget';
 
   const suggestions = functionName && FUNCTION_QUESTIONS[functionName]
     ? FUNCTION_QUESTIONS[functionName]
@@ -298,16 +307,15 @@ export function BudgetChatDrawer({
   useEffect(() => {
     if (!open) {
       const timer = setTimeout(() => {
-        setMessages([]);
+        stopStream();
+        clearMessages();
         setInputValue('');
-        setIsLoading(false);
         setShowScrollButton(false);
         userScrolledRef.current = false;
-        stopStream();
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [open]);
+  }, [open, stopStream, clearMessages]);
 
   // Handle scroll events to show/hide scroll-to-bottom button
   useEffect(() => {
@@ -342,175 +350,10 @@ export function BudgetChatDrawer({
     setShowScrollButton(false);
   };
 
-  const stopStream = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-    if (readerRef.current) {
-      readerRef.current.cancel();
-      readerRef.current = null;
-    }
-    setMessages((prev) =>
-      prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m))
-    );
-    setIsLoading(false);
-  };
-
-  const handleFeedback = (messageId: string, feedbackValue: 'good' | 'bad' | null) => {
-    setMessages(prev => prev.map(m =>
-      m.id === messageId ? { ...m, feedback: feedbackValue } : m
-    ));
-  };
-
-  const sendMessage = async (text: string) => {
-    if (!text.trim()) return;
-
-    const userMsg: ChatMessage = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: text,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
-    setInputValue('');
-    setIsLoading(true);
-
-    const assistantId = `assistant-${Date.now()}`;
-
-    // Add placeholder assistant message for streaming
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: assistantId,
-        role: 'assistant' as const,
-        content: '',
-        timestamp: new Date(),
-        isStreaming: true,
-        streamedContent: '',
-      },
-    ]);
-
-    try {
-      const previousMessages = messages.slice(-10).map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
-
-      // Use direct fetch for real SSE streaming (same pattern as NewChat)
-      const supabaseUrl = (supabase as any).supabaseUrl;
-      const supabaseKey = (supabase as any).supabaseKey;
-      const { data: { session } } = await supabase.auth.getSession();
-
-      abortControllerRef.current = new AbortController();
-
-      const response = await fetch(
-        `${supabaseUrl}/functions/v1/generate-with-openai`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session?.access_token || supabaseKey}`,
-            apikey: supabaseKey,
-          },
-          body: JSON.stringify({
-            prompt: `${text} (limit response to approximately ${wordCountLimit} words)`,
-            type: 'chat',
-            stream: true,
-            model: selectedModel,
-            context: {
-              systemContext: systemPrompt,
-              previousMessages,
-            },
-            enhanceWithNYSData: false,
-            fastMode: true,
-          }),
-          signal: abortControllerRef.current.signal,
-        }
-      );
-
-      // Stream SSE chunks
-      const reader = response.body?.getReader();
-      readerRef.current = reader || null;
-      const decoder = new TextDecoder();
-      let aiResponse = '';
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6);
-              if (data === '[DONE]') continue;
-
-              try {
-                const parsed = JSON.parse(data);
-                let content = '';
-                if (parsed.choices?.[0]?.delta?.content) {
-                  content = parsed.choices[0].delta.content;
-                } else if (parsed.delta?.text) {
-                  content = parsed.delta.text;
-                }
-
-                if (content) {
-                  aiResponse += content;
-                  setMessages((prev) =>
-                    prev.map((m) =>
-                      m.id === assistantId
-                        ? { ...m, streamedContent: aiResponse, content: aiResponse }
-                        : m
-                    )
-                  );
-                }
-              } catch {
-                // Skip invalid JSON chunks
-              }
-            }
-          }
-        }
-      }
-
-      // Finalize message
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantId
-            ? { ...m, isStreaming: false, content: aiResponse, streamedContent: aiResponse }
-            : m
-        )
-      );
-      setIsLoading(false);
-      readerRef.current = null;
-    } catch (err: any) {
-      if (err?.name === 'AbortError') {
-        setIsLoading(false);
-        return;
-      }
-      console.error('Budget chat error:', err);
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantId
-            ? {
-                ...m,
-                isStreaming: false,
-                content: 'Sorry, something went wrong. Please try again.',
-                streamedContent: 'Sorry, something went wrong. Please try again.',
-              }
-            : m
-        )
-      );
-      setIsLoading(false);
-    }
-  };
-
   const handleSend = () => {
     if (inputValue.trim() && !isLoading) {
       sendMessage(inputValue);
+      setInputValue('');
     }
   };
 

@@ -20,9 +20,9 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
 import { ChatResponseFooter } from '@/components/ChatResponseFooter';
-import { useModel } from '@/contexts/ModelContext';
+import { useChatDrawer } from '@/hooks/useChatDrawer';
+import { CONTRACTS_SUGGESTED_QUESTIONS } from '@/lib/prompts/domainPrompts';
 
 // Model provider icons
 const OpenAIIcon = ({ className }: { className?: string }) => (
@@ -62,69 +62,6 @@ interface ContractsChatDrawerProps {
   drillName?: string | null;
 }
 
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  isStreaming?: boolean;
-  streamedContent?: string;
-  feedback?: 'good' | 'bad' | null;
-}
-
-const CONTRACTS_SYSTEM_PROMPT = `You are an expert on New York State government contracts and procurement. You have access to official contract data from the NYS Comptroller's Office.
-
-Key facts about NYS contracts:
-- Contract data is sourced from the NYS Office of the State Comptroller
-- Contract types include services, commodities, construction, revenue, and grants
-- Key fields tracked include vendor name, contract amount, department/agency, contract type, and start/end dates
-- The NYS procurement process follows specific guidelines for competitive bidding
-- Contracts above certain thresholds require approval from the Office of the State Comptroller
-- "Amount" refers to the total approved contract value
-
-When discussing contract data:
-1. Be factual and cite specific dollar amounts when available
-2. Explain what the numbers mean in context
-3. Note patterns in vendor relationships and department spending
-4. Discuss the significance of contract types and their distribution
-5. Provide context about the NYS procurement process when relevant
-
-Format your responses clearly with:
-- Bold text for names, dollar amounts, and key figures
-- Bullet points for lists
-- Clear paragraph breaks`;
-
-const SUGGESTED_QUESTIONS = [
-  'Summarize overall contract spending using the actual totals provided',
-  'List the top 5 vendors by contract value from the data',
-  'Which departments have the highest contract spending? Show amounts',
-  'What patterns do you see in the contract data provided?',
-];
-
-const DEPARTMENT_QUESTIONS = [
-  'List the top contracts for this department by amount from the data',
-  'Summarize total spending, contract count, and share of total using actual figures',
-  'Which vendors have the largest contracts? List them with amounts',
-];
-
-const TYPE_QUESTIONS = [
-  'List the top contracts of this type by amount from the data provided',
-  'Summarize the total value and number of contracts with actual figures',
-  'Which are the largest individual contracts? Show amounts and details',
-];
-
-const VENDOR_QUESTIONS = [
-  'List all contracts for this vendor with amounts, dates, and contract numbers',
-  'Summarize total contract value and number of contracts using the data',
-  'What types of work does this vendor do based on the contract names provided?',
-];
-
-const DRILL_QUESTIONS = [
-  'Summarize this contract using the details provided',
-  'What is the contract amount and its share of the parent category?',
-  'What can you tell me about this vendor and contract from the data?',
-];
-
 export function ContractsChatDrawer({
   open,
   onOpenChange,
@@ -134,43 +71,38 @@ export function ContractsChatDrawer({
   dataContext,
   drillName,
 }: ContractsChatDrawerProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { selectedModel, setSelectedModel } = useModel();
   const [wordCountLimit, setWordCountLimit] = useState<number>(250);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const readerRef = useRef<ReadableStreamDefaultReader | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const userScrolledRef = useRef(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
+  // Derive scope and entity name from props
+  const scope = drillName ? 'drill' : departmentName ? 'department' : contractTypeName ? 'contractType' : vendorName ? 'vendor' : undefined;
+  const entityName = drillName || departmentName || contractTypeName || vendorName || undefined;
+
+  const {
+    messages,
+    isLoading,
+    selectedModel,
+    setSelectedModel,
+    sendMessage,
+    stopStream,
+    clearMessages,
+    handleFeedback,
+  } = useChatDrawer({
+    entityType: 'contract',
+    entityName: entityName || undefined,
+    scope,
+    dataContext: dataContext || undefined,
+    wordCountLimit,
+  });
+
   // Context label for the pill
   const contextLabel = drillName || departmentName || contractTypeName || vendorName || 'NYS Contracts';
 
-  // Build context-specific system prompt
-  const dataSection = dataContext ? `\n\n## Actual Contract Data\nThe following is real contract data from the NYS Comptroller's database. You MUST use ONLY these actual figures in your responses. Do NOT make up names, amounts, contract numbers, or dates that are not in this data. If asked about something not in the data, say so rather than guessing.\n\n${dataContext}` : '';
-
-  const systemPrompt = drillName
-    ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about a specific contract: "${drillName}". Use the actual contract data provided below to answer questions with specific dollar amounts, dates, and parent category context.${dataSection}`
-    : departmentName
-      ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about contracts in the "${departmentName}" department. Use the actual contract data provided below to answer questions with specific dollar amounts, vendor names, and contract details.${dataSection}`
-      : contractTypeName
-        ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about "${contractTypeName}" type contracts. Use the actual contract data provided below to answer questions with specific dollar amounts, vendor names, and contract details.${dataSection}`
-        : vendorName
-          ? `${CONTRACTS_SYSTEM_PROMPT}\n\nThe user is asking about the vendor "${vendorName}". Use the actual contract data provided below to answer questions with specific dollar amounts, contract names, and dates.${dataSection}`
-          : `${CONTRACTS_SYSTEM_PROMPT}${dataSection}`;
-
-  const suggestions = drillName
-    ? DRILL_QUESTIONS
-    : departmentName
-      ? DEPARTMENT_QUESTIONS
-      : contractTypeName
-        ? TYPE_QUESTIONS
-        : vendorName
-          ? VENDOR_QUESTIONS
-          : SUGGESTED_QUESTIONS;
+  const suggestions = CONTRACTS_SUGGESTED_QUESTIONS[scope || 'default'] || CONTRACTS_SUGGESTED_QUESTIONS.default;
 
   // Get the actual scrollable viewport inside Radix ScrollArea
   const getViewport = () =>
@@ -180,16 +112,15 @@ export function ContractsChatDrawer({
   useEffect(() => {
     if (!open) {
       const timer = setTimeout(() => {
-        setMessages([]);
+        stopStream();
+        clearMessages();
         setInputValue('');
-        setIsLoading(false);
         setShowScrollButton(false);
         userScrolledRef.current = false;
-        stopStream();
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [open]);
+  }, [open, stopStream, clearMessages]);
 
   // Handle scroll events to show/hide scroll-to-bottom button
   useEffect(() => {
@@ -224,173 +155,10 @@ export function ContractsChatDrawer({
     setShowScrollButton(false);
   };
 
-  const stopStream = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-    if (readerRef.current) {
-      readerRef.current.cancel();
-      readerRef.current = null;
-    }
-    setMessages((prev) =>
-      prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m))
-    );
-    setIsLoading(false);
-  };
-
-  const handleFeedback = (messageId: string, feedbackValue: 'good' | 'bad' | null) => {
-    setMessages(prev => prev.map(m =>
-      m.id === messageId ? { ...m, feedback: feedbackValue } : m
-    ));
-  };
-
-  const sendMessage = async (text: string) => {
-    if (!text.trim()) return;
-
-    const userMsg: ChatMessage = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: text,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
-    setInputValue('');
-    setIsLoading(true);
-
-    const assistantId = `assistant-${Date.now()}`;
-
-    // Add placeholder assistant message for streaming
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: assistantId,
-        role: 'assistant' as const,
-        content: '',
-        timestamp: new Date(),
-        isStreaming: true,
-        streamedContent: '',
-      },
-    ]);
-
-    try {
-      const previousMessages = messages.slice(-10).map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
-
-      const supabaseUrl = (supabase as any).supabaseUrl;
-      const supabaseKey = (supabase as any).supabaseKey;
-      const { data: { session } } = await supabase.auth.getSession();
-
-      abortControllerRef.current = new AbortController();
-
-      const response = await fetch(
-        `${supabaseUrl}/functions/v1/generate-with-openai`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session?.access_token || supabaseKey}`,
-            apikey: supabaseKey,
-          },
-          body: JSON.stringify({
-            prompt: `${text} (limit response to approximately ${wordCountLimit} words)`,
-            type: 'chat',
-            stream: true,
-            model: selectedModel,
-            context: {
-              systemContext: systemPrompt,
-              previousMessages,
-            },
-            enhanceWithNYSData: false,
-            fastMode: true,
-          }),
-          signal: abortControllerRef.current.signal,
-        }
-      );
-
-      const reader = response.body?.getReader();
-      readerRef.current = reader || null;
-      const decoder = new TextDecoder();
-      let aiResponse = '';
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6);
-              if (data === '[DONE]') continue;
-
-              try {
-                const parsed = JSON.parse(data);
-                let content = '';
-                if (parsed.choices?.[0]?.delta?.content) {
-                  content = parsed.choices[0].delta.content;
-                } else if (parsed.delta?.text) {
-                  content = parsed.delta.text;
-                }
-
-                if (content) {
-                  aiResponse += content;
-                  setMessages((prev) =>
-                    prev.map((m) =>
-                      m.id === assistantId
-                        ? { ...m, streamedContent: aiResponse, content: aiResponse }
-                        : m
-                    )
-                  );
-                }
-              } catch {
-                // Skip invalid JSON chunks
-              }
-            }
-          }
-        }
-      }
-
-      // Finalize message
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantId
-            ? { ...m, isStreaming: false, content: aiResponse, streamedContent: aiResponse }
-            : m
-        )
-      );
-      setIsLoading(false);
-      readerRef.current = null;
-    } catch (err: any) {
-      if (err?.name === 'AbortError') {
-        setIsLoading(false);
-        return;
-      }
-      console.error('Contracts chat error:', err);
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantId
-            ? {
-                ...m,
-                isStreaming: false,
-                content: 'Sorry, something went wrong. Please try again.',
-                streamedContent: 'Sorry, something went wrong. Please try again.',
-              }
-            : m
-        )
-      );
-      setIsLoading(false);
-    }
-  };
-
   const handleSend = () => {
     if (inputValue.trim() && !isLoading) {
       sendMessage(inputValue);
+      setInputValue('');
     }
   };
 
